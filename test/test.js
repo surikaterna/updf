@@ -127,17 +127,21 @@ describe('PdfDoc', () => {
       block({ style: { top: 0, left: 100, position: 'absolute' } },
         ['Hello world!', 'Again!'])
     );
-    console.log('STREAM: ', JSON.stringify(r, null, 2));
-    console.log('S STREAM:\n', JSON.stringify(solve(r), null, 2));
+    // console.log('STREAM: ', JSON.stringify(r, null, 2));
+    // console.log('S STREAM:\n', JSON.stringify(solve(r), null, 2));
     console.log('R STREAM:\n', JSON.stringify(render(r, { doc }), null, 2));
     const out = [];
     try {
-      doc.write((e) => out.push(e));
+      doc.write((e) => {
+        if (out.length === 0) {
+        }
+        out.push(e);
+      });
     } catch (e) {
       console.log(doc._objects);
       console.error(e);
     }
-    console.log('RR STREAM:\n\n', out.join(''));
+    console.log('RR STREAM:\n\n' + out.join(''));
     // console.log('REN2 STREAM:\n', _render(r));
   });
 });

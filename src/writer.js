@@ -45,6 +45,7 @@ class Writer {
   constructor(out) {
     this._offset = 0;
     this._out = (e) => {
+      // console.log('!!!!!' + e + '%%%%');
       out(e);
       this._offset += e.length;
       return this;
