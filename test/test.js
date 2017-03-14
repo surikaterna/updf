@@ -121,7 +121,7 @@ describe('PdfDoc', () => {
     }
     console.log(out.join(''));
   });
-  it.only('stream', () => {
+  it('stream', () => {
     const doc = new PdfDoc();
     const r = page({ mediaBox: [0, 0, 595.28, 841.89] },
       block({ style: { top: 0, left: 100, position: 'absolute' } },
