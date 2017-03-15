@@ -3,8 +3,9 @@ import bind from './bind';
 
 const block = (props, context) => {
   const ctx = Object.assign({}, context);
-  let cx = props.style.left;
-  let cy = context.style.$height - props.style.top;
+  const style = props.style || {};
+  let cx = style.left;
+  let cy = context.style.$height - style.top;
   //  cx += props.style.left;
   // used so that we can wrap text in container &
   // make sure all elements are layed out "properly"...
@@ -25,8 +26,9 @@ const block = (props, context) => {
   }
   console.log('>BLOCK');
    // collect children and sizes of children
-  props.children.forEach(ch => _render(ch, ctx));
+  props.children && props.children.forEach(ch => _render(ch, ctx));
   console.log('<BLOCK');
+  context.append();
   // every day I'm rendering
 };
 
