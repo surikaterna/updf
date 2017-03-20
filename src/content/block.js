@@ -1,6 +1,7 @@
 import _render from './_render';
 import bind from './bind';
 
+/** blocks are full parent width by default */
 const block = (props, context) => {
   const ctx = Object.assign({}, context);
   const style = props.style || {};
