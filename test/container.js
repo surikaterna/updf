@@ -27,6 +27,12 @@ function style(props, values) {
   return props.style;
 }
 
+function styler(vdom, context) {
+  // context.css vs vdom.props.style
+  // call style setters
+}
+
+
 /** Travel vdom tree and calculate all size dependent properties
  *  and set them explicitly for easier render
  */
