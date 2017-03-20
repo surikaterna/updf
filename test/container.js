@@ -18,23 +18,34 @@ function display(vdom) {
   return (vdom.style && vdom.style.display) || vdom.type;
 }
 
-function layouter(vdom, context) {
+function style(props, values) {
+  props.style = Object.assign(props.style || {}, values);
+  return props.style;
+}
+
+function layouter(vdom) {
   console.log('>', vdom.type, Object.keys(vdom), vdom.children);
-  vdom.props.style = vdom.props.style || {};
-  const dsp = display(vdom);
+  style(vdom.props); //.style = vdom.props.style || {};
   let x = 0;
   let y = 0;
+  let currentLineHeight = 0;
   if (vdom.children && vdom.children.length > 0) {
     vdom.children.forEach(ch => {
       console.log('>', ch.props.style.width);
       const ctx = context.push();
-      layouter(ch, );
+      layouter(ch, ctx);
       context.pop();
       console.log('<', ch.props.style.width);
-      // consider position attribute
-      if (dsp === 'inline') {
-        x = Math.max(x, ch.props.style.width);
+      const dsp = display(ch);
+      if (dsp === 'block') {
+        x = 0;
+        y += currentLineHeight; // change to a new line
+      } else {
+        //currentLineHeight = Math.max(ch.props.height, currentLineHeight);
+        //ch.props.style
       }
+      // layouter(ch);
+      // consider position attribute
       y += ch.props.style.height || 0;
       console.log(x, y);
     });
@@ -42,6 +53,8 @@ function layouter(vdom, context) {
     vdom.props.style.height = y;
   }
 };
+
+
 
 function dumpDom(vdom, indent = 0) {
   let out = '';
@@ -92,16 +105,17 @@ class Context {
 
 describe('container', () => {
   it.only('should limit size of children to container', () => {
-    /*const b = block({},
+
+    const b = block({},
       block({ style: { width: 100 } },
         block({ style: { width: 120 } },
           inline({}, 'Hello World!')
         )));
-        */
     const ctx = new Context();
     layouter(b, ctx);
     //dumpDom(b);
     //b.props.style.width.should.equal(0);
+
   });
 });
 
