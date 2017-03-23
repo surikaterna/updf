@@ -104,6 +104,7 @@ class Context {
 
   _eachContextKey(fn) {
     Object.keys(this).forEach(k => {
+      // skip internal keys
       k !== '_contexts' && fn(k);
     });
   }
