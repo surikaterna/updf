@@ -160,6 +160,7 @@ class Context {
 
   _eachContextKey(fn) {
     Object.keys(this).forEach(k => {
+      // skip internal keys
       k !== '_contexts' && fn(k);
     });
   }
@@ -189,7 +190,7 @@ class Fonts {
 describe('container', () => {
   it.only('should limit size of children to container', () => {
 
-    const b = block({ style: { fontFamily: 'Helvetica', fontSize: 12, maxWidth: 30 } }, block({},
+    const b = block({ style: { fontFamily: 'Helvetica', fontSize: 12, maxWidth: 30, top: 800, left: 40 } }, block({},
       'Hello World!'
     ));
     const ctx = new Context();
