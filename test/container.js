@@ -42,12 +42,13 @@ function styler(vdom, context) {
 }
 
 function layoutText(width, currentX, txt, font, fontSize) {
+  // result will contain an array of layouted lines
   const result = [''];
+  // divide into lines of words
   let lines = txt.split('\n');
   lines = lines.map(line => line.split(' '));
-  console.log('liens', lines);
+
   const spaceSize = font.width(' ', fontSize);
-  console.log('Space', spaceSize);
 
   let cx = currentX;
   let cy = 0;
