@@ -12,10 +12,13 @@ import should from 'should';
   * render
 */
 
+const isText = (obj) => typeof obj === 'string';
+
 
 const ss = {
-  fontFamily: (ctx, val) => ({ font: ctx.fontCache.load(val) }),
-  fontSize: (ctx, val) => ({ fontSize: val }) // resolve absolute / relative codes
+  fontFamily: (ctx, val) => ({ font: ctx.fonts.get(val) }),
+  fontSize: (ctx, val) => ({ fontSize: val }), // resolve absolute / relative codes
+  maxWidth: (ctx, val) => ({ maxWidth: val })
 };
 
 function display(vdom) {
@@ -30,6 +33,44 @@ function style(props, values) {
 function styler(vdom, context) {
   // context.css vs vdom.props.style
   // call style setters
+  const stil = style(vdom.props);
+  Object.keys(stil).forEach(key => {
+    if (ss[key]) {
+      Object.assign(context, ss[key](context, stil[key]));
+    }
+  });
+}
+
+function layoutText(width, currentX, txt, font, fontSize) {
+  const result = [''];
+  let lines = txt.split('\n');
+  lines = lines.map(line => line.split(' '));
+  console.log('liens', lines);
+  const spaceSize = font.width(' ', fontSize);
+  console.log('Space', spaceSize);
+
+  let cx = currentX;
+  let cy = 0;
+
+  lines.forEach(line => {
+    line.forEach(word => {
+      const wordsize = font.width(word, fontSize);
+      console.log('WZ', wordsize);
+      if (!cx || (wordsize + spaceSize < width)) {
+        cx += wordsize + spaceSize;
+        result[result.length - 1] += word + ' ';
+      } else {
+        // new line
+        cx = wordsize;
+        cy += fontSize;
+        result.push(word + ' ');
+      }
+    });
+    cx = 0;
+    cy += fontSize;
+  });
+  console.log('RES ', result);
+  return { cx, lines: result };
 }
 
 
@@ -37,32 +78,42 @@ function styler(vdom, context) {
  *  and set them explicitly for easier render
  */
 function layouter(vdom, context) {
-  console.log('>', vdom.type, Object.keys(vdom), vdom.children);
-  style(vdom.props); //.style = vdom.props.style || {};
+  //style(vdom.props); //.style = vdom.props.style || {};
+  styler(vdom, context);
+  console.log('>', vdom.type, Object.keys(vdom), vdom.children, Object.keys(context));
   let x = 0;
   let y = 0;
   let currentLineHeight = 0;
   if (vdom.children && vdom.children.length > 0) {
     vdom.children.forEach(ch => {
-      console.log('>', ch.props.style && ch.props.style.width);
-      const ctx = context.push();
-      layouter(ch, ctx);
-      context.pop();
-      console.log('<', ch.props.style.width);
-      const dsp = display(ch);
-      if (dsp === 'block') {
-        x = 0;
-        y += currentLineHeight; // change to a new line
+      if (isText(ch)) {
+        const width = vdom.props.style.width || context.maxWidth;
+        const res = layoutText(width, x, ch, context.font, context.fontSize);
+        x = res.cx;
+        y += res.lines.length * context.fontSize;
       } else {
-        currentLineHeight = Math.max(ch.props.height, currentLineHeight);
-        //ch.props.style
+        console.log('>', ch.props.style && ch.props.style.width);
+        const ctx = context.push();
+        layouter(ch, ctx);
+        context.pop();
+        console.log('<', ch.props.style.width);
+        /*        const dsp = display(ch);
+                if (dsp === 'block') {
+                  x = 0;
+                  y += currentLineHeight; // change to a new line
+                } else {
+                  currentLineHeight = Math.max(ch.props.height, currentLineHeight);
+                  //ch.props.style
+                }
+                // layouter(ch);
+                // consider position attribute
+                y += ch.props.style.height || 0;
+                console.log(x, y);
+        */
+
       }
-      // layouter(ch);
-      // consider position attribute
-      y += ch.props.style.height || 0;
-      console.log(x, y);
     });
-    vdom.props.style.width = x;
+    vdom.props.style.width |= context.maxWidth;
     vdom.props.style.height = y;
   }
 };
@@ -80,7 +131,11 @@ function dumpDom(vdom, indent = 0) {
   console.log(out);
   if (vdom.children) {
     vdom.children.forEach(ch => {
-      dumpDom(ch, indent + 1);
+      if (isText(ch)) {
+        console.log(ch);
+      } else {
+        dumpDom(ch, indent + 1);
+      }
     });
   }
   out = '';
@@ -134,11 +189,9 @@ class Fonts {
 describe('container', () => {
   it.only('should limit size of children to container', () => {
 
-    const b = block({ style: { fontFamily: 'Helvetica', fontSize: 12, maxWidth: 1000 } },
-      block({ style: { width: 100 } },
-        block({ style: { width: 120 } },
-          inline({}, text({ string: 'Hello World!' }))
-        )));
+    const b = block({ style: { fontFamily: 'Helvetica', fontSize: 12, maxWidth: 30 } }, block({},
+      'Hello World!'
+    ));
     const ctx = new Context();
     // defaults
     ctx.fonts = new Fonts();
