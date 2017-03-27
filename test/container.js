@@ -1,8 +1,9 @@
 import block from '../src/content/block';
 import inline from '../src/content/inline';
 import text from '../src/content/text';
-
 import helvetica from '../src/font/helvetica';
+
+import reduce from '../src/vdom/reduce';
 
 import should from 'should';
 
@@ -73,6 +74,11 @@ function layoutText(width, currentX, txt, font, fontSize) {
   return { cx, lines: result };
 }
 
+function position(props, context) {
+  let pos = props.style.position || 'static';
+  return pos;
+}
+
 
 /** Travel vdom tree and calculate all size dependent properties
  *  and set them explicitly for easier render
@@ -94,6 +100,7 @@ function layouter(vdom, context) {
       } else {
         console.log('>', ch.props.style && ch.props.style.width);
         const ctx = context.push();
+        ch.context = ctx;
         layouter(ch, ctx);
         context.pop();
         console.log('<', ch.props.style.width);
@@ -189,15 +196,17 @@ class Fonts {
 describe('container', () => {
   it.only('should limit size of children to container', () => {
 
-    const b = block({ style: { fontFamily: 'Helvetica', fontSize: 12, maxWidth: 30, top: 800, left: 40 } }, block({},
+    const b = block({ style: { fontFamily: 'Helvetica', fontSize: 12, maxWidth: 30, top: 800, left: 40, position: 'absolute' } }, block({},
       'Hello World!'
     ));
     const ctx = new Context();
     // defaults
     ctx.fonts = new Fonts();
     ctx.font = ctx.fonts.add('Helvetica', helvetica);
-    layouter(b, ctx);
-    dumpDom(b);
+    const rb = reduce(b, ctx);
+    layouter(rb, ctx);
+    dumpDom(rb);
+    console.log(b.context);
     //b.props.style.width.should.equal(0);
 
   });
@@ -212,6 +221,6 @@ describe('Context', () => {
       context.pop();
       should(context.test).equal(undefined);
     });
-  })
+  });
 });
 

@@ -4,17 +4,10 @@ import text from '../src/content/text';
 import box from '../src/content/box';
 import block from '../src/content/block';
 import page from '../src/content/page';
-import buildProps from '../src/content/_buildProps';
+import buildProps from '../src/vdom/buildProps';
+import reduce from '../src/vdom/reduce';
 
 should();
-
-const isFunction = (obj) => typeof obj === 'function';
-
-class Page {
-  constructor(page) {
-    this._page = page;
-  }
-}
 
 /*
 function _render(node) {
@@ -23,12 +16,6 @@ function _render(node) {
   const res = (node.type && node.type(newProps)) || node;
   return res;
 }*/
-
-const isComponent = (node) => node.type && isFunction(node.type);
-
-const buildComponent = (node, context) => {
-  return node.type(buildProps(node), context);
-}
 
 // This is done in a linear time O(n) without recursion
 // memory complexity is O(1) or O(n) if mutable param is set to false
@@ -58,40 +45,9 @@ function flatten(array, mutable) {
   return result;
 }
 
-function trav(vnode, context) {
-  let node = vnode;
-  // traverse all components until we get a node which is a "proper" vdom node
-  while (isComponent(node)) {
-    node = buildComponent(node, context);
-  }
-
-  if (typeof (node) === 'string') {
-    node = text({ str: node });
-  }
-
-  let children;
-  if (node === null) {
-    throw new Error('Null returned from render fn');
-    //node = {};
-  } else if (Array.isArray(node)) {
-    // For convenience, fake it into a seq vnode
-    children = node;
-  } else {
-    children = node.children;
-  }
-
-  if (children) {
-    //console.log('>>', node.type, children);
-    const chlds = children.map(child => trav(child, context));
-    console.log('CC', chlds);
-    node.children = chlds;
-  }
-
-  return node;
-}
 
 function solve(vnode, context) {
-  return trav(vnode, context);
+  return reduce(vnode, context);
 }
 
 function render(vnode, context) {
