@@ -13,7 +13,7 @@ import should from 'should';
   * render
 */
 
-const isText = (obj) => typeof obj === 'string';
+const isText = (obj) => typeof obj === 'string' || (obj.type && obj.type === 'text');
 
 
 const ss = {
@@ -42,7 +42,8 @@ function styler(vdom, context) {
   });
 }
 
-function layoutText(width, currentX, txt, font, fontSize) {
+function layoutText(width, currentX, tt, font, fontSize) {
+  const txt = tt.props.str;
   const result = [''];
   let lines = txt.split('\n');
   lines = lines.map(line => line.split(' '));
@@ -138,11 +139,11 @@ function dumpDom(vdom, indent = 0) {
   console.log(out);
   if (vdom.children) {
     vdom.children.forEach(ch => {
-      if (isText(ch)) {
-        console.log(ch);
-      } else {
+/*      if (isText(ch)) {
+        console.log(ch.str);
+      } else {*/
         dumpDom(ch, indent + 1);
-      }
+      //}
     });
   }
   out = '';
