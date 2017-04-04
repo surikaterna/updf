@@ -47,17 +47,15 @@ function layoutText(width, currentX, tt, font, fontSize) {
   const result = [''];
   let lines = txt.split('\n');
   lines = lines.map(line => line.split(' '));
-  console.log('liens', lines);
   const spaceSize = font.width(' ', fontSize);
-  console.log('Space', spaceSize);
 
   let cx = currentX;
   let cy = 0;
-
+  // lines are explicit line breaks....
+  // split words and see what fits in the width available, and make implicit line breaks where needed
   lines.forEach(line => {
     line.forEach(word => {
       const wordsize = font.width(word, fontSize);
-      console.log('WZ', wordsize);
       if (!cx || (wordsize + spaceSize < width)) {
         cx += wordsize + spaceSize;
         result[result.length - 1] += word + ' ';
@@ -71,7 +69,6 @@ function layoutText(width, currentX, tt, font, fontSize) {
     cx = 0;
     cy += fontSize;
   });
-  console.log('RES ', result);
   return { cx, lines: result };
 }
 
@@ -96,7 +93,8 @@ function layouter(vdom, context) {
       if (isText(ch)) {
         const width = vdom.props.style.width || context.maxWidth;
         const res = layoutText(width, x, ch, context.font, context.fontSize);
-        x = res.cx;
+        console.log('TXT', res);
+        // x = res.cx;
         y += res.lines.length * context.fontSize;
       } else {
         console.log('>', ch.props.style && ch.props.style.width);
