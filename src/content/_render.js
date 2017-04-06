@@ -1,4 +1,4 @@
-import _buildProps from './_buildProps';
+import _buildProps from '../vdom/buildProps';
 
 export default function _render(vnode, context) {
   //if(Array.isArray(vnode))
