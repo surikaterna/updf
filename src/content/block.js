@@ -3,7 +3,7 @@ import bind from './bind';
 
 /** blocks are full parent width by default */
 const block = (props, context) => {
-  const ctx = Object.assign({}, context);
+/*  const ctx = Object.assign({}, context);
   const style = props.style || {};
   let cx = style.left;
   let cy = context.style.$height - style.top;
@@ -31,6 +31,7 @@ const block = (props, context) => {
   console.log('<BLOCK');
   context.append();
   // every day I'm rendering
+*/  
 };
 
 export default bind('block', block);

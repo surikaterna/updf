@@ -30,7 +30,6 @@ export default function reduce(vnode, context) {
   if (children) {
     //console.log('>>', node.type, children);
     const chlds = children.map(child => reduce(child, context));
-    console.log('CC', chlds);
     node.children = chlds;
   }
 
