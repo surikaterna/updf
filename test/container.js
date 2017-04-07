@@ -2,6 +2,8 @@ import block from '../src/content/block';
 import page from '../src/content/page';
 import document from '../src/content/document';
 import inline from '../src/content/inline';
+import rect from '../src/content/vector/rect';
+
 import text from '../src/content/text';
 import a4 from '../src/boxes/a4';
 import helvetica from '../src/font/helvetica';
@@ -99,28 +101,29 @@ describe('container', () => {
     const height = 841.89;
     const left = 40;
     const top = 100;
-/*    
-    <Document>
-      <Page mediaBox={{ mediaBox: a4 }}>
-        <Block style={{ fontFamily: 'Helvetica', fontSize: 12, top, left, position: 'absolute' }}>
-          <Block style={{ top }}>
-            <Inline>
-              Hello World             2!
-            </Inline>
-            <Inline>Again</Inline>
-          </Block>
-        </Block>
-      </Page>
-    </Document>
-*/
+    /*    
+        <Document>
+          <Page mediaBox={{ mediaBox: a4 }}>
+            <Block style={{ fontFamily: 'Helvetica', fontSize: 12, top, left, position: 'absolute' }}>
+              <Block style={{ top }}>
+                <Inline>
+                  Hello World             2!
+                </Inline>
+                <Inline>Again</Inline>
+              </Block>
+            </Block>
+          </Page>
+        </Document>
+    */
     const b = document({},
-      page({ mediaBox: a4 },
+      page({ mediaBox: a4 }, [
         block({ style: { fontFamily: 'Helvetica', fontSize: 12, top, left, position: 'absolute' } },
           block({ style: { top: 100 } },
-            ['Hello World              2!', 'Again']
-          )
-        )
-      )
+            ['Hello World              2!', 'Again', ' Or']
+          ),
+        ),
+        rect({ style: { left: 200, top: 100 } })
+      ])
     );
 
 
@@ -148,6 +151,7 @@ describe('container', () => {
     } catch (e) {
       console.error(e);
     }
+    require('fs').writeFileSync('d:\\temp.pdf', out.join(''));
     //console.log('RES\n', out.join(''));
 
     //    console.log(b.context);
