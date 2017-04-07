@@ -115,6 +115,20 @@ describe('container', () => {
           </Page>
         </Document>
     */
+/*
+    <Document>
+      <Page mediaBox={{ mediaBox: a4 }}>
+        <Block style={{ fontFamily: 'Helvetica', fontSize: 12, top, left, position: 'absolute' }}>
+          <Block style={{ top }}>
+            <Inline>
+              Hello World             2!
+            </Inline>
+            <Inline>Again</Inline>
+          </Block>
+        </Block>
+      </Page>
+    </Document>
+*/
     const b = document({},
       page({ mediaBox: a4 }, [
         block({ style: { fontFamily: 'Helvetica', fontSize: 12, top, left, position: 'absolute' } },
