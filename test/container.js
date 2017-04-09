@@ -101,7 +101,7 @@ describe('container', () => {
     const height = 841.89;
     const left = 40;
     const top = 100;
-    /*    
+    /*
         <Document>
           <Page mediaBox={{ mediaBox: a4 }}>
             <Block style={{ fontFamily: 'Helvetica', fontSize: 12, top, left, position: 'absolute' }}>
@@ -135,8 +135,8 @@ describe('container', () => {
           block({ style: { top: 100 } },
             ['Hello World              2!', 'Again', ' Or']
           ),
-        ),
-        rect({ style: { left: 200, top: 100 } })
+        )
+        //rect({ style: { left: 200, top: 100 } })
       ])
     );
 
@@ -165,7 +165,7 @@ describe('container', () => {
     } catch (e) {
       console.error(e);
     }
-    require('fs').writeFileSync('d:\\temp.pdf', out.join(''));
+    require('fs').writeFileSync('z:\\temp.pdf', out.join(''));
     //console.log('RES\n', out.join(''));
 
     //    console.log(b.context);

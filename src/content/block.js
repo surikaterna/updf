@@ -1,6 +1,8 @@
 import _render from './_render';
 import bind from './bind';
 
+import border from './styles/border';
+
 /** blocks are full parent width by default */
 const block = (props, context) => {
 /*  const ctx = Object.assign({}, context);
@@ -31,7 +33,8 @@ const block = (props, context) => {
   console.log('<BLOCK');
   context.append();
   // every day I'm rendering
-*/  
+*/
+  border(props, context);
 };
 
 export default bind('block', block);
