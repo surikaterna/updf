@@ -18,6 +18,7 @@ export default (type, props, children, component) => {
     children,
     component
   };
+  console.log('||, ', type);
   /*if (typeof render === 'object') {
     result.render = render.render;
     Object.keys(render).forEach(key => {
