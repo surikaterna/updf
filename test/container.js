@@ -25,12 +25,13 @@ import should from 'should';
 
 function dumpDom(vdom, indent = 0) {
   let out = '';
+  //if(vdom.context == null || vdom.props == null) {}
   for (let i = 0; i < indent; i++) { out += '  '; }
   out += `<${vdom.type}`;
-  Object.keys(vdom.props).forEach(key => {
+  Object.keys(vdom.props || {}).forEach(key => {
     out += ` ${key}=${JSON.stringify(vdom.props[key])}`;
   });
-  Object.keys(vdom.context).forEach(key => {
+  Object.keys(vdom.context || {}).forEach(key => {
     if (key !== 'font' && key !== 'fonts' && key !== '_contexts') {
       out += ` $${key}=${JSON.stringify(vdom.context[key])}`;
     }
@@ -52,34 +53,6 @@ function dumpDom(vdom, indent = 0) {
   console.log(`${out}</${vdom.type}>`);
 }
 
-class Context {
-  constructor() {
-    this._contexts = [];
-    this.push();
-  }
-
-  push() {
-    const ctx = {};
-    this._eachContextKey((k) => { ctx[k] = this[k]; });
-    this._contexts.push(ctx);
-    return this;
-  }
-
-  _eachContextKey(fn) {
-    Object.keys(this).forEach(k => {
-      // skip internal keys
-      k !== '_contexts' && fn(k);
-    });
-  }
-
-  pop() {
-    const ctx = this._contexts.pop();
-    // remove all current keys
-    this._eachContextKey(k => delete this[k]);
-    // restore previous keys
-    Object.keys(ctx).forEach(k => { this[k] = ctx[k]; });
-  }
-}
 
 class Fonts {
   constructor() {
@@ -115,24 +88,24 @@ describe('container', () => {
           </Page>
         </Document>
     */
-/*
-    <Document>
-      <Page mediaBox={{ mediaBox: a4 }}>
-        <Block style={{ fontFamily: 'Helvetica', fontSize: 12, top, left, position: 'absolute' }}>
-          <Block style={{ top }}>
-            <Inline>
-              Hello World             2!
-            </Inline>
-            <Inline>Again</Inline>
-          </Block>
-        </Block>
-      </Page>
-    </Document>
-*/
+    /*
+        <Document>
+          <Page mediaBox={{ mediaBox: a4 }}>
+            <Block style={{ fontFamily: 'Helvetica', fontSize: 12, top, left, position: 'absolute' }}>
+              <Block style={{ top }}>
+                <Inline>
+                  Hello World             2!
+                </Inline>
+                <Inline>Again</Inline>
+              </Block>
+            </Block>
+          </Page>
+        </Document>
+    */
     const b = document({},
       page({ mediaBox: a4 }, [
-        block({ style: { fontFamily: 'Helvetica', fontSize: 12, top, left, position: 'absolute' } },
-          block({ style: { top: 100 } },
+        block({ style: { fontFamily: 'Helvetica', fontSize: 12, top, left, position: 'absolute', border: true } },
+          block({ style: { top: 100, border: true, width: 100, textAlign: 'right' } },
             ['Hello World              2!', 'Again', ' Or']
           ),
         )
@@ -145,6 +118,7 @@ describe('container', () => {
     const ctx = {
       width,
       height,
+      maxWidth: width,
       mediaBox: a4,
       ax: 0,
       ay: 0,
@@ -165,7 +139,7 @@ describe('container', () => {
     } catch (e) {
       console.error(e);
     }
-    require('fs').writeFileSync('z:\\temp.pdf', out.join(''));
+    require('fs').writeFileSync('d:\\temp.pdf', out.join(''));
     //console.log('RES\n', out.join(''));
 
     //    console.log(b.context);
@@ -173,18 +147,6 @@ describe('container', () => {
     //console.log('>>', b.children[0].children[0].context);
     b.children[0].children[0].context.ax.should.equal(left);
     b.children[0].children[0].context.ay.should.equal(top);
-  });
-});
-
-describe('Context', () => {
-  describe('#pop', () => {
-    it('should remove any added context properties', () => {
-      const context = new Context();
-      context.push();
-      context.test = 'Hello';
-      context.pop();
-      should(context.test).equal(undefined);
-    });
   });
 });
 
