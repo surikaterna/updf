@@ -33,7 +33,6 @@ const code39 = (props) => {
   const elemWidth = width / (b.length);
   let x = 0;
   let cWidth = 0;
-  console.log('C39', b);
   const children = [...b].map((s, i) => {
     let r = null;
     if (s === '1') {
