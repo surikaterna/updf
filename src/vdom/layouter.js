@@ -14,19 +14,78 @@ const dumpContext = (ctx) => {
 const ss = {
   fontFamily: (ctx, val) => ({ font: ctx.fonts.get(val) }),
   fontSize: (ctx, val) => ({ fontSize: val }), // resolve absolute / relative codes
-  maxWidth: (ctx, val) => ({ maxWidth: Math.min(val, ctx.maxWidth) }),
-  left: (ctx, val) => ({ ax: ctx.ax + val, x: val, width: ctx.width - val }),
-  top: (ctx, val) => ({ ay: ctx.ay + val, y: val }),
-  width: (ctx, val) => ({ width: Math.min(val, ctx.maxWidth), maxWidth: Math.min(val, ctx.maxWidth) }),
-  height: (ctx, val) => ({ height: Math.min(val, ctx.maxHeight), maxHeight: Math.min(val, ctx.maxHeight) }),
-  right: (ctx, val) => ({ width: ctx.width - val, ax: val })
+  /*  maxWidth: (ctx, val) => ({ maxWidth: Math.min(val, ctx.maxWidth) }),
+    left: (ctx, val) => ({ ax: ctx.ax + val, x: val, width: ctx.width - val }),
+    top: (ctx, val) => ({ ay: ctx.ay + val, y: val }),
+    width: (ctx, val) => ({ width: Math.min(val, ctx.maxWidth), maxWidth: Math.min(val, ctx.maxWidth) }),
+    height: (ctx, val) => ({ height: Math.min(val, ctx.maxHeight), maxHeight: Math.min(val, ctx.maxHeight) }),
+    right: (ctx, val) => ({ width: ctx.width - val, ax: val })*/
 };
+
+
+/**
+  static   -  Default value. Elements render in order, as they appear in the document flow	Play it »
+  absolute -	The element is positioned relative to its first positioned (not static) ancestor element	Play it »
+  fixed	   -  The element is positioned relative to the browser window	Play it »
+  relative -  The element is positioned relative to its normal position, so "left:20px" adds 20 pixels to the element's LEFT position	Play it »
+  initial	 -  Sets this property to its default value. Read about initial	Play it »
+  inherit	 -  Inherits this property from its parent element. Read about inherit
+*/
+const processors = [
+  (vdom, context) => {
+    // I position things
+     console.log('PROG PROG ', vdom.type);
+    const style = vdom.props.style;
+
+    const maxWidth = context.maxWidth;
+    const docWidth = context.mediaBox[2];
+    let width = style.width || maxWidth;
+
+    const maxHeight = context.maxHeight;
+    const docHeight = context.mediaBox[3];
+    let height = style.height || maxHeight;
+
+    const position = style.position || 'static';
+    console.log('ÅÅ', maxWidth, width);
+    if (position === 'fixed') {
+      const { top, bottom, left, right } = style;
+      if (left && right) {
+        console.log('L+R');
+        width = docWidth - (right + left);
+      }
+      if (top && bottom) {
+        height = docHeight + (bottom + top);
+      }
+      const ax = left || docWidth - width;
+      const ay = top || docHeight - height;
+      console.log('POS', width, height, ax, ay, right, left, docWidth)
+      context.ax = ax;
+      context.ay = ay;
+      context.width = width;
+      context.height = height;
+    } else {
+      console.log('PPP', position);
+      if(style.marginLeft) {
+        context.ax += style.marginLeft;
+        context.width -= style.marginRight + style.marginLeft;
+        context.ay += style.marginTop;
+        context.height -= style.marginBottom + style.marginTop;
+      }
+      console.log(style, context.ax, context.ay, context.width, context.height);
+    }
+
+    if (position !== 'static') {
+      context.ancX = context.ax;
+      context.ancY = context.ay;
+    }
+  }
+]
 
 function display(vdom) {
   return (vdom.style && vdom.style.display) || vdom.type;
 }
 
-function style(props, values) {
+function styleProp(props, values) {
   props.style = Object.assign(props.style || {}, values);
   return props.style;
 }
@@ -34,7 +93,10 @@ function style(props, values) {
 function styler(vdom, context) {
   // context.css vs vdom.props.style
   // call style setters
-  const stil = style(vdom.props);
+  const stil = styleProp(vdom.props);
+  processors.forEach(p => {
+    p(vdom, context);
+  })
   Object.keys(stil).forEach(key => {
     if (ss[key]) {
       const newPart = ss[key](context, stil[key]);

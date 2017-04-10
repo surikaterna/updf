@@ -1,5 +1,6 @@
 import bind from './bind';
 import _render from './_render';
+import border from './styles/border';
 
 function buildStyle({ mediaBox }) {
   return {
@@ -13,16 +14,26 @@ function buildStyle({ mediaBox }) {
 }
 
 class Page {
-  getChildContext() {
+  constructor(props, context) {
+    this.props = props;
+    this.context = context;
     const { document } = this.context;
-    const childContext = {
-      page: document.addPage(this.props),
-      out: ops => {
-        childContext.page.object.Contents.object.append(`${ops}\n`);
-        return childContext;
-      }
+    this._page = document.addPage(this.props);
+    this._out = ops => {
+      this._page.object.Contents.object.append(`${ops}\n`);
     };
-    return childContext;
+    this._childContext = {
+      page: this._page,
+      out: this._out
+    };
+
+  }
+  render() {
+    const ctx = Object.assign({}, this.context, this._childContext);
+    border(this.props, ctx);
+  }
+  getChildContext() {
+    return this._childContext;
   }
 }
 

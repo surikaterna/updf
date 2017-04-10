@@ -104,10 +104,17 @@ describe('container', () => {
           </Page>
         </Document>
     */
+    const margins = {
+      marginTop: 50,
+      marginLeft: 50,
+      marginRight: 50,
+      marginBottom: 50
+    };
+
     const b = document({},
-      page({ mediaBox: a4 }, [
-        block({ style: { fontFamily: 'Helvetica', fontSize: 12, top, left, right, position: 'absolute', border: true } }, [
-          code39({ value: 'VNOX44711', style: { width: 100, height: 20 } }),
+      page(Object.assign({ mediaBox: a4, style: Object.assign({ border: true }, margins) }), [
+        block({ style: { fontFamily: 'Helvetica', fontSize: 12, top, left, right, position: 'fixed', border: true } }, [
+          //code39({ value: 'VNOX44711', style: { width: 100, height: 20 } }),
           block({ style: { top: 100, border: true, width: 100, textAlign: 'right' } },
             ['Hello World              2!', 'Again', ' Or', block({ style: { border: true } }, 'New block')]
           ), block({ style: { right: 50, border: true } }, 'Aloha')]
@@ -143,7 +150,7 @@ describe('container', () => {
     } catch (e) {
       console.error(e);
     }
-    require('fs').writeFileSync('z:\\temp.pdf', out.join(''));
+    require('fs').writeFileSync('d:\\temp.pdf', out.join(''));
     //console.log('RES\n', out.join(''));
 
     //    console.log(b.context);
