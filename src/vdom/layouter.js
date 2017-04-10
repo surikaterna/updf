@@ -17,7 +17,9 @@ const ss = {
   maxWidth: (ctx, val) => ({ maxWidth: Math.min(val, ctx.maxWidth) }),
   left: (ctx, val) => ({ ax: ctx.ax + val, x: val, width: ctx.width - val }),
   top: (ctx, val) => ({ ay: ctx.ay + val, y: val }),
-  width: (ctx, val) => { console.log('WID', ctx.width, ctx.maxWidth); return { width: Math.min(val, ctx.maxWidth), maxWidth: Math.min(val, ctx.maxWidth) }; }
+  width: (ctx, val) => ({ width: Math.min(val, ctx.maxWidth), maxWidth: Math.min(val, ctx.maxWidth) }),
+  height: (ctx, val) => ({ height: Math.min(val, ctx.maxHeight), maxHeight: Math.min(val, ctx.maxHeight) }),
+  right: (ctx, val) => ({ width: ctx.width - val, ax: val })
 };
 
 function display(vdom) {
@@ -57,17 +59,14 @@ function layoutText(width, currentX, txt, font, fontSize) {
   // split words and see what fits in the width available, and make implicit line breaks where needed
   let lines = txt.split('\n');
   lines = lines.map(line => line.split(' '));
-  console.log('SPL', txt.split(/(\s+)/), width);
   lines.forEach(line => {
     line.forEach(word => {
       const wordsize = font.width(word, fontSize);
-      console.log('wordSize', wordsize, word, cx, width, cx + wordsize + spaceSize < width);
       if (!cx || ((cx + wordsize + spaceSize) < width)) {
         cx += wordsize + spaceSize;
         result[result.length - 1] += word + ' ';
       } else {
         // new line
-        console.log('<br/>');
         cx = wordsize;
         cy += fontSize;
         result.push(word + ' ');
@@ -126,38 +125,47 @@ export default function layouter(vdom, context) {
 
   // used to align text to have the same baseline
   //  let currentLineHeight = 0;
-  let currHeight = 0;
+  let nodeHeight = vdom.props.style.height || context.height || 0;
+  let lineHeight = 0;
   if (vdom.children && vdom.children.length > 0) {
     for (let chIndex = 0; chIndex < vdom.children.length; chIndex++) {
       const ch = vdom.children[chIndex];
       // inline
       if (isText(ch)) {
-        
+        lineHeight = 0;
         //console.log(fitText(ch, maxWidth, context, x, y));
         const fittedText = fitText(ch, maxWidth, context, x, y);
         vdom.children.splice(chIndex, 1, ...fittedText);
         // skip already layed out children
         chIndex += fittedText.length - 1;
         fittedText.forEach(txt => {
-          currHeight = Math.max(currHeight, txt.props.style.top + txt.props.style.height);
-          console.log(txt.props.str, txt.props.style.top, currHeight);
+          nodeHeight = Math.max(nodeHeight, txt.props.style.height + txt.props.style.top);
+          lineHeight = Math.max(lineHeight, txt.props.style.height);
+          console.log(txt.props.str, txt.props.style.top, nodeHeight);
           styler(txt, txt.context);
         });
-        y += (fittedText.length-1) * context.fontSize;
+        y += (fittedText.length - 1) * context.fontSize;
         //console.log()
         x += fittedText[fittedText.length - 1].props.style.width;
       } else {
         // block
         //      console.log('>', ch.props.style && ch.props.style.width);
         const ctx = Object.assign({}, context);// context.push();
-        ctx.x = x;
+        ctx.x = 0;
         ctx.y = y;
+        ctx.ax = context.ax;
+        // block = new line
+        console.log('LINE HEIHG', lineHeight);
+        ctx.ay = context.ay + y;
+        if (!(ch.props.style && ch.props.style.position)) {
+          ctx.ay += lineHeight;
+        }
         layouter(ch, ctx);
         //context.pop();
         console.log('CHILD', ch.context.width, ch.context.height);
-        currHeight = Math.max(ch.context.ax - context.ax + ch.context.height, currHeight);
+        nodeHeight = Math.max(ch.context.ay - context.ay + ch.context.height, nodeHeight);
         x += ch.context.width;
-        y += ch.context.height;
+        y += !(ch.props.style && ch.props.style.position) ? ch.context.height : 0;
         if (x > maxWidth) {
           x = context.x;
         }
@@ -168,7 +176,7 @@ export default function layouter(vdom, context) {
 
     vdom.context.width = maxWidth;
     console.log('HEIGHT', vdom.context.ay, vdom.context.y, y);
-    vdom.context.height = currHeight;
+    vdom.context.height = nodeHeight;
     //vdom.context.x = 0;
     //vdom.context.y = 0;
   }

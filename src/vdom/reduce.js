@@ -8,8 +8,10 @@ import text from '../content/text';
 export default function reduce(vnode, context) {
   let node = vnode;
   // traverse all components until we get a node which is a "proper" vdom node
+  console.log('>>', node.type);
   while (isComponent(node)) {
     node = buildComponent(node, context);
+    console.log('>>>', node.type);
   }
 
   if (typeof (node) === 'string') {

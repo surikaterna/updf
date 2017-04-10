@@ -3,6 +3,7 @@ import page from '../src/content/page';
 import document from '../src/content/document';
 import inline from '../src/content/inline';
 import rect from '../src/content/vector/rect';
+import code39 from '../src/content/barcode/code39';
 
 import text from '../src/content/text';
 import a4 from '../src/boxes/a4';
@@ -74,6 +75,7 @@ describe('container', () => {
     const height = 841.89;
     const left = 40;
     const top = 100;
+    const right = 40;
     /*
         <Document>
           <Page mediaBox={{ mediaBox: a4 }}>
@@ -104,10 +106,11 @@ describe('container', () => {
     */
     const b = document({},
       page({ mediaBox: a4 }, [
-        block({ style: { fontFamily: 'Helvetica', fontSize: 12, top, left, position: 'absolute', border: true } },
+        block({ style: { fontFamily: 'Helvetica', fontSize: 12, top, left, right, position: 'absolute', border: true } }, [
+          code39({ value: 'VNOX44711', style: { width: 100, height: 20 } }),
           block({ style: { top: 100, border: true, width: 100, textAlign: 'right' } },
-            ['Hello World              2!', 'Again', ' Or']
-          ),
+            ['Hello World              2!', 'Again', ' Or', block({ style: { border: true } }, 'New block')]
+          ), block({ style: { right: 50, border: true } }, 'Aloha')]
         )
         //rect({ style: { left: 200, top: 100 } })
       ])
@@ -119,6 +122,7 @@ describe('container', () => {
       width,
       height,
       maxWidth: width,
+      maxHeight: height,
       mediaBox: a4,
       ax: 0,
       ay: 0,
@@ -139,7 +143,7 @@ describe('container', () => {
     } catch (e) {
       console.error(e);
     }
-    require('fs').writeFileSync('d:\\temp.pdf', out.join(''));
+    require('fs').writeFileSync('z:\\temp.pdf', out.join(''));
     //console.log('RES\n', out.join(''));
 
     //    console.log(b.context);
