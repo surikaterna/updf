@@ -14,6 +14,8 @@ const dumpContext = (ctx) => {
 const ss = {
   fontFamily: (ctx, val) => ({ font: ctx.fonts.get(val) }),
   fontSize: (ctx, val) => ({ fontSize: val }), // resolve absolute / relative codes
+  textAlign: (ctx, val) => ({ textAlign: val }),
+  lineHeight: (ctx, val) => ({ lineHeight: val })
   /*  maxWidth: (ctx, val) => ({ maxWidth: Math.min(val, ctx.maxWidth) }),
     left: (ctx, val) => ({ ax: ctx.ax + val, x: val, width: ctx.width - val }),
     top: (ctx, val) => ({ ay: ctx.ay + val, y: val }),
@@ -34,7 +36,6 @@ const ss = {
 const processors = [
   (vdom, context) => {
     // I position things
-     console.log('PROG PROG ', vdom.type);
     const style = vdom.props.style;
 
     const maxWidth = context.maxWidth;
@@ -46,11 +47,9 @@ const processors = [
     let height = style.height || maxHeight;
 
     const position = style.position || 'static';
-    console.log('ÅÅ', maxWidth, width);
     if (position === 'fixed') {
       const { top, bottom, left, right } = style;
       if (left && right) {
-        console.log('L+R');
         width = docWidth - (right + left);
       }
       if (top && bottom) {
@@ -58,14 +57,17 @@ const processors = [
       }
       const ax = left || docWidth - width;
       const ay = top || docHeight - height;
-      console.log('POS', width, height, ax, ay, right, left, docWidth)
+      //console.log('POS', width, height, ax, ay, right, left, docWidth)
       context.ax = ax;
       context.ay = ay;
       context.width = width;
       context.height = height;
+    } else if(position === 'relative') {
+      context.ax += style.left;
+      context.ay += style.top;
     } else {
-      console.log('PPP', position);
-      if(style.marginLeft) {
+      //console.log('PPP', position);
+      if (style.marginLeft) {
         context.ax += style.marginLeft;
         context.width -= style.marginRight + style.marginLeft;
         context.ay += style.marginTop;
@@ -150,18 +152,22 @@ function fitText(vdom, maxWidth, context, cx = 0, cy = 0) {
   const result = [];
   const layout = layoutText(maxWidth, cx, vdom.props.str, context.font, context.fontSize);
   layout.lines.forEach((line, index) => {
-    console.log(index, line, cy, context.fontSize);
+    let x = (index === 0) ? cx : 0;
+    if (context.textAlign && context.textAlign === 'right') {
+      // console.log('ALIGN', line, x);
+      x += maxWidth - context.font.width(line, context.fontSize);
+    }
+    const y = cy + ((index) * context.fontSize * context.lineHeight);
     const txt = text({
       str: line,
       style: {
         position: 'relative',
-        left: (index === 0) ? cx : 0,
-        top: cy + ((index) * context.fontSize),
-        height: context.fontSize,
+        left: x,
+        top: y - context.lineHeight,
+        height: context.fontSize * context.lineHeight,
         width: context.font.width(line) * context.fontSize
       }
     });
-    console.log(txt.props.style.top);
     txt.context = Object.assign({}, context);
 
     //    txt.context.ax = context.ax + txt.context.x;
@@ -195,7 +201,7 @@ export default function layouter(vdom, context) {
       // inline
       if (isText(ch)) {
         lineHeight = 0;
-        //console.log(fitText(ch, maxWidth, context, x, y));
+        console.log(fitText(ch, maxWidth, context, x, y));
         const fittedText = fitText(ch, maxWidth, context, x, y);
         vdom.children.splice(chIndex, 1, ...fittedText);
         // skip already layed out children
@@ -203,7 +209,7 @@ export default function layouter(vdom, context) {
         fittedText.forEach(txt => {
           nodeHeight = Math.max(nodeHeight, txt.props.style.height + txt.props.style.top);
           lineHeight = Math.max(lineHeight, txt.props.style.height);
-          console.log(txt.props.str, txt.props.style.top, nodeHeight);
+          console.log('$TEXT', txt.props.str, txt.props.style.top, nodeHeight);
           styler(txt, txt.context);
         });
         y += (fittedText.length - 1) * context.fontSize;
@@ -217,14 +223,14 @@ export default function layouter(vdom, context) {
         ctx.y = y;
         ctx.ax = context.ax;
         // block = new line
-        console.log('LINE HEIHG', lineHeight);
+        //console.log('LINE HEIHG', lineHeight);
         ctx.ay = context.ay + y;
         if (!(ch.props.style && ch.props.style.position)) {
           ctx.ay += lineHeight;
         }
         layouter(ch, ctx);
         //context.pop();
-        console.log('CHILD', ch.context.width, ch.context.height);
+        //console.log('CHILD', ch.context.width, ch.context.height, nodeHeight);
         nodeHeight = Math.max(ch.context.ay - context.ay + ch.context.height, nodeHeight);
         x += ch.context.width;
         y += !(ch.props.style && ch.props.style.position) ? ch.context.height : 0;
@@ -237,7 +243,8 @@ export default function layouter(vdom, context) {
     };
 
     vdom.context.width = maxWidth;
-    console.log('HEIGHT', vdom.context.ay, vdom.context.y, y);
+    //console.log('HEIGHT', vdom.type, nodeHeight);
+
     vdom.context.height = nodeHeight;
     //vdom.context.x = 0;
     //vdom.context.y = 0;
