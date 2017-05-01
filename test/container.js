@@ -137,7 +137,7 @@ const stenaLogo = `<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000
 </svg>`;
 
 describe('container', () => {
-  it.only('should put absolute position', () => {
+  it('should put absolute position', () => {
 
     const width = 595.28;
     const height = 841.89;
