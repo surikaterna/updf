@@ -1,5 +1,5 @@
 const npec = {
-  A: { n: 7 }, a: { n: 7 }, C: { n: 6 }, c: { n: 6 }, H: { n: 1 }, h: { n: 1 }, L: { n: 2 }, l: { n: 2 }, M: { n: 2, h: 'moveTo' }, m: { n: 2 }, Q: { n: 4 }, q: { n: 4 }, S: { n: 4 }, s: { n: 4 }, T: { n: 2 }, t: { n: 2 }, V: { n: 1 }, v: { n: 1 }, Z: { n: 0 }, z: { n: 0 }
+  A: 7, a: 7, C: 6, c: 6, H: 1, h: 1, L: 2, l: 2, M: 2, m: 2, Q: 4, q: 4, S: 4, s: 4, T: 2, t: 2, V: 1, v: 1, Z: 0, z: 0
 };
 
 const collect = (str, p) => {
@@ -12,24 +12,23 @@ const collect = (str, p) => {
 };
 
 const process = (cmd, args, gfx) => {
-  const c = npec[cmd];
-  if (args.length !== c.n) {
+  const n = npec[cmd];
+  if (args.length !== n) {
     throw new Error(cmd + ' ' + args);
   }
-  if (c.h) {
-    gfx[c.h](...args);
+  if (cmd && gfx[cmd]) {
+    gfx[cmd](...args);
+  } else {
+    console.log('Skipping ', cmd, ...args);
   }
-}
-
+};
 
 export default function pathParser(pathDef, gfx) {
   const cmdPattern = /([astvzqmhlcASTVZQMHLC])((?:[\s,-]*\d+(?:\.\d+)?)+)*/g;
-  console.log('\n\nTT');
   collect(pathDef, cmdPattern).forEach(cmd => {
     const c = cmd[1];
     const nDef = cmd[2];
     const args = collect(nDef, /(-?\d+(?:\.\d+)?)/g).map(arg => parseFloat(arg[1], 10));
-    console.log(c, args);
     process(c, args, gfx);
   });
 }

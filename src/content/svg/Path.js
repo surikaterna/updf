@@ -1,12 +1,22 @@
+
 import bind from '../bind';
+import pathParser from './pathParser';
 
-class Path {
-  constructor(props, context) {
-    //const style = context.css.get('path', props);
-  }
-  render() {
+const mapping = {
+  M: 'moveTo',
+  L: 'lineTo',
+  m: 'moveToR',
+  l: 'lienToR'
+};
 
-  }
-}
+const Path = (props) => {
+  const vector = {};
 
-export default bind('path', Path);
+  pathParser(props.d || '', {
+    M: (x, y) => vector.moveTo(x, y),
+    L: (x, y) => vector.lineTo(x, y),
+    m: (x, y) => vector.moveTo(x, y),
+  });
+};
+
+export default bind(Path);
