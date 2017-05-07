@@ -21,7 +21,7 @@ export function enc(text) {
   // starts and ends with *
   const data = text.toUpperCase();
   for (const ch of data) {
-    res += sym(ch) + '0';
+    res += `${sym(ch)}0`;
   }
   return res + STAR;
 }
@@ -33,7 +33,6 @@ const code39 = (props) => {
   const elemWidth = width / (b.length);
   let x = 0;
   let cWidth = 0;
-  console.log('C39', b);
   const children = [...b].map((s, i) => {
     let r = null;
     if (s === '1') {
@@ -45,8 +44,8 @@ const code39 = (props) => {
     }
     return r;
   });
-  //children.push(rect({ style: { left: x - elemWidth * (cWidth - 1), top: 0, width: elemWidth * cWidth, height, position: 'absolute' } }));
-  return block({ style: { border: true, left: 30, top: 30, height, width } }, children.filter(n => n != undefined));
+  // children.push(rect({ style: { left: x - elemWidth * (cWidth - 1), top: 0, width: elemWidth * cWidth, height, position: 'absolute' } }));
+  return block({ style: { border: true, left: 30, top: 30, height, width } }, children.filter(n => n !== undefined));
 };
 
 export default bind(code39);
