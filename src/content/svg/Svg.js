@@ -6,8 +6,11 @@ class Svg {
     // height
     // viewBox
     // create transformation matrix?
-    const viewBox = props.viewBox || [0, 0, context.height, context.width];
-    console.log('Viewbox: ', props.viewBox, viewBox, context.height, context.width);
+    let viewBox = props.viewBox || [0, 0, context.height, context.width];
+    if (typeof viewBox === 'string') {
+      viewBox = viewBox.split(' ').map(e => parseFloat(e));
+    }
+    console.log('Viewbox: ', props.viewBox, viewBox, context.height, context.width, props.height, props.width);
     console.log('SVG: ', context.ax, context.ay);
     // move in position of DOM element
     context.context2d.translate(context.ax, context.ay);
