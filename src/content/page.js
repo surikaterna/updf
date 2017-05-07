@@ -1,6 +1,7 @@
 import bind from './bind';
 import _render from './_render';
 import border from './styles/border';
+import Context2d from './vector/Context2d';
 
 function buildStyle({ mediaBox }) {
   return {
@@ -22,11 +23,14 @@ class Page {
     this._out = ops => {
       this._page.object.Contents.object.append(`${ops}\n`);
     };
+    this._context2d = new Context2d(this._out);
+    const height = this.props.mediaBox[3] - this.props.mediaBox[1];
+    this._context2d.transform(1, 0, 0, -1, 0, height);
     this._childContext = {
       page: this._page,
-      out: this._out
+      out: this._out,
+      context2d: this._context2d
     };
-
   }
   render() {
     const ctx = Object.assign({}, this.context, this._childContext);

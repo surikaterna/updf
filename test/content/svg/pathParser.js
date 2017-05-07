@@ -5,7 +5,7 @@ import pathParser from '../../../src/content/svg/pathParser';
 should();
 
 describe('pathParser', () => {
-  describe.only('#parse', () => {
+  describe('#parse', () => {
     it('should support one op + args', (done) => {
       pathParser('M1,2', {
         M: (x, y) => {
