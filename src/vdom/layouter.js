@@ -62,7 +62,7 @@ const processors = [
       context.ay = ay;
       context.width = width;
       context.height = height;
-    } else if(position === 'relative') {
+    } else if (position === 'relative') {
       context.ax += style.left;
       context.ay += style.top;
     } else {
@@ -195,57 +195,59 @@ export default function layouter(vdom, context) {
   //  let currentLineHeight = 0;
   let nodeHeight = vdom.props.style.height || context.height || 0;
   let lineHeight = 0;
+  console.log('VV', vdom.type)
   if (vdom.children && vdom.children.length > 0) {
-    for (let chIndex = 0; chIndex < vdom.children.length; chIndex++) {
-      const ch = vdom.children[chIndex];
-      // inline
-      if (isText(ch)) {
-        lineHeight = 0;
-        //console.log(fitText(ch, maxWidth, context, x, y));
-        const fittedText = fitText(ch, maxWidth, context, x, y);
-        vdom.children.splice(chIndex, 1, ...fittedText);
-        // skip already layed out children
-        chIndex += fittedText.length - 1;
-        fittedText.forEach(txt => {
-          nodeHeight = Math.max(nodeHeight, txt.props.style.height + txt.props.style.top);
-          lineHeight = Math.max(lineHeight, txt.props.style.height);
-          //console.log('$TEXT', txt.props.str, txt.props.style.top, nodeHeight);
-          styler(txt, txt.context);
-        });
-        y += (fittedText.length - 1) * context.fontSize;
-        //console.log()
-        x += fittedText[fittedText.length - 1].props.style.width;
-      } else {
-        // block
-        //      console.log('>', ch.props.style && ch.props.style.width);
-        const ctx = Object.assign({}, context);// context.push();
-        ctx.x = 0;
-        ctx.y = y;
-        ctx.ax = context.ax;
-        // block = new line
-        //console.log('LINE HEIHG', lineHeight);
-        ctx.ay = context.ay + y;
-        if (!(ch.props.style && ch.props.style.position)) {
-          ctx.ay += lineHeight;
+    if (vdom.type !== 'svg') {
+      for (let chIndex = 0; chIndex < vdom.children.length; chIndex++) {
+        const ch = vdom.children[chIndex];
+        // inline
+        if (isText(ch)) {
+          lineHeight = 0;
+          //console.log(fitText(ch, maxWidth, context, x, y));
+          const fittedText = fitText(ch, maxWidth, context, x, y);
+          vdom.children.splice(chIndex, 1, ...fittedText);
+          // skip already layed out children
+          chIndex += fittedText.length - 1;
+          fittedText.forEach(txt => {
+            nodeHeight = Math.max(nodeHeight, txt.props.style.height + txt.props.style.top);
+            lineHeight = Math.max(lineHeight, txt.props.style.height);
+            //console.log('$TEXT', txt.props.str, txt.props.style.top, nodeHeight);
+            styler(txt, txt.context);
+          });
+          y += (fittedText.length - 1) * context.fontSize;
+          //console.log()
+          x += fittedText[fittedText.length - 1].props.style.width;
+        } else {
+          // block
+          //      console.log('>', ch.props.style && ch.props.style.width);
+          const ctx = Object.assign({}, context);// context.push();
+          ctx.x = 0;
+          ctx.y = y;
+          ctx.ax = context.ax;
+          // block = new line
+          //console.log('LINE HEIHG', lineHeight);
+          ctx.ay = context.ay + y;
+          if (!(ch.props.style && ch.props.style.position)) {
+            ctx.ay += lineHeight;
+          }
+          layouter(ch, ctx);
+          //context.pop();
+          //console.log('CHILD', ch.context.width, ch.context.height, nodeHeight);
+          nodeHeight = Math.max(ch.context.ay - context.ay + ch.context.height, nodeHeight);
+          x += ch.context.width;
+          y += !(ch.props.style && ch.props.style.position) ? ch.context.height : 0;
+          if (x > maxWidth) {
+            x = context.x;
+          }
+          //ctx.ax = vdom.ax + x;
+          //ctx.ay = vdom.ay + y;
         }
-        layouter(ch, ctx);
-        //context.pop();
-        //console.log('CHILD', ch.context.width, ch.context.height, nodeHeight);
-        nodeHeight = Math.max(ch.context.ay - context.ay + ch.context.height, nodeHeight);
-        x += ch.context.width;
-        y += !(ch.props.style && ch.props.style.position) ? ch.context.height : 0;
-        if (x > maxWidth) {
-          x = context.x;
-        }
-        //ctx.ax = vdom.ax + x;
-        //ctx.ay = vdom.ay + y;
-      }
-    };
-
-    vdom.context.width = maxWidth;
+      };
+    }
+    vdom.context.width = maxWidth || 100;
     //console.log('HEIGHT', vdom.type, nodeHeight);
 
-    vdom.context.height = nodeHeight;
+    vdom.context.height = nodeHeight  || 100;
     //vdom.context.x = 0;
     //vdom.context.y = 0;
   }

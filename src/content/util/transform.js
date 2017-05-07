@@ -1,8 +1,16 @@
+const toFloat = (v) => parseFloat(v);
 const cnv = {
   style: (style) => {
     console.log('STYLE', style);
     return {};
-  }
+  },
+  x1: toFloat,
+  y1: toFloat,
+  x2: toFloat,
+  y2: toFloat,
+  cx: toFloat,
+  cy: toFloat,
+  r: toFloat
 }
 
 function convertProps(props) {

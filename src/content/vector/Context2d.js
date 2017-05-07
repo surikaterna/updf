@@ -20,6 +20,9 @@ export default class Context2d {
     this._cx = x; this._cy = y;
     return this;
   }
+  moveToR(x, y) {
+    return this.moveTo(x + this._cx, y + this._cy);
+  }
   lineTo(x, y) {
     this._out(`${x} ${y} l`);
     this._cx = x; this._cy = y;
@@ -74,6 +77,20 @@ export default class Context2d {
     this._out(`${x} ${y} ${width} ${height} re`);
     return this;
   }
+  polyline(points) {
+    this.polygon(points, false);
+  }
+  polygon(points, close = true) {
+    const pts = points;
+    this.moveTo(...pts.splice(0, 2));
+    while (pts.length > 0) {
+      this.lineTo(...pts.splice(0, 2));
+    }
+    if (close) {
+      this.close();
+    }
+  }
+
   ellipse(x, y, r1, r2 = r1) {
     // based on http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas/2173084#2173084
     const rx = x - r1;
@@ -84,12 +101,11 @@ export default class Context2d {
     const ye = ry + r2 * 2;
     const xm = rx + r1;
     const ym = ry + r2;
-
-    return this.moveTo(x, ym)
-      .bezierCurveTo(x, ym - oy, xm - ox, y, xm, y)
-      .bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym)
+    return this.moveTo(rx, ym)
+      .bezierCurveTo(rx, ym - oy, xm - ox, ry, xm, ry)
+      .bezierCurveTo(xm + ox, ry, xe, ym - oy, xe, ym)
       .bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye)
-      .bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym)
+      .bezierCurveTo(xm - ox, ye, rx, ym + oy, rx, ym)
       .close();
   }
 
@@ -103,7 +119,7 @@ export default class Context2d {
   // ''
   fillColor(rgb) {
     const clr = parseColor(rgb);
-    this._out(`DeviceRGB cs ${clr.join(' ')} scn`);
+    //this._out(`DeviceRGB cs ${clr.join(' ')} scn`);
     this._out(`${clr.join(' ')} rg`);
   }
 

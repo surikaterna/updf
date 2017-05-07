@@ -44,6 +44,7 @@ const feeder = (startChar, endChar) => (token, stream) => {
 
 /* order is important as it matches from top to bottom, if it finds a match it is done */
 export const TokenTypes = {
+  xmlHead: rToken(/^<\?xml .*\?>/),
   '>': rMatch(/^>/, null),
   ws: rToken(/^(\s+)/),
   assign: rToken(/^(=)/),

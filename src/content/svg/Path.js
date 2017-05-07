@@ -6,6 +6,7 @@ const mapping = {
   C: 'bezierCurveTo',
   c: 'bezierCurveToR',
   M: 'moveTo',
+  m: 'moveToR',
   L: 'lineTo',
   l: 'lineToR',
   H: 'hLineTo',
@@ -16,15 +17,13 @@ const mapping = {
   s: 'smoothCurveToR',
   Z: 'close',
   z: 'close'
-  /*  m: 'moveToR',
-    l: 'lienToR'*/
 };
 
 const classes = {
   st0: { fill: '#002F87' },
   st1: { fill: '#FFFFFF' },
   st2: { fill: '#E2231A' }
-}
+};
 
 const _bridge = (context) => {
   const bridge = {};
@@ -38,10 +37,10 @@ const _bridge = (context) => {
 
 const Path = (props, context) => {
   const ctx = new Context2d(context.out);
-  ctx.fillColor(classes[props.class || 'st0'].fill || '#ffffff');
+  ctx.fillColor(classes[props.class || 'st0'] && classes[props.class || 'st0'].fill || '#ffffff');
   pathParser(props.d || '', _bridge(ctx, mapping));
   // console.log('Path', props.class);
-  ctx.stroke();
+  ctx.fill();
   //context.out('f'); // stroke
 };
 

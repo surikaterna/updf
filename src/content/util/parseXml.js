@@ -6,11 +6,19 @@ class Parser {
   }
 
   parse() {
+    this._head();
     return this._element();
+  }
+  _head() {
+    if (this._lexer.isNext('xmlHead')) {
+      return this._lexer.next();
+    }
+    return null;
   }
 
   _element() {
     const node = {};
+    this._comments();
     const token = this._next('startTag');
     node.type = token.text;
     node.props = this._attributes();
@@ -21,6 +29,12 @@ class Parser {
     }
     return node;
   }
+  _comments() {
+    while (this._lexer.isNext('comment')) {
+      this._lexer.next();
+    }
+  }
+
   _attributes() {
     const props = {};
     let found = false;
@@ -70,7 +84,7 @@ class Parser {
   _next(expected) {
     const next = this._lexer.next();
     if (expected && next.type !== expected) {
-      throw new Error(`Unable to parse, expected: ${expected}`);
+      throw new Error(`Unable to parse, expected: ${expected} got ${next.type}`);
     }
     return next;
   }
