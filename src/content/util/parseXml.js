@@ -12,12 +12,10 @@ class Parser {
   _element() {
     const node = {};
     const token = this._next('startTag');
-    console.log('>', token.text);
     node.type = token.text;
     node.props = this._attributes();
     node.children = this._children();
     const end = this._next('endTag');
-    console.log('<', token.text);
     if (end.text && end.text !== node.type) {
       throw new Error(`Start / End tag does not match: ${node.type} | ${end.text}`);
     }
@@ -51,7 +49,6 @@ class Parser {
   }
 
   _child() {
-    console.log('ch', this._lexer.peek());
     let res;
     if (this._lexer.isNext('startTag')) {
       res = this._element();

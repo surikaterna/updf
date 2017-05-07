@@ -29,14 +29,16 @@ export default class Context2d {
     return this.lineTo(x + this._cx, y + this._cy);
   }
   hLineTo(x) {
-    this.lineTo(x, this._cy);
-    this._cx = x;
-    return this;
+    return this.lineTo(x, this._cy);
   }
   hLineToR(x) {
-    this._cx += x;
-    this.lineTo(this._cx, this._cy);
-    return this;
+    return this.lineTo(this._cx + x, this._cy);
+  }
+  vLineTo(y) {
+    return this.lineTo(this._cx, y);
+  }
+  vLineToR(y) {
+    return this.lineTo(this._cx, this._cy + y);
   }
   bezierCurveTo(c1x, c1y, c2x, c2y, x, y) {
     this._cx = x;
@@ -57,6 +59,9 @@ export default class Context2d {
       x + cx,
       y + cy
     );
+  }
+  smoothCurveTo(x2, y2, x, y) {
+    this.bezierCurveTo(this._ax, this._ay, x2, y2, x, y);
   }
   smoothCurveToR(x2, y2, x, y) {
     this.bezierCurveToR(-(this._ax - this._cx), - (this._ay - this._cy), x2, y2, x, y);

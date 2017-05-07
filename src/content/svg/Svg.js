@@ -15,7 +15,7 @@ class Svg {
     // move in position of DOM element
     context.context2d.translate(context.ax, context.ay);
     // calculated scale
-    context.context2d.scale(.5, .5);
+    //context.context2d.scale(.5, .5);
     // transform viewbox
     context.context2d.translate(-viewBox[0], -viewBox[1]);
     //context.context2d.transform(.5, 0, 0, .5, -viewBox[0], -viewBox[1]);

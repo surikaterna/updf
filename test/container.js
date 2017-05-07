@@ -355,7 +355,7 @@ describe('container', () => {
 
     const b = document({},
       page(Object.assign({ mediaBox: a4, style: Object.assign({ border: false, fontFamily: 'Helvetica', fontSize: 12, lineHeight: 1.2, textAlign: 'right' }, margins) }), [
-        //        Logo(), 
+        //        Logo(),
         'VEHICLE CONDITION CHECK',
         block({ style: { border: true } }, [
           //code39({ value: 'VNOX44711', style: { width: 100, height: 20 } })
@@ -386,8 +386,9 @@ describe('container', () => {
     // defaults
 
     const rb = reduce(b, ctx);
+    //dumpDom(rb);
     layouter(rb, ctx);
-    dumpDom(rb);
+    // dumpDom(rb);
     const doc = renderer(rb, ctx);
     const out = [];
     try {
@@ -397,7 +398,7 @@ describe('container', () => {
     } catch (e) {
       console.error(e);
     }
-    require('fs').writeFileSync('d:\\temp.pdf', out.join(''));
+    require('fs').writeFileSync('z:\\temp.pdf', out.join(''));
     //console.log('RES\n', out.join(''));
 
     //    console.log(b.context);

@@ -10,6 +10,9 @@ const mapping = {
   l: 'lineToR',
   H: 'hLineTo',
   h: 'hLineToR',
+  V: 'vLineTo',
+  v: 'vLineToR',
+  S: 'smoothCurveTo',
   s: 'smoothCurveToR',
   Z: 'close',
   z: 'close'
@@ -37,8 +40,8 @@ const Path = (props, context) => {
   const ctx = new Context2d(context.out);
   ctx.fillColor(classes[props.class || 'st0'].fill || '#ffffff');
   pathParser(props.d || '', _bridge(ctx, mapping));
-  console.log('Path', props.class);
-  ctx.fill();
+  // console.log('Path', props.class);
+  ctx.stroke();
   //context.out('f'); // stroke
 };
 

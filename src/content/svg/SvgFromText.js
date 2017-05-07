@@ -8,9 +8,10 @@ import style from './Style';
 import path from './Path';
 import polygon from './Polygon';
 import g from './Group';
+import line from './Line';
 
 const map = {
-  svg, path, style, polygon, g
+  svg, path, style, polygon, g, line
 };
 
 const SvgFromText = (props) => {

@@ -73,7 +73,7 @@ const processors = [
         context.ay += style.marginTop;
         context.height -= style.marginBottom + style.marginTop;
       }
-      console.log(style, context.ax, context.ay, context.width, context.height);
+      //console.log(style, context.ax, context.ay, context.width, context.height);
     }
 
     if (position !== 'static') {
@@ -201,7 +201,7 @@ export default function layouter(vdom, context) {
       // inline
       if (isText(ch)) {
         lineHeight = 0;
-        console.log(fitText(ch, maxWidth, context, x, y));
+        //console.log(fitText(ch, maxWidth, context, x, y));
         const fittedText = fitText(ch, maxWidth, context, x, y);
         vdom.children.splice(chIndex, 1, ...fittedText);
         // skip already layed out children
@@ -209,7 +209,7 @@ export default function layouter(vdom, context) {
         fittedText.forEach(txt => {
           nodeHeight = Math.max(nodeHeight, txt.props.style.height + txt.props.style.top);
           lineHeight = Math.max(lineHeight, txt.props.style.height);
-          console.log('$TEXT', txt.props.str, txt.props.style.top, nodeHeight);
+          //console.log('$TEXT', txt.props.str, txt.props.style.top, nodeHeight);
           styler(txt, txt.context);
         });
         y += (fittedText.length - 1) * context.fontSize;
