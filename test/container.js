@@ -627,7 +627,7 @@ const chassiLeft = `<?xml version="1.0" encoding="utf-8"?>
 </svg>`;
 
 describe('container', () => {
-  it.only('should put absolute position', () => {
+  it('should put absolute position', () => {
 
     const width = 595.28;
     const height = 841.89;
@@ -720,7 +720,7 @@ describe('container', () => {
     } catch (e) {
       console.error(e);
     }
-    require('fs').writeFileSync('z:\\temp.pdf', out.join(''));
+    require('fs').writeFileSync('d:\\temp.pdf', out.join(''));
     //console.log('RES\n', out.join(''));
 
     //    console.log(b.context);
