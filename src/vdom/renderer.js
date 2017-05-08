@@ -7,9 +7,9 @@ function _renderer(vdom, context) {
   comp.props = props;
   comp.context = context;
 
-  if (comp.render) {
-    comp.render();
-  }
+  comp.treeWillRender && comp.treeWillRender();
+  comp.render && comp.render();
+
   const preparedContext = Object.assign({}, context, comp.getChildContext ? comp.getChildContext() : {});
 
   if (vdom.children && vdom.children.length > 0) {
@@ -18,6 +18,7 @@ function _renderer(vdom, context) {
       _renderer(ch, ctx);
     });
   }
+  comp.treeHasRendered && comp.treeHasRendered();
   return preparedContext;
 }
 

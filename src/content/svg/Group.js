@@ -1,7 +1,7 @@
 import bind from '../bind';
 
-const Group = (props) => {
-  return props.children;
-};
+const Group = () =>
+{ };
 
-export default bind(Group);
+
+export default bind('g', Group);

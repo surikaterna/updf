@@ -6,23 +6,35 @@ class Parser {
   }
 
   parse() {
+    this._head();
     return this._element();
+  }
+  _head() {
+    if (this._lexer.isNext('xmlHead')) {
+      return this._lexer.next();
+    }
+    return null;
   }
 
   _element() {
     const node = {};
+    this._comments();
     const token = this._next('startTag');
-    console.log('>', token.text);
     node.type = token.text;
     node.props = this._attributes();
     node.children = this._children();
     const end = this._next('endTag');
-    console.log('<', token.text);
     if (end.text && end.text !== node.type) {
       throw new Error(`Start / End tag does not match: ${node.type} | ${end.text}`);
     }
     return node;
   }
+  _comments() {
+    while (this._lexer.isNext('comment')) {
+      this._lexer.next();
+    }
+  }
+
   _attributes() {
     const props = {};
     let found = false;
@@ -51,7 +63,6 @@ class Parser {
   }
 
   _child() {
-    console.log('ch', this._lexer.peek());
     let res;
     if (this._lexer.isNext('startTag')) {
       res = this._element();
@@ -73,7 +84,7 @@ class Parser {
   _next(expected) {
     const next = this._lexer.next();
     if (expected && next.type !== expected) {
-      throw new Error(`Unable to parse, expected: ${expected}`);
+      throw new Error(`Unable to parse, expected: ${expected} got ${next.type}`);
     }
     return next;
   }
