@@ -1,7 +1,7 @@
 const makeKey = (attr) => {
   return attr.split(/[-:]/).map((s, i) => {
     return i === 0 ? s : s[0].toUpperCase() + s.slice(1);
-  }).join('');
+  }).join('').trim();
 };
 
 const makeValue = (attr) => {
