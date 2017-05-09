@@ -74,7 +74,7 @@ export default class Context2d {
     return this;
   }
   rect(x, y, width, height) {
-    this._out(`${x} ${y} ${width} ${height} re`);
+    this._out(`${x||0} ${y||0} ${width} ${height} re`);
     return this;
   }
   polyline(points) {
@@ -118,11 +118,19 @@ export default class Context2d {
 
   // ''
   fillColor(rgb) {
-    const clr = parseColor(rgb);
-    //this._out(`DeviceRGB cs ${clr.join(' ')} scn`);
-    this._out(`${clr.join(' ')} rg`);
+    if (rgb !== 'none') {
+      const clr = parseColor(rgb);
+      //this._out(`DeviceRGB cs ${clr.join(' ')} scn`);
+      this._out(`${clr.join(' ')} rg`);
+    }
   }
-
+  strokeColor(rgb) {
+    if (rgb !== 'none') {
+      const clr = parseColor(rgb);
+      //this._out(`DeviceRGB cs ${clr.join(' ')} scn`);
+      this._out(`${clr.join(' ')} RG`);
+    }
+  }
   fillAndStroke() {
     this._out('B n');
   }

@@ -5,7 +5,7 @@ import cssParser from '../../../src/content/styles/cssParser';
 should();
 
 describe('cssParser', () => {
-  describe.only('#parse', () => {
+  describe('#parse', () => {
     it('should parse one class descriptor', () => {
       cssParser(`
         .className {style: 'value'; style2: 'v2'}

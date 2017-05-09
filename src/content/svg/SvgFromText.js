@@ -18,11 +18,11 @@ const map = {
 
 const SvgFromText = (props) => {
   const svgText = props.svg;
-  const svg = parseXml(svgText);
-  if (svg.type !== 'svg') {
-    throw new Error('wrong type ' + svg.type);
+  const svgNode = parseXml(svgText);
+  if (svgNode.type !== 'svg') {
+    throw new Error('wrong type ' + svgNode.type);
   }
-  return transform(svg, map);
+  return transform(svgNode, map, { style: props.style });
 };
 
 export default bind(SvgFromText);

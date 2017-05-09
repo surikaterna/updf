@@ -1,14 +1,14 @@
 /** Very simple css */
 export default class Css {
   constructor() {
-    this._selectors = [];
+    this._rules = [];
   }
-  addSelector(sel) {
-    this._selectors.push(sel);
+  addRule(rule) {
+    this._rules.push(rule);
   }
   computeStyles(node) {
     const style = {};
-    this._selectors.forEach((sel) => {
+    this._rules.forEach((sel) => {
       const res = sel(node);
       if (res) {
         Object.assign(style, res);

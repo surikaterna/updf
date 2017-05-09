@@ -56,7 +56,7 @@ const processors = [
         height = docHeight + (bottom + top);
       }
       const ax = left || docWidth - width;
-      const ay = top || docHeight - height;
+      const ay = top || height;
       //console.log('POS', width, height, ax, ay, right, left, docWidth)
       context.ax = ax;
       context.ay = ay;

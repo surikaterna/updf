@@ -20,8 +20,10 @@ export default function asStyle(str) {
   const style = {};
   const styles = str.split(';') || [str];
   styles.forEach(stl => {
-    const p = stl.split(':');
-    style[makeKey(p[0])] = makeValue(p[1]);
+    if (stl.trim().length > 0) {
+      const p = stl.split(':');
+      style[makeKey(p[0])] = makeValue(p[1]);
+    }
   });
   return style;
 }

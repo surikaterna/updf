@@ -1,6 +1,6 @@
 import bind from '../bind';
 import rect from '../vector/rect';
-import block from '../block';
+import svg from '../svg/Svg';
 
 const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%*';
 const encoding = 'g65mzbi8nnitg5zn05i9hg3bmzhi8tn4nidznk5h7bn9hiitgonn4tie5h7hn5zifbnkhh8nn9tij5gxzn75ighh9tmdze3bmhhdsnmete45dpzme5e3hdhhdhtdn5g0hrlm';
@@ -45,7 +45,7 @@ const code39 = (props) => {
     return r;
   });
   // children.push(rect({ style: { left: x - elemWidth * (cWidth - 1), top: 0, width: elemWidth * cWidth, height, position: 'absolute' } }));
-  return block({ style: { border: true, left: 30, top: 30, height, width } }, children.filter(n => n !== undefined));
+  return svg({ style: { border: true, left: 30, top: 30, height, width } }, children.filter(n => n !== undefined));
 };
 
 export default bind(code39);

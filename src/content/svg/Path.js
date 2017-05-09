@@ -1,6 +1,7 @@
 import bind from '../bind';
 import pathParser from './pathParser';
-import Context2d from '../vector/Context2d.js';
+import _applyStyles from './_applyStyles';
+import _renderOp from './_renderOp';
 
 const mapping = {
   C: 'bezierCurveTo',
@@ -19,12 +20,6 @@ const mapping = {
   z: 'close'
 };
 
-const classes = {
-  st0: { fill: '#002F87' },
-  st1: { fill: '#FFFFFF' },
-  st2: { fill: '#E2231A' }
-};
-
 const _bridge = (context) => {
   const bridge = {};
   Object.keys(mapping).forEach(key => {
@@ -36,11 +31,15 @@ const _bridge = (context) => {
 };
 
 const Path = (props, context) => {
-  const ctx = new Context2d(context.out);
-  ctx.fillColor(classes[props.class || 'st0'] && classes[props.class || 'st0'].fill || '#ffffff');
+  const ctx = context.context2d;
+  const style = context.css.computeStyles({ props }, context.css);
+  //console.log('CSS', style, context.css._rules);
+  _applyStyles(ctx, style);
+  //ctx.fillColor(classes[props.class || 'st0'] && classes[props.class || 'st0'].fill || '#ff0000');
   pathParser(props.d || '', _bridge(ctx, mapping));
   // console.log('Path', props.class);
-  ctx.fill();
+  _renderOp(ctx, style);
+  //ctx.fill();
   //context.out('f'); // stroke
 };
 
