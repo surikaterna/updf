@@ -1,28 +1,9 @@
 import bind from '../bind';
-import parseXml from '../util/parseXml';
-import transform from '../util/transform';
-
-
-import svg from './Svg';
-import style from './Style';
-import path from './Path';
-import polygon from './Polygon';
-import g from './Group';
-import line from './Line';
-import circle from './Circle';
-import rect from './Rect';
-import polyline from './Polyline';
-const map = {
-  svg, path, style, polygon, g, line, circle, rect, polyline
-};
+import svgFactory from './svgFactory';
 
 const SvgFromText = (props) => {
   const svgText = props.svg;
-  const svgNode = parseXml(svgText);
-  if (svgNode.type !== 'svg') {
-    throw new Error('wrong type ' + svgNode.type);
-  }
-  return transform(svgNode, map, { style: props.style });
+  return svgFactory(svgText, props.style);
 };
 
 export default bind(SvgFromText);

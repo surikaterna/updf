@@ -195,7 +195,6 @@ export default function layouter(vdom, context) {
   //  let currentLineHeight = 0;
   let nodeHeight = vdom.props.style.height || context.height || 0;
   let lineHeight = 0;
-  console.log('VV', vdom.type)
   if (vdom.children && vdom.children.length > 0) {
     if (vdom.type !== 'svg') {
       for (let chIndex = 0; chIndex < vdom.children.length; chIndex++) {

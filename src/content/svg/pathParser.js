@@ -12,12 +12,12 @@ export const collect = (str, p) => {
 };
 
 export const collectArguments = (str) =>
-  collect(str, /(-?\d+(?:\.\d+)?)/g).map(arg => parseFloat(arg[1], 10));
+  collect(str, /(-?\d+(?:\.\d+(?:e-)?\d*)?)/g).map(arg => Number(arg[1], 10));
 
 const process = (cmd, args, gfx) => {
   const n = npec[cmd];
   if (args.length !== n) {
-    throw new Error(cmd + ' ' + args);
+    throw new Error(cmd + ' ' + args + ' ' + args.length + ' ' + n);
   }
   if (cmd && gfx[cmd]) {
     gfx[cmd](...args);

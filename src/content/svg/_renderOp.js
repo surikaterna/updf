@@ -10,6 +10,9 @@ const _renderOp = (ctx, style) => {
     ctx.fill();
   } else if (shouldStroke) {
     ctx.stroke();
+  } else {
+    // do not draw and throw away pending operations on context
+    ctx.clear();
   }
 };
 

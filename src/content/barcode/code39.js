@@ -1,5 +1,5 @@
 import bind from '../bind';
-import rect from '../vector/rect';
+import rect from '../svg/Rect';
 import svg from '../svg/Svg';
 
 const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%*';
@@ -39,13 +39,13 @@ const code39 = (props) => {
       cWidth++;
     } else if (cWidth > 0) {
       x = i * elemWidth;
-      r = rect({ style: { left: x - elemWidth * cWidth, top: 0, width: elemWidth * cWidth, height, position: 'absolute' } });
+      r = rect({ x: x - elemWidth * cWidth, y: 0, width: elemWidth * cWidth, height, style: { fill: '#000' } });
       cWidth = 0;
     }
     return r;
   });
   // children.push(rect({ style: { left: x - elemWidth * (cWidth - 1), top: 0, width: elemWidth * cWidth, height, position: 'absolute' } }));
-  return svg({ style: { border: true, left: 30, top: 30, height, width } }, children.filter(n => n !== undefined));
+  return svg({ viewBox: [0, 0, width, height], style: props.style}, children.filter(n => n !== null));
 };
 
 export default bind(code39);

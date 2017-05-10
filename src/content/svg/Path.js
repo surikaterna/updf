@@ -32,15 +32,7 @@ const _bridge = (context) => {
 
 const Path = (props, context) => {
   const ctx = context.context2d;
-  const style = context.css.computeStyles({ props }, context.css);
-  //console.log('CSS', style, context.css._rules);
-  _applyStyles(ctx, style);
-  //ctx.fillColor(classes[props.class || 'st0'] && classes[props.class || 'st0'].fill || '#ff0000');
   pathParser(props.d || '', _bridge(ctx, mapping));
-  // console.log('Path', props.class);
-  _renderOp(ctx, style);
-  //ctx.fill();
-  //context.out('f'); // stroke
 };
 
 export default bind('Path', Path);

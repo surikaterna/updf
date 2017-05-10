@@ -1,5 +1,7 @@
 import bind from '../bind';
 import Css from '../styles/Css';
+import _applyStyles from './_applyStyles';
+import _renderOp from './_renderOp';
 
 class Svg {
   render() {
@@ -16,8 +18,8 @@ class Svg {
     }
     console.log('Viewbox: ', props.viewBox, viewBox, context.height, context.width, props.height, props.width);
     console.log('SVG: ', context.ax, context.ay, props.style.height, props.style);
-    const width = props.width || viewBox[2];
-    const height = props.height || viewBox[3];
+    const width = Number(props.width) || viewBox[2];
+    const height = Number(props.height) || viewBox[3];
     // move in position of DOM element
     context.context2d.translate(context.ax, context.ay);
     let yScale = null;
@@ -29,22 +31,39 @@ class Svg {
     } else {
       yScale = 1;
     }
-    console.log('SCALE', xScale, yScale);
+    console.log('SCALE', xScale, yScale, height, width);
     // calculated scale
     context.context2d.scale(xScale || yScale, yScale || xScale);
     // transform viewbox
     context.context2d.translate(-viewBox[0], -viewBox[1]);
     //context.context2d.transform(.5, 0, 0, .5, -viewBox[0], -viewBox[1]);    
   }
+
+  childWillRender(child) {
+    this.context.context2d.save();
+    // calc css
+    child.context._styles = this.context.styles;
+    this.context.styles = Object.assign({}, this.context.styles, child.context.css.computeStyles(child, context.css));
+    //console.log('>>', this.context.styles)
+  }
+
+  childHasRendered(child) {
+    //const style = child.context.css.computeStyles(child, context.css);
+    _applyStyles(this.context.context2d, this.context.styles || {}, child.props);
+    _renderOp(this.context.context2d, this.context.styles || {});
+    this.context.styles = child.context._styles;
+    this.context.context2d.restore();
+  }
+
+  //childSubtreeHasRendered(child) {
+
+  //}
+
   treeWillRender() {
-    console.log('>TREE')
-    this.context.out('%>TREE')
     this.context.context2d.save();
   }
   treeHasRendered() {
     this.context.context2d.restore();
-    this.context.out('%<TREE')
-    console.log('<TREE')
   }
 
   getChildContext() {

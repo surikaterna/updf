@@ -8,6 +8,7 @@ import code39 from '../src/content/barcode/code39';
 
 import Svg from '../src/content/svg/Svg';
 import SvgFromText from '../src/content/svg/SvgFromText';
+import svgFactory from '../src/content/svg/svgFactory';
 import Path from '../src/content/svg/Path';
 
 
@@ -1097,15 +1098,15 @@ const observation = {
 
 const vehicleTypeToSet = {
   FT: {
-    front: fs.readFileSync('/temp/vh/img/fridge/v1/front_fridge_final.svg'),
-    back: fs.readFileSync('/temp/vh/img/fridge/v1/back_fridge_final.svg'),
-    right: fs.readFileSync('/temp/vh/img/fridge/v1/right_fridge_final.svg'),
-    left: fs.readFileSync('/temp/vh/img/fridge/v1/left_fridge_final.svg'),
-    top: fs.readFileSync('/temp/vh/img/fridge/v1/top_fridge_final.svg'),
+    front: fs.readFileSync('/temp/vh/img/tugmaster_rhd/v3/Tugmaster_Rhd_front.svg'),
+    back: fs.readFileSync('/temp/vh/img/tugmaster_rhd/v3/Tugmaster_Rhd_rear.svg'),
+    right: fs.readFileSync('/temp/vh/img/tugmaster_rhd/v3/Tugmaster_Rhd_right.svg'),
+    left: fs.readFileSync('/temp/vh/img/tugmaster_rhd/v3/Tugmaster_Rhd_left.svg'),
+    top: fs.readFileSync('/temp/vh/img/tugmaster_rhd/v3/Tugmaster_Rhd_roof.svg'),
     getSubsetKey: () => null,
     metadata: {
       id: 'fridge',
-      sides: ['right', 'back', 'top', 'front', 'left'],
+      sides: ['right', 'back', 'top', 'left', 'front'],
       revision: '4'
     }
   }
@@ -1159,25 +1160,50 @@ describe('container', () => {
     };
 
     const diagrams = getIllustrationsByVehicleType('FT');
-     
-    const Diagrams = diags => {
-      // var dg = diags.metadata.sides.map(side => {
-      //   console.log('QQ', side, diags[side]);
-      //   return SvgFromText({svg: diags[side].toString(), style: { top: 50, left: 50, position: 'fixed' }});
-      // });
-      var dg = [
-        SvgFromText({svg: diags['right'].toString(), style: { top: 70, left: 110, position: 'fixed', height: 100 }}),
-        SvgFromText({svg: diags['back'].toString(), style: { top:70, left: 50, position: 'fixed', height: 100 }}),
-//        SvgFromText({svg: diags['top'].toString(), style: { top: 170, left: 50, position: 'fixed', height: 100 }}),
-        SvgFromText({svg: diags['front'].toString(), style: { top: 270, left: 50, position: 'fixed', height: 100 }}),
-        SvgFromText({svg: diags['left'].toString(), style: { top: 270, left: 120, position: 'fixed', height: 100 }})
-        ];
-      return block({}, dg);
-    };
+
+    const Diagrams = bind(({diags}, context) => {
+      let width = 0;
+      let height = 0;
+      let length = 0;
+
+      const dg = {};
+      diags.metadata.sides.forEach(side => {
+        const svgDiag = svgFactory(diags[side].toString(), { top: 105, left: 140, position: 'fixed' });
+        if (side === 'right') {
+          const vb = svgDiag.props.viewBox.split(' ').map(e => Number(e));
+          length = vb[2];
+          height = vb[3];
+        } else if (side === 'top') {
+          const vb = svgDiag.props.viewBox.split(' ').map(e => Number(e));
+          width = vb[3];
+        }
+        dg[side] = svgDiag;
+      });
+      const dw = context.width - 180;
+      const rw = width * .35;
+      const rl = length * .35;
+      const rh = height * .35;
+      const rat = dw/(rl + rw);
+      console.log('AAA', width, height, length, context.width, context.height, Object.keys(dg), rat);
+
+      //dg['right'].props.style.height = rh;
+      dg['right'] && (dg['right'].props.style.width = rl);
+      dg['back'] && (dg['back'].props.style.height = rh);
+      dg['back'] && (dg['back'].props.style.left += rl + 50);
+      dg['top'] && (dg['top'].props.style.top += rh);
+      dg['top'] && (dg['top'].props.style.width = rl);
+      dg['left'] && (dg['left'].props.style.top += rh + rw);
+      dg['left'] && (dg['left'].props.style.width = rl);
+      dg['front'] && (dg['front'].props.style.top += rh + rw);
+      dg['front'] && (dg['front'].props.style.left += rl + 50);
+      dg['front'] && (dg['front'].props.style.height = rh);
+      Object.keys(dg).map(k=>dg[k].props.style.left);
+      return block({}, Object.keys(dg).map(k=>dg[k]));
+    });
 
     const Header = () =>
       block({ style: { top: 10, left: 50, position: 'fixed' } }, [SvgFromText({ svg: SvgLogo, style: { height: 50 } })]);
-      
+
 
     const b = document({},
       page(Object.assign({ mediaBox: a4, style: Object.assign({ border: false, fontFamily: 'Helvetica', fontSize: 12, lineHeight: 1.2, textAlign: 'right' }, margins) }), [
@@ -1185,11 +1211,11 @@ describe('container', () => {
         //        Logo(),
         'VEHICLE CONDITION CHECK',
         block({ style: { border: true } }, [
-        //  code39({ value: 'VNOX44711', style: { width: 100, height: 20 } })
+          code39({ value: 'VNOX44711', style: { position: 'fixed', top: 70, left: 310, width: 220, height: 25 } })
           //Logo2()
         ]),
-        //Header(),
-        Diagrams(diagrams),
+        Header(),
+        Diagrams({diags: diagrams}),
 
         //block({ style: { top: 0, left: 0, position: 'fixed' } }, [Logo2(front)]),
 

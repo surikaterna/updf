@@ -2,6 +2,8 @@ import parseColor from './parseColor';
 
 const KAPPA = 0.5522848;
 
+const _f = (f) => Number(Number(f).toFixed(4)).toString();
+
 /**
  * functions ending with R is with relative coordinates
  */
@@ -14,9 +16,19 @@ export default class Context2d {
     // (prev) anchor X / Y
     this._ax = 0;
     this._ay = 0;
+
+    this._curr = [];
   }
+
+  _draw(str) {
+    this._curr.push(str);
+  }
+  _isDirty() {
+    return this._curr.length > 0;
+  }
+
   moveTo(x, y) {
-    this._out(`${x} ${y} m`);
+    this._draw(`${_f(x)} ${_f(y)} m`);
     this._cx = x; this._cy = y;
     return this;
   }
@@ -24,7 +36,7 @@ export default class Context2d {
     return this.moveTo(x + this._cx, y + this._cy);
   }
   lineTo(x, y) {
-    this._out(`${x} ${y} l`);
+    this._draw(`${_f(x)} ${_f(y)} l`);
     this._cx = x; this._cy = y;
     return this;
   }
@@ -48,7 +60,7 @@ export default class Context2d {
     this._cy = y;
     this._ax = c2x;
     this._ay = c2y;
-    this._out(`${c1x} ${c1y} ${c2x} ${c2y} ${x} ${y} c`);
+    this._draw(`${_f(c1x)} ${_f(c1y)} ${_f(c2x)} ${_f(c2y)} ${_f(x)} ${_f(y)} c`);
     return this;
   }
   bezierCurveToR(c1x, c1y, c2x, c2y, x, y) {
@@ -70,11 +82,11 @@ export default class Context2d {
     this.bezierCurveToR(-(this._ax - this._cx), - (this._ay - this._cy), x2, y2, x, y);
   }
   quadraticCurveTo(cx, cy, x, y) {
-    this._out(`${cx} ${cy} ${x} ${y} v`);
+    this._draw(`${_f(cx)} ${_f(cy)} ${_f(x)} ${_f(y)} v`);
     return this;
   }
   rect(x, y, width, height) {
-    this._out(`${x||0} ${y||0} ${width} ${height} re`);
+    this._draw(`${_f(x || 0)} ${_f(y || 0)} ${_f(width)} ${_f(height)} re`);
     return this;
   }
   polyline(points) {
@@ -108,36 +120,45 @@ export default class Context2d {
       .bezierCurveTo(xm - ox, ye, rx, ym + oy, rx, ym)
       .close();
   }
-
+  _flush(op) {
+    if (this._isDirty()) {
+      this._out(this._curr.join('\n'));
+      this._out(op);
+      this.clear();
+    }
+  }
   stroke() {
-    this._out('S');
+    this._flush('S');
   }
   fill() {
-    this._out('f');
+    this._flush('f');
   }
 
+  fillAndStroke() {
+    this._flush('B n');
+  }
+  clear() {
+    this._curr = [];
+  }
   // ''
   fillColor(rgb) {
     if (rgb !== 'none') {
       const clr = parseColor(rgb);
-      //this._out(`DeviceRGB cs ${clr.join(' ')} scn`);
+      //this._out(`DeviceRGB cs ${_f(clr.join(' '))} scn`);
       this._out(`${clr.join(' ')} rg`);
     }
   }
   strokeColor(rgb) {
     if (rgb !== 'none') {
       const clr = parseColor(rgb);
-      //this._out(`DeviceRGB cs ${clr.join(' ')} scn`);
+      //this._out(`DeviceRGB cs ${_f(clr.join(' '))} scn`);
       this._out(`${clr.join(' ')} RG`);
     }
-  }
-  fillAndStroke() {
-    this._out('B n');
   }
 
   // a, b, c, d, e, f
   transform(...args) {
-    this._out(`${args.join(' ')} cm`);
+    this._out(`${args.map(f => _f(f)).join(' ')} cm`);
     return this;
   }
 
@@ -158,6 +179,6 @@ export default class Context2d {
   }
 
   close() {
-    this._out('h');
+    this._draw('h');
   }
 }
