@@ -4,6 +4,8 @@ import _applyStyles from './_applyStyles';
 import _renderOp from './_renderOp';
 
 const mapping = {
+  A: 'arcTo',
+  a: 'arcToR',
   C: 'bezierCurveTo',
   c: 'bezierCurveToR',
   M: 'moveTo',
@@ -24,6 +26,9 @@ const _bridge = (context) => {
   const bridge = {};
   Object.keys(mapping).forEach(key => {
     bridge[key] = (...args) => {
+      if(key === 'a' || key === 'A') {
+       console.log('B K', key, args);
+      }
       context[mapping[key]](...args);
     };
   });
@@ -32,7 +37,12 @@ const _bridge = (context) => {
 
 const Path = (props, context) => {
   const ctx = context.context2d;
-  pathParser(props.d || '', _bridge(ctx, mapping));
+  try {
+    pathParser(props.d || '', _bridge(ctx, mapping));
+/*    ctx.strokeColor('#ff0000')*/
+  } catch(e) {
+    console.log('PATH');
+  }
 };
 
 export default bind('Path', Path);

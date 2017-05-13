@@ -16,8 +16,6 @@ class Svg {
     if (typeof viewBox === 'string') {
       viewBox = viewBox.split(' ').map(e => parseFloat(e));
     }
-    console.log('Viewbox: ', props.viewBox, viewBox, context.height, context.width, props.height, props.width);
-    console.log('SVG: ', context.ax, context.ay, props.style.height, props.style);
     const width = Number(props.width) || viewBox[2];
     const height = Number(props.height) || viewBox[3];
     // move in position of DOM element
@@ -31,7 +29,6 @@ class Svg {
     } else {
       yScale = 1;
     }
-    console.log('SCALE', xScale, yScale, height, width);
     // calculated scale
     context.context2d.scale(xScale || yScale, yScale || xScale);
     // transform viewbox
@@ -50,6 +47,7 @@ class Svg {
   childHasRendered(child) {
     //const style = child.context.css.computeStyles(child, context.css);
     _applyStyles(this.context.context2d, this.context.styles || {}, child.props);
+    this.context.context2d.stroke();
     _renderOp(this.context.context2d, this.context.styles || {});
     this.context.styles = child.context._styles;
     this.context.context2d.restore();

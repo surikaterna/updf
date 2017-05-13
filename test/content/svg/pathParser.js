@@ -27,5 +27,13 @@ describe('pathParser', () => {
         }
       });
     });
+    it('should parse allow multipl of argument count', (done) => {
+      let called = 0;
+      pathParser('s.84,8.27.83,10.83,0,26.11,0,26.11-.44,6.79-1.31,11.68-1.59,8.36-1.59,8.36h12.16', {
+        s: () => { called++; },
+        h: () => { called.should.equal(4); done(); }
+      });
+    });
+  
   });
 });

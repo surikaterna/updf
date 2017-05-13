@@ -13,7 +13,7 @@ import rect from './Rect';
 import polyline from './Polyline';
 import ellipse from './Ellipse';
 const map = {
-  svg, path, style, polygon, g, line, circle, rect, polyline, ellipse
+  svg, path, style, polygon, g, line, circle, rect, polyline, ellipse, title: g, defs: g
 };
 
 export default function svgFactory(svgText, styled) {

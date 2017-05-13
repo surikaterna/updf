@@ -24,6 +24,10 @@ import should from 'should';
 
 import fs from 'fs';
 
+import shipmentData from './shipmentData';
+import observationData from './obsData';
+
+
 /* processes:
   * layout (x,y, width & height)
    *  width needs font (inline)
@@ -145,957 +149,6 @@ const SvgLogo = `<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/s
 <polygon class="st2" points="-72.3,135.6 -328.9,135.6 -328.9,137.4 -72.3,137.4 "/>
 </svg>`;
 
-const shipment = {
-  "id": "3da757d5-1e81-44af-8784-5f536ac730c5",
-  "type": {
-    "identifier": "shipment",
-    "domain": "order",
-    "authority": "lx3"
-  },
-  "timeIntervals": {
-    "shippingDate": {
-      "estimated": {
-        "format": "date_time",
-        "value": "2016-10-20T21:00:00.00+00:00"
-      }
-    },
-    "deliveryDate": {
-      "estimated": {
-        "format": "date_time",
-        "value": "2016-10-20T05:00:00.00+00:00"
-      }
-    }
-  },
-  "parties": {
-    "deliveryLocation": {
-      "id": "88844561-5edd-4884-9483-3f5d30427942",
-      "name": "Port of BELFAST",
-      "addressLine": "Belfast BT3 9AG",
-      "zipOrPostalCode": "9999",
-      "city": "Belfast",
-      "countryCode": "GB",
-      "contactMeans": [
-        {
-          "function": "Personal Email",
-          "type": "email",
-          "value": "delivery@example.org"
-        }
-      ],
-      "contacts": [],
-      "identifiers": [
-        {
-          "identifier": "GBBEL",
-          "domain": "location",
-          "authority": "united_nations"
-        },
-        {
-          "identifier": "GBBELF1",
-          "domain": "location",
-          "authority": "stena"
-        }
-      ],
-      "position": {
-        "latitude": 54.618745,
-        "longitude": -5.8977055
-      }
-    },
-    "shippingLocation": {
-      "id": "474b3a8e-0ba0-4bb0-ba53-5417e7c48e5b",
-      "name": "Port of Heysham",
-      "addressLine": "Morecambe LA3 2XE",
-      "zipOrPostalCode": "9999",
-      "city": "Birkenhead",
-      "countryCode": "GB",
-      "contactMeans": [
-        {
-          "function": "Personal Email",
-          "type": "email",
-          "value": "shipment@example.org"
-        }
-      ],
-      "contacts": [],
-      "identifiers": [
-        {
-          "identifier": "GBHYM",
-          "domain": "location",
-          "authority": "united_nations"
-        },
-        {
-          "identifier": "GBHEYS",
-          "domain": "location",
-          "authority": "stena"
-        }
-      ],
-      "position": {
-        "latitude": 54.03285,
-        "longitude": -2.9184725
-      }
-    },
-    "orderInitiator": {
-      "id": "92632aa0-0263-48e9-b900-e37916837959",
-      "name": "Volvo AB",
-      "addressLine": "n/a",
-      "zipOrPostalCode": "9999",
-      "city": "Belfast",
-      "countryCode": "GB",
-      "contactMeans": [],
-      "contacts": [],
-      "identifiers": [],
-      "position": {
-        "latitude": 54.03285,
-        "longitude": -2.9184725
-      }
-    }
-  },
-  "identifiers": [
-    {
-      "identifier": "56081679",
-      "domain": "order",
-      "authority": "stena"
-    },
-    {
-      "identifier": "checked_in",
-      "domain": "operational_status",
-      "authority": "stena"
-    }
-  ],
-  "_id": "3da757d5-1e81-44af-8784-5f536ac730c5",
-  "orderLines": [
-    {
-      "id": "a4f8b35d-55ea-4067-8269-9d2daea6a83c",
-      "quantity": {},
-      "productType": {
-        "identifier": "condition_check",
-        "domain": "order",
-        "authority": "lx3"
-      },
-      "parties": {
-        "deliveryLocation": {
-          "id": "a4f8b35d-55ea-4067-8269-9d2daea6a83d",
-          "name": "Port of BELFAST",
-          "addressLine": "Belfast BT3 9AG",
-          "zipOrPostalCode": "9999",
-          "city": "Belfast",
-          "countryCode": "GB",
-          "contactMeans": [],
-          "contacts": [],
-          "identifiers": [
-            {
-              "identifier": "GBBEL",
-              "domain": "location",
-              "authority": "united_nations"
-            },
-            {
-              "identifier": "GBBELF1",
-              "domain": "location",
-              "authority": "stena"
-            }
-          ],
-          "position": {
-            "latitude": 54.618745,
-            "longitude": -5.8977055
-          }
-        },
-        "shippingLocation": {
-          "id": "a4f8b35d-55ea-4067-8269-9d2daea6a83e",
-          "name": "Port of Heysham",
-          "addressLine": "Morecambe LA3 2XE",
-          "zipOrPostalCode": "9999",
-          "city": "Heysham",
-          "countryCode": "GB",
-          "contactMeans": [],
-          "contacts": [],
-          "identifiers": [
-            {
-              "identifier": "GBHYM",
-              "domain": "location",
-              "authority": "united_nations"
-            },
-            {
-              "identifier": "GBHEYS",
-              "domain": "location",
-              "authority": "stena"
-            }
-          ],
-          "position": {
-            "latitude": 54.03285,
-            "longitude": -2.9184725
-          }
-        }
-      },
-      "status": "new",
-      "timeIntervals": {
-        "shippingDate": {
-          "estimated": {
-            "format": "date_time",
-            "value": "2016-10-20T21:00:00.00+00:00"
-          }
-        },
-        "deliveryDate": {
-          "estimated": {
-            "format": "date_time",
-            "value": "2016-10-20T05:00:00.00+00:00"
-          }
-        }
-      },
-      "unitPrice": {
-        "amount": 0,
-        "currency": {
-          "name": "SEK"
-        }
-      },
-      "productInstance": {
-        "id": "a4f8b35d-55ea-4067-8269-9d2daea6a831",
-        "productIdentifier": {
-          "identifier": "a2b63d83-2851-4659-bdf2-675a7ca3967e",
-          "domain": "consignment",
-          "authority": "lx3"
-        }
-      }
-    }
-  ],
-  "consignments": [
-    {
-      "id": "a2b63d83-2851-4659-bdf2-675a7ca3967e"
-    }
-  ],
-  "createDateTime": 1494355822436,
-  "changeDateTime": 1494355823223,
-  "version": 1,
-  "consignment": {
-    "id": "a2b63d83-2851-4659-bdf2-675a7ca3967e",
-    "identifiers": [],
-    "type": {
-      "identifier": "bulk",
-      "domain": "article",
-      "authority": "lx3"
-    },
-    "parties": {
-      "deliveryLocation": {
-        "id": "88844561-5edd-4884-9483-3f5d30427942",
-        "name": "Port of BELFAST",
-        "addressLine": "Belfast BT3 9AG",
-        "zipOrPostalCode": "9999",
-        "city": "Belfast",
-        "countryCode": "GB",
-        "contactMeans": [],
-        "contacts": [],
-        "identifiers": [
-          {
-            "identifier": "GBBEL",
-            "domain": "location",
-            "authority": "united_nations"
-          },
-          {
-            "identifier": "GBBELF1",
-            "domain": "location",
-            "authority": "stena"
-          }
-        ],
-        "position": {
-          "latitude": 54.618745,
-          "longitude": -5.8977055
-        }
-      },
-      "shippingLocation": {
-        "id": "474b3a8e-0ba0-4bb0-ba53-5417e7c48e5b",
-        "name": "Port of Heysham",
-        "addressLine": "Morecambe LA3 2XE",
-        "zipOrPostalCode": "9999",
-        "city": "Heysham",
-        "countryCode": "GB",
-        "contactMeans": [],
-        "contacts": [],
-        "identifiers": [
-          {
-            "identifier": "GBHYM",
-            "domain": "location",
-            "authority": "united_nations"
-          },
-          {
-            "identifier": "GBHEYS",
-            "domain": "location",
-            "authority": "stena"
-          }
-        ],
-        "position": {
-          "latitude": 54.03285,
-          "longitude": -2.9184725
-        }
-      }
-    },
-    "loadingEquipments": [
-      {
-        "id": "6b3c4d9e-d78b-432d-a148-f054323fd671",
-        "description": "Volvo FH16",
-        "identifiers": [
-          {
-            "identifier": "ABC 123",
-            "domain": "reg",
-            "authority": "sae"
-          },
-          {
-            "identifier": "2GNFLFEK2E6274871",
-            "domain": "vin",
-            "authority": "sae"
-          }
-        ],
-        "equipmentType": {
-          "identifier": "FT",
-          "domain": "equipment_type",
-          "authority": "stena"
-        },
-        "quantity": {
-          "amount": 1,
-          "unit": {
-            "name": "pieces"
-          }
-        },
-        "dimensions": {
-          "outer": {
-            "height": {
-              "amount": 1.8,
-              "unit": {
-                "name": "m"
-              }
-            },
-            "width": {
-              "amount": 2.6,
-              "unit": {
-                "name": "m"
-              }
-            },
-            "length": {
-              "amount": 4,
-              "unit": {
-                "name": "m"
-              }
-            }
-          }
-        },
-        "measurements": {
-          "gross_weight": {
-            "value": {
-              "amount": 6500,
-              "unit": {
-                "name": "kg"
-              }
-            }
-          }
-        }
-      }
-    ]
-  }
-};
-
-const observation = {
-  "id": "0f5157a5-cf8f-4242-84b0-d5861454423d",
-  "identifiers": [],
-  "reports": [
-    {
-      "handle": "Shunt",
-      "checkDate": "2017-05-09T18:54:05.783Z",
-      "remark": "asdasads",
-      "type": "deviationCheck",
-      "hasDeviation": true,
-      "deviation": ""
-    },
-    {
-      "handle": "SealCheck",
-      "checkDate": "2017-05-09T18:54:05.784Z",
-      "remark": "teas",
-      "type": "deviationCheck",
-      "hasDeviation": true,
-      "deviation": ""
-    },
-    {
-      "handle": "Temperature Reading",
-      "checkDate": "2017-05-09T18:54:05.785Z",
-      "remark": "12",
-      "type": "deviationCheck",
-      "hasDeviation": true,
-      "deviation": "too_high"
-    },
-    {
-      "handle": "Exterior",
-      "checkDate": "2017-05-09T18:54:05.786Z",
-      "remark": "",
-      "modalOpen": false,
-      "type": "exteriorCheck",
-      "damages": [
-        {
-          "checkDate": "2017-05-09T18:55:33.662Z",
-          "template": {
-            "id": "fridge",
-            "side": "top",
-            "revision": "4"
-          },
-          "partIdentifiers": [
-            {
-              "identifier": "roof_left_front",
-              "authority": "svg",
-              "domain": "part_id"
-            },
-            {
-              "identifier": "roof_right_front",
-              "authority": "svg",
-              "domain": "part_id"
-            },
-            {
-              "identifier": "roof_right_center",
-              "authority": "svg",
-              "domain": "part_id"
-            },
-            {
-              "identifier": "roof_left_center",
-              "authority": "svg",
-              "domain": "part_id"
-            }
-          ],
-          "damageTypeCode": {
-            "identifier": 1,
-            "authority": "stena",
-            "domain": "damage_id"
-          },
-          "remark": "",
-          "coordinates": {
-            "ids": [
-              "roof_left_front",
-              "roof_right_front",
-              "roof_right_center",
-              "roof_left_center"
-            ],
-            "points": [
-              {
-                "docX": 157.86231994628906,
-                "docY": 225.15328979492188
-              },
-              {
-                "docX": 160.89471435546875,
-                "docY": 220.6046905517578
-              },
-              {
-                "docX": 165.4433135986328,
-                "docY": 216.05609130859375
-              },
-              {
-                "docX": 169.2338104248047,
-                "docY": 212.26560974121094
-              },
-              {
-                "docX": 174.54049682617188,
-                "docY": 207.71701049804688
-              },
-              {
-                "docX": 179.08909606933594,
-                "docY": 203.1684112548828
-              },
-              {
-                "docX": 184.3957977294922,
-                "docY": 199.37791442871094
-              },
-              {
-                "docX": 188.18629455566406,
-                "docY": 195.58741760253906
-              },
-              {
-                "docX": 195.00918579101562,
-                "docY": 191.038818359375
-              },
-              {
-                "docX": 202.59017944335938,
-                "docY": 184.21592712402344
-              },
-              {
-                "docX": 210.92926025390625,
-                "docY": 178.15113830566406
-              },
-              {
-                "docX": 215.4778594970703,
-                "docY": 175.11874389648438
-              },
-              {
-                "docX": 220.02645874023438,
-                "docY": 172.8444366455078
-              },
-              {
-                "docX": 227.60745239257812,
-                "docY": 166.77964782714844
-              },
-              {
-                "docX": 232.9141387939453,
-                "docY": 162.98915100097656
-              },
-              {
-                "docX": 237.46273803710938,
-                "docY": 159.95675659179688
-              },
-              {
-                "docX": 245.8018341064453,
-                "docY": 154.65005493164062
-              },
-              {
-                "docX": 251.1085205078125,
-                "docY": 150.85955810546875
-              },
-              {
-                "docX": 255.65711975097656,
-                "docY": 147.82716369628906
-              },
-              {
-                "docX": 260.96380615234375,
-                "docY": 144.0366668701172
-              },
-              {
-                "docX": 265.5124206542969,
-                "docY": 141.7623748779297
-              },
-              {
-                "docX": 270.0610046386719,
-                "docY": 138.72998046875
-              },
-              {
-                "docX": 278.40008544921875,
-                "docY": 133.42327880859375
-              },
-              {
-                "docX": 285.2229919433594,
-                "docY": 128.87469482421875
-              },
-              {
-                "docX": 289.7715759277344,
-                "docY": 125.84229278564453
-              },
-              {
-                "docX": 295.83636474609375,
-                "docY": 121.29369354248047
-              },
-              {
-                "docX": 300.3849792480469,
-                "docY": 119.01940155029297
-              },
-              {
-                "docX": 304.9335632324219,
-                "docY": 115.98699951171875
-              },
-              {
-                "docX": 310.2402648925781,
-                "docY": 112.19650268554688
-              },
-              {
-                "docX": 307.2078552246094,
-                "docY": 116.74510192871094
-              },
-              {
-                "docX": 302.6592712402344,
-                "docY": 121.29369354248047
-              },
-              {
-                "docX": 298.1106872558594,
-                "docY": 125.84229278564453
-              },
-              {
-                "docX": 294.3201904296875,
-                "docY": 129.63278198242188
-              },
-              {
-                "docX": 290.5296936035156,
-                "docY": 134.18138122558594
-              },
-              {
-                "docX": 285.9810791015625,
-                "docY": 138.72998046875
-              },
-              {
-                "docX": 281.4324951171875,
-                "docY": 142.52047729492188
-              },
-              {
-                "docX": 270.819091796875,
-                "docY": 155.4081573486328
-              },
-              {
-                "docX": 267.0285949707031,
-                "docY": 159.1986541748047
-              },
-              {
-                "docX": 262.4800109863281,
-                "docY": 164.50535583496094
-              },
-              {
-                "docX": 254.89901733398438,
-                "docY": 172.8444366455078
-              },
-              {
-                "docX": 250.3504180908203,
-                "docY": 178.15113830566406
-              },
-              {
-                "docX": 245.04373168945312,
-                "docY": 182.69973754882812
-              },
-              {
-                "docX": 241.25323486328125,
-                "docY": 186.490234375
-              },
-              {
-                "docX": 236.7046356201172,
-                "docY": 192.55502319335938
-              },
-              {
-                "docX": 233.6722412109375,
-                "docY": 197.10362243652344
-              },
-              {
-                "docX": 231.39794921875,
-                "docY": 201.65220642089844
-              },
-              {
-                "docX": 230.6398468017578,
-                "docY": 206.9589080810547
-              },
-              {
-                "docX": 232.15603637695312,
-                "docY": 212.26560974121094
-              },
-              {
-                "docX": 236.7046356201172,
-                "docY": 214.53990173339844
-              },
-              {
-                "docX": 242.76942443847656,
-                "docY": 215.29800415039062
-              },
-              {
-                "docX": 249.5923309326172,
-                "docY": 215.29800415039062
-              },
-              {
-                "docX": 256.41522216796875,
-                "docY": 215.29800415039062
-              },
-              {
-                "docX": 262.4800109863281,
-                "docY": 215.29800415039062
-              },
-              {
-                "docX": 269.30291748046875,
-                "docY": 213.78179931640625
-              },
-              {
-                "docX": 276.8839111328125,
-                "docY": 211.50750732421875
-              },
-              {
-                "docX": 285.2229919433594,
-                "docY": 208.47511291503906
-              },
-              {
-                "docX": 291.28778076171875,
-                "docY": 206.9589080810547
-              },
-              {
-                "docX": 296.594482421875,
-                "docY": 206.2008056640625
-              },
-              {
-                "docX": 301.14306640625,
-                "docY": 203.926513671875
-              },
-              {
-                "docX": 306.44976806640625,
-                "docY": 202.41030883789062
-              },
-              {
-                "docX": 311.7564697265625,
-                "docY": 201.65220642089844
-              },
-              {
-                "docX": 317.8212585449219,
-                "docY": 199.37791442871094
-              },
-              {
-                "docX": 323.1279602050781,
-                "docY": 197.10362243652344
-              },
-              {
-                "docX": 328.43463134765625,
-                "docY": 194.82931518554688
-              },
-              {
-                "docX": 334.49945068359375,
-                "docY": 193.31312561035156
-              },
-              {
-                "docX": 339.8061218261719,
-                "docY": 190.28073120117188
-              },
-              {
-                "docX": 345.87091064453125,
-                "docY": 187.24832153320312
-              },
-              {
-                "docX": 351.1776123046875,
-                "docY": 185.7321319580078
-              },
-              {
-                "docX": 358.0005187988281,
-                "docY": 182.69973754882812
-              },
-              {
-                "docX": 362.5491027832031,
-                "docY": 179.66734313964844
-              },
-              {
-                "docX": 368.6138916015625,
-                "docY": 176.6349334716797
-              },
-              {
-                "docX": 374.6787109375,
-                "docY": 174.3606414794922
-              },
-              {
-                "docX": 379.9853820800781,
-                "docY": 171.3282470703125
-              },
-              {
-                "docX": 386.0501708984375,
-                "docY": 168.2958526611328
-              },
-              {
-                "docX": 392.8730773925781,
-                "docY": 165.26345825195312
-              },
-              {
-                "docX": 398.1797790527344,
-                "docY": 161.47296142578125
-              },
-              {
-                "docX": 404.24456787109375,
-                "docY": 159.95675659179688
-              },
-              {
-                "docX": 408.79315185546875,
-                "docY": 156.166259765625
-              },
-              {
-                "docX": 414.8579406738281,
-                "docY": 153.1338653564453
-              },
-              {
-                "docX": 420.1646423339844,
-                "docY": 150.10147094726562
-              },
-              {
-                "docX": 424.7132568359375,
-                "docY": 147.06907653808594
-              },
-              {
-                "docX": 430.7780456542969,
-                "docY": 143.27857971191406
-              },
-              {
-                "docX": 439.875244140625,
-                "docY": 138.72998046875
-              },
-              {
-                "docX": 444.423828125,
-                "docY": 136.45567321777344
-              },
-              {
-                "docX": 448.972412109375,
-                "docY": 133.42327880859375
-              },
-              {
-                "docX": 453.5210266113281,
-                "docY": 131.14898681640625
-              },
-              {
-                "docX": 461.860107421875,
-                "docY": 126.60038757324219
-              },
-              {
-                "docX": 468.6830139160156,
-                "docY": 123.5679931640625
-              },
-              {
-                "docX": 475.5058898925781,
-                "docY": 121.29369354248047
-              },
-              {
-                "docX": 480.8125915527344,
-                "docY": 120.53559875488281
-              },
-              {
-                "docX": 486.1192932128906,
-                "docY": 119.77749633789062
-              },
-              {
-                "docX": 486.87738037109375,
-                "docY": 125.84229278564453
-              },
-              {
-                "docX": 483.0868835449219,
-                "docY": 131.14898681640625
-              },
-              {
-                "docX": 480.0544738769531,
-                "docY": 135.6975860595703
-              },
-              {
-                "docX": 477.0220947265625,
-                "docY": 141.0042724609375
-              },
-              {
-                "docX": 473.98968505859375,
-                "docY": 145.55287170410156
-              },
-              {
-                "docX": 470.9573059082031,
-                "docY": 150.10147094726562
-              },
-              {
-                "docX": 467.16680908203125,
-                "docY": 155.4081573486328
-              },
-              {
-                "docX": 464.1343994140625,
-                "docY": 162.23104858398438
-              },
-              {
-                "docX": 461.860107421875,
-                "docY": 166.77964782714844
-              },
-              {
-                "docX": 458.82769775390625,
-                "docY": 171.3282470703125
-              },
-              {
-                "docX": 456.55340576171875,
-                "docY": 176.6349334716797
-              },
-              {
-                "docX": 454.27911376953125,
-                "docY": 181.18353271484375
-              },
-              {
-                "docX": 452.7629089355469,
-                "docY": 186.490234375
-              },
-              {
-                "docX": 452.7629089355469,
-                "docY": 191.7969207763672
-              },
-              {
-                "docX": 455.0372009277344,
-                "docY": 196.34552001953125
-              },
-              {
-                "docX": 460.3439025878906,
-                "docY": 197.86172485351562
-              },
-              {
-                "docX": 465.6506042480469,
-                "docY": 197.86172485351562
-              },
-              {
-                "docX": 470.9573059082031,
-                "docY": 197.86172485351562
-              },
-              {
-                "docX": 477.0220947265625,
-                "docY": 197.10362243652344
-              },
-              {
-                "docX": 483.0868835449219,
-                "docY": 194.82931518554688
-              },
-              {
-                "docX": 490.6678771972656,
-                "docY": 193.31312561035156
-              },
-              {
-                "docX": 495.2164611816406,
-                "docY": 191.038818359375
-              },
-              {
-                "docX": 501.2812805175781,
-                "docY": 188.0064239501953
-              },
-              {
-                "docX": 506.58795166015625,
-                "docY": 185.7321319580078
-              },
-              {
-                "docX": 511.1365661621094,
-                "docY": 182.69973754882812
-              },
-              {
-                "docX": 516.4432373046875,
-                "docY": 180.42543029785156
-              },
-              {
-                "docX": 520.9918212890625,
-                "docY": 177.39303588867188
-              },
-              {
-                "docX": 524.7823486328125,
-                "docY": 172.8444366455078
-              },
-              {
-                "docX": 527.8147583007812,
-                "docY": 168.2958526611328
-              },
-              {
-                "docX": null,
-                "docY": null
-              }
-            ],
-            "damage": {
-              "id": 1,
-              "remark": ""
-            }
-          },
-          "images": []
-        }
-      ],
-      "reasons": [
-        {
-          "ok": "OK"
-        },
-        {
-          "remarks": "Remarks"
-        }
-      ],
-      "selectedSubset": null
-    },
-    {
-      "handle": "Seal",
-      "checkDate": "2017-05-09T18:54:05.787Z",
-      "remark": "",
-      "type": "deviationCheck",
-      "hasDeviation": true,
-      "deviation": ""
-    }
-  ],
-  "links": [
-    {
-      "type": "order",
-      "targetIdentifier": {
-        "identifier": "3da757d5-1e81-44af-8784-5f536ac730c5",
-        "domain": "order",
-        "authority": "lx3"
-      }
-    }
-  ],
-  "type": "observation",
-  "_id": "0f5157a5-cf8f-4242-84b0-d5861454423d",
-  "status": "completed",
-  "createDateTime": 1494356158484,
-  "changeDateTime": 1494356158484,
-  "version": 0
-};
-
 const vehicleTypeToSet = {
   FT: {
     front: fs.readFileSync('/temp/vh/img/tugmaster_rhd/v3/Tugmaster_Rhd_front.svg'),
@@ -1116,154 +169,290 @@ const getIllustrationsByVehicleType = (type) => {
   return vehicleTypeToSet[type];
 }
 
-describe('container', () => {
-  it.only('should put absolute position', () => {
+import VehicleIllustrationService from './VehicleIllustrationService';
 
-    const width = 595.28;
-    const height = 841.89;
-    const left = 40;
-    const top = 100;
-    const right = 40;
-    /*
-        <Document>
-          <Page mediaBox={{ mediaBox: a4 }}>
-            <Block style={{ fontFamily: 'Helvetica', fontSize: 12, top, left, position: 'absolute' }}>
-              <Block style={{ top }}>
-                <Inline>
-                  Hello World             2!
-                </Inline>
-                <Inline>Again</Inline>
-              </Block>
+
+const generatePdf = (diagrams, shipment, observation) => {
+  const width = 595.28;
+  const height = 841.89;
+  const left = 40;
+  const top = 100;
+  const right = 40;
+  /*
+      <Document>
+        <Page mediaBox={{ mediaBox: a4 }}>
+          <Block style={{ fontFamily: 'Helvetica', fontSize: 12, top, left, position: 'absolute' }}>
+            <Block style={{ top }}>
+              <Inline>
+                Hello World             2!
+              </Inline>
+              <Inline>Again</Inline>
             </Block>
-          </Page>
-        </Document>
-    */
-    /*
-        <Document>
-          <Page mediaBox={{ mediaBox: a4 }}>
-            <Block style={{ fontFamily: 'Helvetica', fontSize: 12, top, left, position: 'absolute' }}>
-              <Block style={{ top }}>
-                <Inline>
-                  Hello World             2!
-                </Inline>
-                <Inline>Again</Inline>
-              </Block>
+          </Block>
+        </Page>
+      </Document>
+  */
+  /*
+      <Document>
+        <Page mediaBox={{ mediaBox: a4 }}>
+          <Block style={{ fontFamily: 'Helvetica', fontSize: 12, top, left, position: 'absolute' }}>
+            <Block style={{ top }}>
+              <Inline>
+                Hello World             2!
+              </Inline>
+              <Inline>Again</Inline>
             </Block>
-          </Page>
-        </Document>
-    */
-    const margins = {
-      marginTop: 50,
-      marginLeft: 50,
-      marginRight: 50,
-      marginBottom: 50
-    };
+          </Block>
+        </Page>
+      </Document>
+  */
+  const margins = {
+    marginTop: 40,
+    marginLeft: 40,
+    marginRight: 40,
+    marginBottom: 40
+  };
 
-    const diagrams = getIllustrationsByVehicleType('FT');
+  const paddings = {
+    paddingTop: 0.05,
+    paddingLeft: 0.05,
+    paddingRight: 0.05,
+    paddingBottom: 0.05
+  };
 
-    const Diagrams = bind(({diags}, context) => {
-      let width = 0;
-      let height = 0;
-      let length = 0;
+  //const diagrams = getIllustrationsByVehicleType('T1');
 
-      const dg = {};
-      diags.metadata.sides.forEach(side => {
-        const svgDiag = svgFactory(diags[side].toString(), { top: 105, left: 140, position: 'fixed' });
-        if (side === 'right') {
-          const vb = svgDiag.props.viewBox.split(' ').map(e => Number(e));
-          length = vb[2];
-          height = vb[3];
-        } else if (side === 'top') {
-          const vb = svgDiag.props.viewBox.split(' ').map(e => Number(e));
-          width = vb[3];
-        }
-        dg[side] = svgDiag;
-      });
-      const dw = context.width - 180;
-      const rw = width * .35;
-      const rl = length * .35;
-      const rh = height * .35;
-      const rat = dw/(rl + rw);
-      console.log('AAA', width, height, length, context.width, context.height, Object.keys(dg), rat);
+  const Diagrams = bind(({ diags }, context) => {
+    let width = 0;
+    let height = 0;
+    let length = 0;
 
-      //dg['right'].props.style.height = rh;
-      dg['right'] && (dg['right'].props.style.width = rl);
-      dg['back'] && (dg['back'].props.style.height = rh);
-      dg['back'] && (dg['back'].props.style.left += rl + 50);
-      dg['top'] && (dg['top'].props.style.top += rh);
-      dg['top'] && (dg['top'].props.style.width = rl);
-      dg['left'] && (dg['left'].props.style.top += rh + rw);
-      dg['left'] && (dg['left'].props.style.width = rl);
-      dg['front'] && (dg['front'].props.style.top += rh + rw);
-      dg['front'] && (dg['front'].props.style.left += rl + 50);
-      dg['front'] && (dg['front'].props.style.height = rh);
-      Object.keys(dg).map(k=>dg[k].props.style.left);
-      return block({}, Object.keys(dg).map(k=>dg[k]));
+    const dg = {};
+    diags.metadata.sides.forEach(side => {
+      const svgDiag = svgFactory(`<svg width="600" height="300" viewBox="0 0 300 600" xmlns="http://www.w3.org/2000/svg">
+ <path d="M100,200
+             C100,100 400,100 400,200
+             S400,100 300,0"
+    fill="none" stroke="#000" stroke-width="2px"></path>
+</svg>`, { top: 105, left: 80, position: 'fixed' });
+      if (side === 'right') {
+        const vb = svgDiag.props.viewBox.split(' ').map(e => Number(e));
+        length = vb[2];
+        height = vb[3];
+      } else if (side === 'top') {
+        const vb = svgDiag.props.viewBox.split(' ').map(e => Number(e));
+        width = vb[3];
+      }
+      dg[side] = svgDiag;
     });
+    const dw = context.width - 180;
 
-    const Header = () =>
-      block({ style: { top: 10, left: 50, position: 'fixed' } }, [SvgFromText({ svg: SvgLogo, style: { height: 50 } })]);
+    const rat = dw / (length + width);
+    const rw = width * rat;
+    const rl = length * rat;
+    const rh = height * rat;
+    console.log('AAA', dw, rl, rw, rl + rw, rat);
+
+    //dg['right'].props.style.height = rh;
+    dg['right'] && (dg['right'].props.style.width = rl);
+    dg['back'] && (dg['back'].props.style.height = rh);
+    dg['back'] && (dg['back'].props.style.left += rl + 50);
+    dg['top'] && (dg['top'].props.style.top += rh);
+    dg['top'] && (dg['top'].props.style.width = rl);
+    dg['left'] && (dg['left'].props.style.top += rh + rw);
+    dg['left'] && (dg['left'].props.style.width = rl);
+    dg['front'] && (dg['front'].props.style.top += rh + rw);
+    dg['front'] && (dg['front'].props.style.left += rl + 50);
+    dg['front'] && (dg['front'].props.style.height = rh);
+    Object.keys(dg).map(k => dg[k].props.style.left);
+    return block({ id: 'diagrams', style: { height: 2 * rh + rw } }, Object.keys(dg).map(k => dg[k]));
+  });
+
+  const Header = () =>
+    block({ style: { top: 10, left: 40, position: 'fixed' } }, [SvgFromText({ svg: SvgLogo, style: { height: 50 } })]);
 
 
-    const b = document({},
-      page(Object.assign({ mediaBox: a4, style: Object.assign({ border: false, fontFamily: 'Helvetica', fontSize: 12, lineHeight: 1.2, textAlign: 'right' }, margins) }), [
+  const Cell = bind(({ title, value, style, children }) => {
+    return block({ style: Object.assign({}, { border: true }, style) }, [
+      block({ style: { fontSize: 7 } }, title)
+      , ...children
+    ]);
+  });
 
-        //        Logo(),
-        'VEHICLE CONDITION CHECK',
-        block({ style: { border: true } }, [
-          code39({ value: 'VNOX44711', style: { position: 'fixed', top: 70, left: 310, width: 220, height: 25 } })
-          //Logo2()
-        ]),
-        Header(),
-        Diagrams({diags: diagrams}),
+  const DamageTable = bind((props, context) => {
+    const colWidths = [150, 110, 255];
+    const cols = [' 4. Type', ' 5. Deviation / Part', ' 6. Remark'];
+    const colKeys = ['type', 'deviation', 'remark'];
+    let cx = 0;
+    const rowHeight = 15
 
-        //block({ style: { top: 0, left: 0, position: 'fixed' } }, [Logo2(front)]),
+    //colWidths[1] = mw - colWidths[0] + colWidths[2];
 
-        //code39({ value: 'VNOX44711', style: { width: 100, height: 20 } }),
-        /*          block({ style: { top: 100, border: false, width: 100, textAlign: 'right' } },
-                    ['Hello World              2!', 'Again', ' Or', block({ style: { border: false } }, 'New block')]
-                  ), block({ style: { right: 50, border: false } }, 'Aloha')]
-                  */
-        //rect({ style: { left: 200, top: 100 } })
-      ])
+    const colHeaders = cols.map((rep, i) => {
+      const result = block({ style: { fontSize: 8, position: 'absolute', left: cx, border: true, width: colWidths[i], height: rowHeight } }, cols[i]);
+      cx += colWidths[i];
+      return result;
+    });
+    const exts = props.observation.reports.filter(e => e.type === 'exteriorCheck');
+    const nonExts = props.observation.reports.filter(e => e.type !== 'exteriorCheck');
+    console.log('EXTS', exts.length);
+    let row = 1;
+
+    const colRows = nonExts.map((rep, i) => {
+      return block({}, [
+        block({ style: { fontSize: 7, position: 'absolute', top: rowHeight * row, left: 0, border: true, width: 150, height: rowHeight } }, ' ' + rep.handle)
+        , block({ style: { fontSize: 7, position: 'absolute', top: rowHeight * row, left: 150, border: true, width: 110, height: rowHeight } }, ' ' + rep.deviation)
+        , block({ style: { fontSize: 7, position: 'absolute', top: rowHeight * row++, left: 260, border: true, width: 255, height: rowHeight } }, ' ' + rep.remark)
+      ]);
+      row++;
+    });
+    let extRows = [];
+    const parts = [];
+    exts[0].damages.forEach(dmg =>
+      dmg.partIdentifiers.forEach(pi => parts.push({ remark: dmg.remark, part: pi.identifier, reason: '', type: 'Broken' }))
     );
-
-
-
-    const ctx = {
-      width,
-      height,
-      maxWidth: width,
-      maxHeight: height,
-      mediaBox: a4,
-      ax: 0,
-      ay: 0,
-      fonts: new Fonts()
-    };
-    ctx.font = ctx.fonts.add('Helvetica', helvetica);
-    // defaults
-
-    const rb = reduce(b, ctx);
-    //dumpDom(rb);
-    layouter(rb, ctx);
-    // dumpDom(rb);
-    const doc = renderer(rb, ctx);
-    const out = [];
-    try {
-      doc.write((e) => {
-        out.push(e);
+    if (exts.length > 0) {
+      extRows = parts.map((rep, i) => {
+        return block({}, [
+          block({ style: { fontSize: 7, position: 'absolute', top: rowHeight * row, left: 0, border: true, width: 150, height: rowHeight } }, ' Exterior')
+          , block({ style: { fontSize: 7, position: 'absolute', top: rowHeight * row, left: 150, border: true, width: 110, height: rowHeight } }, ' ' + rep.part)
+          , block({ style: { fontSize: 7, position: 'absolute', top: rowHeight * row++, left: 260, border: true, width: 255, height: rowHeight } }, ' ' + rep.type + ' ' + rep.remark)
+        ]);
+        row++;
       });
-    } catch (e) {
-      console.error(e);
     }
-    require('fs').writeFileSync('d:\\temp.pdf', out.join(''));
-    //console.log('RES\n', out.join(''));
+    console.log('# # # TABLE', colHeaders.length, colRows.length);
 
-    //    console.log(b.context);
-    //b.props.style.width.should.equal(0);
-    //console.log('>>', b.children[0].children[0].context);
-    //b.children[0].children[0].context.ax.should.equal(left);
-    //b.children[0].children[0].context.ay.should.equal(top);
+    return block({ id: 'table', style: { textAlign: left, position: 'relative', height: row * rowHeight } },
+      [...colHeaders, ...colRows, ...extRows]
+    );
+  });
+
+  const b = document({},
+    page(Object.assign({ mediaBox: a4, style: Object.assign({ fontFamily: 'Helvetica', fontSize: 12, lineHeight: 1.2 }, margins, paddings) }), [
+      Header(),
+      block({ id: 'title', style: { textAlign: 'right' } }, [
+        observation.type === 'observation' ? 'VEHICLE OBSERVATION' : observation.type === 'reservation' ? 'VEHICLE NOTIFICATION' : 'VEHICLE CONDITION CHECK',
+      ]),
+      block({ id: 'body', style: { position: 'relative', top: 10, left: 0, border: false } }, [
+        code39({ value: shipment.identifiers[0].identifier, style: { position: 'fixed', top: 70, left: 310, width: 220, height: 25 } })
+        //Logo2()
+        , Cell({ title: ' 1. Order Number', style: { height: 35 } }, block({ style: {} }, ' ' + shipment.identifiers[0].identifier))
+        , Cell({ title: ' 2. Drawing', value: ' ' }, Diagrams({ diags: diagrams }))
+        , Cell({ title: ' 3. Reports', style: { marginTop: 0, height: 15, textAlign: 'center' } })
+        //...observation.reports.map(rep => block({ style: { fontSize: 10 } }, rep.handle)),
+        , DamageTable({ observation })
+      ]),
+      block({ style: { position: 'fixed', top: 800, left: 40, right: 40 } }, [
+        Cell({ title: ' 7. Created', style: { height: 15, border: false } }, block({ style: { fontSize: 10 } }, new Date(observation.createDateTime).toISOString().slice(0, 16).replace('T', ' ')))
+      ]
+      )
+    ]),
+    //        Diagrams({diags: diagrams}),
+
+    //block({ style: { top: 0, left: 0, position: 'fixed' } }, [Logo2(front)]),
+
+    //code39({ value: 'VNOX44711', style: { width: 100, height: 20 } }),
+    /*          block({ style: { top: 100, border: false, width: 100, textAlign: 'right' } },
+                ['Hello World              2!', 'Again', ' Or', block({ style: { border: false } }, 'New block')]
+              ), block({ style: { right: 50, border: false } }, 'Aloha')]
+              */
+    //rect({ style: { left: 200, top: 100 } })
+  );
+
+
+
+  const ctx = {
+    width,
+    height,
+    maxWidth: width,
+    maxHeight: height,
+    mediaBox: a4,
+    ax: 0,
+    ay: 0,
+    fonts: new Fonts()
+  };
+  ctx.font = ctx.fonts.add('Helvetica', helvetica);
+  // defaults
+
+  const rb = reduce(b, ctx);
+  //dumpDom(rb);
+  layouter(rb, ctx);
+  // dumpDom(rb);
+  console.log('LY DONE');
+  const doc = renderer(rb, ctx);
+  console.log('RRRRR');
+  const out = [];
+  try {
+    doc.write((e) => {
+      out.push(e);
+    });
+  } catch (e) {
+    console.error(e);
+  }
+  observationData.reports.forEach(rep => {
+    console.log('>>', rep.handle, rep.remark);
+  })
+  return out.join('');
+  //console.log('RES\n', out.join(''));
+
+  //    console.log(b.context);
+  //b.props.style.width.should.equal(0);
+  //console.log('>>', b.children[0].children[0].context);
+  //b.children[0].children[0].context.ax.should.equal(left);
+  //b.children[0].children[0].context.ay.should.equal(top);
+}
+
+describe('container', () => {
+  it.only('should put absolute position', (done) => {
+    const typeMapping2 = {
+      AR: 'artic',
+      CC: 'artic',
+      C2: 'c20',
+      C3: 'c30',
+      C4: 'c40',
+      FT: 'fridge',
+      G1: 'box',
+      G2: 'box',
+      HB: 'lorry',
+      LO: 'lorry',
+      R4: 'box',
+      S1: 'box',
+      S2: 'box',
+      SU: 'chassis',
+      T1: 'car',
+      T2: 'caravan',
+      T3: 'chassis',
+      T5: 'minibus',
+      TR: 'trailer',
+      X1: 'box',
+      X2: 'car',
+      U1: 'car',
+      U2: 'caravan',
+      U3: 'chassis',
+      U4: 'box', // tractorSet
+      U5: 'minibus',
+      VA: 'van',
+      TM1: 'tugmaster_lhd',
+      TM2: 'tugmaster_lhd',
+      RT: 'road_train'
+    };
+    const typeMapping = { T1: '' };
+    const keys = Object.keys(typeMapping);
+    let n = 0;
+    function dd() {
+      n++;
+      if (n == keys.count) {
+        done();
+      }
+    }
+    keys.forEach(key => {
+      new VehicleIllustrationService().getIllustrationsByVehicleType(key, function (err, diagrams) {
+        const data = generatePdf(diagrams, shipmentData, observationData);
+        require('fs').writeFileSync(`d:\\temp_${key}.pdf`, data);
+        console.log('Wrote file');
+      });
+    })
   });
 });
 

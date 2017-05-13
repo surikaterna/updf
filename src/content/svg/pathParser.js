@@ -6,28 +6,39 @@ export const collect = (str, p) => {
   let result = [];
   let match;
   while ((match = p.exec(str)) !== null) {
+    // console.log(match);
     result.push(match);
   }
   return result;
 };
 
 export const collectArguments = (str) =>
-  collect(str, /(-?\d+(?:\.\d+(?:e-)?\d*)?)/g).map(arg => Number(arg[1], 10));
+  collect(str, /([+-]?(?:(?:\d*(?:\.\d+(?:e-\d+)?))|\d+))/g).map(arg => Number(arg[1], 10));
+//  collect(str, /(-?\d+(?:\.\d+(?:e-)?\d*)?)/g).map(arg => Number(arg[1], 10));
+
+  //console.log('args', str.match(/([+-]?(?:\d*(?:\.\d+(?:e-\d+)?))|\d+)/));
 
 const process = (cmd, args, gfx) => {
   const n = npec[cmd];
-  if (args.length !== n) {
-    throw new Error(cmd + ' ' + args + ' ' + args.length + ' ' + n);
+  if (args.length !== n && args.length % n !== 0) {
+    throw new Error('Wrong n args: ' + cmd + ' ' + args + ' ' + args.length + ' ' + n);
   }
   if (cmd && gfx[cmd]) {
-    gfx[cmd](...args);
+    //args can be multiple of expected number of arguments
+    if (args.length > n) {
+      while (args.length > 0) {
+        gfx[cmd](...args.splice(0, n));
+      }
+    } else {
+      gfx[cmd](...args);
+    }
   } else {
     console.log('Skipping ', cmd, ...args);
   }
 };
 
 export default function pathParser(pathDef, gfx) {
-  const cmdPattern = /([astvzqmhlcASTVZQMHLC])((?:[\s,-]*\d+(?:\.\d+)?)+)*/g;
+  const cmdPattern = /([astvzqmhlcASTVZQMHLC])((?:[\s.,-]*\d+(?:\.\d+)?)+)*/g;
   collect(pathDef, cmdPattern).forEach(cmd => {
     const c = cmd[1];
     const nDef = cmd[2];
