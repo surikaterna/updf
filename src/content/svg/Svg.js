@@ -33,24 +33,32 @@ class Svg {
     context.context2d.scale(xScale || yScale, yScale || xScale);
     // transform viewbox
     context.context2d.translate(-viewBox[0], -viewBox[1]);
+    context.context2d.save();
+    context.context2d.strokeColor('#f00');
+    context.context2d.rect(...viewBox);
+    context.context2d.stroke();
+
+
+    context.context2d.restore();
     //context.context2d.transform(.5, 0, 0, .5, -viewBox[0], -viewBox[1]);    
   }
 
-  childWillRender(child) {
+  childWillRender(child, vnode) {
     this.context.context2d.save();
     // calc css
     child.context._styles = this.context.styles;
     this.context.styles = Object.assign({}, this.context.styles, child.context.css.computeStyles(child, context.css));
-    //console.log('>>', this.context.styles)
+    console.log('>>', vnode.type, this.context.styles, Object.keys(child.props));
   }
 
-  childHasRendered(child) {
+  childHasRendered(child, vnode) {
     //const style = child.context.css.computeStyles(child, context.css);
     _applyStyles(this.context.context2d, this.context.styles || {}, child.props);
-    this.context.context2d.stroke();
+    //this.context.context2d.stroke();
     _renderOp(this.context.context2d, this.context.styles || {});
     this.context.styles = child.context._styles;
     this.context.context2d.restore();
+    console.log('<<', vnode.type, this.context.styles)
   }
 
   //childSubtreeHasRendered(child) {
@@ -59,9 +67,11 @@ class Svg {
 
   treeWillRender() {
     this.context.context2d.save();
+    console.log('> S V G');
   }
   treeHasRendered() {
     this.context.context2d.restore();
+    console.log('< S V G');
   }
 
   getChildContext() {

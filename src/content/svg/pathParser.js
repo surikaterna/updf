@@ -16,7 +16,7 @@ export const collectArguments = (str) =>
   collect(str, /([+-]?(?:(?:\d*(?:\.\d+(?:e-\d+)?))|\d+))/g).map(arg => Number(arg[1], 10));
 //  collect(str, /(-?\d+(?:\.\d+(?:e-)?\d*)?)/g).map(arg => Number(arg[1], 10));
 
-  //console.log('args', str.match(/([+-]?(?:\d*(?:\.\d+(?:e-\d+)?))|\d+)/));
+//console.log('args', str.match(/([+-]?(?:\d*(?:\.\d+(?:e-\d+)?))|\d+)/));
 
 const process = (cmd, args, gfx) => {
   const n = npec[cmd];
@@ -26,8 +26,14 @@ const process = (cmd, args, gfx) => {
   if (cmd && gfx[cmd]) {
     //args can be multiple of expected number of arguments
     if (args.length > n) {
+      let run = 0;
       while (args.length > 0) {
-        gfx[cmd](...args.splice(0, n));
+        if (run > 0 && (cmd === 'm' || cmd === 'M')) {
+          gfx[cmd === 'M' ? 'L' : 'l'](...args.splice(0, n));
+        } else {
+          gfx[cmd](...args.splice(0, n));
+        }
+        run++;
       }
     } else {
       gfx[cmd](...args);

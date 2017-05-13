@@ -1,7 +1,9 @@
+import asStyle from '../util/asStyle';
+
 // if returning object it must include an envelope to allow of renaming properties
 const cnv = {
   style: (style) => {
-    return typeof style === 'object' ? { style } : {};
+    return typeof style === 'object' ? { style } : { style: asStyle(style) };
   },
   class: (className) => ({ className }),
   x1: Number,
@@ -24,6 +26,7 @@ function convertProps(props, rest) {
   props && Object.keys(props).forEach(prop => {
     const p = props[prop];
     const nw = cnv[prop] && cnv[prop](p);
+    console.log('prop', prop, p, nw);
     if (typeof nw === 'object') {
       delete nProps[prop]
       Object.assign(nProps, props[prop], nw, rest && rest[prop] && { [prop]: rest[prop] } || {});

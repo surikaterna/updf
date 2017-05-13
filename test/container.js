@@ -229,12 +229,8 @@ const generatePdf = (diagrams, shipment, observation) => {
 
     const dg = {};
     diags.metadata.sides.forEach(side => {
-      const svgDiag = svgFactory(`<svg width="600" height="300" viewBox="0 0 300 600" xmlns="http://www.w3.org/2000/svg">
- <path d="M100,200
-             C100,100 400,100 400,200
-             S400,100 300,0"
-    fill="none" stroke="#000" stroke-width="2px"></path>
-</svg>`, { top: 105, left: 80, position: 'fixed' });
+      const svgDiag = svgFactory(diags[side].toString(), { top: 105, left: 80, position: 'fixed' });
+   
       if (side === 'right') {
         const vb = svgDiag.props.viewBox.split(' ').map(e => Number(e));
         length = vb[2];
@@ -257,6 +253,9 @@ const generatePdf = (diagrams, shipment, observation) => {
     dg['right'] && (dg['right'].props.style.width = rl);
     dg['back'] && (dg['back'].props.style.height = rh);
     dg['back'] && (dg['back'].props.style.left += rl + 50);
+    dg['back2'] && (dg['back2'].props.style.top += (rh+rw-rh));
+    dg['back2'] && (dg['back2'].props.style.height = rh);
+    dg['back2'] && (dg['back2'].props.style.left += rl + 50);
     dg['top'] && (dg['top'].props.style.top += rh);
     dg['top'] && (dg['top'].props.style.width = rl);
     dg['left'] && (dg['left'].props.style.top += rh + rw);
@@ -405,7 +404,7 @@ const generatePdf = (diagrams, shipment, observation) => {
 
 describe('container', () => {
   it.only('should put absolute position', (done) => {
-    const typeMapping2 = {
+    const typeMapping = {
       AR: 'artic',
       CC: 'artic',
       C2: 'c20',
@@ -437,7 +436,7 @@ describe('container', () => {
       TM2: 'tugmaster_lhd',
       RT: 'road_train'
     };
-    const typeMapping = { T1: '' };
+    const typeMapping2 = { T1: '' };
     const keys = Object.keys(typeMapping);
     let n = 0;
     function dd() {
@@ -450,6 +449,7 @@ describe('container', () => {
       new VehicleIllustrationService().getIllustrationsByVehicleType(key, function (err, diagrams) {
         const data = generatePdf(diagrams, shipmentData, observationData);
         require('fs').writeFileSync(`d:\\temp_${key}.pdf`, data);
+        require('fs').writeFileSync(`d:\\temp.pdf`, data);
         console.log('Wrote file');
       });
     })

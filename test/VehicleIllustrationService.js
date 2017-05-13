@@ -162,11 +162,11 @@ const typeMapping = {
 
 const sideKeys = {
   right: 'right',
-/*  back: ['rear', 'sedan', 'back'],
+  back: ['rear', 'sedan', 'back'],
   top: ['roof', 'top'],
   back2: '_van',
   left: 'left',
-  front: 'front'*/
+  front: 'front'
 };
 
 export default class VehicleIllustrationService {

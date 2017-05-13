@@ -34,6 +34,16 @@ describe('pathParser', () => {
         h: () => { called.should.equal(4); done(); }
       });
     });
+    it('should parse curious paths', (done)=> {
+      const log = (t) => (...args) => console.log(t, args);
+      pathParser('M196.3,14.58l5.31,21.94s7.25,23.2,9.92,44.61a182.89,182.89,0,0,1,0,41.48', {
+        M: log('M'),
+        l: log('l'),
+        s: log('s'),
+        a: log('a')
+      });
+      done();
+    });
   
   });
 });

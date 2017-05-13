@@ -38,6 +38,7 @@ const _bridge = (context) => {
 const Path = (props, context) => {
   const ctx = context.context2d;
   try {
+    console.log('P A T H');
     pathParser(props.d || '', _bridge(ctx, mapping));
 /*    ctx.strokeColor('#ff0000')*/
   } catch(e) {

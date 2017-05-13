@@ -217,6 +217,7 @@ export default class Context2d {
   moveTo(x, y) {
     this._draw(`${_f(x)} ${_f(y)} m`);
     this._cx = x; this._cy = y;
+    this._ax = this._ay = undefined;
     return this;
   }
   moveToR(x, y) {
@@ -225,6 +226,7 @@ export default class Context2d {
   lineTo(x, y) {
     this._draw(`${_f(x)} ${_f(y)} l`);
     this._cx = x; this._cy = y;
+    this._ax = this._ay = undefined;
     return this;
   }
   lineToR(x, y) {
@@ -263,11 +265,28 @@ export default class Context2d {
     );
   }
   smoothCurveTo(x2, y2, x, y) {
+    if(this._ax === undefined) {
+      this._ax = this._cx;
+      this._ay = this._cy;
+    }
     this.bezierCurveTo(this._cx - (this._ax - this._cx), this._cy - (this._ay - this._cy), x2, y2, x, y);
   }
   smoothCurveToR(x2, y2, x, y) {
+    console.log(this._ax);
+    if(this._ax === undefined) {
+      this._ax = this._cx;
+      this._ay = this._cy;
+    }
+    console.log('s', x2, y2, x, y, this._ax, this._ay);
+    console.log('>s', - (this._ax - this._cx), - (this._ay - this._cy), x2, y2, x, y);
     //this.bezierCurveToR(-(this._ax - this._cx), - (this._ay - this._cy), x2, y2, x, y);
-    this.bezierCurveToR(- (this._ax - this._cx), - (this._ay - this._cy), x2, y2, x, y);
+    this.bezierCurveTo(this._cx - (this._ax - this._cx), this._cy - (this._ay - this._cy), this._cx + x2, this._cy + y2, this._cx + x, this._cy + y);
+    //this.bezierCurveToR(this._ax, this._ay, x2, y2, x, y);
+    /*this._ax = this._cx + x2;
+    this._ay = this._cy + y2;
+    this._cx += x;
+    this._cy += y;
+    */
   }
   quadraticCurveTo(cx, cy, x, y) {
     this._draw(`${_f(cx)} ${_f(cy)} ${_f(x)} ${_f(y)} v`);
@@ -327,22 +346,28 @@ export default class Context2d {
 
   _flush(op) {
     if (this._isDirty()) {
+      console.log(' F L U S H', this._curr);
       this._out(this._curr.join('\n'));
       this._out(op);
-      this.clear();
+          this._curr = [];
+      //this.clear();
     }
   }
   stroke() {
+    console.log('S');
     this._flush('S');
   }
   fill() {
+    console.log('f');
     this._flush('f');
   }
 
   fillAndStroke() {
+    console.log('f S');
     this._flush('B n');
   }
   clear() {
+    console.log('c l e a r', this._curr);
     this._curr = [];
   }
   // ''
@@ -356,6 +381,7 @@ export default class Context2d {
   strokeColor(rgb) {
     if (rgb !== 'none') {
       const clr = parseColor(rgb);
+      console.log('stroke color', clr);
       //this._out(`DeviceRGB cs ${_f(clr.join(' '))} scn`);
       this._out(`${clr.join(' ')} RG`);
     }
