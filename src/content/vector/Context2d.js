@@ -272,21 +272,11 @@ export default class Context2d {
     this.bezierCurveTo(this._cx - (this._ax - this._cx), this._cy - (this._ay - this._cy), x2, y2, x, y);
   }
   smoothCurveToR(x2, y2, x, y) {
-    console.log(this._ax);
     if(this._ax === undefined) {
       this._ax = this._cx;
       this._ay = this._cy;
     }
-    console.log('s', x2, y2, x, y, this._ax, this._ay);
-    console.log('>s', - (this._ax - this._cx), - (this._ay - this._cy), x2, y2, x, y);
-    //this.bezierCurveToR(-(this._ax - this._cx), - (this._ay - this._cy), x2, y2, x, y);
     this.bezierCurveTo(this._cx - (this._ax - this._cx), this._cy - (this._ay - this._cy), this._cx + x2, this._cy + y2, this._cx + x, this._cy + y);
-    //this.bezierCurveToR(this._ax, this._ay, x2, y2, x, y);
-    /*this._ax = this._cx + x2;
-    this._ay = this._cy + y2;
-    this._cx += x;
-    this._cy += y;
-    */
   }
   quadraticCurveTo(cx, cy, x, y) {
     this._draw(`${_f(cx)} ${_f(cy)} ${_f(x)} ${_f(y)} v`);
@@ -328,17 +318,14 @@ export default class Context2d {
       .close();
   }
   arcTo(...args) {
-    console.log('ARCTO', args);
     this.solveArc(this._cx, this._cy, args, this);
     this._cx = args[5];
     this._cy = args[6];
   }
   arcToR(...args) {
     //    this.arcTo([args[0], args[1], args[2], args[3], args[4], args[5] + this._cx, args[6] + this._cy]);
-    console.log('ARCTOR', args);
     args[5] += this._cx;
     args[6] += this._cy;
-    console.log('>ARCTOR', args);
     this.solveArc(this._cx, this._cy, args, this);
     this._cx = args[5];
     this._cy = args[6];
@@ -346,7 +333,6 @@ export default class Context2d {
 
   _flush(op) {
     if (this._isDirty()) {
-      console.log(' F L U S H', this._curr);
       this._out(this._curr.join('\n'));
       this._out(op);
           this._curr = [];
@@ -354,20 +340,16 @@ export default class Context2d {
     }
   }
   stroke() {
-    console.log('S');
     this._flush('S');
   }
   fill() {
-    console.log('f');
     this._flush('f');
   }
 
   fillAndStroke() {
-    console.log('f S');
     this._flush('B n');
   }
   clear() {
-    console.log('c l e a r', this._curr);
     this._curr = [];
   }
   // ''
@@ -381,7 +363,6 @@ export default class Context2d {
   strokeColor(rgb) {
     if (rgb !== 'none') {
       const clr = parseColor(rgb);
-      console.log('stroke color', clr);
       //this._out(`DeviceRGB cs ${_f(clr.join(' '))} scn`);
       this._out(`${clr.join(' ')} RG`);
     }
@@ -467,7 +448,7 @@ export default class Context2d {
     for (let i = 0; i < segments; i++) {
       const th2 = th0 + i * thArc / segments;
       const th3 = th0 + (i + 1) * thArc / segments;
-      result[i] = [xc, yc, th2, th3, rx, ry, sinTh, cosTh]
+      result[i] = [xc, yc, th2, th3, rx, ry, sinTh, cosTh];
     }
 
     return result;
@@ -499,7 +480,6 @@ export default class Context2d {
     //    const [rx, ry, rot, large, sweep, ex, ey] = coords;
     const newSegs = a2c(x, y, s[5], s[6], s[3], s[4], s[0], s[1], s[2]);
     newSegs.forEach(seg => {
-      console.log('BEZBEZ', seg);
       this.bezierCurveTo(seg[2], seg[3], seg[4], seg[5], seg[6], seg[7]);
     });
     // const segs = this.arcToSegments(ex, ey, rx, ry, large, sweep, rot, x, y);
