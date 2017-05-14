@@ -4,7 +4,6 @@ import _render from './_render';
 
 /** out */
 const out = bind('out', (props, context) => {
-  console.log('OUT');
   context.page.object.Contents.object.append(props.ops);
 });
 //console.log('OT', out('TT'));

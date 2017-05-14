@@ -39,7 +39,7 @@ const code39 = (props) => {
       cWidth++;
     } else if (cWidth > 0) {
       x = i * elemWidth;
-      r = rect({ x: x - elemWidth * cWidth, y: 0, width: elemWidth * cWidth, height, style: { fill: '#000' } });
+      r = rect({ x: x - elemWidth * cWidth, y: 0, width: elemWidth * cWidth, height, style: { fill: '#000', stroke: 'none' } });
       cWidth = 0;
     }
     return r;

@@ -33,14 +33,15 @@ class Svg {
     context.context2d.scale(xScale || yScale, yScale || xScale);
     // transform viewbox
     context.context2d.translate(-viewBox[0], -viewBox[1]);
-    context.context2d.save();
-    context.context2d.strokeColor('#f00');
-    context.context2d.rect(...viewBox);
-    context.context2d.stroke();
 
-
-    context.context2d.restore();
-    //context.context2d.transform(.5, 0, 0, .5, -viewBox[0], -viewBox[1]);    
+    // default style
+    context.styles = Object.assign({}, { fill: 'none', stroke: '#000' }, props.style || {});
+    // draw red border
+    // context.context2d.save();
+    // context.context2d.strokeColor('#f00');
+    // context.context2d.rect(...viewBox);
+    // context.context2d.stroke();
+    // context.context2d.restore();
   }
 
   childWillRender(child, vnode) {

@@ -222,11 +222,13 @@ const generatePdf = (diagrams, shipment, observation) => {
 
   //const diagrams = getIllustrationsByVehicleType('T1');
 
-  const Diagrams = bind(({ diags }, context) => {
+  const Diagrams = bind(({ diags, observation }, context) => {
     let width = 0;
     let height = 0;
     let length = 0;
 
+    const exts = observation.reports.filter(e => e.type === 'exteriorCheck');
+    console.log('EXX', exts)
     const dg = {};
     diags.metadata.sides.forEach(side => {
       const svgDiag = svgFactory(diags[side].toString(), { top: 105, left: 80, position: 'fixed' });
@@ -337,7 +339,7 @@ const generatePdf = (diagrams, shipment, observation) => {
         code39({ value: shipment.identifiers[0].identifier, style: { position: 'fixed', top: 70, left: 310, width: 220, height: 25 } })
         //Logo2()
         , Cell({ title: ' 1. Order Number', style: { height: 35 } }, block({ style: {} }, ' ' + shipment.identifiers[0].identifier))
-        , Cell({ title: ' 2. Drawing', value: ' ' }, Diagrams({ diags: diagrams }))
+        , Cell({ title: ' 2. Drawing', value: ' ' }, Diagrams({ diags: diagrams, observation }))
         , Cell({ title: ' 3. Reports', style: { marginTop: 0, height: 15, textAlign: 'center' } })
         //...observation.reports.map(rep => block({ style: { fontSize: 10 } }, rep.handle)),
         , DamageTable({ observation })
@@ -404,7 +406,7 @@ const generatePdf = (diagrams, shipment, observation) => {
 
 describe('container', () => {
   it.only('should put absolute position', (done) => {
-    const typeMapping = {
+    const typeMapping2 = {
       AR: 'artic',
       CC: 'artic',
       C2: 'c20',
@@ -436,7 +438,7 @@ describe('container', () => {
       TM2: 'tugmaster_lhd',
       RT: 'road_train'
     };
-    const typeMapping2 = { T1: '' };
+    const typeMapping = { FT: '' };
     const keys = Object.keys(typeMapping);
     let n = 0;
     function dd() {

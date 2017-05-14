@@ -11,9 +11,6 @@ const transformer = {
 };
 
 const _applyStyles = (ctx, style, props) => {
-  if(props.style) {
-    console.log('GOT STYLE');
-  }
   if (props.transform) {
     collect(props.transform, /\b([^()]+)\(([^)]*)\)/g).forEach(opDef => {
       const op = opDef[1];
@@ -30,7 +27,6 @@ const _applyStyles = (ctx, style, props) => {
   Object.keys(style).forEach(key => {
     const styleApply = styler[key];
     if (styleApply) {
-      console.log('apply stle', style);
       styleApply(ctx, style[key], style);
     } else {
 //      console.log('Unsupported', key);
