@@ -4,7 +4,6 @@ const S = 'stroke';
 const _renderOp = (ctx, style) => {
   const shouldFill = style[F] && style[F] !== 'none';
   const shouldStroke = style[S] && style[S] !== 'none';
-  console.log('renderop', shouldFill, shouldStroke);
   if (shouldFill && shouldStroke) {
     ctx.fillAndStroke();
   } else if (shouldFill) {

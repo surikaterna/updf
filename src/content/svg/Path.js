@@ -27,7 +27,6 @@ const _bridge = (context) => {
   Object.keys(mapping).forEach(key => {
     bridge[key] = (...args) => {
       if(key === 'a' || key === 'A') {
-       console.log('B K', key, args);
       }
       context[mapping[key]](...args);
     };
@@ -38,7 +37,6 @@ const _bridge = (context) => {
 const Path = (props, context) => {
   const ctx = context.context2d;
   try {
-    console.log('P A T H');
     pathParser(props.d || '', _bridge(ctx, mapping));
 /*    ctx.strokeColor('#ff0000')*/
   } catch(e) {

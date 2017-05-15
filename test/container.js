@@ -9,6 +9,8 @@ import code39 from '../src/content/barcode/code39';
 import Svg from '../src/content/svg/Svg';
 import SvgFromText from '../src/content/svg/SvgFromText';
 import svgFactory from '../src/content/svg/svgFactory';
+import Polyline from '../src/content/svg/Polyline';
+import Circle from '../src/content/svg/Circle';
 import Path from '../src/content/svg/Path';
 
 
@@ -85,9 +87,9 @@ const SvgLogo = `<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/s
 	 width="270.5px" height="102.5px" viewBox="-336 39.1 270.5 102.5" style="enable-background:new -336 39.1 270.5 102.5;"
 	 xml:space="preserve">
 <style type="text/css">
-	.st0{fill:#002F87;}
-	.st1{fill:#FFFFFF;}
-	.st2{fill:#E2231A;}
+	.st0{fill:#002F87;stroke:'none'}
+	.st1{fill:#FFFFFF;stroke:'none'}
+	.st2{fill:#E2231A;stroke:'none'}
 </style>
 <path class="st0" d="M-302,103c-1.1-2.5-3.8-3.6-6.3-3.6c-3.3,0-5.2,1.3-5.2,3.1c0,2.2,3.5,3.1,7.4,4.4c5.8,2,10.2,4.3,10.2,9.4
 	c0,7.7-8.4,13.7-19,13.7c-6,0-13.3-2.9-13.8-9.4l8.4-1.5c0.6,2.5,4.2,3.7,6.5,3.7c2.6,0,6.6-0.8,6.6-3.9c0-2.3-3.7-3.2-7.6-4.5
@@ -220,19 +222,38 @@ const generatePdf = (diagrams, shipment, observation) => {
     paddingBottom: 0.05
   };
 
-  //const diagrams = getIllustrationsByVehicleType('T1');
+  const XPoint = bind(({ x, y, r, style }) => {
+    return Path({ d: `M${x - r},${y - r}l${2 * r},${2 * r}m0,${2 * -r}l${2*-r},${2*r}`, style });
+  });
 
+  //const diagrams = getIllustrationsByVehicleType('T1');
+  const DamageOverlay = bind(({ damage, diagrams }) => {
+    const side = damage.template.side;
+    const props = diagrams[side].props;
+
+    const points = [];
+    damage.coordinates.points.forEach(pt => {
+      if (pt.docX !== null) {
+        points.push(pt.docX);
+        points.push(pt.docY);
+      }
+    });
+    //    const child = points.length === 2 ? Circle({ cx: points[0], cy: points[1], r: 10, style: { fill: '#f00' } }) : Polyline({ points, style: { stroke: '#f00' } });
+    const child = points.length === 2 ? XPoint({ x: points[0], y: points[1], r: 15, style: { stroke: '#00f' } }) : Polyline({ points, style: { stroke: '#00f' } });
+    const overlay = Svg(props, [child]);
+    return overlay;
+  });
   const Diagrams = bind(({ diags, observation }, context) => {
     let width = 0;
     let height = 0;
     let length = 0;
 
     const exts = observation.reports.filter(e => e.type === 'exteriorCheck');
-    console.log('EXX', exts)
+    //console.log('EXX', JSON.stringify(exts, null, 2))
     const dg = {};
     diags.metadata.sides.forEach(side => {
       const svgDiag = svgFactory(diags[side].toString(), { top: 105, left: 80, position: 'fixed' });
-   
+
       if (side === 'right') {
         const vb = svgDiag.props.viewBox.split(' ').map(e => Number(e));
         length = vb[2];
@@ -249,13 +270,12 @@ const generatePdf = (diagrams, shipment, observation) => {
     const rw = width * rat;
     const rl = length * rat;
     const rh = height * rat;
-    console.log('AAA', dw, rl, rw, rl + rw, rat);
-
+    //console.log('AAA', dw, rl, rw, rl + rw, rat);
     //dg['right'].props.style.height = rh;
     dg['right'] && (dg['right'].props.style.width = rl);
     dg['back'] && (dg['back'].props.style.height = rh);
     dg['back'] && (dg['back'].props.style.left += rl + 50);
-    dg['back2'] && (dg['back2'].props.style.top += (rh+rw-rh));
+    dg['back2'] && (dg['back2'].props.style.top += (rh + rw - rh));
     dg['back2'] && (dg['back2'].props.style.height = rh);
     dg['back2'] && (dg['back2'].props.style.left += rl + 50);
     dg['top'] && (dg['top'].props.style.top += rh);
@@ -265,8 +285,12 @@ const generatePdf = (diagrams, shipment, observation) => {
     dg['front'] && (dg['front'].props.style.top += rh + rw);
     dg['front'] && (dg['front'].props.style.left += rl + 50);
     dg['front'] && (dg['front'].props.style.height = rh);
-    Object.keys(dg).map(k => dg[k].props.style.left);
-    return block({ id: 'diagrams', style: { height: 2 * rh + rw } }, Object.keys(dg).map(k => dg[k]));
+    let overlays = [];
+    if (exts.length > 0) {
+      overlays = exts[0].damages.map(damage => DamageOverlay({ damage, diagrams: dg }));
+    }
+    //Object.keys(dg).map(k => dg[k].props.style.left);
+    return block({ id: 'diagrams', style: { height: 2 * rh + rw } }, [...Object.keys(dg).map(k => dg[k]), ...overlays]);
   });
 
   const Header = () =>
@@ -296,7 +320,6 @@ const generatePdf = (diagrams, shipment, observation) => {
     });
     const exts = props.observation.reports.filter(e => e.type === 'exteriorCheck');
     const nonExts = props.observation.reports.filter(e => e.type !== 'exteriorCheck');
-    console.log('EXTS', exts.length);
     let row = 1;
 
     const colRows = nonExts.map((rep, i) => {
@@ -322,12 +345,19 @@ const generatePdf = (diagrams, shipment, observation) => {
         row++;
       });
     }
-    console.log('# # # TABLE', colHeaders.length, colRows.length);
 
     return block({ id: 'table', style: { textAlign: left, position: 'relative', height: row * rowHeight } },
       [...colHeaders, ...colRows, ...extRows]
     );
   });
+
+  const formatDate = (dt) => {
+    let dtString = dt;
+    if (typeof dtString !== 'string') {
+      dtString = new Date(dt).toISOString();
+    }
+    return dtString;
+  }
 
   const b = document({},
     page(Object.assign({ mediaBox: a4, style: Object.assign({ fontFamily: 'Helvetica', fontSize: 12, lineHeight: 1.2 }, margins, paddings) }), [
@@ -345,7 +375,7 @@ const generatePdf = (diagrams, shipment, observation) => {
         , DamageTable({ observation })
       ]),
       block({ style: { position: 'fixed', top: 800, left: 40, right: 40 } }, [
-        Cell({ title: ' 7. Created', style: { height: 15, border: false } }, block({ style: { fontSize: 10 } }, new Date(observation.createDateTime).toISOString().slice(0, 16).replace('T', ' ')))
+        Cell({ title: ' 7. Created', style: { height: 15, border: false } }, block({ style: { fontSize: 10 } }, formatDate(observation.createDateTime)))
       ]
       )
     ]),
@@ -380,9 +410,7 @@ const generatePdf = (diagrams, shipment, observation) => {
   //dumpDom(rb);
   layouter(rb, ctx);
   // dumpDom(rb);
-  console.log('LY DONE');
   const doc = renderer(rb, ctx);
-  console.log('RRRRR');
   const out = [];
   try {
     doc.write((e) => {
@@ -391,9 +419,6 @@ const generatePdf = (diagrams, shipment, observation) => {
   } catch (e) {
     console.error(e);
   }
-  observationData.reports.forEach(rep => {
-    console.log('>>', rep.handle, rep.remark);
-  })
   return out.join('');
   //console.log('RES\n', out.join(''));
 
@@ -449,6 +474,7 @@ describe('container', () => {
     }
     keys.forEach(key => {
       new VehicleIllustrationService().getIllustrationsByVehicleType(key, function (err, diagrams) {
+        //console.log('OBS', observationData);
         const data = generatePdf(diagrams, shipmentData, observationData);
         require('fs').writeFileSync(`d:\\temp_${key}.pdf`, data);
         require('fs').writeFileSync(`d:\\temp.pdf`, data);

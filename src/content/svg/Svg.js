@@ -49,7 +49,6 @@ class Svg {
     // calc css
     child.context._styles = this.context.styles;
     this.context.styles = Object.assign({}, this.context.styles, child.context.css.computeStyles(child, context.css));
-    console.log('>>', vnode.type, this.context.styles, Object.keys(child.props));
   }
 
   childHasRendered(child, vnode) {
@@ -59,7 +58,6 @@ class Svg {
     _renderOp(this.context.context2d, this.context.styles || {});
     this.context.styles = child.context._styles;
     this.context.context2d.restore();
-    console.log('<<', vnode.type, this.context.styles)
   }
 
   //childSubtreeHasRendered(child) {
@@ -68,11 +66,9 @@ class Svg {
 
   treeWillRender() {
     this.context.context2d.save();
-    console.log('> S V G');
   }
   treeHasRendered() {
     this.context.context2d.restore();
-    console.log('< S V G');
   }
 
   getChildContext() {

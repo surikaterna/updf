@@ -26,7 +26,6 @@ function convertProps(props, rest) {
   props && Object.keys(props).forEach(prop => {
     const p = props[prop];
     const nw = cnv[prop] && cnv[prop](p);
-    console.log('prop', prop, p, nw);
     if (typeof nw === 'object') {
       delete nProps[prop]
       Object.assign(nProps, props[prop], nw, rest && rest[prop] && { [prop]: rest[prop] } || {});
