@@ -48,7 +48,7 @@ class Svg {
     this.context.context2d.save();
     // calc css
     child.context._styles = this.context.styles;
-    this.context.styles = Object.assign({}, this.context.styles, child.context.css.computeStyles(child, context.css));
+    this.context.styles = Object.assign({}, this.context.styles, child.context.css.computeStyles(child, this.context.css));
   }
 
   childHasRendered(child, vnode) {
