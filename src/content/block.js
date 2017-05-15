@@ -1,10 +1,14 @@
 import _render from './_render';
 import bind from './bind';
 
+import border from './styles/border';
+
+/** blocks are full parent width by default */
 const block = (props, context) => {
-  const ctx = Object.assign({}, context);
-  let cx = props.style.left;
-  let cy = context.style.$height - props.style.top;
+/*  const ctx = Object.assign({}, context);
+  const style = props.style || {};
+  let cx = style.left;
+  let cy = context.style.$height - style.top;
   //  cx += props.style.left;
   // used so that we can wrap text in container &
   // make sure all elements are layed out "properly"...
@@ -25,9 +29,12 @@ const block = (props, context) => {
   }
   console.log('>BLOCK');
    // collect children and sizes of children
-  props.children.forEach(ch => _render(ch, ctx));
+  props.children && props.children.forEach(ch => _render(ch, ctx));
   console.log('<BLOCK');
+  context.append();
   // every day I'm rendering
+*/
+  border(props, context);
 };
 
 export default bind('block', block);

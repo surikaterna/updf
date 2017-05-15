@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha --compilers js:babel-register --recursive test",
-    "test.watch": "mocha --watch --compilers js:babel-register --recursive test"
+    "test.watch": "mocha --watch --color --compilers js:babel-register --recursive test"
   },
   "devDependencies": {
     "babel-eslint": "^6.0.2",

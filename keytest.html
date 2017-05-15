@@ -1,0 +1,110 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
+<title>JavaScript Event KeyCode Test Page</title>
+<SCRIPT type="text/javascript">
+	focusInput = function()
+	{
+		document.getElementById("input").focus();
+	};
+	
+	clear = function()
+	{
+		var eventTypes = ["onkeydown", "onkeypress", "onkeyup"];
+		var codeTypes = ["keycode", "charcode", "which"];
+		for(var event = 0; event < eventTypes.length; event++)
+		{
+			for(var code = 0; code < codeTypes.length; code++)
+			{
+				var element = document.getElementById(eventTypes[event] + "_" + codeTypes[code]);
+				while (element.firstChild != null)
+				{
+					element.removeChild(element.firstChild);
+				}
+			}
+		}
+	};
+	
+	processKeyEvent = function(eventType, event)
+	{
+		// MSIE hack
+		if (window.event)
+		{
+			event = window.event;
+		}
+		
+		var element = document.getElementById(eventType + "_keycode");
+		var text = document.createTextNode("'" + event.keyCode + "'");
+		element.appendChild(text);
+		
+		element = document.getElementById(eventType + "_charcode");
+		text = document.createTextNode("'" + event.charCode + "'");
+		element.appendChild(text);
+	
+		element = document.getElementById(eventType + "_which");
+		text = document.createTextNode("'" + event.which + "'");
+		element.appendChild(text);
+	};
+	
+	processKeyDown = function(event)
+	{
+		clear();
+		processKeyEvent("onkeydown", event);
+	};
+
+	processKeyPress = function(event)
+	{
+		processKeyEvent("onkeypress", event);
+	};
+
+	processKeyUp = function(event)
+	{
+		processKeyEvent("onkeyup", event);
+	};
+</SCRIPT>
+</head>
+<body>
+	<h1>JavaScript Event KeyCode Test Page</h1>
+	<P>Input: <INPUT id="input" type="text" value=""/></P>
+	<TABLE border="1">
+		<THEAD>
+			<TR>
+				<TH></TH>
+				<TH>onKeyDown</TH>
+				<TH>onKeyPress</TH>
+				<TH>onKeyUp</TH>
+			</TR>
+		</THEAD>
+		<TR>
+			<TH>event.keyCode</TH>
+			<TD id="onkeydown_keycode"></TD>
+			<TD id="onkeypress_keycode"></TD>
+			<TD id="onkeyup_keycode"></TD>
+		</TR>
+		<TR>
+			<TH>event.charCode</TH>
+			<TD id="onkeydown_charcode"></TD>
+			<TD id="onkeypress_charcode"></TD>
+			<TD id="onkeyup_charcode"></TD>
+		</TR>
+		<TR>
+			<TH>event.which</TH>
+			<TD id="onkeydown_which"></TD>
+			<TD id="onkeypress_which"></TD>
+			<TD id="onkeyup_which"></TD>
+		</TR>
+	</TABLE>
+	<H4>Notable Gotchas</H4>
+	<UL>
+		<LI>Firefox and onKeyDown vs. onKeyPressed</LI>
+		<LI>Firefox and keyCode vs. charCode</LI>
+		<LI>Enter key and onKeyPress on Firefox vs. IE</LI>
+	</UL>
+<SCRIPT>
+	document.onkeydown=processKeyDown;
+	document.onkeypress=processKeyPress;
+	document.onkeyup=processKeyUp;
+</SCRIPT>
+</body>
+</html>
