@@ -15,6 +15,7 @@ const table = {
         },
         {
           table: {
+            style: { top: 5 },
             rows: [
               {
                 colWidths: [77.25, 180.25],
@@ -258,6 +259,7 @@ const table = {
     },
     {
       colWidths: [171.67, 171.67, 171.67],
+      style: { height: 104 },
       columns: [
         {
           title: '  22. Signature and stamp of the sender',
@@ -274,122 +276,74 @@ const table = {
       ]
     },
     {
-      colWidths: [171.67, 171.67, 171.67],
-      style: { height: 54 },
+      style: { height: 30 },
+      colWidths: [51.5, 120.17, 51.5, 120.17, 51.5, 120.17],
       columns: [
         {
-          table: {
-            rows: [
-              {
-                colWidths: [51.5, 120.17],
-                style: { height: 54 },
-                columns: [
-                  {
-                    title: 'a',
-                    style: { textAlign: 'right', fontSize: 6 },
-                    children: ['  Name \n Date', '\n', '\n']
-                  },
-                  {
-                    title: 'a',
-                    style: { fontSize: 6 },
-                    children: ['  hub \n  2017-08-04 17:52', '\n', '\n']
-                  }
-                ]
-              },
-              {
-                colWidths: [51.5, 120.17],
-                style: { height: 30 },
-                columns: [
-                  {
-                    title: '\n',
-                    style: { textAlign: 'right', fontSize: 6 },
-                    children: ['  Device ID \n Truck ID \n Carrier \n Driver \n Remark', '\n']
-                  },
-                  {
-                    title: '\n',
-                    style: { fontSize: 6 },
-                    children: ['  EE040 \n  422BHD', '\n', '\n', '\n', '\n']
-                  }
-                ]
-              }
-            ]
-          }
+          title: ' ',
+          style: { textAlign: 'right', fontSize: 6 },
+          children: ['  Name \n Date']
         },
         {
-          table: {
-            rows: [
-              {
-                colWidths: [51.5, 120.17],
-                style: { height: 24 },
-                columns: [
-                  {
-                    title: '\n',
-                    style: { textAlign: 'right', fontSize: 6 },
-                    children: ['  Name  \n  Date', '\n', '\n']
-                  },
-                  {
-                    title: '\n',
-                    style: { fontSize: 6 },
-                    children: ['\n', '\n', '\n', '\n']
-                  }
-                ]
-              },
-              {
-                colWidths: [51.5, 120.17],
-                style: { height: 30 },
-                columns: [
-                  {
-                    title: '\n',
-                    style: { textAlign: 'right', fontSize: 6 },
-                    children: ['  Device ID \n Truck ID \n Carrier \n Driver \n Remark', '\n']
-                  },
-                  {
-                    title: '\n',
-                    style: { fontSize: 6 },
-                    children: ['\n', '\n', '\n', '\n', '\n', '\n']
-                  }
-                ]
-              }
-            ]
-          }
+          title: ' ',
+          style: { fontSize: 6 },
+          children: ['  hub \n  2017-08-04 17:52']
         },
         {
-          table: {
-            rows: [
-              {
-                colWidths: [51.5, 120.17],
-                style: { height: 24 },
-                columns: [
-                  {
-                    title: '\n',
-                    style: { textAlign: 'right', fontSize: 6 },
-                    children: ['  Name  Date', '\n', '\n']
-                  },
-                  {
-                    title: '\n',
-                    style: { fontSize: 6 },
-                    children: ['\n', '\n', '\n', '\n']
-                  }
-                ]
-              },
-              {
-                colWidths: [51.5, 120.17],
-                style: { height: 30 },
-                columns: [
-                  {
-                    title: '\n',
-                    style: { textAlign: 'right', fontSize: 6 },
-                    children: ['  Device ID  Truck ID  Carrier  Driver  Remark', '\n']
-                  },
-                  {
-                    title: '\n',
-                    style: { fontSize: 6 },
-                    children: ['\n', '\n', '\n', '\n', '\n', '\n']
-                  }
-                ]
-              }
-            ]
-          }
+          title: ' ',
+          style: { textAlign: 'right', fontSize: 6 },
+          children: ['  Name \n Date']
+        },
+        {
+          title: ' ',
+          style: { fontSize: 6 },
+          children: ['  hub \n  2017-08-04 17:52']
+        },
+        {
+          title: ' ',
+          style: { textAlign: 'right', fontSize: 6 },
+          children: ['  Name \n Date']
+        },
+        {
+          title: ' ',
+          style: { fontSize: 6 },
+          children: ['  hub \n  2017-08-04 17:52']
+        }
+      ]
+    },
+    {
+      style: { height: 54 },
+      colWidths: [51.5, 120.17, 51.5, 120.17, 51.5, 120.17],
+      columns: [
+        {
+          title: ' ',
+          style: { textAlign: 'right', fontSize: 6 },
+          children: ['  Device ID \n Truck ID \n Carrier \n Driver \n Remark', '\n']
+        },
+        {
+          title: ' ',
+          style: { fontSize: 6 },
+          children: ['  EE0040 \n  422BHD', '\n', '\n']
+        },
+        {
+          title: ' ',
+          style: { textAlign: 'right', fontSize: 6 },
+          children: ['  Device ID \n Truck ID \n Carrier \n Driver \n Remark', '\n']
+        },
+        {
+          title: ' ',
+          style: { fontSize: 6 },
+          children: ['  EE0040 \n  422BHD', '\n', '\n']
+        },
+        {
+          title: ' ',
+          style: { textAlign: 'right', fontSize: 6 },
+          children: ['  Device ID \n Truck ID \n Carrier \n Driver \n Remark', '\n']
+        },
+        {
+          title: ' ',
+          style: { fontSize: 6 },
+          children: ['  EE0040 \n  422BHD', '\n', '\n']
         }
       ]
     }

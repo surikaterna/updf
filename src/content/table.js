@@ -10,7 +10,7 @@ const CMRTable = (cmrData, currentTop, currentLeft) => {
   const rowHeight = 15;
 
   const Cell = bind(({ title, style, titleStyle, children }) => {
-    return block({ style: Object.assign({}, { border: true }, style) }, [
+    return block({ style: Object.assign({}, style) }, [
       block({ style: Object.assign({}, { fontSize: 7 }, titleStyle) }, title),
       ...children
     ]);
@@ -24,9 +24,12 @@ const CMRTable = (cmrData, currentTop, currentLeft) => {
     const basicStyle = { fontSize: 8, position: 'absolute', border: true, height: rowHeight, top };
     const tableColumns = columns.map((col, i) => {
       if (col.table) {
-        console.log(nextRowTop)
-        
-        result = CMRTable(col.table, 0, cx);
+
+        let tableTop = 0
+        if (col.table.style && col.table.style.top) {
+          tableTop = col.table.style.top;
+        }
+        result = CMRTable(col.table, tableTop, cx);
       } else {
         result = Cell({ title: columns[i].title, style: Object.assign({}, basicStyle, columns[i].style || {}, { width: colWidths[i], left: cx }, row.style), titleStyle: columns[i].titleStyle || {} }, columns[i].children);
       }

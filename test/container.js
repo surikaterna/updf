@@ -516,10 +516,10 @@ const generateCmr = (shipment) => {
   // defaults
 
   const rb = reduce(b, ctx);
-  dumpDom(rb);
+  // dumpDom(rb);
   // console.log(JSON.stringify(b, null, 2))
   layouter(rb, ctx);
-  dumpDom(rb);
+  // dumpDom(rb);
   const doc = renderer(rb, ctx);
   const out = [];
   try {
