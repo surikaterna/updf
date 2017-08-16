@@ -1,5 +1,6 @@
 import bind from '../src/content/bind';
 import block from '../src/content/block';
+import table from '../src/content/table';
 import page from '../src/content/page';
 import document from '../src/content/document';
 import inline from '../src/content/inline';
@@ -28,7 +29,7 @@ import fs from 'fs';
 
 import shipmentData from './shipmentData';
 import observationData from './obsData';
-
+import cmrData from './cmrData';
 
 /* processes:
   * layout (x,y, width & height)
@@ -152,19 +153,19 @@ const SvgLogo = `<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/s
 </svg>`;
 
 const vehicleTypeToSet = {
-  FT: {
-    front: fs.readFileSync('/temp/vh/img/tugmaster_rhd/v3/Tugmaster_Rhd_front.svg'),
-    back: fs.readFileSync('/temp/vh/img/tugmaster_rhd/v3/Tugmaster_Rhd_rear.svg'),
-    right: fs.readFileSync('/temp/vh/img/tugmaster_rhd/v3/Tugmaster_Rhd_right.svg'),
-    left: fs.readFileSync('/temp/vh/img/tugmaster_rhd/v3/Tugmaster_Rhd_left.svg'),
-    top: fs.readFileSync('/temp/vh/img/tugmaster_rhd/v3/Tugmaster_Rhd_roof.svg'),
-    getSubsetKey: () => null,
-    metadata: {
-      id: 'fridge',
-      sides: ['right', 'back', 'top', 'left', 'front'],
-      revision: '4'
-    }
-  }
+  // FT: {
+  //   front: fs.readFileSync('/temp/vh/img/tugmaster_rhd/v3/Tugmaster_Rhd_front.svg'),
+  //   back: fs.readFileSync('/temp/vh/img/tugmaster_rhd/v3/Tugmaster_Rhd_rear.svg'),
+  //   right: fs.readFileSync('/temp/vh/img/tugmaster_rhd/v3/Tugmaster_Rhd_right.svg'),
+  //   left: fs.readFileSync('/temp/vh/img/tugmaster_rhd/v3/Tugmaster_Rhd_left.svg'),
+  //   top: fs.readFileSync('/temp/vh/img/tugmaster_rhd/v3/Tugmaster_Rhd_roof.svg'),
+  //   getSubsetKey: () => null,
+  //   metadata: {
+  //     id: 'fridge',
+  //     sides: ['right', 'back', 'top', 'left', 'front'],
+  //     revision: '4'
+  //   }
+  // }
 };
 
 const getIllustrationsByVehicleType = (type) => {
@@ -223,7 +224,7 @@ const generatePdf = (diagrams, shipment, observation) => {
   };
 
   const XPoint = bind(({ x, y, r, style }) => {
-    return Path({ d: `M${x - r},${y - r}l${2 * r},${2 * r}m0,${2 * -r}l${2*-r},${2*r}`, style });
+    return Path({ d: `M${x - r},${y - r}l${2 * r},${2 * r}m0,${2 * -r}l${2 * -r},${2 * r}`, style });
   });
 
   //const diagrams = getIllustrationsByVehicleType('T1');
@@ -299,6 +300,13 @@ const generatePdf = (diagrams, shipment, observation) => {
 
   const Cell = bind(({ title, value, style, children }) => {
     return block({ style: Object.assign({}, { border: true }, style) }, [
+      block({ style: { fontSize: 7 } }, title)
+      , ...children
+    ]);
+  });
+
+  const InternalCell = bind(({ title, value, style, children }) => {
+    return block({ style: Object.assign({}, { border: false }, style) }, [
       block({ style: { fontSize: 7 } }, title)
       , ...children
     ]);
@@ -429,8 +437,110 @@ const generatePdf = (diagrams, shipment, observation) => {
   //b.children[0].children[0].context.ay.should.equal(top);
 }
 
+const generateCmr = (shipment) => {
+  const width = 595.28;
+  const height = 841.89;
+  const left = 40;
+  const top = 100;
+  const right = 40;
+  const currentTop = 5;
+
+  const margins = {
+    marginTop: 40,
+    marginLeft: 40,
+    marginRight: 40,
+    marginBottom: 40
+  };
+
+  const paddings = {
+    paddingTop: 0.05,
+    paddingLeft: 0.05,
+    paddingRight: 0.05,
+    paddingBottom: 0.05
+  };
+  const Cell = bind(({ title, value, style, children }) => {
+    return block({ style: Object.assign({}, { border: true }, style) }, [
+      block({ style: { fontSize: 7 } }, title)
+      , ...children
+    ]);
+  });
+
+  const b = document({},
+    page(Object.assign({ mediaBox: a4, style: Object.assign({ fontFamily: 'Helvetica', fontSize: 10, lineHeight: 1.2 }, margins, paddings) }), [
+      block({ id: 'title', style: { textAlign: 'right', fontSize: 10 } }, [
+        'INTERNATIONAL CONSIGNMENT NOTE'
+      ]),
+      block({ id: 'body', style: { position: 'relative', top: 10, left: 0, border: false } }, [
+        code39({ value: shipment.identifiers[0].identifier, style: { position: 'fixed', top: 148, left: 310, width: 220, height: 25 } })
+        //Logo2()
+        , table(cmrData, currentTop)
+        // Cell({ title: block({ style: { marginLeft: 10 } }, ' 2. Drawing'), style: { paddingLeft: 100 } }, ['asd test', 'asssss \ntest'])
+
+        // , Cell({ title: ' 3. Reports', style: { marginTop: 0, height: 15, textAlign: 'center' } })
+
+        // , Cell({ title: ' 1. Order Number', style: { height: 35 } }, block({ style: {} }, ' ' + shipment.identifiers[0].identifier))
+
+        //...observation.reports.map(rep => block({ style: { fontSize: 10 } }, rep.handle)),
+
+      ])
+      /*block({ style: { position: 'fixed', top: 800, left: 40, right: 40 } }, [
+        Cell({ title: ' 7. Created', style: { height: 15, border: false } }, block({ style: { fontSize: 10 } }, ''))
+      ]
+      )*/
+    ]),
+    //        Diagrams({diags: diagrams}),
+
+    //block({ style: { top: 0, left: 0, position: 'fixed' } }, [Logo2(front)]),
+
+    //code39({ value: 'VNOX44711', style: { width: 100, height: 20 } }),
+    /*          block({ style: { top: 100, border: false, width: 100, textAlign: 'right' } },
+                ['Hello World              2!', 'Again', ' Or', block({ style: { border: false } }, 'New block')]
+              ), block({ style: { right: 50, border: false } }, 'Aloha')]
+              */
+    //rect({ style: { left: 200, top: 100 } })
+  );
+
+
+
+  const ctx = {
+    width,
+    height,
+    maxWidth: width,
+    maxHeight: height,
+    mediaBox: a4,
+    ax: 0,
+    ay: 0,
+    fonts: new Fonts()
+  };
+  ctx.font = ctx.fonts.add('Helvetica', helvetica);
+  // defaults
+
+  const rb = reduce(b, ctx);
+  dumpDom(rb);
+  // console.log(JSON.stringify(b, null, 2))
+  layouter(rb, ctx);
+  dumpDom(rb);
+  const doc = renderer(rb, ctx);
+  const out = [];
+  try {
+    doc.write((e) => {
+      out.push(e);
+    });
+  } catch (e) {
+    console.error(e);
+  }
+  return out.join('');
+};
+
 describe('container', () => {
-  it.only('should put absolute position', (done) => {
+  it.only('should generate CMR', done => {
+    const data = generateCmr(shipmentData);
+    // require('fs').writeFileSync(`d:\\temp_${key}.pdf`, data);
+    require('fs').writeFileSync(`d:\\temp.pdf`, data);
+    console.log('Wrote file', new Date());
+    done();
+  });
+  xit('should put absolute position', (done) => {
     const typeMapping2 = {
       AR: 'artic',
       CC: 'artic',
@@ -475,10 +585,11 @@ describe('container', () => {
     keys.forEach(key => {
       new VehicleIllustrationService().getIllustrationsByVehicleType(key, function (err, diagrams) {
         //console.log('OBS', observationData);
-        const data = generatePdf(diagrams, shipmentData, observationData);
-        require('fs').writeFileSync(`d:\\temp_${key}.pdf`, data);
+        const data = generateCmr(diagrams, shipmentData, observationData);
+        // require('fs').writeFileSync(`d:\\temp_${key}.pdf`, data);
         require('fs').writeFileSync(`d:\\temp.pdf`, data);
-        console.log('Wrote file');
+        console.log('Wrote file', new Date());
+        done();
       });
     })
   });
