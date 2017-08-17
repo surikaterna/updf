@@ -136,9 +136,11 @@ function layoutText(width, currentX, txt, font, fontSize) {
   // split words and see what fits in the width available, and make implicit line breaks where needed
   let lines = txt.split('\n');
   lines = lines.map(line => line.split(' '));
+
   lines.forEach(line => {
     line.forEach(word => {
       const wordsize = font.width(word, fontSize);
+
       if (!cx || ((cx + wordsize + spaceSize) < width)) {
         cx += wordsize + spaceSize;
         result[result.length - 1] += word + ' ';
@@ -149,10 +151,12 @@ function layoutText(width, currentX, txt, font, fontSize) {
         result.push(word + ' ');
       }
     });
+
     ocx = cx;
-    cx = 0;
+    cx = width;
     cy += fontSize;
   });
+
   return { cx: ocx, lines: result };
 }
 
@@ -265,6 +269,7 @@ export default function layouter(vdom, context) {
           if (x > maxWidth) {
             x = context.x;
           }
+          x=0;
           //ctx.ax = vdom.ax + x;
           //ctx.ay = vdom.ay + y;
         }

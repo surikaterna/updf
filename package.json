@@ -1,6 +1,6 @@
 {
   "name": "@surikat/updf",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Hopefully tiny and modular library to generate PDF's in JS",
   "main": "lib/index.js",
   "scripts": {
