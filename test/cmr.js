@@ -190,6 +190,7 @@ const generateCmr = (shipment) => {
   });
 
 
+
   const rowStyle = { position: 'relative' };
 
   const Logo = () =>
@@ -202,7 +203,7 @@ const generateCmr = (shipment) => {
       ]),
       block({ id: 'body', style: { position: 'relative', top: 10, left: 0, border: false, width: 515 } }, [
         code39({ value: shipment.identifiers[0].identifier, style: { position: 'fixed', top: 160, left: 310, width: 220, height: 25 } }),
-        Logo(),
+        // Logo(),
         table({
           style: { textAlign: 'left', position: 'relative', height: 250, top: 5, marginLeft: 0, width: 515 }
         }, [

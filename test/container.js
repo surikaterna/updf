@@ -533,7 +533,7 @@ const generateCmr = (shipment) => {
 };
 
 describe('container', () => {
-  it.only('should generate CMR', done => {
+  it('should generate CMR', done => {
     const data = generateCmr(shipmentData);
     // require('fs').writeFileSync(`d:\\temp_${key}.pdf`, data);
     require('fs').writeFileSync(`d:\\temp.pdf`, data);
