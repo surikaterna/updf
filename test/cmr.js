@@ -1,6 +1,5 @@
 import bind from '../src/content/bind';
 import block from '../src/content/block';
-import table from '../src/content/table';
 import page from '../src/content/page';
 import document from '../src/content/document';
 import code39 from '../src/content/barcode/code39';
@@ -20,11 +19,18 @@ import shipmentData from './shipmentData';
 
 import cmrData from './cmrData';
 
+
 /* processes:
   * layout (x,y, width & height)
    *  width needs font (inline)
   * render
 */
+
+
+
+
+
+
 
 class Fonts {
   constructor() {
@@ -38,10 +44,6 @@ class Fonts {
     return this._fonts[family];
   }
 }
-
-
-
-
 
 function dumpDom(vdom, indent = 0) {
   let out = '';
@@ -163,7 +165,6 @@ const generateCmr = (shipment) => {
     return result;
   });
 
-
   const infoBoxContent = bind(({ title, style, titleStyle, children }) => {
     const basicStyle = { fontSize: 8, position: 'absolute' };
     delete style.left;
@@ -176,6 +177,7 @@ const generateCmr = (shipment) => {
       ...children
     ]);
   });
+
 
 
   const infoBox = bind(({ title, style, titleStyle, children }) => {
@@ -194,7 +196,7 @@ const generateCmr = (shipment) => {
   const rowStyle = { position: 'relative' };
 
   const Logo = () =>
-  block({ style: { top: 10, left: 40, position: 'fixed' } }, [SvgFromText({ svg: SvgLogo, style: { height: 50 } })]);
+  block({ style: { top: 40, left: 40, position: 'fixed' } }, [SvgFromText({ svg: SvgLogo, style: { height: 300 } })]);
 
   const b = document({},
     page(Object.assign({ mediaBox: a4, style: Object.assign({ fontFamily: 'Helvetica', fontSize: 10, lineHeight: 1.2 }, margins, paddings) }), [
@@ -203,7 +205,7 @@ const generateCmr = (shipment) => {
       ]),
       block({ id: 'body', style: { position: 'relative', top: 10, left: 0, border: false, width: 515 } }, [
         code39({ value: shipment.identifiers[0].identifier, style: { position: 'fixed', top: 160, left: 310, width: 220, height: 25 } }),
-        // Logo(),
+        Logo(),
         table({
           style: { textAlign: 'left', position: 'relative', height: 250, top: 5, marginLeft: 0, width: 515 }
         }, [

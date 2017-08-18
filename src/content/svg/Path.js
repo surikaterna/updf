@@ -8,6 +8,7 @@ const mapping = {
   a: 'arcToR',
   C: 'bezierCurveTo',
   c: 'bezierCurveToR',
+  q: 'quadraticCurveTo',
   M: 'moveTo',
   m: 'moveToR',
   L: 'lineTo',
@@ -36,6 +37,7 @@ const _bridge = (context) => {
 
 const Path = (props, context) => {
   const ctx = context.context2d;
+  console.log(context.context2d)
   try {
     pathParser(props.d || '', _bridge(ctx, mapping));
 /*    ctx.strokeColor('#ff0000')*/

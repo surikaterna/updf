@@ -23,6 +23,7 @@ const process = (cmd, args, gfx) => {
   if (args.length !== n && args.length % n !== 0) {
     throw new Error('Wrong n args: ' + cmd + ' ' + args + ' ' + args.length + ' ' + n);
   }
+
   if (cmd && gfx[cmd]) {
     //args can be multiple of expected number of arguments
     if (args.length > n) {
