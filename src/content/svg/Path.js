@@ -1,13 +1,13 @@
 import bind from '../bind';
 import pathParser from './pathParser';
-import _applyStyles from './_applyStyles';
-import _renderOp from './_renderOp';
 
 const mapping = {
   A: 'arcTo',
   a: 'arcToR',
   C: 'bezierCurveTo',
   c: 'bezierCurveToR',
+  q: 'quadraticCurveToR',
+  Q: 'quadraticCurveTo',
   M: 'moveTo',
   m: 'moveToR',
   L: 'lineTo',
@@ -26,7 +26,7 @@ const _bridge = (context) => {
   const bridge = {};
   Object.keys(mapping).forEach(key => {
     bridge[key] = (...args) => {
-      if(key === 'a' || key === 'A') {
+      if (key === 'a' || key === 'A') {
       }
       context[mapping[key]](...args);
     };
@@ -39,7 +39,7 @@ const Path = (props, context) => {
   try {
     pathParser(props.d || '', _bridge(ctx, mapping));
 /*    ctx.strokeColor('#ff0000')*/
-  } catch(e) {
+  } catch (e) {
     console.log('PATH');
   }
 };

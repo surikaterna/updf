@@ -273,14 +273,27 @@ export default class Context2d {
   }
   smoothCurveToR(x2, y2, x, y) {
     if(this._ax === undefined) {
+      
       this._ax = this._cx;
       this._ay = this._cy;
     }
     this.bezierCurveTo(this._cx - (this._ax - this._cx), this._cy - (this._ay - this._cy), this._cx + x2, this._cy + y2, this._cx + x, this._cy + y);
   }
   quadraticCurveTo(cx, cy, x, y) {
+    this._cx = x;
+    this._cy = y;
     this._draw(`${_f(cx)} ${_f(cy)} ${_f(x)} ${_f(y)} v`);
     return this;
+  }
+  quadraticCurveToR(cx, cy, x, y) {
+    const cx_old = this._cx;
+    const cy_old = this._cy;
+    return this.quadraticCurveTo(
+      cx + cx_old,
+      cy + cy_old,
+      x + cx_old,
+      y + cy_old
+    );
   }
   rect(x, y, width, height) {
     this._draw(`${_f(x || 0)} ${_f(y || 0)} ${_f(width)} ${_f(height)} re`);
