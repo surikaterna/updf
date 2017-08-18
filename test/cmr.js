@@ -9,7 +9,8 @@ import SvgFromText from '../src/content/svg/SvgFromText';
 import reduce from '../src/vdom/reduce';
 import layouter from '../src/vdom/layouter';
 import renderer from '../src/vdom/renderer';
-import SvgLogo from './svg';
+import SvgLogo from './svg2';
+import CmrLogo from './svg_cmr_logo';
 
 import should from 'should';
 
@@ -156,7 +157,7 @@ const generateCmr = (shipment) => {
 
     return block({ style: Object.assign({}, addressStyle) }, [
       block({ style: Object.assign({}, { fontSize: 7 }, titleStyle) }, '\n'),
-      '\n \n \n', `${party.zipOrPostalCode}${party.countryCode}  \n`
+      '\n \n \n', `${party.zipOrPostalCode} ${party.countryCode}  \n`
     ]);
   });
 
@@ -190,13 +191,14 @@ const generateCmr = (shipment) => {
       [...children]
     );
   });
-
-
+  
 
   const rowStyle = { position: 'relative' };
 
-  const Logo = () =>
-  block({ style: { top: 40, left: 40, position: 'fixed' } }, [SvgFromText({ svg: SvgLogo, style: { height: 300 } })]);
+  const Logo = () =>  block({ style: { top: 10, left: 40, position: 'fixed' } }, [SvgFromText({ svg: SvgLogo, style: { height: 155 } })]);
+  const CMRLogo = () =>  block({ style: { top: 250, left: 40, position: 'fixed' } }, [SvgFromText({ svg: CmrLogo, style: { height: 530 } })]);
+  const ShipperSignature = () =>
+  block({ style: { top: 40, left: 40, position: 'fixed' } }, [SvgFromText({ svg: ShipperSignatureSvg, style: { height: 300 } })]);
 
   const b = document({},
     page(Object.assign({ mediaBox: a4, style: Object.assign({ fontFamily: 'Helvetica', fontSize: 10, lineHeight: 1.2 }, margins, paddings) }), [
@@ -206,6 +208,7 @@ const generateCmr = (shipment) => {
       block({ id: 'body', style: { position: 'relative', top: 10, left: 0, border: false, width: 515 } }, [
         code39({ value: shipment.identifiers[0].identifier, style: { position: 'fixed', top: 160, left: 310, width: 220, height: 25 } }),
         Logo(),
+        CMRLogo(),
         table({
           style: { textAlign: 'left', position: 'relative', height: 250, top: 5, marginLeft: 0, width: 515 }
         }, [
