@@ -35,7 +35,6 @@ class Svg {
 
     if (maxWidth && width > maxWidth) {
       xScale = maxWidth / width;
-      yScale = xScale;
     }
 
     if (maxHeight && height > maxHeight) {
