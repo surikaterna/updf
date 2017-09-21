@@ -1,17 +1,19 @@
-const svg = `<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 382.6 203.32" style="enable-background:new -336 39.1 270.5 102.5;"
-xml:space="preserve">
+const svg = `<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 382.6 203.32">
 <defs>
   <style>
     .cls-1 {
       fill: #fdfdfd;
+      stroke:'none';
     }
 
     .cls-2 {
       fill: #67b3e2;
+      stroke:'none';
     }
 
     .cls-3 {
       fill: #242d4c;
+      stroke:'none';
     }
   </style>
 </defs>

@@ -3,14 +3,17 @@ const svg = `<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000
   <style>
     .cls-1 {
       fill: #ececec;
+      stroke:'none';
     }
 
     .cls-2 {
       fill: #fefefe;
+      stroke:'none';
     }
 
     .cls-3 {
       fill: #e2e2e2;
+      stroke:'none';
     }
   </style>
 </defs>

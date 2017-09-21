@@ -9,7 +9,7 @@ import SvgFromText from '../src/content/svg/SvgFromText';
 import reduce from '../src/vdom/reduce';
 import layouter from '../src/vdom/layouter';
 import renderer from '../src/vdom/renderer';
-import SvgLogo from './svg2';
+import SvgLogo from './svg_kn_logo';
 import CmrLogo from './svg_cmr_logo';
 
 import should from 'should';
@@ -196,9 +196,8 @@ const generateCmr = (shipment) => {
   const rowStyle = { position: 'relative' };
 
   const Logo = () =>  block({ style: { top: 10, left: 40, position: 'fixed' } }, [SvgFromText({ svg: SvgLogo, style: { height: 155 } })]);
-  const CMRLogo = () =>  block({ style: { top: 250, left: 40, position: 'fixed' } }, [SvgFromText({ svg: CmrLogo, style: { height: 530 } })]);
-  const ShipperSignature = () =>
-  block({ style: { top: 40, left: 40, position: 'fixed' } }, [SvgFromText({ svg: ShipperSignatureSvg, style: { height: 300 } })]);
+  const CMRLogo = () =>  block({ style: { top: 257.5, left: 40, position: 'fixed' } }, [SvgFromText({ svg: CmrLogo, style: { height: 530 } })]);
+  const ShipperSignature = () =>  block({ style: { top: 40, left: 40, position: 'fixed' } }, [SvgFromText({ svg: ShipperSignatureSvg, style: { height: 300 } })]);
 
   const b = document({},
     page(Object.assign({ mediaBox: a4, style: Object.assign({ fontFamily: 'Helvetica', fontSize: 10, lineHeight: 1.2 }, margins, paddings) }), [
