@@ -16,7 +16,7 @@ class Svg {
     if (typeof viewBox === 'string') {
       viewBox = viewBox.split(' ').map(e => parseFloat(e));
     }
-    let width = Number(props.width) || viewBox[2];
+    const width = Number(props.width) || viewBox[2];
     const height = Number(props.height) || viewBox[3];
     const maxWidth = Number(props.style.maxWidth);
     const maxHeight = Number(props.style.maxWidth);
