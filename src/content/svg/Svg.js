@@ -16,8 +16,13 @@ class Svg {
     if (typeof viewBox === 'string') {
       viewBox = viewBox.split(' ').map(e => parseFloat(e));
     }
-    const width = Number(props.width) || viewBox[2];
+    let width = Number(props.width) || viewBox[2];
     const height = Number(props.height) || viewBox[3];
+    const maxWidth = Number(props.style.maxWidth);
+    const maxHeight = Number(props.style.maxWidth);
+    if(width > maxWidth) {
+      width = maxWidth;
+    }
     // move in position of DOM element
     context.context2d.translate(context.ax, context.ay);
     let yScale = null;
@@ -29,6 +34,24 @@ class Svg {
     } else {
       yScale = 1;
     }
+
+    if (maxWidth && width > maxWidth) {
+      xScale = maxWidth / width;
+      yScale = xScale;
+    }
+
+    if (maxHeight && height > maxHeight) {
+      yScale = maxHeight / height;
+    }
+
+    if (yScale !== xScale) {
+      if (yScale > xScale) {
+        xScale = yScale;
+      } else {
+        yScale = xScale;
+      }
+    }
+
     // calculated scale
     context.context2d.scale(xScale || yScale, yScale || xScale);
     // transform viewbox
