@@ -19,7 +19,7 @@ class Svg {
     const width = Number(props.width) || viewBox[2];
     const height = Number(props.height) || viewBox[3];
     const maxWidth = Number(props.style.maxWidth);
-    const maxHeight = Number(props.style.maxWidth);
+    const maxHeight = Number(props.style.maxHeight);
 
     // move in position of DOM element
     context.context2d.translate(context.ax, context.ay);
