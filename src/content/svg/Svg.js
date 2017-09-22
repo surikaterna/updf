@@ -42,9 +42,9 @@ class Svg {
     }
 
     if (yScale !== xScale) {
-      if (yScale > xScale && maxWidth) {
+      if (yScale > xScale) {
         yScale = xScale;
-      } else if (xScale > yScale && maxHeight) {
+      } else {
         xScale = yScale;
       }
     }
