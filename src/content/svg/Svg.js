@@ -43,7 +43,7 @@ class Svg {
     }
 
     if (yScale !== xScale) {
-      if (yScale > xScale && xScale) {
+      if (xScale && yScale > xScale) {
         yScale = xScale;
       } else if (yScale) {
         xScale = yScale;
