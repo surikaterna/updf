@@ -32,6 +32,9 @@ class Svg {
     } else {
       yScale = 1;
     }
+    console.log('before')
+    console.log(xScale)
+    console.log(yScale)
 
     if (maxWidth && width > maxWidth) {
       xScale = maxWidth / width;
@@ -42,13 +45,15 @@ class Svg {
     }
 
     if (yScale !== xScale) {
-      if (yScale > xScale) {
+      if (yScale > xScale && xScale) {
         yScale = xScale;
-      } else {
+      } else if (yScale) {
         xScale = yScale;
       }
     }
-
+    console.log('after')
+    console.log(xScale)
+    console.log(yScale)
     // calculated scale
     context.context2d.scale(xScale || yScale, yScale || xScale);
     // transform viewbox
