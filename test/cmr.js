@@ -9,7 +9,7 @@ import SvgFromText from '../src/content/svg/SvgFromText';
 import reduce from '../src/vdom/reduce';
 import layouter from '../src/vdom/layouter';
 import renderer from '../src/vdom/renderer';
-import SvgLogo from './svg_kn_logo';
+// import SvgLogo from './svg_kn_logo';
 import CmrLogo from './svg_cmr_logo';
 
 import should from 'should';
@@ -195,9 +195,15 @@ const generateCmr = (shipment) => {
 
   const rowStyle = { position: 'relative' };
 
-  const Logo = () =>  block({ style: { top: 10, left: 40, position: 'fixed' } }, [SvgFromText({ svg: SvgLogo, style: { height: 155 } })]);
+  // const Logo = () =>  block({ style: { top: 10, left: 40, position: 'fixed' } }, [SvgFromText({ svg: SvgLogo, style: { height: 155 } })]);
   const CMRLogo = () =>  block({ style: { top: 257.5, left: 40, position: 'fixed' } }, [SvgFromText({ svg: CmrLogo, style: { height: 530 } })]);
   const ShipperSignature = () =>  block({ style: { top: 40, left: 40, position: 'fixed' } }, [SvgFromText({ svg: ShipperSignatureSvg, style: { height: 300 } })]);
+
+
+  const shipperSignatureAttachment = {};
+  const driverSignaturePickupAttachment = {};
+  const driverSignatureDeliveryAttachment = {};
+  const receiverSignatureAttachment = {};
 
   const b = document({},
     page(Object.assign({ mediaBox: a4, style: Object.assign({ fontFamily: 'Helvetica', fontSize: 10, lineHeight: 1.2 }, margins, paddings) }), [
@@ -206,7 +212,7 @@ const generateCmr = (shipment) => {
       ]),
       block({ id: 'body', style: { position: 'relative', top: 10, left: 0, border: false, width: 515 } }, [
         code39({ value: shipment.identifiers[0].identifier, style: { position: 'fixed', top: 160, left: 310, width: 220, height: 25 } }),
-        Logo(),
+        // Logo(),
         CMRLogo(),
         table({
           style: { textAlign: 'left', position: 'relative', height: 250, top: 5, marginLeft: 0, width: 515 }
@@ -290,6 +296,15 @@ const generateCmr = (shipment) => {
                 style: rowStyle
               },
               [
+                infoBox({ title: '5. Documents attached', style: { width: 257.5, height: 63 } }, ['  ']),
+                infoBox({ title: "18. Carrer's reservations and observations", style: { width: 257.5, left: 257.5, height: 63 } }, ['  '])
+              ]
+            ),
+            row(
+              {
+                style: rowStyle
+              },
+              [
                 infoBox({ title: '6. Marks and number', titleStyle: { fontSize: 6 }, style: { width: 73.57, left: 0, height: 150 } }, ['  ']),
                 infoBox({ title: '7.  Number of packages', titleStyle: { fontSize: 6 }, style: { width: 73.57, left: 73.57, height: 150 } }, ['  ']),
                 infoBox({ title: '8.  Method of packing', titleStyle: { fontSize: 6 }, style: { width: 73.57, left: 147.14, height: 150 } }, ['  ']),
@@ -312,7 +327,7 @@ const generateCmr = (shipment) => {
                   [
                     infoBox({ title: '14. Instructions as to payment for carriage', style: { width: 257.5, left: 257.5, height: 33 } }, ['  ']),
                     infoBox({ title: '15. The liability of the carriage is covered by the CMR', style: { width: 257.5, left: 257.5, height: 33, top: 33 } }, ['  ']),
-                    infoBox({ title: '16. Conditions of delivery', style: { width: 257.5, left: 257.5, height: 33, top: 66 } }, ['  '])
+                    infoBox({ title: '19. Conditions of delivery', style: { width: 257.5, left: 257.5, height: 33, top: 66 } }, ['  '])
                   ]
                 )
               ]
@@ -328,37 +343,45 @@ const generateCmr = (shipment) => {
             ),
             row(
               {
-                style: Object.assign({}, rowStyle, { border: true, height: 188 })
+                style: Object.assign({}, rowStyle, { border: true })
               },
               [
-                column({ style: { border: true, height: 188, width: 171.67, position: 'absolute' } },
+                column({ style: { border: true, height: 136, width: 128.75, position: 'absolute' } },
                   [
-                    infoBox({ title: '22 Signature and stamp of the sender', style: { width: 171.67, height: 104, border: false } }, ['  ']),
+                    infoBox({ title: '22 Signature and stamp of the \n  sender', style: { width: 128.75, height: 103, border: true } }, ['  ']),
                     row({}, [
-                      infoBox({ title: '', style: { width: 51.5, height: 84, top: 104, border: false, textAlign: 'right', fontSize: 7 } }, ['Name\nDate\nDevice ID\nTruck ID\nCarrier\nDriver\nRemark\n']),
-                      infoBox({ title: '', style: { width: 120.17, left: 51.5, height: 84, top: 104, border: false, fontSize: 7 } }, [''])
+                      infoBox({ title: 'Name', style: { width: 51.5, height: 33, top: 103, border: false, textAlign: 'right', fontSize: 7 } }, ['Date\nRemark\n']),
+                      infoBox({ title: `${shipperSignatureAttachment.name}`, style: { width: 120.17, left: 51.5, height: 33, top: 103, border: false, fontSize: 7 } }, [`${shipperSignatureAttachment.date}`])
                     ])
                   ]
                 ),
-                column({ style: { border: true, height: 188, width: 171.67, position: 'absolute', left: 171.67 } },
+                column({ style: { border: true, height: 136, width: 128.75, position: 'absolute', left: 128.75 } },
                   [
-                    infoBox({ title: '23. Signature and stamp of the driver', style: { width: 171.67, height: 104, border: false } }, ['  ']),
+                    infoBox({ title: '23. Signature and stamp of the driver at \n  sender', style: { width: 128.75, height: 103, border: true } }, ['  ']),
                     row({}, [
-                      infoBox({ title: '', style: { width: 51.5, height: 84, top: 104, border: false, textAlign: 'right', fontSize: 7 } }, ['Name\nDate\nDevice ID\nTruck ID\nCarrier\nDriver\nRemark\n']),
-                      infoBox({ title: '', style: { width: 120.17, left: 51.5, height: 84, top: 104, border: false, fontSize: 7 } }, [''])
+                      infoBox({ title: 'Name', style: { width: 51.5, height: 33, top: 103, border: false, textAlign: 'right', fontSize: 7 } }, ['Date\nRemark\n']),
+                      infoBox({ title: `${driverSignaturePickupAttachment.name}`, style: { width: 120.17, left: 51.5, height: 33, top: 103, border: false, fontSize: 7 } }, [`${driverSignaturePickupAttachment.date}`])
                     ])
                   ]
                 ),
-                column({ style: { border: true, height: 188, width: 171.67, position: 'absolute', left: 343.43 } },
+                column({ style: { border: true, height: 136, width: 128.75, position: 'absolute', left: 257.5 } },
                   [
-                    infoBox({ title: '24. Signature and stamp of the consignee', style: { width: 171.67, height: 104, border: false } }, ['  ']),
+                    infoBox({ title: '24. Signature and stamp of the driver at \n  consignee', style: { width: 128.75, height: 103, border: true } }, ['  ']),
                     row({}, [
-                      infoBox({ title: '', style: { width: 51.5, height: 84, top: 104, border: false, textAlign: 'right', fontSize: 7 } }, ['Name\nDate\nDevice ID\nTruck ID\nCarrier\nDriver\nRemark\n']),
-                      infoBox({ title: '', style: { width: 120.17, left: 51.5, height: 84, top: 104, border: false, fontSize: 7 } }, [''])
+                      infoBox({ title: 'Name', style: { width: 51.5, height: 33, top: 103, border: false, textAlign: 'right', fontSize: 7 } }, ['Date\nRemark\n']),
+                      infoBox({ title: `${driverSignatureDeliveryAttachment.name}`, style: { width: 120.17, left: 51.5, height: 33, top: 103, border: false, fontSize: 7 } }, [`${driverSignatureDeliveryAttachment.date}`])
+                    ])
+                  ]
+              ),
+                column({ style: { border: true, height: 136, width: 128.75, position: 'absolute', left: 386.25 } },
+                  [
+                    infoBox({ title: '25. Signature and stamp of the \n  consignee', style: { width: 128.75, height: 103, border: true } }, ['  ']),
+                    row({}, [
+                      infoBox({ title: 'Name', style: { width: 51.5, height: 33, top: 103, border: false, textAlign: 'right', fontSize: 7 } }, ['Date\nRemark\n']),
+                      infoBox({ title: `${receiverSignatureAttachment.name}`, style: { width: 120.17, left: 51.5, height: 33, top: 103, border: false, fontSize: 7 } }, [`${receiverSignatureAttachment.date}`])
                     ])
                   ]
                 )
-
               ]
             )
 
