@@ -136,11 +136,11 @@ function layoutText(width, currentX, txt, font, fontSize) {
   // split words and see what fits in the width available, and make implicit line breaks where needed
   let lines = txt.split('\n');
   lines = lines.map(line => line.split(' '));
-  //console.log('LINES', lines, currentX)
+
   lines.forEach(line => {
     line.forEach(word => {
       const wordsize = font.width(word, fontSize);
-      //console.log('WW', word);
+
       if (!cx || ((cx + wordsize + spaceSize) < width)) {
         cx += wordsize + spaceSize;
         result[result.length - 1] += word + ' ';
@@ -151,12 +151,12 @@ function layoutText(width, currentX, txt, font, fontSize) {
         result.push(word + ' ');
       }
     });
-    //console.log('LL', line)
+
     ocx = cx;
     cx = width;
     cy += fontSize;
   });
-  //console.log('RES', result)
+
   return { cx: ocx, lines: result };
 }
 

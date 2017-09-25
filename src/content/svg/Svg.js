@@ -18,6 +18,9 @@ class Svg {
     }
     const width = Number(props.width) || viewBox[2];
     const height = Number(props.height) || viewBox[3];
+    const maxWidth = Number(props.style.maxWidth);
+    const maxHeight = Number(props.style.maxHeight);
+
     // move in position of DOM element
     context.context2d.translate(context.ax, context.ay);
     let yScale = null;
@@ -29,6 +32,23 @@ class Svg {
     } else {
       yScale = 1;
     }
+
+    if (maxWidth && width > maxWidth) {
+      xScale = maxWidth / width;
+    }
+
+    if (maxHeight && height > maxHeight) {
+      yScale = maxHeight / height;
+    }
+
+    if (yScale !== xScale) {
+      if (yScale > xScale) {
+        yScale = xScale;
+      } else {
+        xScale = yScale;
+      }
+    }
+
     // calculated scale
     context.context2d.scale(xScale || yScale, yScale || xScale);
     // transform viewbox
