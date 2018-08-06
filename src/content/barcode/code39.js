@@ -26,7 +26,7 @@ export function enc(text) {
   return res + STAR;
 }
 
-const code39 = (props) => {
+export const code39 = (props) => {
   const b = enc(props.value);
   const height = (props.style && props.style.height) || props.height || 20;
   const width = (props.style && props.style.width) || props.height || 100;
