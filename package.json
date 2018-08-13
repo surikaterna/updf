@@ -1,6 +1,6 @@
 {
   "name": "@surikat/updf",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "Hopefully tiny and modular library to generate PDF's in JS",
   "main": "lib/index.js",
   "scripts": {
@@ -8,7 +8,7 @@
     "test.watch": "mocha --watch --color --compilers js:babel-register --recursive test",
     "compile": "babel -d lib src",
     "compile.watch": "babel --watch -d lib src",
-    "prepublish": "npm run compile"        
+    "prepublish": "npm run compile"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
