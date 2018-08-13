@@ -27,6 +27,8 @@ export function enc(text) {
 }
 
 export const code39 = (props) => {
+  const Svg = props.Svg || svg;
+  const Rect = props.Rect || rect;
   const b = enc(props.value);
   const height = (props.style && props.style.height) || props.height || 20;
   const width = (props.style && props.style.width) || props.height || 100;
@@ -39,13 +41,14 @@ export const code39 = (props) => {
       cWidth++;
     } else if (cWidth > 0) {
       x = i * elemWidth;
-      r = rect({ x: x - elemWidth * cWidth, y: 0, width: elemWidth * cWidth, height, style: { fill: '#000', stroke: 'none' } });
+      r = Rect({ x: x - elemWidth * cWidth, y: 0, width: elemWidth * cWidth, height, style: { fill: '#000', stroke: 'none' } });
       cWidth = 0;
     }
     return r;
   });
+
   // children.push(rect({ style: { left: x - elemWidth * (cWidth - 1), top: 0, width: elemWidth * cWidth, height, position: 'absolute' } }));
-  return svg({ viewBox: [0, 0, width, height], style: props.style}, children.filter(n => n !== null));
+  return Svg({ viewBox: [0, 0, width, height], style: props.style }, children.filter(n => n !== null));
 };
 
 export default bind(code39);
