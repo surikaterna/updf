@@ -35,6 +35,8 @@ export default class TextArea
 
 			var targetY = boundsTop - style.mDescent - style.mLineHeight;
 
+			// NOTE: spans not implemented correctly, the Paragraph class throws exception if more than one span is added.
+
 			for (var spanIndex = 0; spanIndex < spans.length; spanIndex++)
 			{
 				var span = spans[spanIndex];
