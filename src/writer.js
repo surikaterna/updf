@@ -1,142 +1,138 @@
 import Ref from './ref';
-import Stream from './stream';
+import StreamBuffer from './streambuffer';
 
-function isObject(obj) {
-  return obj === Object(obj);
+function isObject(obj) 
+{
+	return obj === Object(obj);
 }
 
-function _leftPad(str, i, ch = ' ') {
-  while (str.length < i) str = ch + str;
-  return str;
+function _leftPad(str, i, ch = ' ') 
+{
+	while (str.length < i) str = ch + str;
+	return str;
 }
 
-/**
- * Object types:
-  • Boolean values
-  • Integer and real numbers
-  • Strings (xx)
-  • Names /Name
-  • Arrays [A L L E L E M E N T S]
-  • Dictionaries << /Key (value) >>
-  • Streams dict stream...endstream
-  • The null object
-  index gen obj...endobj
-  Ref object index gen R (12 0 R)
- */
+class Writer 
+{
+	constructor(aDoc, aStreamBuffer) 
+	{
+		this.mDocument = aDoc;
+		this.mOffset = 0;
+		this.mReferences = [];
+		this.mStreamBuffer = aStreamBuffer;
+	}
 
-/**
- * FS
- * header
- * body
- * crossref table (xref)
- *  index nr-of-items
- *  10digitbyteoffset 5cgen n|f
- * trailer
- *  trailer
- *  <<end of file dict>>
- *  startxref
- *  92151 //byteoffset
- *  %%EOF
- */
+	append(aValue)
+	{
+		this.mStreamBuffer.append(aValue);
+		this.mOffset += aValue.length;
+		return this;
+	}
 
+	finish()
+	{
+		// xref
+		const startxref = this.mOffset;
+		const xrefs = this.mReferences.length + 1;
+		this.append('xref\n')
+		this.append('0 ' + (xrefs) + '\n');
+		this.append('0000000000 65535 f\n')
+		this.mReferences.forEach(xref => 
+		{
+			this.append(_leftPad(xref.toString(), 10, '0') + ' 00000 n\n');
+		});
 
-const version = '1.3';
-class Writer {
-  constructor(out) {
-    this._offset = 0;
-    this._out = (e) => {
-      // console.log('!!!!!' + e + '%%%%');
-      out(e);
-      this._offset += e.length;
-      return this;
-    };
-  }
-  start(doc) {
-    this._doc = doc;
-    this._out('%PDF-' + version + '\n');
-    // todo, store offsets;
-    this._xref = [];
+		// trailer
+		this.append('trailer\n').any(
+			{
+			Size: xrefs,
+			Root: this.mDocument.mCatalogRef
+		})
+			.append('startxref\n')
+			.any(startxref)
+			.append('\n%%EOF');
+	}
 
-    this._doc._objects.forEach((o, i) => this.obj(o, i + 1));
+	any(aParam) 
+	{
+		if (aParam instanceof Ref) 
+		{
+			this.append(`${aParam.index} 0 R`);
+		}
+		else if (aParam instanceof StreamBuffer) 
+		{
+			this.stream(aParam.content());
+		}
+		else if (aParam instanceof Buffer) 
+		{
+			this.stream(aParam);
+		}
+		else if (aParam && aParam.constructor === Array) 
+		{
+			this.append('[');
+			aParam.forEach((e, i) => 
+			{
+				this.any(e);
+				if (i + 1 !== aParam.length) 
+				{
+					this.append(' ');
+				}
+			});
+			this.append(']');
+		}
+		else if (isObject(aParam)) 
+		{
+			this.dict(aParam);
+		} 
+		else if (typeof aParam === 'string') 
+		{
+			this.append('/' + aParam);
+		} 
+		else if (typeof aParam === 'number') 
+		{
+			this.append(aParam.toString());
+		}
+		else 
+		{
+			throw new Error('Unknown: ' + typeof aParam);
+		}
+		return this;
+	}
 
+	stream(aBuffer) 
+	{
+		this.any({
+			Length: aBuffer.length
+		});
+		this.append('stream\n');
+		this.append(aBuffer);
+		this.append('endstream\n');
+	}
 
-    // xref
-    const startxref = this._offset;
-    const xrefs = this._xref.length + 1;
-    this._out('xref\n')
-    this._out('0 ' + (xrefs) + '\n');
-    this._out('0000000000 65535 f\n')
-    this._xref.forEach(xref => {
-      this._out(_leftPad(xref.toString(), 10, '0') + ' 00000 n\n');
-    });
-    // trailer
-    this._out('trailer\n').any({
-      Size: xrefs,
-      Root: doc._cat
-    })
-      ._out('startxref\n').any(startxref)
-      ._out('\n%%EOF');;
+	dict(dict) 
+	{
+		this.append('<<');
+		const keys = Object.keys(dict);
+		keys.forEach((k, i) => 
+		{
+			this.any(k).append(' ').any(dict[k]);
+			if (i + 1 !== keys.length) 
+			{
+				this.append(' ');
+			}
+		});
+		this.append('>>\n');
+	}
 
+	obj(obj) 
+	{
+		this.mReferences.push(this.mOffset);
+		this.append(`${this.mReferences.length} 0 obj\n`);
+		this.any(obj);
+		this.append('endobj\n');
 
-    //console.log('XR', this._xref);
-  }
-  any(any) {
-    if (any instanceof Ref) {
-      this._out(`${any.index} 0 R`);
-    } else if (any instanceof Stream) {
-      this.stream(any);
-    } else if (any && any.constructor === Array) {
-      this._out('[');
-      any.forEach((e, i) => {
-        this.any(e);
-        if (i + 1 !== any.length) {
-          this._out(' ');
-        }
-      });
-      this._out(']');
-    } else if (isObject(any)) {
-      this.dict(any);
-    } else if (typeof any === 'string') {
-      this._out('/' + any);
-    } else if (typeof any === 'number') {
-      this._out(any.toString());
-    }
-    else {
-      throw new Error('Unk' + typeof any);
-    }
-    return this;
-  }
-
-  stream(stream) {
-    const content = stream.content;
-    this.any({
-      Length: content.length + 1
-    });
-    this
-      ._out('stream\n')
-      ._out(content)
-      ._out('\n')
-      ._out('endstream\n');
-  }
-
-  dict(dict) {
-    this._out('<<');
-    const keys = Object.keys(dict);
-    keys.forEach((k, i) => {
-      this.any(k)._out(' ').any(dict[k]);
-      if (i + 1 !== keys.length) {
-        this._out(' ');
-      }
-    });
-    this._out('>>\n');
-  }
-
-  obj(obj, index) {
-    this._xref.push(this._offset);
-    this._out(`${index} 0 obj\n`);
-    this.any(obj);
-    this._out('endobj\n');
-  }
+		return this.mReferences.length;
+	}
 }
 
 export default Writer;

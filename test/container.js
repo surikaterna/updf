@@ -151,6 +151,7 @@ const SvgLogo = `<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/s
 <polygon class="st2" points="-72.3,135.6 -328.9,135.6 -328.9,137.4 -72.3,137.4 "/>
 </svg>`;
 
+/**
 const vehicleTypeToSet = {
   FT: {
     front: fs.readFileSync('/temp/vh/img/tugmaster_rhd/v3/Tugmaster_Rhd_front.svg'),
@@ -172,7 +173,7 @@ const getIllustrationsByVehicleType = (type) => {
 }
 
 import VehicleIllustrationService from './VehicleIllustrationService';
-
+**/
 
 const generatePdf = (diagrams, shipment, observation) => {
   const width = 595.28;
@@ -430,7 +431,7 @@ const generatePdf = (diagrams, shipment, observation) => {
 }
 
 describe('container', () => {
-  it.only('should put absolute position', (done) => {
+  it.skip('should put absolute position', (done) => {
     const typeMapping2 = {
       AR: 'artic',
       CC: 'artic',

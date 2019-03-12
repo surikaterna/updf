@@ -1,13 +1,24 @@
-export default class Ref {
-  constructor(doc, index, obj) {
-    this._doc = doc;
-    this._index = index;
-    this._obj = obj;
-  }
-  get object() {
-    return this._obj;
-  }
-  get index() {
-    return this._index;
-  }
+export default class Ref 
+{
+	constructor(doc, obj, index) 
+	{
+		this.mDocument = doc;
+		this.mIndex = index;
+		this.mObject = obj;
+	}
+
+	get object() 
+	{
+		return this.mObject;
+	}
+
+	get index() 
+	{
+		return this.mIndex;
+	}
+
+	toString()
+	{
+		return this.mIndex + " 0 R";
+	}
 }
