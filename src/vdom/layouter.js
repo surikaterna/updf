@@ -124,6 +124,19 @@ function styler(vdom, context) {
   return vdom;
 }
 
+
+/* function insert(mainString, insString, pos) {
+  if (typeof(pos) === undefined) {
+    pos = 0;
+  }
+  if (typeof(insString) === undefined) {
+    insString = '';
+  }
+  return mainString.slice(0, pos) + insString + mainString.slice(pos);
+}
+
+const splitAt = (index) => (x) => [x.slice(0, index), x.slice(index)]; */
+
 function layoutText(width, currentX, txt, font, fontSize) {
 
   const result = [''];
@@ -147,6 +160,39 @@ function layoutText(width, currentX, txt, font, fontSize) {
       } else {
         // new line
         cx = wordsize;
+
+        if ((cx + spaceSize) > width) {
+          // TODO: Split and push
+
+          const proc = width / wordsize;
+          const iterations = Math.ceil(wordsize / width);
+          const indexes = Math.floor((word.length - 3) * proc); // 3 = Make space for two spaces and one dash
+
+          const subStrings = [];
+          let startIndex = 0;
+
+          for (let i = 1; i <= iterations; i += 1) {
+            if (i === iterations.length) {
+              subStrings.push(word.substring(startIndex));
+              return; // Continue
+            }
+            subStrings.push(word.substr(startIndex, indexes));
+            startIndex += indexes;
+          }
+
+          subStrings.forEach((subString, index) => {
+            cx = font.width(subString, fontSize);
+            cy += fontSize;
+            let str = ` ${subString}`;
+            if (index !== subStrings.length - 1) {
+              str += '- ';
+            }
+            result.push(str);
+          });
+
+          return; // Continue
+        }
+
         cy += fontSize;
         result.push(word + ' ');
       }
