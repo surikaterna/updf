@@ -147,10 +147,13 @@ function layoutText(width, currentX, txt, font, fontSize) {
       } else {
         // new line
         cx = wordsize;
+        const spaceDashSpace = font.width(' - ', fontSize);
 
-        if ((cx + spaceSize) > width) {
+        if ((cx + spaceDashSpace + spaceSize) > width) {
           const iterations = Math.ceil(wordsize / width);
-          const charsPerLine = Math.floor((word.length - 3) * (width / wordsize)); // 3 = Make room for two spaces and one dash
+          const procent = Math.floor((width / wordsize) * 100);
+          const procentageOfWidth = procent / 100;
+          const charsPerLine = Math.floor(word.length * procentageOfWidth);
 
           const subStrings = [];
           let startIndex = 0;
@@ -169,9 +172,9 @@ function layoutText(width, currentX, txt, font, fontSize) {
             cy += fontSize;
             let str = ' ' + subString;
             if (index !== subStrings.length - 1) {
-              str += '- ';
+              str += '-';
             }
-            result.push(str);
+            result.push(str + ' ');
           });
 
           return; // Continue
