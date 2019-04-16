@@ -149,6 +149,7 @@ function layoutText(width, currentX, txt, font, fontSize) {
         cx = wordsize;
         const extraSpace = font.width(' - ', fontSize);
 
+        // Split word if it is still to long for new line
         if ((cx + extraSpace) > width) {
           cx += extraSpace;
           const iterations = Math.ceil(wordsize / width);
