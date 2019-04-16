@@ -147,6 +147,40 @@ function layoutText(width, currentX, txt, font, fontSize) {
       } else {
         // new line
         cx = wordsize;
+        const extraSpace = font.width(' - ', fontSize);
+
+        // Split word if it is still to long for new line
+        if ((cx + extraSpace) > width) {
+          cx += extraSpace;
+          const iterations = Math.ceil(wordsize / width);
+          const percentage = (Math.floor(((width - extraSpace) / wordsize) * 100)) / 100;
+          const charsPerLine = Math.floor(word.length * percentage);
+
+          const subStrings = [];
+          let startIndex = 0;
+
+          for (let i = 1; i <= iterations; i += 1) {
+            if (i === iterations.length) {
+              subStrings.push(word.substring(startIndex));
+              return; // Continue
+            }
+            subStrings.push(word.substr(startIndex, charsPerLine));
+            startIndex += charsPerLine;
+          }
+
+          subStrings.forEach((subString, index) => {
+            cx = font.width(subString, fontSize) + extraSpace;
+            cy += fontSize;
+            let str = ' ' + subString;
+            if (index !== subStrings.length - 1) {
+              str += '-';
+            }
+            result.push(str + ' ');
+          });
+
+          return; // Continue
+        }
+
         cy += fontSize;
         result.push(word + ' ');
       }
