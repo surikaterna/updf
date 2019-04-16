@@ -147,13 +147,13 @@ function layoutText(width, currentX, txt, font, fontSize) {
       } else {
         // new line
         cx = wordsize;
-        const spaceDashSpace = font.width(' - ', fontSize);
+        const extraSpace = font.width(' - ', fontSize);
 
-        if ((cx + spaceDashSpace + spaceSize) > width) {
+        if ((cx + extraSpace) > width) {
+          cx += extraSpace;
           const iterations = Math.ceil(wordsize / width);
-          const procent = Math.floor((width / wordsize) * 100);
-          const procentageOfWidth = procent / 100;
-          const charsPerLine = Math.floor(word.length * procentageOfWidth);
+          const percentage = (Math.floor(((width - extraSpace) / wordsize) * 100)) / 100;
+          const charsPerLine = Math.floor(word.length * percentage);
 
           const subStrings = [];
           let startIndex = 0;
@@ -168,7 +168,7 @@ function layoutText(width, currentX, txt, font, fontSize) {
           }
 
           subStrings.forEach((subString, index) => {
-            cx = font.width(subString, fontSize);
+            cx = font.width(subString, fontSize) + extraSpace;
             cy += fontSize;
             let str = ' ' + subString;
             if (index !== subStrings.length - 1) {
