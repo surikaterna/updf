@@ -1,68 +1,78 @@
 import Writer from './writer';
 import Ref from './ref';
-import Stream from './stream';
-/*
-function text() {
+import Page from '../src/page';
+import Font from '../src/font';
+import StreamBuffer from './streambuffer';
 
-}
 
+export default class Document 
 {
-  $stream: ['asas', { $binary: '' }]
-}
-*/
+	constructor(aStreamBuffer) 
+	{
+		this.mPages = [];
+		this.mFonts = {};
+		this.mFontRefs = {};
+		this._objects = [];
 
+		const version = '1.3';
 
-export default class Document {
-  constructor() {
-    this._objects = [];
-    this._pages = this.ref({
-      Count: 0,
-      Type: 'Pages',
-      Kids: []
-    });
-    this._cat = this.ref(
-      {
-        Type: 'Catalog',
-        Pages: this._pages
-      }
-    )
-  }
+		this.mWriter = new Writer(this, aStreamBuffer);
+		this.mWriter.append('%PDF-' + version + '\n');
+	}
 
-  addPage(options = {}) {
-    const content = new Stream(this);
-    const pages = this._pages.object;
-    this._currentPage = this.ref(
-      {
-        Type: 'Page',
-        MediaBox: options.mediaBox || [0, 0, 595.28, 841.89],
-        Parent: this._pages,
-        Contents: this.ref(content),
-        Resources: this.ref({
-          Font: {
-            G: this.ref(
-              {
-                Type: 'Font',
-                Subtype: 'Type1',
-                BaseFont: 'Helvetica'
-              })
-          }
-        })
-      })
-    pages.Kids.push(this._currentPage);
-    pages.Count++;
-    return this._currentPage;
-  }
+	addPage() 
+	{
+		var page = new Page(this);
+		this.mPages.push(page);
+		return page;
+	}
 
-  currentPage() {
-    return this._currentPage;
-  }
+	registerFont(aFont)
+	{
+		if (!(aFont instanceof Font))
+		{
+			throw "argument not a font"
+		}
 
-  ref(obj) {
-    return new Ref(this, this._objects.push(obj), obj)
-  }
+		this.mFonts[aFont.mIdentity] = aFont;
+	}
 
-  write(fn) {
-    const w = new Writer(fn || console.log);
-    w.start(this);
-  }
+	getFontRef(aIdentity)
+	{
+		return this.mFontRefs[aIdentity];
+	}
+
+	close()
+	{
+		this.mPages.forEach(page => page.close());
+
+		var keys = Object.keys(this.mFonts);
+		for (var i = 0; i < keys.length; i++)
+		{
+			this.mFontRefs[keys[i]] = this.mFonts[keys[i]].print(this);
+		}
+
+		var pages = [];
+		this.mPages.forEach(page => pages.push(page.printHeader()));
+
+		var pagesRef = this.ref({
+			Count: this.mPages.length,
+			Type: 'Pages',
+			Kids: pages
+		});
+
+		this.mCatalogRef = this.ref({
+			Type: 'Catalog',
+			Pages: pagesRef
+		});
+
+		this.mWriter.finish();
+	}
+
+	ref(aObject) 
+	{
+		var index = this.mWriter.obj(aObject);
+
+		return new Ref(this, aObject, index);
+	}
 }
