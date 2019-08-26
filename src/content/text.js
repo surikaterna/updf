@@ -1,10 +1,10 @@
 import bind from './bind';
-import replaceUmlauts from './util/replaceUmlauts';
+import replaceDiacritics from './util/replaceDiacritics';
 
 const text = (props, context) => {
   // console.log('TXT', props, context.ax, context.ay, context.mediaBox);
   const { out: o } = context;
-  const str = props.str && replaceUmlauts(props.str.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)'));
+  const str = props.str && replaceDiacritics(props.str.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)'));
   /*  context.page.object.Contents.object.append('BT /G 24 Tf 175 720 Td');
     context.page.object.Contents.object.append(' (' + props.str || props.children + ') ');
     context.page.object.Contents.object.append('Tj ET');*/

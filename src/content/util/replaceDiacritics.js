@@ -1,5 +1,5 @@
 
-const umlautTranslations = {
+const translations = {
   // Polish
   Ą: 'A', ą: 'a',
   Ć: 'C', ć: 'c',
@@ -18,10 +18,10 @@ const umlautTranslations = {
   ß: 'ss'
 };
 
-const replaceUmlauts = function (s = '') {
-  const chars = Object.keys(umlautTranslations);
+const replaceDiacritics = function (s = '') {
+  const chars = Object.keys(translations);
   const regExp = new RegExp(`[${chars.join('')}]`, 'g');
-  return s.replace(regExp, $0 => umlautTranslations[$0]);
+  return s.replace(regExp, $0 => translations[$0]);
 };
 
-export default replaceUmlauts;
+export default replaceDiacritics;
