@@ -19,7 +19,9 @@ const umlautTranslations = {
 };
 
 const replaceUmlauts = function (s = '') {
-  return s.replace(/[ĄąĆćĘęŁłŃńÓóŚśŹźŻżÄäÖöÜüß]/g, $0 => umlautTranslations[$0]);
+  const chars = Object.keys(umlautTranslations);
+  const regExp = new RegExp(`[${chars.join('')}]`, 'g');
+  return s.replace(regExp, $0 => umlautTranslations[$0]);
 };
 
 export default replaceUmlauts;
