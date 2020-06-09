@@ -15,7 +15,10 @@ const translations = {
   Ä: 'Ae', ä: 'ae',
   Ö: 'Oe', ö: 'oe',
   Ü: 'Ue', ü: 'ue',
-  ß: 'ss'
+  ß: 'ss',
+
+  // Spanish
+  Ñ: 'N', ñ: 'n'
 };
 
 const replaceDiacritics = function (s = '') {
