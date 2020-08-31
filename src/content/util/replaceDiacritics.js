@@ -16,7 +16,12 @@ const translations = {
   Ä: 'Ae', ä: 'ae',
   Ö: 'Oe', ö: 'oe',
   Ü: 'Ue', ü: 'ue',
-  ß: 'ss'
+  ß: 'ss',
+
+  // Balkan countries, more to be added...
+  Č: 'C', č: 'c',
+  Š: 'S', š: 's',
+  Ž: 'Z', ž: 'z'
 };
 
 const replaceDiacritics = function (s = '') {
