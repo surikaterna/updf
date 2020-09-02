@@ -1,6 +1,8 @@
 import Writer from './writer';
 import Ref from './ref';
 import Stream from './stream';
+import ImagesMixin from './images';
+
 /*
 function text() {
 
@@ -65,4 +67,11 @@ export default class Document {
     const w = new Writer(fn || console.log);
     w.start(this);
   }
+
 }
+
+const mixin = methods => {
+  Object.assign(Document.prototype, methods);
+};
+
+mixin(ImagesMixin);
