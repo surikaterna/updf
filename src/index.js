@@ -27,7 +27,9 @@ export default class Document {
         Type: 'Catalog',
         Pages: this._pages
       }
-    )
+    );
+
+    this.initImages();
   }
 
   addPage(options = {}) {
@@ -60,7 +62,7 @@ export default class Document {
   }
 
   ref(obj) {
-    return new Ref(this, this._objects.push(obj), obj)
+    return new Ref(this, this._objects.push(obj), obj);
   }
 
   write(fn) {
@@ -70,8 +72,4 @@ export default class Document {
 
 }
 
-const mixin = methods => {
-  Object.assign(Document.prototype, methods);
-};
-
-mixin(ImagesMixin);
+Object.assign(Document.prototype, ImagesMixin);

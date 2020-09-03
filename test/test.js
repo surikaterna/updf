@@ -4,9 +4,6 @@ import block from '../src/content/block';
 import page from '../src/content/page';
 import buildProps from '../src/vdom/buildProps';
 import reduce from '../src/vdom/reduce';
-import { getImageDocument } from './imagePdf';
-import a4 from '../lib/boxes/a4';
-import renderer from '../lib/vdom/renderer';
 
 should();
 
@@ -74,42 +71,31 @@ describe('PdfDoc', () => {
       console.log(doc._objects);
       console.error(e);
     }
-    console.log(out.join(''));
+    // console.log(out.join(''));
   });
 
   it.only('Should create an image pdf', () => {
-    /* const width = 595.28;
-    const height = 841.89;
-    const output = [];
-
-    try {
-      const context = {
-        width,
-        height,
-        maxWidth: width,
-        maxHeight: height,
-        mediaBox: a4,
-        ax: 0,
-        ay: 0
-      };
-      const document = getImageDocument();
-      const rb = reduce(document, context);
-      const doc = renderer(rb, context);
-      doc.write(e => output.push(e));
-      require('fs').writeFileSync('./image.pdf', output.join(''));
-    } catch (error) {
-      console.error(error);
-    } */
-
     try {
       const output = [];
       const doc = new PdfDoc();
       doc.addPage();
-      doc.image('./images/cat.jpg', 100, 160, { width: 412 });
+
+      console.log(doc.currentPage().object);
+
+      doc.image('./test/images/cat.jpg', {
+        fit: [100, 100],
+        align: 'center',
+        valign: 'center'
+      });
+
       doc.write(e => output.push(e));
+
+      console.log('****** Doc', doc);
+
+      // console.log('********** Result **********');
+      // console.log(output.join(''));
       require('fs').writeFileSync('./image.pdf', output.join(''));
-    }
-    catch (error) {
+    } catch (error) {
       console.log(error);
     }
   });

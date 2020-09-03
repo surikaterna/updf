@@ -81,7 +81,9 @@ class JPEG {
       this.obj.data['Decode'] = [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0];
     }
 
-    this.obj.end(this.data);
+    console.log('------ obj: ', this.obj);
+
+    // this.obj.end(this.data); // TODO
 
     // free memory
     return (this.data = null);

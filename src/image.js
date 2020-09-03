@@ -28,7 +28,7 @@ class PDFImage {
     if (data[0] === 0xff && data[1] === 0xd8) {
       return new JPEG(data, label);
     } else if (data[0] === 0x89 && data.toString('ascii', 1, 4) === 'PNG') {
-      console.log('is PNG');
+      console.log('Image is PNG'); // TODO
     } else {
       throw new Error('Unknown image format.');
     }

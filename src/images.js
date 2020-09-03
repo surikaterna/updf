@@ -28,13 +28,15 @@ export default {
       }
     }
 
+    console.log('*** image data " ', image.data);
+
     if (!image.obj) {
       image.embed(this);
     }
 
-    if (this.page.xobjects[image.label] == null) {
+    /* if (this.page.xobjects[image.label] == null) {
       this.page.xobjects[image.label] = image.obj;
-    }
+    } */
 
     let w = options.width || image.width;
     let h = options.height || image.height;
@@ -89,7 +91,7 @@ export default {
     }
 
     // create link annotations if the link option is given
-    if (options.link != null) {
+    /* if (options.link != null) {
       this.link(x, y, w, h, options.link);
     }
     if (options.goTo != null) {
@@ -97,17 +99,19 @@ export default {
     }
     if (options.destination != null) {
       this.addNamedDestination(options.destination, 'XYZ', x, y, null);
-    }
+    } */
 
     // Set the current y position to below the image if it is in the document flow
     if (this.y === y) {
       this.y += h;
     }
 
-    this.save();
-    this.transform(w, 0, 0, -h, x, y + h);
-    this.addContent(`/${image.label} Do`);
-    this.restore();
+    console.log('******* this ', this);
+
+    // this.save();
+    // this.transform(w, 0, 0, -h, x, y + h);
+    // this.addContent(`/${image.label} Do`);
+    // this.restore();
 
     return this;
   },
