@@ -4,6 +4,7 @@ import block from '../src/content/block';
 import page from '../src/content/page';
 import buildProps from '../src/vdom/buildProps';
 import reduce from '../src/vdom/reduce';
+import { doesNotMatch } from 'assert';
 
 should();
 
@@ -80,19 +81,13 @@ describe('PdfDoc', () => {
       const doc = new PdfDoc();
       doc.addPage();
 
-      console.log(doc.currentPage().object);
+      doc.image('./test/images/cat.jpg', { width: 100, height: 100 });
 
-      doc.image('./test/images/cat.jpg', {
-        fit: [100, 100],
-        align: 'center',
-        valign: 'center'
-      });
+      // console.log({ doc });
+
+      // doc.currentPage().object.Contents.object.append('BT 12 Tf 10 10 Td (Hello World!)Tj ET');
 
       doc.write(e => output.push(e));
-
-      console.log('****** Doc', doc);
-
-      // console.log('********** Result **********');
       // console.log(output.join(''));
       require('fs').writeFileSync('./image.pdf', output.join(''));
     } catch (error) {

@@ -1,7 +1,8 @@
-import Writer from './writer';
+import A4 from './boxes/a4';
+import ImagesMixin from './images';
 import Ref from './ref';
 import Stream from './stream';
-import ImagesMixin from './images';
+import Writer from './writer';
 
 /*
 function text() {
@@ -38,7 +39,7 @@ export default class Document {
     this._currentPage = this.ref(
       {
         Type: 'Page',
-        MediaBox: options.mediaBox || [0, 0, 595.28, 841.89],
+        MediaBox: options.mediaBox || A4,
         Parent: this._pages,
         Contents: this.ref(content),
         Resources: this.ref({
@@ -49,9 +50,11 @@ export default class Document {
                 Subtype: 'Type1',
                 BaseFont: 'Helvetica'
               })
-          }
+          },
+          XObject: {}
         })
-      })
+      }
+    );
     pages.Kids.push(this._currentPage);
     pages.Count++;
     return this._currentPage;

@@ -63,9 +63,9 @@ class Writer {
     // xref
     const startxref = this._offset;
     const xrefs = this._xref.length + 1;
-    this._out('xref\n')
+    this._out('xref\n');
     this._out('0 ' + (xrefs) + '\n');
-    this._out('0000000000 65535 f\n')
+    this._out('0000000000 65535 f\n');
     this._xref.forEach(xref => {
       this._out(_leftPad(xref.toString(), 10, '0') + ' 00000 n\n');
     });
@@ -75,10 +75,10 @@ class Writer {
       Root: doc._cat
     })
       ._out('startxref\n').any(startxref)
-      ._out('\n%%EOF');;
+      ._out('\n%%EOF');
 
 
-    //console.log('XR', this._xref);
+    // console.log('XR', this._xref);
   }
   any(any) {
     if (any instanceof Ref) {
@@ -96,22 +96,24 @@ class Writer {
       this._out(']');
     } else if (isObject(any)) {
       this.dict(any);
+      // if (any.buffers) console.log('-------', any);
     } else if (typeof any === 'string') {
       this._out('/' + any);
     } else if (typeof any === 'number') {
       this._out(any.toString());
-    }
-    else {
+    } else {
       throw new Error('Unk' + typeof any);
     }
     return this;
   }
 
-  stream(stream) {
+  stream(stream, noLength) {
     const content = stream.content;
-    this.any({
-      Length: content.length + 1
-    });
+    if (!noLength) {
+      this.any({
+        Length: content.length + 1
+      });
+    }
     this
       ._out('stream\n')
       ._out(content)
@@ -123,17 +125,30 @@ class Writer {
     this._out('<<');
     const keys = Object.keys(dict);
     keys.forEach((k, i) => {
+      if (k === 'stream') {
+        return;
+      }
       this.any(k)._out(' ').any(dict[k]);
       if (i + 1 !== keys.length) {
         this._out(' ');
       }
     });
     this._out('>>\n');
+    keys.forEach((k, i) => {
+      if (k === 'stream') {
+        this.stream(dict[k], true);
+        return;
+      }
+    });
   }
 
   obj(obj, index) {
     this._xref.push(this._offset);
     this._out(`${index} 0 obj\n`);
+
+    /* if (index === 7) {
+      console.log('*********', obj);
+    } */
     this.any(obj);
     this._out('endobj\n');
   }

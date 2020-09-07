@@ -1,3 +1,5 @@
+import Stream from "../stream";
+
 const MARKERS = [
   0xffc0,
   0xffc1,
@@ -59,19 +61,26 @@ class JPEG {
     this.obj = null;
   }
 
-  embed(document) {
+  embed(document, convert) {
     if (this.obj) {
       return;
     }
+
+    const content = new Stream(document);
+    content.append(convert(this.data));
+
+    // document.ref(content);
 
     this.obj = document.ref({
       Type: 'XObject',
       Subtype: 'Image',
       BitsPerComponent: this.bits,
-      Width: this.width,
-      Height: this.height,
+      Width: 100, // this.width,
+      Height: 100, // this.height,
       ColorSpace: this.colorSpace,
-      Filter: 'DCTDecode'
+      Filter: 'DCTDecode', // 'DCTDecode',
+      Length: this.data.length, //
+      stream: content
     });
 
     // add extra decode params for CMYK images. By swapping the
@@ -81,12 +90,11 @@ class JPEG {
       this.obj.data['Decode'] = [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0];
     }
 
-    console.log('------ obj: ', this.obj);
-
-    // this.obj.end(this.data); // TODO
+    //  this.obj.end(this.data); // TODO
 
     // free memory
-    return (this.data = null);
+    // return (this.data = null);
+    return this;
   }
 }
 
