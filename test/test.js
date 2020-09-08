@@ -81,7 +81,7 @@ describe('PdfDoc', () => {
       const doc = new PdfDoc();
       doc.addPage();
 
-      doc.image('./test/images/cat.jpg', { width: 100, height: 100 });
+      doc.image('./test/images/cat.jpg');
 
       // console.log({ doc });
 

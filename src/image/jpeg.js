@@ -61,15 +61,14 @@ class JPEG {
     this.obj = null;
   }
 
-  embed(document, convert) {
+  embed(document) {
     if (this.obj) {
       return;
     }
 
-    const content = new Stream(document);
-    content.append(convert(this.data));
-
-    // document.ref(content);
+    const stream = new Stream(document);
+    // const convertedData = `<${this.data.toString('hex')}>`;
+    stream.append(this.data);
 
     this.obj = document.ref({
       Type: 'XObject',
@@ -78,9 +77,9 @@ class JPEG {
       Width: 100, // this.width,
       Height: 100, // this.height,
       ColorSpace: this.colorSpace,
-      Filter: 'DCTDecode', // 'DCTDecode',
+      Filter: 'DCTDecode',
       Length: this.data.length, //
-      stream: content
+      stream
     });
 
     // add extra decode params for CMYK images. By swapping the
@@ -90,11 +89,10 @@ class JPEG {
       this.obj.data['Decode'] = [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0];
     }
 
-    //  this.obj.end(this.data); // TODO
+    //  this.obj.end(this.data); // TODO?
 
     // free memory
-    // return (this.data = null);
-    return this;
+    return (this.data = null);
   }
 }
 
