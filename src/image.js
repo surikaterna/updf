@@ -1,8 +1,3 @@
-/*
-PDFImage - embeds images in PDF documents
-By Devon Govett
-*/
-
 import fs from 'fs';
 import JPEG from './image/jpeg';
 

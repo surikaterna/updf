@@ -396,7 +396,6 @@ export default class Context2d {
   }
 
   save() {
-    console.log({ context2d: this });
     this._out('q');
   }
 

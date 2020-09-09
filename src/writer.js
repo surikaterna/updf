@@ -96,7 +96,6 @@ class Writer {
       this._out(']');
     } else if (isObject(any)) {
       this.dict(any);
-      // if (any.buffers) console.log('-------', any);
     } else if (typeof any === 'string') {
       this._out('/' + any);
     } else if (typeof any === 'number') {
