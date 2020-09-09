@@ -32,6 +32,7 @@ export default {
     }
 
     const stream = this.currentPage().object.Contents.object;
+    // TODO: Change transform values "100 0 0 100 0 0 cm" to cover page
     stream.append(`q 100 0 0 100 0 0 cm /${image.label} Do Q`);
 
     return this;

@@ -1,4 +1,4 @@
-import Stream from "../stream";
+import Stream from '../stream';
 
 const MARKERS = [
   0xffc0,
@@ -67,19 +67,18 @@ class JPEG {
     }
 
     const stream = new Stream(document);
-    // const convertedData = `<${this.data.toString('hex')}>`;
     stream.append(this.data);
 
     this.obj = document.ref({
       Type: 'XObject',
       Subtype: 'Image',
       BitsPerComponent: this.bits,
-      Width: 100, // this.width,
-      Height: 100, // this.height,
+      Width: this.width,
+      Height: this.height,
       ColorSpace: this.colorSpace,
-      Filter: 'DCTDecode',
-      Length: this.data.length, //
-      stream
+      Filter: 'DCTDecode', // []
+      Length: this.data.length,
+      stream // Need "stream"? If "Filter" is an empty array (or commented out) something is rendered (disorted pixels)
     });
 
     // add extra decode params for CMYK images. By swapping the
@@ -88,8 +87,6 @@ class JPEG {
     if (this.colorSpace === 'DeviceCMYK') {
       this.obj.data['Decode'] = [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0];
     }
-
-    //  this.obj.end(this.data); // TODO?
 
     // free memory
     return (this.data = null);

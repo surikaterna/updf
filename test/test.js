@@ -80,13 +80,7 @@ describe('PdfDoc', () => {
       const output = [];
       const doc = new PdfDoc();
       doc.addPage();
-
       doc.image('./test/images/cat.jpg');
-
-      // console.log({ doc });
-
-      // doc.currentPage().object.Contents.object.append('BT 12 Tf 10 10 Td (Hello World!)Tj ET');
-
       doc.write(e => output.push(e));
       // console.log(output.join(''));
       require('fs').writeFileSync('./image.pdf', output.join(''));
