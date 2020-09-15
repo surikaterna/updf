@@ -80,9 +80,12 @@ class Writer {
 
     // console.log('XR', this._xref);
   }
+  ref(ref) {
+    this._out(`${ref.index} 0 R`);
+  }
   any(any) {
     if (any instanceof Ref) {
-      this._out(`${any.index} 0 R`);
+      this.ref(any);
     } else if (any instanceof Stream) {
       this.stream(any);
     } else if (any && any.constructor === Array) {
@@ -134,10 +137,10 @@ class Writer {
     });
     this._out('>>\n');
     keys.forEach((k, i) => {
-      if (k === 'stream') {
-        this.stream(dict[k], true);
-        return;
-      }
+       if (k === 'stream') {
+         this.stream(dict[k], true);
+         return;
+       }
     });
   }
 

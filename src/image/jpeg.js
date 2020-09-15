@@ -76,16 +76,16 @@ class JPEG {
       Width: this.width,
       Height: this.height,
       ColorSpace: this.colorSpace,
-      Filter: 'DCTDecode', // []
-      Length: this.data.length,
-      stream // Need "stream"? If "Filter" is an empty array (or commented out) something is rendered (disorted pixels)
+      Filter: 'DCTDecode',
+      Length: stream.length,
+      stream: stream
     });
-
+    
     // add extra decode params for CMYK images. By swapping the
     // min and max values from the default, we invert the colors. See
     // section 4.8.4 of the spec.
     if (this.colorSpace === 'DeviceCMYK') {
-      this.obj.data['Decode'] = [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0];
+      this.obj.object['Decode'] = [1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0];
     }
 
     // free memory

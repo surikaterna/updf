@@ -77,13 +77,14 @@ describe('PdfDoc', () => {
 
   it.only('Should create an image pdf', () => {
     try {
-      const output = [];
+      let output = new Buffer('', 'ascii');
       const doc = new PdfDoc();
+      const out = [];
       doc.addPage();
       doc.image('./test/images/cat.jpg');
-      doc.write(e => output.push(e));
+      doc.write((e) =>{ output = Buffer.concat([output, Buffer.from(e)])});
       // console.log(output.join(''));
-      require('fs').writeFileSync('./image.pdf', output.join(''));
+      require('fs').writeFileSync('./image.pdf', output);
     } catch (error) {
       console.log(error);
     }
