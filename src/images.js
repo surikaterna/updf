@@ -6,7 +6,7 @@ export default {
     return (this._imageCount = 0);
   },
 
-  image(src) {
+  addImage(src) {
     let image;
 
     if (typeof src === 'string') {
@@ -30,10 +30,6 @@ export default {
     if (!resources.XObject[image.label]) {
       resources.XObject[image.label] = image.obj;
     }
-
-    const stream = this.currentPage().object.Contents.object;
-    // TODO: Change transform values "100 0 0 100 0 0 cm" to cover page
-    stream.append(`q 100 0 0 100 0 0 cm /${image.label} Do Q`);
 
     return this;
   },

@@ -1,5 +1,5 @@
 import A4 from './boxes/a4';
-import ImagesMixin from './images';
+import Images from './images';
 import Ref from './ref';
 import Stream from './stream';
 import Writer from './writer';
@@ -29,7 +29,6 @@ export default class Document {
         Pages: this._pages
       }
     );
-
     this.initImages();
   }
 
@@ -75,4 +74,4 @@ export default class Document {
 
 }
 
-Object.assign(Document.prototype, ImagesMixin);
+Object.assign(Document.prototype, Images);

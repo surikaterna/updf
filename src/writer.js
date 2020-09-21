@@ -127,7 +127,7 @@ class Writer {
     this._out('<<');
     const keys = Object.keys(dict);
     keys.forEach((k, i) => {
-      if (k === 'stream') {
+      if (k === 'Stream') {
         return;
       }
       this.any(k)._out(' ').any(dict[k]);
@@ -137,7 +137,7 @@ class Writer {
     });
     this._out('>>\n');
     keys.forEach((k, i) => {
-       if (k === 'stream') {
+       if (k === 'Stream') {
          this.stream(dict[k], true);
          return;
        }

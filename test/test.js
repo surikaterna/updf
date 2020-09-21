@@ -1,10 +1,16 @@
 import should from 'should';
 import PdfDoc from '../src';
+// import { doesNotMatch } from 'assert';
+import A4 from '../src/boxes/a4';
 import block from '../src/content/block';
+import document from '../src/content/document';
+import image from '../src/content/image';
 import page from '../src/content/page';
+import helvetica from '../src/font/helvetica';
 import buildProps from '../src/vdom/buildProps';
+import layouter from '../src/vdom/layouter';
 import reduce from '../src/vdom/reduce';
-import { doesNotMatch } from 'assert';
+import renderer from '../src/vdom/renderer';
 
 should();
 
@@ -78,12 +84,56 @@ describe('PdfDoc', () => {
   it.only('Should create an image pdf', () => {
     try {
       let output = new Buffer('', 'ascii');
-      const doc = new PdfDoc();
-      const out = [];
-      doc.addPage();
-      doc.image('./test/images/cat.jpg');
-      doc.write((e) =>{ output = Buffer.concat([output, Buffer.from(e)])});
-      // console.log(output.join(''));
+      const pages = [];
+      const paths = [
+        './test/images/portrait.jpg',
+        './test/images/land.jpg'
+      ];
+
+      paths.forEach(path => {
+        const i = image({}, [path]);
+        const b = block({}, [i]);
+        const p = page(Object.assign({ mediaBox: A4 }), [b]);
+        pages.push(p);
+      });
+
+      const pdfDocument = document({}, pages);
+
+      class Fonts {
+        constructor() {
+          this._fonts = {};
+        }
+        add(family, font) {
+          this._fonts[family] = font;
+          return font;
+        }
+        get(family) {
+          return this._fonts[family];
+        }
+      }
+
+      try {
+        const context = {
+          width: 500,
+          height: 500,
+          maxWidth: 500,
+          maxHeight: 500,
+          mediaBox: A4,
+          ax: 0,
+          ay: 0,
+          fonts: new Fonts()
+        };
+        context.font = context.fonts.add('Helvetica', helvetica);
+        const rb = reduce(pdfDocument, context);
+        layouter(rb, context);
+        const doc = renderer(rb, context);
+        doc.write((e) => {
+          output = Buffer.concat([output, Buffer.from(e)]);
+        });
+      } catch (error) {
+        console.log('Failed to render document. Message: %s', error.message);
+      }
+
       require('fs').writeFileSync('./image.pdf', output);
     } catch (error) {
       console.log(error);

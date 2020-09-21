@@ -29,11 +29,13 @@ class JPEG {
     let marker;
     this.data = data;
     this.label = label;
+
     if (this.data.readUInt16BE(0) !== 0xffd8) {
       throw 'SOI not found in JPEG';
     }
 
     let pos = 2;
+
     while (pos < this.data.length) {
       marker = this.data.readUInt16BE(pos);
       pos += 2;
@@ -46,8 +48,8 @@ class JPEG {
     if (!MARKERS.includes(marker)) {
       throw 'Invalid JPEG.';
     }
-    pos += 2;
 
+    pos += 2;
     this.bits = this.data[pos++];
     this.height = this.data.readUInt16BE(pos);
     pos += 2;
@@ -78,9 +80,9 @@ class JPEG {
       ColorSpace: this.colorSpace,
       Filter: 'DCTDecode',
       Length: stream.length,
-      stream: stream
+      Stream: stream
     });
-    
+
     // add extra decode params for CMYK images. By swapping the
     // min and max values from the default, we invert the colors. See
     // section 4.8.4 of the spec.
