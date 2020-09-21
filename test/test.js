@@ -2,10 +2,10 @@ import should from 'should';
 import PdfDoc from '../src';
 // import { doesNotMatch } from 'assert';
 import A4 from '../src/boxes/a4';
-import block from '../src/content/block';
-import document from '../src/content/document';
-import image from '../src/content/image';
-import page from '../src/content/page';
+import Block from '../src/content/block';
+import Document from '../src/content/document';
+import Image from '../src/content/image';
+import Page from '../src/content/page';
 import helvetica from '../src/font/helvetica';
 import buildProps from '../src/vdom/buildProps';
 import layouter from '../src/vdom/layouter';
@@ -87,17 +87,22 @@ describe('PdfDoc', () => {
       const pages = [];
       const paths = [
         './test/images/portrait.jpg',
-        './test/images/land.jpg'
+        './test/images/land.jpg',
+        // './test/images/emojis.png'
       ];
 
+      /* const paths = [
+        './test/images/emojis.png'
+      ]; */
+
       paths.forEach(path => {
-        const i = image({}, [path]);
-        const b = block({}, [i]);
-        const p = page(Object.assign({ mediaBox: A4 }), [b]);
-        pages.push(p);
+        const image = Image({}, [path]);
+        const block = Block({}, [image]);
+        const page = Page(Object.assign({ mediaBox: A4 }), [block]);
+        pages.push(page);
       });
 
-      const pdfDocument = document({}, pages);
+      const document = Document({}, pages);
 
       class Fonts {
         constructor() {
@@ -124,7 +129,7 @@ describe('PdfDoc', () => {
           fonts: new Fonts()
         };
         context.font = context.fonts.add('Helvetica', helvetica);
-        const rb = reduce(pdfDocument, context);
+        const rb = reduce(document, context);
         layouter(rb, context);
         const doc = renderer(rb, context);
         doc.write((e) => {

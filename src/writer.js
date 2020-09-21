@@ -137,20 +137,16 @@ class Writer {
     });
     this._out('>>\n');
     keys.forEach((k, i) => {
-       if (k === 'Stream') {
-         this.stream(dict[k], true);
-         return;
-       }
+      if (k === 'Stream') {
+        this.stream(dict[k], true);
+        return;
+      }
     });
   }
 
   obj(obj, index) {
     this._xref.push(this._offset);
     this._out(`${index} 0 obj\n`);
-
-    /* if (index === 7) {
-      console.log('*********', obj);
-    } */
     this.any(obj);
     this._out('endobj\n');
   }
