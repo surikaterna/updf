@@ -82,7 +82,7 @@ describe('PdfDoc', () => {
     // console.log(out.join(''));
   });
 
-  it.only('Should create an image pdf', () => {
+  it('Should create an image pdf', () => {
     try {
       // Add file paths
       const paths = [
