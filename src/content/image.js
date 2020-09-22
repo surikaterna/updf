@@ -23,8 +23,8 @@ const transform = (m11, m12, m21, m22, dx, dy) => {
   return `${values} cm`;
 };
 
-const getTransformation = (imageSize) => {
-  const { width, height } = imageSize;
+const getTransformation = (size) => {
+  const { width, height } = size;
   const [bw, bh] = [A4Width, A4Height];
   const bp = bw / bh;
   const ip = width / height;
@@ -49,19 +49,16 @@ const getTransformation = (imageSize) => {
 };
 
 const image = (props, context) => {
-  const { out, document } = context;
+  const string = props.children[0].props.str;
+  const data = Buffer.from(JSON.parse(string).data);
+  const xObject = context.document.addImage(data);
+  const labels = Object.keys(xObject);
 
-  const binary = props.children[0].props.str.trim();
-  const updatedDocument = document.addImage(binary);
-  const xObject = updatedDocument.currentPage().object.Resources.object.XObject;
-  const names = Object.keys(xObject);
-  console.log({ names, binary });
-
-  names.forEach(name => {
-    const { Width, Height } = xObject[name]._obj;
-    const imageSize = { width: Width, height: Height };
-    const transformation = getTransformation(imageSize);
-    out(`q ${transformation} /${name} Do Q`);
+  labels.forEach(label => {
+    const { Width, Height } = xObject[label]._obj;
+    const size = { width: Width, height: Height };
+    const transformation = getTransformation(size);
+    context.out(`q ${transformation} /${label} Do Q`);
   });
 };
 

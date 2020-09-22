@@ -1,3 +1,4 @@
+import fs from 'fs';
 import should from 'should';
 import PdfDoc from '../src';
 // import { doesNotMatch } from 'assert';
@@ -83,24 +84,30 @@ describe('PdfDoc', () => {
 
   it.only('Should create an image pdf', () => {
     try {
-      let output = new Buffer('', 'ascii');
-      const pages = [];
+      // Add file paths
       const paths = [
-        './test/images/portrait.jpg',
-        './test/images/land.jpg',
-        // './test/images/emojis.png'
+        // './test/images/xxx.jpg'
       ];
 
-      /* const paths = [
-        './test/images/emojis.png'
-      ]; */
+      if (paths.length === 0) {
+        throw new Error('No image file paths to read from');
+      }
 
-      paths.forEach(path => {
-        const image = Image({}, [path]);
+      let output = new Buffer('', 'ascii');
+      const pages = [];
+
+      for (const path of paths) {
+        const data = fs.readFileSync(path);
+        if (!data) {
+          console.error('File could not be read');
+          continue;
+        }
+        const string = JSON.stringify(data);
+        const image = Image({ id: 'image' }, [string]);
         const block = Block({}, [image]);
-        const page = Page(Object.assign({ mediaBox: A4 }), [block]);
+        const page = Page({ mediaBox: A4 }, [block]);
         pages.push(page);
-      });
+      }
 
       const document = Document({}, pages);
 
@@ -141,7 +148,7 @@ describe('PdfDoc', () => {
 
       require('fs').writeFileSync('./image.pdf', output);
     } catch (error) {
-      console.log(error);
+      console.error(error.message);
     }
   });
 

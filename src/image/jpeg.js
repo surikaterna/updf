@@ -46,7 +46,7 @@ class JPEG {
     }
 
     if (!MARKERS.includes(marker)) {
-      throw 'Invalid JPEG.';
+      throw 'Invalid JPEG';
     }
 
     pos += 2;

@@ -1,5 +1,5 @@
 import A4 from './boxes/a4';
-import Images from './images';
+import Image from './image';
 import Ref from './ref';
 import Stream from './stream';
 import Writer from './writer';
@@ -29,7 +29,7 @@ export default class Document {
         Pages: this._pages
       }
     );
-    this.initImages();
+    this._imageCount = 0;
   }
 
   addPage(options = {}) {
@@ -63,6 +63,15 @@ export default class Document {
     return this._currentPage;
   }
 
+  addImage(data) {
+    const label = `Image${++this._imageCount}`;
+    const image = Image.open(data, label);
+    image.embed(this);
+    const resources = this._currentPage.object.Resources.object;
+    resources.XObject[image.label] = image.obj;
+    return resources.XObject;
+  }
+
   ref(obj) {
     return new Ref(this, this._objects.push(obj), obj);
   }
@@ -73,5 +82,3 @@ export default class Document {
   }
 
 }
-
-Object.assign(Document.prototype, Images);
