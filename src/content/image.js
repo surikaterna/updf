@@ -1,5 +1,4 @@
 import bind from './bind';
-import { width as A4Width, height as A4Height } from '../boxes/a4';
 
 const number = n => {
   if (n > -1e21 && n < 1e21) {
@@ -24,15 +23,14 @@ const transform = (m11, m12, m21, m22, dx, dy) => {
 };
 
 const getTransformation = (size) => {
-  const { width, height } = size;
-  const [bw, bh] = [A4Width, A4Height];
+  const [bw, bh] = [size.page.width, size.page.height];
   const bp = bw / bh;
-  const ip = width / height;
+  const ip = size.image.width / size.image.height;
 
   let x = 0;
   let y = 0;
-  let w = width;
-  let h = height;
+  let w = size.image.width;
+  let h = size.image.height;
 
   if (ip > bp) {
     w = bw;
@@ -53,10 +51,15 @@ const image = (props, context) => {
   const data = Buffer.from(JSON.parse(string).data);
   const xObject = context.document.addImage(data);
   const labels = Object.keys(xObject);
+  const mediaBox = context.document.currentPage()._obj.MediaBox;
+  const [,, pageWidth, pageHeight] = mediaBox;
 
   labels.forEach(label => {
     const { Width, Height } = xObject[label]._obj;
-    const size = { width: Width, height: Height };
+    const size = {
+      page: { width: pageWidth, height: pageHeight },
+      image: { width: Width, height: Height }
+    };
     const transformation = getTransformation(size);
     context.out(`q ${transformation} /${label} Do Q`);
   });

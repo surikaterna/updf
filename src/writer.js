@@ -136,12 +136,9 @@ class Writer {
       }
     });
     this._out('>>\n');
-    keys.forEach((k, i) => {
-      if (k === 'Stream') {
-        this.stream(dict[k], true);
-        return;
-      }
-    });
+    if (dict.Stream) {
+      this.stream(dict.Stream, true);
+    }
   }
 
   obj(obj, index) {
