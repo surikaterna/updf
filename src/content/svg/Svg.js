@@ -7,7 +7,7 @@ class Svg {
   render() {
     const context = this.context;
     const props = this.props;
-    context.out('% == SVG')
+    context.out('% == SVG');
     // width
     // height
     // viewBox

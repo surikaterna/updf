@@ -63,9 +63,9 @@ class Writer {
     // xref
     const startxref = this._offset;
     const xrefs = this._xref.length + 1;
-    this._out('xref\n')
+    this._out('xref\n');
     this._out('0 ' + (xrefs) + '\n');
-    this._out('0000000000 65535 f\n')
+    this._out('0000000000 65535 f\n');
     this._xref.forEach(xref => {
       this._out(_leftPad(xref.toString(), 10, '0') + ' 00000 n\n');
     });
@@ -75,14 +75,17 @@ class Writer {
       Root: doc._cat
     })
       ._out('startxref\n').any(startxref)
-      ._out('\n%%EOF');;
+      ._out('\n%%EOF');
 
 
-    //console.log('XR', this._xref);
+    // console.log('XR', this._xref);
+  }
+  ref(ref) {
+    this._out(`${ref.index} 0 R`);
   }
   any(any) {
     if (any instanceof Ref) {
-      this._out(`${any.index} 0 R`);
+      this.ref(any);
     } else if (any instanceof Stream) {
       this.stream(any);
     } else if (any && any.constructor === Array) {
@@ -100,18 +103,19 @@ class Writer {
       this._out('/' + any);
     } else if (typeof any === 'number') {
       this._out(any.toString());
-    }
-    else {
+    } else {
       throw new Error('Unk' + typeof any);
     }
     return this;
   }
 
-  stream(stream) {
+  stream(stream, noLength) {
     const content = stream.content;
-    this.any({
-      Length: content.length + 1
-    });
+    if (!noLength) {
+      this.any({
+        Length: content.length + 1
+      });
+    }
     this
       ._out('stream\n')
       ._out(content)
@@ -123,12 +127,18 @@ class Writer {
     this._out('<<');
     const keys = Object.keys(dict);
     keys.forEach((k, i) => {
+      if (k === 'Stream') {
+        return;
+      }
       this.any(k)._out(' ').any(dict[k]);
       if (i + 1 !== keys.length) {
         this._out(' ');
       }
     });
     this._out('>>\n');
+    if (dict.Stream) {
+      this.stream(dict.Stream, true);
+    }
   }
 
   obj(obj, index) {

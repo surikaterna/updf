@@ -1,11 +1,17 @@
+import fs from 'fs';
 import should from 'should';
 import PdfDoc from '../src';
-import text from '../src/content/text';
-import box from '../src/content/box';
-import block from '../src/content/block';
-import page from '../src/content/page';
+// import { doesNotMatch } from 'assert';
+import A4 from '../src/boxes/a4';
+import Block from '../src/content/block';
+import Document from '../src/content/document';
+import Image from '../src/content/image';
+import Page from '../src/content/page';
+import helvetica from '../src/font/helvetica';
 import buildProps from '../src/vdom/buildProps';
+import layouter from '../src/vdom/layouter';
 import reduce from '../src/vdom/reduce';
+import renderer from '../src/vdom/renderer';
 
 should();
 
@@ -61,8 +67,6 @@ function render(vnode, context) {
 // font
 // xobject
 
-
-
 describe('PdfDoc', () => {
   it('should create a file', () => {
     const doc = new PdfDoc();
@@ -75,8 +79,79 @@ describe('PdfDoc', () => {
       console.log(doc._objects);
       console.error(e);
     }
-    console.log(out.join(''));
+    // console.log(out.join(''));
   });
+
+  it('Should create an image pdf', () => {
+    try {
+      // Add file paths
+      const paths = [
+        // './test/images/xxx.jpg'
+      ];
+
+      if (paths.length === 0) {
+        throw new Error('No image file paths to read from');
+      }
+
+      let output = new Buffer('', 'ascii');
+      const pages = [];
+
+      for (const path of paths) {
+        const data = fs.readFileSync(path);
+        if (!data) {
+          console.error('File could not be read');
+          continue;
+        }
+        const string = JSON.stringify(data);
+        const image = Image({ id: 'image' }, [string]);
+        const block = Block({}, [image]);
+        const page = Page({ mediaBox: A4 }, [block]);
+        pages.push(page);
+      }
+
+      const document = Document({}, pages);
+
+      class Fonts {
+        constructor() {
+          this._fonts = {};
+        }
+        add(family, font) {
+          this._fonts[family] = font;
+          return font;
+        }
+        get(family) {
+          return this._fonts[family];
+        }
+      }
+
+      try {
+        const context = {
+          width: 500,
+          height: 500,
+          maxWidth: 500,
+          maxHeight: 500,
+          mediaBox: A4,
+          ax: 0,
+          ay: 0,
+          fonts: new Fonts()
+        };
+        context.font = context.fonts.add('Helvetica', helvetica);
+        const rb = reduce(document, context);
+        layouter(rb, context);
+        const doc = renderer(rb, context);
+        doc.write((e) => {
+          output = Buffer.concat([output, Buffer.from(e)]);
+        });
+      } catch (error) {
+        console.log('Failed to render document. Message: %s', error.message);
+      }
+
+      require('fs').writeFileSync('./image.pdf', output);
+    } catch (error) {
+      console.error(error.message);
+    }
+  });
+
   it('stream', () => {
     const doc = new PdfDoc();
     const r = page({ mediaBox: [0, 0, 595.28, 841.89] },
