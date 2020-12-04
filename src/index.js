@@ -47,7 +47,8 @@ export default class Document {
               {
                 Type: 'Font',
                 Subtype: 'Type1',
-                BaseFont: 'Helvetica'
+                BaseFont: 'Helvetica',
+                Encoding: 'WinAnsiEncoding'
               })
           },
           XObject: {}
