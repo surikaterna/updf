@@ -68,7 +68,7 @@ function render(vnode, context) {
 // xobject
 
 describe('PdfDoc', () => {
-  it.only('should create a file', () => {
+  it('should create a file', () => {
     const doc = new PdfDoc();
     doc.addPage();
     doc.currentPage().object.Contents.object.append('BT /G 24 Tf 175 720 Td (B 31 593 409 734) (Å ñ ß Ö)Tj ET\nBT /G 24 Tf 175 620 Td (Hello PDF!) Tj ET');
