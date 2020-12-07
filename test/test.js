@@ -79,7 +79,9 @@ describe('PdfDoc', () => {
     } catch (e) {
       console.error(e.message);
     }
-    fs.writeFileSync('./test.pdf', Buffer.from(output.join(''), 'ascii'));
+
+    const buffer = Buffer.from(output.join(''), 'ascii');
+    fs.writeFileSync('./test.pdf', buffer);
   });
 
   it('Should create an image pdf', () => {
