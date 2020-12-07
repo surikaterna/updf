@@ -71,15 +71,17 @@ describe('PdfDoc', () => {
   it('should create a file', () => {
     const doc = new PdfDoc();
     doc.addPage();
-    doc.currentPage().object.Contents.object.append('BT /G 24 Tf 175 720 Td (Hello World!)Tj ET\nBT /G 24 Tf 175 620 Td (Hello PDF!)Tj ET');
-    const out = [];
+    doc.currentPage().object.Contents.object.append('BT /G 24 Tf 175 720 Td (B 31 593 409 734) (Å ñ ß Ö)Tj ET\nBT /G 24 Tf 175 620 Td (Hello PDF!) Tj ET');
+    const output = [];
+
     try {
-      doc.write((e) => out.push(e));
+      doc.write(e => output.push(e));
     } catch (e) {
-      console.log(doc._objects);
-      console.error(e);
+      console.error(e.message);
     }
-    // console.log(out.join(''));
+
+    const buffer = Buffer.from(output.join(''), 'ascii');
+    fs.writeFileSync('./test.pdf', buffer);
   });
 
   it('Should create an image pdf', () => {
@@ -154,17 +156,16 @@ describe('PdfDoc', () => {
 
   it('stream', () => {
     const doc = new PdfDoc();
-    const r = page({ mediaBox: [0, 0, 595.28, 841.89] },
-      block({ style: { top: 0, left: 100, position: 'absolute' } },
-        ['Hello world!', 'Again!'])
+    const r = Page(
+      { mediaBox: [0, 0, 595.28, 841.89] },
+      Block(
+        { style: { top: 0, left: 100, position: 'absolute' } },
+        ['Hello world!', 'Again!']
+      )
     );
-    // console.log('STREAM: ', JSON.stringify(r, null, 2));
-    // console.log('S STREAM:\n', JSON.stringify(solve(r), null, 2));
     const out = [];
     try {
       doc.write((e) => {
-        if (out.length === 0) {
-        }
         out.push(e);
       });
     } catch (e) {
@@ -173,7 +174,6 @@ describe('PdfDoc', () => {
     }
     console.log('R STREAM:\n', JSON.stringify(render(r, { doc }), null, 2));
     console.log('RR STREAM:\n\n' + out.join(''));
-    // console.log('REN2 STREAM:\n', _render(r));
   });
 });
 /*
