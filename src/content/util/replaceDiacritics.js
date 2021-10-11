@@ -10,7 +10,10 @@ const translations = {
   Ż: 'Z', ż: 'z',
   Č: 'C', č: 'c',
   Š: 'S', š: 's',
-  Ž: 'Z', ž: 'z'
+  Ž: 'Z', ž: 'z',
+  Ř: 'R', ř: 'r',
+  Ů: 'Ů', ů: 'u',
+  Ě: 'E', ě: 'e'
 };
 
 const replaceDiacritics = function (s = '') {
