@@ -1,7 +1,5 @@
 import bind from '../bind';
 
-const Group = () =>
-{ };
-
+const Group = () => {};
 
 export default bind('g', Group);

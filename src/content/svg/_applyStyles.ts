@@ -30,8 +30,6 @@ const _applyStyles = (ctx: any, style: any, props: any) => {
     const styleApply = styler[key];
     if (styleApply) {
       styleApply(ctx, style[key], style);
-    } else {
-//      console.log('Unsupported', key);
     }
   });
 };
