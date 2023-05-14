@@ -1,2 +1,10 @@
 src/
 test/
+scripts/
+.idea/
+.eslintrc
+.prettierrc
+jest.config.js
+keytest.html
+*.pdf
+surikat-updf-*
