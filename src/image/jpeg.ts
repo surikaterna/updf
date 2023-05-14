@@ -1,8 +1,8 @@
 import Stream from '../stream';
 
-const MARKERS = [0xffc0, 0xffc1, 0xffc2, 0xffc3, 0xffc5, 0xffc6, 0xffc7, 0xffc8, 0xffc9, 0xffca, 0xffcb, 0xffcc, 0xffcd, 0xffce, 0xffcf];
+const MARKERS: Array<number> = [0xffc0, 0xffc1, 0xffc2, 0xffc3, 0xffc5, 0xffc6, 0xffc7, 0xffc8, 0xffc9, 0xffca, 0xffcb, 0xffcc, 0xffcd, 0xffce, 0xffcf];
 
-const COLOR_SPACE_MAP = {
+const colorSpaceMap: Record<number, string | undefined> = {
   1: 'DeviceGray',
   3: 'DeviceRGB',
   4: 'DeviceCMYK'
@@ -11,13 +11,14 @@ const COLOR_SPACE_MAP = {
 class JPEG {
   bits: any;
   colorSpace: any;
-  data: any;
-  height: any;
-  label: any;
+  data: Buffer | null;
+  height: number;
+  label: string;
   obj: any;
-  width: any;
-  constructor(data: any, label: any) {
-    let marker;
+  width: number;
+
+  constructor(data: Buffer, label: string) {
+    let marker: number | undefined;
     this.data = data;
     this.label = label;
 
@@ -36,7 +37,7 @@ class JPEG {
       pos += this.data.readUInt16BE(pos);
     }
 
-    if (!MARKERS.includes(marker)) {
+    if (!marker || !MARKERS.includes(marker)) {
       throw 'Invalid JPEG';
     }
 
@@ -49,18 +50,18 @@ class JPEG {
     pos += 2;
 
     const channels = this.data[pos++];
-    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-    this.colorSpace = COLOR_SPACE_MAP[channels];
+    this.colorSpace = colorSpaceMap[channels];
 
     this.obj = null;
   }
 
-  embed(document: any) {
+  embed(document: any): null | undefined {
     if (this.obj) {
       return;
     }
 
     const stream = new Stream(document);
+    // @ts-expect-error The error seems correct, but refraining from changing for now
     stream.append(this.data);
 
     this.obj = document.ref({

@@ -1,26 +1,21 @@
 import bind from './bind';
-import _render from './_render';
 import border from './styles/border';
-import Context2d from './vector/Context2d';
+import Context2d, { OutFunc } from './vector/Context2d';
 
-function buildStyle({ mediaBox }: any) {
-  return {
-    top: mediaBox[0],
-    left: mediaBox[1],
-    right: 0,
-    bottom: 0,
-    width: mediaBox[2] - mediaBox[0], // private
-    height: mediaBox[3] - mediaBox[1]
-  };
-}
+export type ChildContext = {
+  page: any;
+  out: OutFunc;
+  context2d: Context2d;
+};
 
 class Page {
-  _childContext: any;
-  _context2d: any;
-  _out: any;
+  _childContext: ChildContext;
+  _context2d: Context2d;
+  _out: OutFunc;
   _page: any;
   context: any;
   props: any;
+
   constructor(props: any, context: any) {
     this.props = props;
     this.context = context;
@@ -38,11 +33,13 @@ class Page {
       context2d: this._context2d
     };
   }
-  render() {
+
+  render(): void {
     const ctx = Object.assign({}, this.context, this._childContext);
     border(this.props, ctx);
   }
-  getChildContext() {
+
+  getChildContext(): ChildContext {
     return this._childContext;
   }
 }

@@ -1,5 +1,6 @@
 import bind from '../bind';
 import { collectArguments } from './pathParser';
+
 const Polyline = (props: any, context: any) => {
   const { points } = props;
   const pts = collectArguments(points);

@@ -6,14 +6,14 @@ const specialCharsTranslations = {
 const specialChars = Object.keys(specialCharsTranslations);
 const specialCharsRegexp = new RegExp(`[${specialChars.join('')}]`, 'g');
 
-export default function replaceDiacritics(str: any) {
+export default function replaceDiacritics<T>(str: T) {
   if (typeof str !== 'string') {
     return str;
   }
 
-  // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
   const normalized = str
     .normalize('NFKD')
+    // @ts-expect-error This error seems correct, but refraining from changes for now
     .replace(specialCharsRegexp, ($0) => specialCharsTranslations[$0])
     .replace(unicodeChars, '');
   const buffer = Buffer.from(normalized, 'utf8');

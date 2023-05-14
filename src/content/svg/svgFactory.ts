@@ -1,6 +1,5 @@
 import parseXml from '../util/parseXml';
 import transform from '../util/transform';
-
 import svg from './Svg';
 import style from './Style';
 import path from './Path';
@@ -11,6 +10,7 @@ import circle from './Circle';
 import rect from './Rect';
 import polyline from './Polyline';
 import ellipse from './Ellipse';
+
 const map = {
   svg,
   path,
@@ -26,7 +26,7 @@ const map = {
   defs: g
 };
 
-export default function svgFactory(svgText: any, styled: any) {
+export default function svgFactory(svgText: any, styled?: any) {
   const svgNode = parseXml(svgText);
   // @ts-expect-error TS(2339): Property 'type' does not exist on type '{}'.
   if (svgNode.type !== 'svg') {

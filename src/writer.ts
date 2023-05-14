@@ -1,11 +1,12 @@
+import { OutFunc } from './content/vector/Context2d';
 import Ref from './ref';
 import Stream from './stream';
 
-function isObject(obj: any) {
+function isObject(obj: unknown): obj is Record<string, unknown> {
   return obj === Object(obj);
 }
 
-function _leftPad(str: any, i: any, ch = ' ') {
+function _leftPad(str: string, i: number, ch = ' '): string {
   while (str.length < i) str = ch + str;
   return str;
 }
@@ -39,15 +40,18 @@ function _leftPad(str: any, i: any, ch = ' ') {
  *  %%EOF
  */
 
+type OutBuilder = (elements: string) => Writer;
+
 const version = '1.3';
 class Writer {
-  _doc: any;
-  _offset: any;
-  _out: any;
-  _xref: any;
-  constructor(out: any) {
+  _doc?: any;
+  _offset: number;
+  _out: OutBuilder;
+  _xref?: Array<number>;
+
+  constructor(out: OutFunc) {
     this._offset = 0;
-    this._out = (e: any) => {
+    this._out = (e) => {
       // console.log('!!!!!' + e + '%%%%');
       out(e);
       this._offset += e.length;
@@ -68,7 +72,7 @@ class Writer {
     this._out('xref\n');
     this._out('0 ' + xrefs + '\n');
     this._out('0000000000 65535 f\n');
-    this._xref.forEach((xref: any) => {
+    this._xref.forEach((xref) => {
       this._out(_leftPad(xref.toString(), 10, '0') + ' 00000 n\n');
     });
     // trailer
@@ -83,7 +87,7 @@ class Writer {
 
     // console.log('XR', this._xref);
   }
-  ref(ref: any) {
+  ref(ref: Ref) {
     this._out(`${ref.index} 0 R`);
   }
   any(any: any) {
@@ -123,7 +127,7 @@ class Writer {
     this._out('stream\n')._out(content)._out('\n')._out('endstream\n');
   }
 
-  dict(dict: any) {
+  dict(dict: Record<string, any>) {
     this._out('<<');
     const keys = Object.keys(dict);
     keys.forEach((k, i) => {
@@ -141,7 +145,11 @@ class Writer {
     }
   }
 
-  obj(obj: any, index: any) {
+  obj(obj: any, index: number) {
+    if (!this._xref) {
+      this._xref = [];
+    }
+
     this._xref.push(this._offset);
     this._out(`${index} 0 obj\n`);
     this.any(obj);

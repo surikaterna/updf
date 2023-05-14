@@ -1,4 +1,10 @@
-const rMatch = (re: any, process: any) => {
+export interface Token {
+  type: string;
+  length?: number;
+  text?: string;
+}
+
+const rMatch = (re: RegExp, process: any) => {
   // eslint-disable-line arrow-body-style
   return {
     match: (stream: any) => re.test(stream),
@@ -6,80 +12,48 @@ const rMatch = (re: any, process: any) => {
   };
 };
 
-const rExtract = (re: any, len: any) => (token: any, stream: any) => {
-  const match = stream.match(re);
+const rExtract = (re: RegExp, len?: number) => (token: Token, stream: string) => {
+  const matches = stream.match(re);
   const result = token;
-  result.text = match[1];
-  result.length = match[0].length;
+  result.text = matches?.[1];
+  result.length = matches?.[0]?.length;
   if (len) {
+    // @ts-expect-error This error seems correct, but refraining from changes for now
     result.length += len;
   }
 
   // hack for string match
   if (!token.text) {
-    result.text = match[0].substring(1, match[0].length - 1);
+    result.text = matches?.[0]?.substring(1, matches[0].length - 1);
   }
 };
 
-const rToken = (re: any, len: any) => rMatch(re, rExtract(re, len));
-const feeder = (startChar: any, endChar: any) => (token: any, stream: any) => {
-  let pos = 0;
-  let end;
-  let count = 0;
-  const result = token;
-  while (!end) {
-    switch (stream[pos++]) {
-      case startChar:
-        count++;
-        break;
-      case endChar:
-        count--;
-        if (!count) {
-          end = pos;
-        }
-        break;
-      default:
-    }
-  }
-  result.length = end;
-  result.text = stream.substring(1, end - 1);
-};
+const rToken = (re: RegExp, len?: number) => rMatch(re, rExtract(re, len));
 
 /* order is important as it matches from top to bottom, if it finds a match it is done */
 export const TokenTypes = {
-  // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
   xmlHead: rToken(/^<\?xml .*\?>/),
   '>': rMatch(/^>/, null),
-  // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
   ws: rToken(/^(\s+)/),
-  // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
   assign: rToken(/^(=)/),
-  // expression: rMatch(/^{/, feeder('{', '}')),
-  // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
   comment: rToken(/^<!--(.*?)-->/),
-  // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
   startTag: rToken(/^<([A-Za-z][A-Za-z0-9]*)[\s|>]?/),
   attributeName: rToken(/^([A-Za-z0-9:]+)[\s]*?=/, -1),
-  // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
   string: rToken(/^"(?:[^"\\]|\\.)*"|^'(?:[^'\\]|\\.)*'/),
-  // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
   endTag: rToken(/^\/>|^<\/(.+?)>/),
-  // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
   text: rToken(/^([^<^>]+)/)
 };
 
 export default class Lexer {
-  _pos: any;
-  _stream: any;
-  constructor(xml: any) {
+  _pos: number;
+  _stream: string;
+
+  constructor(xml: string) {
     this._pos = 0;
     this._stream = xml;
-    // this['>'] = function () {
-    //   this._fwd(1);
-    //   return this.peek();
-    // };
   }
-  peek() {
+
+  peek(): Token {
     let token;
     for (const type in TokenTypes) {
       if (TokenTypes.hasOwnProperty(type)) {
@@ -97,7 +71,6 @@ export default class Lexer {
             this._fwd(ws.length);
           } else {
             token = { type };
-            // @ts-expect-error TS(1313): The body of an 'if' statement cannot be the empty ... Remove this comment to see the full error message
             if (process(token, this._stream));
             break;
           }
@@ -110,7 +83,7 @@ export default class Lexer {
     return token;
   }
 
-  isNext(tokenType: any) {
+  isNext(tokenType: string) {
     return this.peek().type === tokenType;
   }
 
@@ -121,7 +94,7 @@ export default class Lexer {
     return token;
   }
 
-  _fwd(length: any) {
+  _fwd(length: number) {
     this._pos += length;
     this._stream = this._stream.substring(length);
   }

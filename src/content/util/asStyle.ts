@@ -1,4 +1,4 @@
-const makeKey = (attr: any) => {
+const makeKey = (attr: string) => {
   return attr
     .split(/[-:]/)
     .map((s: any, i: any) => {
@@ -8,8 +8,7 @@ const makeKey = (attr: any) => {
     .trim();
 };
 
-const makeValue = (attr: any) => {
-  // console.log('A', attr, parseFloat(attr), );
+const makeValue = (attr: string) => {
   let result = attr.trim();
   if (result[0] === "'") {
     result = result.substring(1, result.length - 1);
@@ -20,7 +19,7 @@ const makeValue = (attr: any) => {
 /**
  * Converts a string such as "fill:none; stroke:none" into a JS object.
  */
-export default function asStyle(str: any) {
+export default function asStyle(str: string) {
   const style = {};
   const styles = str.split(';') || [str];
   styles.forEach((stl: any) => {

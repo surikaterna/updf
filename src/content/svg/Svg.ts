@@ -10,10 +10,7 @@ class Svg {
     const context = this.context;
     const props = this.props;
     context.out('% == SVG');
-    // width
-    // height
-    // viewBox
-    // create transformation matrix?
+
     let viewBox = props.viewBox || [0, 0, context.height, context.width];
     if (typeof viewBox === 'string') {
       viewBox = viewBox.split(' ').map((e) => parseFloat(e));
@@ -59,37 +56,26 @@ class Svg {
 
     // default style
     context.styles = Object.assign({}, { fill: 'none', stroke: '#000' }, props.style || {});
-    // draw red border
-    // context.context2d.save();
-    // context.context2d.strokeColor('#f00');
-    // context.context2d.rect(...viewBox);
-    // context.context2d.stroke();
-    // context.context2d.restore();
   }
 
-  childWillRender(child: any, vnode: any) {
+  childWillRender(child: any) {
     this.context.context2d.save();
     // calc css
     child.context._styles = this.context.styles;
     this.context.styles = Object.assign({}, this.context.styles, child.context.css.computeStyles(child, this.context.css));
   }
 
-  childHasRendered(child: any, vnode: any) {
-    //const style = child.context.css.computeStyles(child, context.css);
+  childHasRendered(child: any) {
     _applyStyles(this.context.context2d, this.context.styles || {}, child.props);
-    //this.context.context2d.stroke();
     _renderOp(this.context.context2d, this.context.styles || {});
     this.context.styles = child.context._styles;
     this.context.context2d.restore();
   }
 
-  //childSubtreeHasRendered(child) {
-
-  //}
-
   treeWillRender() {
     this.context.context2d.save();
   }
+
   treeHasRendered() {
     this.context.context2d.restore();
   }

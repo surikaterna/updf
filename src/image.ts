@@ -1,7 +1,7 @@
 import JPEG from './image/jpeg';
 
 class Image {
-  static open(data: any, label: any) {
+  static open(data: Buffer, label: string): JPEG {
     const isBuffer = Buffer.isBuffer(data);
     if (!isBuffer) {
       throw new Error('Data is not binary');

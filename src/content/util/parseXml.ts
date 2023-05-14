@@ -1,8 +1,9 @@
 import Lexer from './Lexer';
 
 class Parser {
-  _lexer: any;
-  constructor(str: any) {
+  _lexer: Lexer;
+
+  constructor(str: string) {
     this._lexer = new Lexer(str);
   }
 
@@ -10,6 +11,7 @@ class Parser {
     this._head();
     return this._element();
   }
+
   _head() {
     if (this._lexer.isNext('xmlHead')) {
       return this._lexer.next();
@@ -35,6 +37,7 @@ class Parser {
     }
     return node;
   }
+
   _comments() {
     while (this._lexer.isNext('comment')) {
       this._lexer.next();
@@ -50,15 +53,19 @@ class Parser {
     }
     return found ? props : undefined;
   }
+
   _attribute() {
     const name = this._lexer.next();
     this._next('assign');
+    // @ts-expect-error Token (returned from next() will never have `.text` set
     return { [name.text]: this._value() };
   }
+
   _value() {
     const t = this._lexer.next();
     return t.text;
   }
+
   _children() {
     const children = [];
     let child;
@@ -78,17 +85,16 @@ class Parser {
     }
     return res;
   }
+
   _text() {
     let res;
     if (this._lexer.isNext('text') || this._lexer.isNext('string')) {
       // @ts-expect-error TS(2554): Expected 1 arguments, but got 0.
       res = this._next().text;
     }
-    //   } else if (this._lexer.isNext('string')) {
-    // //      res = `"${this._next().text}"`;
-    // //  }
     return res;
   }
+
   _next(expected: any) {
     const next = this._lexer.next();
     if (expected && next.type !== expected) {
@@ -98,6 +104,6 @@ class Parser {
   }
 }
 
-export default function parseXml(str: any) {
+export default function parseXml(str: string) {
   return new Parser(str).parse();
 }

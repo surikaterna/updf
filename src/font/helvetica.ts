@@ -1,6 +1,7 @@
 import BaseFont from './BaseFont';
+import { Kerning, Spec } from './Font';
 
-const spec = {
+const spec: Spec = {
   widths: {
     '0': 53,
     '32': 28,
@@ -199,7 +200,7 @@ const spec = {
     '8482': 100,
     fof: 100
   },
-  kerning: {
+  kerning: <Kerning>(<Record<string, unknown>>{
     '44': { '70': 15, '80': 18, '84': 12, '86': 13, '87': 8, '89': 14, '118': 8, '121': 10, '248': 10, '255': 10, '376': 14 },
     '45': { '84': 14, '86': 8, '89': 14, '376': 14 },
     '46': { '70': 15, '80': 18, '84': 12, '86': 13, '87': 8, '89': 14, '118': 8, '121': 10, '248': 10, '255': 10, '376': 14 },
@@ -252,7 +253,7 @@ const spec = {
     '8217': { '44': 10, '46': 10, '76': 16 },
     '8221': { '44': 10, '46': 10, '76': 14 },
     fof: -100
-  }
+  })
 };
 
 export default new BaseFont(spec.widths, spec.kerning);

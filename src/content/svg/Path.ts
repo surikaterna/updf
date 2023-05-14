@@ -41,7 +41,6 @@ const Path = (props: any, context: any) => {
   try {
     // @ts-expect-error TS(2554): Expected 1 arguments, but got 2.
     pathParser(props.d || '', _bridge(ctx, mapping));
-    /*    ctx.strokeColor('#ff0000')*/
   } catch (e) {
     console.log('PATH');
   }

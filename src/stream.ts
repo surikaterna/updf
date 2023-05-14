@@ -1,18 +1,24 @@
+import { Document } from './Document';
+
 export default class Stream {
-  _content: any;
-  _doc: any;
-  constructor(doc: any) {
+  _content: Buffer;
+  _doc: Document;
+
+  constructor(doc: Document) {
     this._doc = doc;
     this._content = Buffer.from('');
   }
-  append(data: any) {
+
+  append(data: Buffer): Stream {
     this._content = Buffer.concat([this._content, Buffer.from(data)]);
     return this;
   }
-  get content() {
+
+  get content(): Buffer {
     return this._content;
   }
-  get length() {
+
+  get length(): number {
     return this._content.length;
   }
 }

@@ -25,7 +25,6 @@ export const collect = (str: any, p: any) => {
   let result = [];
   let match;
   while ((match = p.exec(str)) !== null) {
-    // console.log(match);
     result.push(match);
   }
   return result;
@@ -33,9 +32,6 @@ export const collect = (str: any, p: any) => {
 
 // @ts-expect-error TS(2554): Expected 0-1 arguments, but got 2.
 export const collectArguments = (str: any) => collect(str, /([+-]?(?:(?:\d*(?:\.\d+(?:e-\d+)?))|\d+))/g).map((arg) => Number(arg[1], 10));
-//  collect(str, /(-?\d+(?:\.\d+(?:e-)?\d*)?)/g).map(arg => Number(arg[1], 10));
-
-//console.log('args', str.match(/([+-]?(?:\d*(?:\.\d+(?:e-\d+)?))|\d+)/));
 
 const process = (cmd: any, args: any, gfx: any) => {
   // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message

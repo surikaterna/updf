@@ -48,7 +48,6 @@ export const code39 = (props: any) => {
     return r;
   });
 
-  // children.push(rect({ style: { left: x - elemWidth * (cWidth - 1), top: 0, width: elemWidth * cWidth, height, position: 'absolute' } }));
   return Svg(
     { viewBox: [0, 0, width, height], style: props.style },
     children.filter((n) => n !== null)

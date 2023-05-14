@@ -1,13 +1,23 @@
 import bind from './bind';
 
-const number = (n: any) => {
+export type Size = {
+  page: Dimension;
+  image: Dimension;
+};
+
+export type Dimension = {
+  width: number;
+  height: number;
+};
+
+const number = (n: number) => {
   if (n > -1e21 && n < 1e21) {
     return Math.round(n * 1e6) / 1e6;
   }
   throw new Error(`unsupported number: ${n}`);
 };
 
-const transform = (m11: any, m12: any, m21: any, m22: any, dx: any, dy: any) => {
+const transform = (m11: number, m12: number, m21: number, m22: number, dx: number, dy: number): string => {
   const matrix = [1, 0, 0, 1, 0, 0];
   const [m0, m1, m2, m3, m4, m5] = matrix;
 
@@ -22,7 +32,7 @@ const transform = (m11: any, m12: any, m21: any, m22: any, dx: any, dy: any) => 
   return `${values} cm`;
 };
 
-const getTransformation = (size: any) => {
+const getTransformation = (size: Size): string => {
   const [bw, bh] = [size.page.width, size.page.height];
   const bp = bw / bh;
   const ip = size.image.width / size.image.height;

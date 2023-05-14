@@ -1,5 +1,3 @@
-import isFunction from '../util/isFunction';
-
 /*
  * Pragma
  *
@@ -18,11 +16,6 @@ export default (type: any, props: any, children: any, component: any) => {
     children,
     component
   };
-  /*if (typeof render === 'object') {
-    result.render = render.render;
-    Object.keys(render).forEach(key => {
-      result[key] = render[key];
-    });
-  }*/
+
   return result;
 };
