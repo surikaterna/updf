@@ -1,16 +1,14 @@
-import should from 'should';
-
 import pathParser from '../../../src/content/svg/pathParser';
 
-should();
+expect();
 
 describe('pathParser', () => {
   describe('#parse', () => {
     it('should support one op + args', (done) => {
       pathParser('M1,2', {
         M: (x, y) => {
-          x.should.equal(1);
-          y.should.equal(2);
+          expect(x).toBe(1);
+          expect(y).toBe(2);
           done();
         }
       });
@@ -22,7 +20,7 @@ describe('pathParser', () => {
         M: cFunc,
         L: cFunc,
         Z: () => {
-          called.should.equal(3);
+          expect(called).toBe(3);
           done();
         }
       });
@@ -31,7 +29,7 @@ describe('pathParser', () => {
       let called = 0;
       pathParser('s.84,8.27.83,10.83,0,26.11,0,26.11-.44,6.79-1.31,11.68-1.59,8.36-1.59,8.36h12.16', {
         s: () => { called++; },
-        h: () => { called.should.equal(4); done(); }
+        h: () => { expect(called).toBe(4); done(); }
       });
     });
     it('should parse curious paths', (done)=> {

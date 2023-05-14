@@ -5,18 +5,18 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "test": "mocha --compilers js:babel-register --recursive test",
-    "test.watch": "mocha --watch --color --compilers js:babel-register --recursive test",
+    "test": "jest",
+    "test.watch": "jest --watch",
     "compile": "rimraf dist && node scripts/build.mjs",
     "compile.watch": "rimraf dist && node scripts/dev.mjs",
     "prepare": "npm run compile"
   },
   "devDependencies": {
     "@es-exec/esbuild-plugin-start": "^0.0.5",
+    "es-jest": "^2.1.0",
     "esbuild": "^0.17.19",
-    "mocha": "^2.4.5",
-    "rimraf": "^5.0.0",
-    "should": "^8.3.0"
+    "jest": "^29.5.0",
+    "rimraf": "^5.0.0"
   },
   "keywords": [
     "PDF",

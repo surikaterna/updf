@@ -1,17 +1,16 @@
 import BaseFont from '../../src/font/BaseFont';
 import helvetica from '../../src/font/helvetica';
-import should from 'should';
 
 describe('BaseFont', () => {
   describe('width', () => {
     it('should default to 1 as width per char', () => {
       const font = new BaseFont({}, {});
-      font.width('A').should.equal(1);
+      expect(font.width('A')).toBe(1);
     });
 
     it('should add width of all characters', () => {
       const font = new BaseFont({}, {});
-      font.width('Abc').should.equal(3);
+      expect(font.width('Abc')).toBe(3);
     });
     
     it('should add kerning between characters', () => {
@@ -29,10 +28,10 @@ describe('BaseFont', () => {
         },
         fof:-1
       });
-      font.width('Abc').should.equal(2+3+4+10+20);
+      expect(font.width('Abc')).toBe(2+3+4+10+20);
     })        
     it('should calculate correct width for helvetica', () => {
-      (helvetica.width('Hello World')*30).should.equal(153.9);
+      expect((helvetica.width('Hello World') * 30)).toBe(153.9);
     })
   });
 });

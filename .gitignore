@@ -38,3 +38,6 @@ jspm_packages
 
 # ES5 version
 /lib
+
+# Test Output
+*.pdf

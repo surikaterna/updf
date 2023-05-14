@@ -1,34 +1,35 @@
-import should from 'should';
 import parseXml from '../../../src/content/util/parseXml';
 
-should();
+expect();
 
 describe('parseXml', () => {
   describe('#parse', () => {
     it('should parse element', () => {
-      parseXml('<xml></xml>').type.should.equal('xml');
+      expect(parseXml('<xml></xml>').type).toBe('xml');
     });
     it('should parse self closing element', () => {
-      parseXml('<xml/>').type.should.equal('xml');
+      expect(parseXml('<xml/>').type).toBe('xml');
     });
     it('should parse element with arguments', () => {
-      parseXml('<xml a="b"></xml>').props.a.should.equal('b');
+      expect(parseXml('<xml a="b"></xml>').props.a).toBe('b');
     });
     it('should parse element with child', () => {
-      parseXml('<xml a="b"><b c="1"/></xml>').children[0].props.c.should.equal('1');
+      expect(parseXml('<xml a="b"><b c="1"/></xml>').children[0].props.c).toBe('1');
     });
     it('should parse element with multiple children', () => {
-      parseXml('<xml><aa/><bb/></xml>').children.length.should.equal(2);
+      expect(parseXml('<xml><aa/><bb/></xml>').children.length).toBe(2);
     });
     it('should parse elements with arguments with numbers', () => {
-      parseXml('<line class="st1" x1="12.36" y1="79.86" x2="17.67" y2="76.85"/>').type.should.equal('line');
+      expect(
+          parseXml('<line class="st1" x1="12.36" y1="79.86" x2="17.67" y2="76.85"/>').type
+      ).toBe('line');
     });
     it('should parse element with complex text', () => {
-      parseXml(`<xml><style>
+      expect(parseXml(`<xml><style>
           .st0{fill:#002F87;}
           .st1{fill:#FFFFFF;}
           .st2{fill:#E2231A;}      
-        </style></xml>`).children[0].type.should.equal('style');
+        </style></xml>`).children[0].type).toBe('style');
 
     });
     it('should parse complex structures', () => {
@@ -99,8 +100,8 @@ describe('parseXml', () => {
 	c0.4,0.3,0.4,0.6,0.5,0.9C-205.5,59.1-205.5,59.9-205.5,59.9z"/>
 <polygon class="st2" points="-72.3,135.6 -328.9,135.6 -328.9,137.4 -72.3,137.4 "/>
 </svg>`);
-      svg.children[svg.children.length - 1].type.should.equal('polygon');
-      svg.children[svg.children.length - 1].props.class.should.equal('st2');
+      expect(svg.children[svg.children.length - 1].type).toBe('polygon');
+      expect(svg.children[svg.children.length - 1].props.class).toBe('st2');
     });
   });
 });
