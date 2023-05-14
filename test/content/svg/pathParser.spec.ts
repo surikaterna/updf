@@ -1,12 +1,13 @@
 import pathParser from '../../../src/content/svg/pathParser';
 
+// @ts-expect-error TS(2554): Expected 1 arguments, but got 0.
 expect();
 
 describe('pathParser', () => {
   describe('#parse', () => {
     it('should support one op + args', (done) => {
       pathParser('M1,2', {
-        M: (x, y) => {
+        M: (x: any, y: any) => {
           expect(x).toBe(1);
           expect(y).toBe(2);
           done();
@@ -33,7 +34,7 @@ describe('pathParser', () => {
       });
     });
     it('should parse curious paths', (done)=> {
-      const log = (t) => (...args) => console.log(t, args);
+      const log = (t: any) => (...args: any[]) => console.log(t, args);
       pathParser('M196.3,14.58l5.31,21.94s7.25,23.2,9.92,44.61a182.89,182.89,0,0,1,0,41.48', {
         M: log('M'),
         l: log('l'),

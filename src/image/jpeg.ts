@@ -25,7 +25,14 @@ const COLOR_SPACE_MAP = {
 };
 
 class JPEG {
-  constructor(data, label) {
+  bits: any;
+  colorSpace: any;
+  data: any;
+  height: any;
+  label: any;
+  obj: any;
+  width: any;
+  constructor(data: any, label: any) {
     let marker;
     this.data = data;
     this.label = label;
@@ -58,12 +65,13 @@ class JPEG {
     pos += 2;
 
     const channels = this.data[pos++];
+    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
     this.colorSpace = COLOR_SPACE_MAP[channels];
 
     this.obj = null;
   }
 
-  embed(document) {
+  embed(document: any) {
     if (this.obj) {
       return;
     }

@@ -4,13 +4,16 @@ const a2c = require('./a2c');
 
 const KAPPA = 0.5522848;
 
-const _f = (f) => Number(Number(f).toFixed(4)).toString();
+const _f = (f: any) => Number(Number(f).toFixed(4)).toString();
 
 
 
 const TAU = Math.PI * 2
 
-const mapToEllipse = ({ x, y }, rx, ry, cosphi, sinphi, centerx, centery) => {
+const mapToEllipse = ({
+  x,
+  y
+}: any, rx: any, ry: any, cosphi: any, sinphi: any, centerx: any, centery: any) => {
   x *= rx
   y *= ry
 
@@ -23,7 +26,7 @@ const mapToEllipse = ({ x, y }, rx, ry, cosphi, sinphi, centerx, centery) => {
   }
 }
 
-const approxUnitArc = (ang1, ang2) => {
+const approxUnitArc = (ang1: any, ang2: any) => {
   const a = 4 / 3 * Math.tan(ang2 / 4)
 
   const x1 = Math.cos(ang1)
@@ -47,7 +50,7 @@ const approxUnitArc = (ang1, ang2) => {
   ]
 }
 
-const vectorAngle = (ux, uy, vx, vy) => {
+const vectorAngle = (ux: any, uy: any, vx: any, vy: any) => {
   const sign = (ux * vy - uy * vx < 0) ? -1 : 1
   const umag = Math.sqrt(ux * ux + uy * uy)
   const vmag = Math.sqrt(ux * ux + uy * uy)
@@ -67,18 +70,18 @@ const vectorAngle = (ux, uy, vx, vy) => {
 }
 
 const getArcCenter = (
-  px,
-  py,
-  cx,
-  cy,
-  rx,
-  ry,
-  largeArcFlag,
-  sweepFlag,
-  sinphi,
-  cosphi,
-  pxp,
-  pyp
+  px: any,
+  py: any,
+  cx: any,
+  cy: any,
+  rx: any,
+  ry: any,
+  largeArcFlag: any,
+  sweepFlag: any,
+  sinphi: any,
+  cosphi: any,
+  pxp: any,
+  pyp: any
 ) => {
   const rxsq = Math.pow(rx, 2)
   const rysq = Math.pow(ry, 2)
@@ -129,7 +132,7 @@ const arcToBezier = ({
   xAxisRotation = 0,
   largeArcFlag = 0,
   sweepFlag = 0
-}) => {
+}: any) => {
   const curves = []
 
   if (rx === 0 || ry === 0) {
@@ -195,7 +198,13 @@ const arcToBezier = ({
  * functions ending with R is with relative coordinates
  */
 export default class Context2d {
-  constructor(out) {
+  _ax: any;
+  _ay: any;
+  _curr: any;
+  _cx: any;
+  _cy: any;
+  _out: any;
+  constructor(out: any) {
     this._out = out;
     // current X / Y
     this._cx = 0;
@@ -207,44 +216,44 @@ export default class Context2d {
     this._curr = [];
   }
 
-  _draw(str) {
+  _draw(str: any) {
     this._curr.push(str);
   }
   _isDirty() {
     return this._curr.length > 0;
   }
 
-  moveTo(x, y) {
+  moveTo(x: any, y: any) {
     this._draw(`${_f(x)} ${_f(y)} m`);
     this._cx = x; this._cy = y;
     this._ax = this._ay = undefined;
     return this;
   }
-  moveToR(x, y) {
+  moveToR(x: any, y: any) {
     return this.moveTo(x + this._cx, y + this._cy);
   }
-  lineTo(x, y) {
+  lineTo(x: any, y: any) {
     this._draw(`${_f(x)} ${_f(y)} l`);
     this._cx = x; this._cy = y;
     this._ax = this._ay = undefined;
     return this;
   }
-  lineToR(x, y) {
+  lineToR(x: any, y: any) {
     return this.lineTo(x + this._cx, y + this._cy);
   }
-  hLineTo(x) {
+  hLineTo(x: any) {
     return this.lineTo(x, this._cy);
   }
-  hLineToR(x) {
+  hLineToR(x: any) {
     return this.lineTo(this._cx + x, this._cy);
   }
-  vLineTo(y) {
+  vLineTo(y: any) {
     return this.lineTo(this._cx, y);
   }
-  vLineToR(y) {
+  vLineToR(y: any) {
     return this.lineTo(this._cx, this._cy + y);
   }
-  bezierCurveTo(c1x, c1y, c2x, c2y, x, y) {
+  bezierCurveTo(c1x: any, c1y: any, c2x: any, c2y: any, x: any, y: any) {
     this._cx = x;
     this._cy = y;
     this._ax = c2x;
@@ -252,7 +261,7 @@ export default class Context2d {
     this._draw(`${_f(c1x)} ${_f(c1y)} ${_f(c2x)} ${_f(c2y)} ${_f(x)} ${_f(y)} c`);
     return this;
   }
-  bezierCurveToR(c1x, c1y, c2x, c2y, x, y) {
+  bezierCurveToR(c1x: any, c1y: any, c2x: any, c2y: any, x: any, y: any) {
     const cx = this._cx;
     const cy = this._cy;
     return this.bezierCurveTo(
@@ -264,14 +273,14 @@ export default class Context2d {
       y + cy
     );
   }
-  smoothCurveTo(x2, y2, x, y) {
+  smoothCurveTo(x2: any, y2: any, x: any, y: any) {
     if(this._ax === undefined) {
       this._ax = this._cx;
       this._ay = this._cy;
     }
     this.bezierCurveTo(this._cx - (this._ax - this._cx), this._cy - (this._ay - this._cy), x2, y2, x, y);
   }
-  smoothCurveToR(x2, y2, x, y) {
+  smoothCurveToR(x2: any, y2: any, x: any, y: any) {
     if(this._ax === undefined) {
       
       this._ax = this._cx;
@@ -279,13 +288,13 @@ export default class Context2d {
     }
     this.bezierCurveTo(this._cx - (this._ax - this._cx), this._cy - (this._ay - this._cy), this._cx + x2, this._cy + y2, this._cx + x, this._cy + y);
   }
-  quadraticCurveTo(cx, cy, x, y) {
+  quadraticCurveTo(cx: any, cy: any, x: any, y: any) {
     this._cx = x;
     this._cy = y;
     this._draw(`${_f(cx)} ${_f(cy)} ${_f(x)} ${_f(y)} v`);
     return this;
   }
-  quadraticCurveToR(cx, cy, x, y) {
+  quadraticCurveToR(cx: any, cy: any, x: any, y: any) {
     const cx_old = this._cx;
     const cy_old = this._cy;
     return this.quadraticCurveTo(
@@ -295,17 +304,19 @@ export default class Context2d {
       y + cy_old
     );
   }
-  rect(x, y, width, height) {
+  rect(x: any, y: any, width: any, height: any) {
     this._draw(`${_f(x || 0)} ${_f(y || 0)} ${_f(width)} ${_f(height)} re`);
     return this;
   }
-  polyline(points) {
+  polyline(points: any) {
     this.polygon(points, false);
   }
-  polygon(points, close = true) {
+  polygon(points: any, close = true) {
     const pts = points;
+    // @ts-expect-error TS(2556): A spread argument must either have a tuple type or... Remove this comment to see the full error message
     this.moveTo(...pts.splice(0, 2));
     while (pts.length > 0) {
+      // @ts-expect-error TS(2556): A spread argument must either have a tuple type or... Remove this comment to see the full error message
       this.lineTo(...pts.splice(0, 2));
     }
     if (close) {
@@ -313,7 +324,7 @@ export default class Context2d {
     }
   }
 
-  ellipse(x, y, r1, r2 = r1) {
+  ellipse(x: any, y: any, r1: any, r2 = r1) {
     // based on http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas/2173084#2173084
     const rx = x - r1;
     const ry = y - r2;
@@ -330,12 +341,12 @@ export default class Context2d {
       .bezierCurveTo(xm - ox, ye, rx, ym + oy, rx, ym)
       .close();
   }
-  arcTo(...args) {
+  arcTo(...args: any[]) {
     this.solveArc(this._cx, this._cy, args, this);
     this._cx = args[5];
     this._cy = args[6];
   }
-  arcToR(...args) {
+  arcToR(...args: any[]) {
     //    this.arcTo([args[0], args[1], args[2], args[3], args[4], args[5] + this._cx, args[6] + this._cy]);
     args[5] += this._cx;
     args[6] += this._cy;
@@ -344,7 +355,7 @@ export default class Context2d {
     this._cy = args[6];
   }
 
-  _flush(op) {
+  _flush(op: any) {
     if (this._isDirty()) {
       this._out(this._curr.join('\n'));
       this._out(op);
@@ -366,14 +377,14 @@ export default class Context2d {
     this._curr = [];
   }
   // ''
-  fillColor(rgb) {
+  fillColor(rgb: any) {
     if (rgb !== 'none') {
       const clr = parseColor(rgb);
       //this._out(`DeviceRGB cs ${_f(clr.join(' '))} scn`);
       this._out(`${clr.join(' ')} rg`);
     }
   }
-  strokeColor(rgb) {
+  strokeColor(rgb: any) {
     if (rgb !== 'none') {
       const clr = parseColor(rgb);
       //this._out(`DeviceRGB cs ${_f(clr.join(' '))} scn`);
@@ -382,16 +393,16 @@ export default class Context2d {
   }
 
   // a, b, c, d, e, f
-  transform(...args) {
+  transform(...args: any[]) {
     this._out(`${args.map(f => _f(f)).join(' ')} cm`);
     return this;
   }
 
-  translate(x, y) {
+  translate(x: any, y: any) {
     return this.transform(1, 0, 0, 1, x, y);
   }
 
-  scale(x, y = x) {
+  scale(x: any, y = x) {
     return this.transform(x, 0, 0, y, 0, 0);
   }
 
@@ -407,7 +418,7 @@ export default class Context2d {
     this._draw('h');
   }
 
-  arcToSegments(x, y, rx, ry, large, sweep, rotateX, ox, oy) {
+  arcToSegments(x: any, y: any, rx: any, ry: any, large: any, sweep: any, rotateX: any, ox: any, oy: any) {
     const th = rotateX * (Math.PI / 180);
     const sinTh = Math.sin(th);
     const cosTh = Math.cos(th);
@@ -467,7 +478,7 @@ export default class Context2d {
     return result;
   }
 
-  segmentToBezier(cx, cy, th0, th1, rx, ry, sinTh, cosTh) {
+  segmentToBezier(cx: any, cy: any, th0: any, th1: any, rx: any, ry: any, sinTh: any, cosTh: any) {
     const a00 = cosTh * rx;
     const a01 = -sinTh * ry;
     const a10 = sinTh * rx;
@@ -489,10 +500,10 @@ export default class Context2d {
     ];
   }
 
-  solveArc(x, y, s, ctx2d) {
+  solveArc(x: any, y: any, s: any, ctx2d: any) {
     //    const [rx, ry, rot, large, sweep, ex, ey] = coords;
     const newSegs = a2c(x, y, s[5], s[6], s[3], s[4], s[0], s[1], s[2]);
-    newSegs.forEach(seg => {
+    newSegs.forEach((seg: any) => {
       this.bezierCurveTo(seg[2], seg[3], seg[4], seg[5], seg[6], seg[7]);
     });
     // const segs = this.arcToSegments(ex, ey, rx, ry, large, sweep, rot, x, y);
@@ -503,5 +514,4 @@ export default class Context2d {
     //     });
     
   }
-
 }

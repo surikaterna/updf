@@ -1,8 +1,8 @@
 import text from '../content/text';
 
-const isText = (obj) => typeof obj === 'string' || (obj.type && obj.type === 'text');
+const isText = (obj: any) => typeof obj === 'string' || (obj.type && obj.type === 'text');
 
-const dumpContext = (ctx) => {
+const dumpContext = (ctx: any) => {
   Object.keys(ctx).forEach(k => {
     if (k !== 'font') {
       console.log(k, ctx[k]);
@@ -12,10 +12,22 @@ const dumpContext = (ctx) => {
 
 
 const ss = {
-  fontFamily: (ctx, val) => ({ font: ctx.fonts.get(val) }),
-  fontSize: (ctx, val) => ({ fontSize: val }), // resolve absolute / relative codes
-  textAlign: (ctx, val) => ({ textAlign: val }),
-  lineHeight: (ctx, val) => ({ lineHeight: val })
+  // @ts-expect-error TS(7006): Parameter 'ctx' implicitly has an 'any' type.
+  fontFamily: (ctx, val) => ({
+    font: ctx.fonts.get(val)
+  }),
+  // @ts-expect-error TS(7006): Parameter 'ctx' implicitly has an 'any' type.
+  fontSize: (ctx, val) => ({
+    fontSize: val
+  }), // resolve absolute / relative codes
+  // @ts-expect-error TS(7006): Parameter 'ctx' implicitly has an 'any' type.
+  textAlign: (ctx, val) => ({
+    textAlign: val
+  }),
+  // @ts-expect-error TS(7006): Parameter 'ctx' implicitly has an 'any' type.
+  lineHeight: (ctx, val) => ({
+    lineHeight: val
+  })
   /*  maxWidth: (ctx, val) => ({ maxWidth: Math.min(val, ctx.maxWidth) }),
     left: (ctx, val) => ({ ax: ctx.ax + val, x: val, width: ctx.width - val }),
     top: (ctx, val) => ({ ay: ctx.ay + val, y: val }),
@@ -25,9 +37,12 @@ const ss = {
 };
 
 
-const getMargins = (style) => (
-  { left: style.marginLeft || 0, top: style.marginTop || 0, right: style.marginRight || 0, bottom: style.marginBottom || 0 }
-);
+const getMargins = (style: any) => ({
+  left: style.marginLeft || 0,
+  top: style.marginTop || 0,
+  right: style.marginRight || 0,
+  bottom: style.marginBottom || 0
+});
 
 /**
   static   -  Default value. Elements render in order, as they appear in the document flow	Play it »
@@ -39,7 +54,7 @@ const getMargins = (style) => (
 */
 
 const processors = [
-  (vdom, context) => {
+  (vdom: any, context: any) => {
     // I position things
     const style = vdom.props.style;
 
@@ -96,24 +111,27 @@ const processors = [
   //console.log(style, context.ax, context.ay, context.width, context.height);
 ];
 
-function display(vdom) {
+function display(vdom: any) {
   return (vdom.style && vdom.style.display) || vdom.type;
 }
 
-function styleProp(props, values) {
+function styleProp(props: any, values: any) {
   props.style = Object.assign(props.style || {}, values);
   return props.style;
 }
 
-function styler(vdom, context) {
+function styler(vdom: any, context: any) {
   // context.css vs vdom.props.style
   // call style setters
+  // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
   const stil = styleProp(vdom.props);
   processors.forEach(p => {
     p(vdom, context);
   })
   Object.keys(stil).forEach(key => {
+    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
     if (ss[key]) {
+      // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
       const newPart = ss[key](context, stil[key]);
       //  console.log(newPart);
       Object.assign(context, newPart);
@@ -124,7 +142,7 @@ function styler(vdom, context) {
   return vdom;
 }
 
-function layoutText(width, currentX, txt, font, fontSize) {
+function layoutText(width: any, currentX: any, txt: any, font: any, fontSize: any) {
 
   const result = [''];
   const spaceSize = font.width(' ', fontSize);
@@ -135,10 +153,10 @@ function layoutText(width, currentX, txt, font, fontSize) {
   // lines are explicit line breaks....
   // split words and see what fits in the width available, and make implicit line breaks where needed
   let lines = txt.split('\n');
-  lines = lines.map(line => line.split(' '));
+  lines = lines.map((line: any) => line.split(' '));
 
-  lines.forEach(line => {
-    line.forEach(word => {
+  lines.forEach((line: any) => {
+    line.forEach((word: any) => {
       const wordsize = font.width(word, fontSize);
 
       if (!cx || ((cx + wordsize + spaceSize) < width)) {
@@ -160,6 +178,7 @@ function layoutText(width, currentX, txt, font, fontSize) {
           let startIndex = 0;
 
           for (let i = 1; i <= iterations; i += 1) {
+            // @ts-expect-error TS(2339): Property 'length' does not exist on type 'number'.
             if (i === iterations.length) {
               subStrings.push(word.substring(startIndex));
               return; // Continue
@@ -194,13 +213,13 @@ function layoutText(width, currentX, txt, font, fontSize) {
   return { cx: ocx, lines: result };
 }
 
-function position(props, context) {
+function position(props: any, context: any) {
   let pos = props.style.position || 'static';
   return pos;
 }
 
-function fitText(vdom, maxWidth, context, cx = 0, cy = 0) {
-  const result = [];
+function fitText(vdom: any, maxWidth: any, context: any, cx = 0, cy = 0) {
+  const result: any = [];
   const layout = layoutText(maxWidth, cx, vdom.props.str, context.font, context.fontSize);
 
   layout.lines.forEach((line, index) => {
@@ -213,6 +232,7 @@ function fitText(vdom, maxWidth, context, cx = 0, cy = 0) {
       }
     }
     const y = cy + ((index) * context.fontSize * context.lineHeight);
+    // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
     const txt = text({
       str: line,
       style: {
@@ -223,6 +243,7 @@ function fitText(vdom, maxWidth, context, cx = 0, cy = 0) {
         width: context.font.width(line) * context.fontSize
       }
     });
+    // @ts-expect-error TS(2339): Property 'context' does not exist on type '{ type:... Remove this comment to see the full error message
     txt.context = Object.assign({}, context);
 
     //    txt.context.ax = context.ax + txt.context.x;
@@ -239,7 +260,7 @@ function fitText(vdom, maxWidth, context, cx = 0, cy = 0) {
 /** Travel vdom tree and calculate all size dependent properties
  *  and set them explicitly for easier render
  */
-export default function layouter(vdom, context) {
+export default function layouter(vdom: any, context: any) {
   styler(vdom, context);
   vdom.context = context;
   let x = 0;
@@ -266,6 +287,7 @@ export default function layouter(vdom, context) {
           vdom.children.splice(chIndex, 1, ...fittedText);
           // skip already layed out children
           chIndex += fittedText.length - 1;
+          // @ts-expect-error TS(7006): Parameter 'txt' implicitly has an 'any' type.
           fittedText.forEach(txt => {
             nodeHeight = Math.max(nodeHeight, txt.props.style.height + txt.props.style.top);
             lineHeight = Math.max(lineHeight, txt.props.style.height);

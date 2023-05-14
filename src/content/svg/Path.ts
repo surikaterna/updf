@@ -22,21 +22,24 @@ const mapping = {
   z: 'close'
 };
 
-const _bridge = (context) => {
+const _bridge = (context: any) => {
   const bridge = {};
   Object.keys(mapping).forEach(key => {
-    bridge[key] = (...args) => {
+    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+    bridge[key] = (...args: any[]) => {
       if (key === 'a' || key === 'A') {
       }
+      // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
       context[mapping[key]](...args);
     };
   });
   return bridge;
 };
 
-const Path = (props, context) => {
+const Path = (props: any, context: any) => {
   const ctx = context.context2d;
   try {
+    // @ts-expect-error TS(2554): Expected 1 arguments, but got 2.
     pathParser(props.d || '', _bridge(ctx, mapping));
 /*    ctx.strokeColor('#ff0000')*/
   } catch (e) {

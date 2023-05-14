@@ -13,7 +13,7 @@ var TAU = Math.PI * 2;
 // Since we measure angle between radii of circular arcs,
 // we can use simplified math (without length normalization)
 //
-function unit_vector_angle(ux, uy, vx, vy) {
+function unit_vector_angle(ux: any, uy: any, vx: any, vy: any) {
   var sign = (ux * vy - uy * vx < 0) ? -1 : 1;
   var dot = ux * vx + uy * vy;
 
@@ -33,7 +33,7 @@ function unit_vector_angle(ux, uy, vx, vy) {
 //
 // Return [cx, cy, theta1, delta_theta]
 //
-function get_arc_center(x1, y1, x2, y2, fa, fs, rx, ry, sin_phi, cos_phi) {
+function get_arc_center(x1: any, y1: any, x2: any, y2: any, fa: any, fs: any, rx: any, ry: any, sin_phi: any, cos_phi: any) {
   // Step 1.
   //
   // Moving an ellipse so origin will be the middlepoint between our two
@@ -100,7 +100,7 @@ function get_arc_center(x1, y1, x2, y2, fa, fs, rx, ry, sin_phi, cos_phi) {
 // Approximate one unit arc segment with bézier curves,
 // see http://math.stackexchange.com/questions/873224
 //
-function approximate_unit_arc(theta1, delta_theta) {
+function approximate_unit_arc(theta1: any, delta_theta: any) {
   var alpha = 4 / 3 * Math.tan(delta_theta / 4);
 
   var x1 = Math.cos(theta1);
@@ -111,7 +111,7 @@ function approximate_unit_arc(theta1, delta_theta) {
   return [x1, y1, x1 - y1 * alpha, y1 + x1 * alpha, x2 + y2 * alpha, y2 - x2 * alpha, x2, y2];
 }
 
-module.exports = function a2c(x1, y1, x2, y2, fa, fs, rx, ry, phi) {
+module.exports = function a2c(x1: any, y1: any, x2: any, y2: any, fa: any, fs: any, rx: any, ry: any, phi: any) {
   var sin_phi = Math.sin(phi * TAU / 360);
   var cos_phi = Math.cos(phi * TAU / 360);
 

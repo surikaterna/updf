@@ -1,4 +1,4 @@
-export default function parseColor(color) {
+export default function parseColor(color: any) {
   let m;
   const clr = color.replace(/\s\s*/g, ''); // Remove all spaces
 

@@ -1,13 +1,13 @@
 import bind from './bind';
 
-const number = n => {
+const number = (n: any) => {
   if (n > -1e21 && n < 1e21) {
     return Math.round(n * 1e6) / 1e6;
   }
   throw new Error(`unsupported number: ${n}`);
 };
 
-const transform = (m11, m12, m21, m22, dx, dy) => {
+const transform = (m11: any, m12: any, m21: any, m22: any, dx: any, dy: any) => {
   const matrix = [1, 0, 0, 1, 0, 0];
   const [m0, m1, m2, m3, m4, m5] = matrix;
 
@@ -22,7 +22,7 @@ const transform = (m11, m12, m21, m22, dx, dy) => {
   return `${values} cm`;
 };
 
-const getTransformation = (size) => {
+const getTransformation = (size: any) => {
   const [bw, bh] = [size.page.width, size.page.height];
   const bp = bw / bh;
   const ip = size.image.width / size.image.height;
@@ -46,7 +46,7 @@ const getTransformation = (size) => {
   return transform(w, 0, 0, -h, x, y + h);
 };
 
-const image = (props, context) => {
+const image = (props: any, context: any) => {
   const string = props.children[0].props.str;
   const data = Buffer.from(JSON.parse(string).data);
   const xObject = context.document.addImage(data);

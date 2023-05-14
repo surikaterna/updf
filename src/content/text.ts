@@ -1,7 +1,7 @@
 import bind from './bind';
 import replaceDiacritics from './util/replaceDiacritics';
 
-const text = (props, context) => {
+const text = (props: any, context: any) => {
   // console.log('TXT', props, context.ax, context.ay, context.mediaBox);
   const { out: o } = context;
   const str = props.str && replaceDiacritics(props.str.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)'));

@@ -3,7 +3,9 @@ import _render from './_render';
 import border from './styles/border';
 import Context2d from './vector/Context2d';
 
-function buildStyle({ mediaBox }) {
+function buildStyle({
+  mediaBox
+}: any) {
   return {
     top: mediaBox[0],
     left: mediaBox[1],
@@ -15,12 +17,18 @@ function buildStyle({ mediaBox }) {
 }
 
 class Page {
-  constructor(props, context) {
+  _childContext: any;
+  _context2d: any;
+  _out: any;
+  _page: any;
+  context: any;
+  props: any;
+  constructor(props: any, context: any) {
     this.props = props;
     this.context = context;
     const { document } = this.context;
     this._page = document.addPage(this.props);
-    this._out = ops => {
+    this._out = (ops: any) => {
       this._page.object.Contents.object.append(`${ops}\n`);
     };
     this._context2d = new Context2d(this._out);

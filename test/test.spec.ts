@@ -1,7 +1,5 @@
-import fs from 'fs';
-import should from 'should';
+import * as fs from 'fs';
 import PdfDoc from '../src';
-// import { doesNotMatch } from 'assert';
 import A4 from '../src/boxes/a4';
 import Block from '../src/content/block';
 import Document from '../src/content/document';
@@ -13,8 +11,6 @@ import layouter from '../src/vdom/layouter';
 import reduce from '../src/vdom/reduce';
 import renderer from '../src/vdom/renderer';
 
-should();
-
 /*
 function _render(node) {
   const ch = (node.props && node.props.children && node.props.children.map(child => render(child))) || [];
@@ -25,11 +21,11 @@ function _render(node) {
 
 // This is done in a linear time O(n) without recursion
 // memory complexity is O(1) or O(n) if mutable param is set to false
-function flatten(array, mutable) {
+function flatten(array: any, mutable: any) {
   var toString = Object.prototype.toString;
   var arrayTypeStr = '[object Array]';
 
-  var result = [];
+  var result: any = [];
   var nodes = (mutable && array) || array.slice();
   var node;
 
@@ -52,11 +48,11 @@ function flatten(array, mutable) {
 }
 
 
-function solve(vnode, context) {
+function solve(vnode: any, context: any) {
   return reduce(vnode, context);
 }
 
-function render(vnode, context) {
+function render(vnode: any, context: any) {
   const solved = solve(vnode, context);
   return solved.render(buildProps(solved), context);
 }
@@ -72,10 +68,10 @@ describe('PdfDoc', () => {
     const doc = new PdfDoc();
     doc.addPage();
     doc.currentPage().object.Contents.object.append('BT /G 24 Tf 175 720 Td (B 31 593 409 734) (Å ñ ß Ö)Tj ET\nBT /G 24 Tf 175 620 Td (Hello PDF!) Tj ET');
-    const output = [];
+    const output: any = [];
 
     try {
-      doc.write(e => output.push(e));
+      doc.write((e: any) => output.push(e));
     } catch (e) {
       console.error(e.message);
     }
@@ -87,7 +83,7 @@ describe('PdfDoc', () => {
   it('Should create an image pdf', () => {
     try {
       // Add file paths
-      const paths = [
+      const paths: any = [
         // './test/images/xxx.jpg'
       ];
 
@@ -114,14 +110,15 @@ describe('PdfDoc', () => {
       const document = Document({}, pages);
 
       class Fonts {
+        _fonts: any;
         constructor() {
           this._fonts = {};
         }
-        add(family, font) {
+        add(family: any, font: any) {
           this._fonts[family] = font;
           return font;
         }
-        get(family) {
+        get(family: any) {
           return this._fonts[family];
         }
       }
@@ -137,11 +134,13 @@ describe('PdfDoc', () => {
           ay: 0,
           fonts: new Fonts()
         };
+        // @ts-expect-error TS(2551): Property 'font' does not exist on type '{ width: n... Remove this comment to see the full error message
         context.font = context.fonts.add('Helvetica', helvetica);
         const rb = reduce(document, context);
         layouter(rb, context);
+        // @ts-expect-error TS(2554): Expected 1 arguments, but got 2.
         const doc = renderer(rb, context);
-        doc.write((e) => {
+        doc.write((e: any) => {
           output = Buffer.concat([output, Buffer.from(e)]);
         });
       } catch (error) {
@@ -163,9 +162,9 @@ describe('PdfDoc', () => {
         ['Hello world!', 'Again!']
       )
     );
-    const out = [];
+    const out: any = [];
     try {
-      doc.write((e) => {
+      doc.write((e: any) => {
         out.push(e);
       });
     } catch (e) {

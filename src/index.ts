@@ -16,6 +16,11 @@ function text() {
 
 
 export default class Document {
+  _cat: any;
+  _currentPage: any;
+  _imageCount: any;
+  _objects: any;
+  _pages: any;
   constructor() {
     this._objects = [];
     this._pages = this.ref({
@@ -38,6 +43,7 @@ export default class Document {
     this._currentPage = this.ref(
       {
         Type: 'Page',
+        // @ts-expect-error TS(2339): Property 'mediaBox' does not exist on type '{}'.
         MediaBox: options.mediaBox || A4,
         Parent: this._pages,
         Contents: this.ref(content),
@@ -64,7 +70,7 @@ export default class Document {
     return this._currentPage;
   }
 
-  addImage(data) {
+  addImage(data: any) {
     const label = `Image${++this._imageCount}`;
     const image = Image.open(data, label);
     image.embed(this);
@@ -73,13 +79,12 @@ export default class Document {
     return resources.XObject;
   }
 
-  ref(obj) {
+  ref(obj: any) {
     return new Ref(this, this._objects.push(obj), obj);
   }
 
-  write(fn) {
+  write(fn: any) {
     const w = new Writer(fn || console.log);
     w.start(this);
   }
-
 }

@@ -1,3 +1,3 @@
-const isFunction = (obj) => typeof obj === 'function';
+const isFunction = (obj: any) => typeof obj === 'function';
 
 export default isFunction;

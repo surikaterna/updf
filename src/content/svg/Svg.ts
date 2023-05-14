@@ -4,6 +4,8 @@ import _applyStyles from './_applyStyles';
 import _renderOp from './_renderOp';
 
 class Svg {
+  context: any;
+  props: any;
   render() {
     const context = this.context;
     const props = this.props;
@@ -43,6 +45,7 @@ class Svg {
     }
 
     if (yScale !== xScale) {
+      // @ts-expect-error TS(2531): Object is possibly 'null'.
       if (xScale && yScale > xScale) {
         yScale = xScale;
       } else if (yScale) {
@@ -65,14 +68,14 @@ class Svg {
     // context.context2d.restore();
   }
 
-  childWillRender(child, vnode) {
+  childWillRender(child: any, vnode: any) {
     this.context.context2d.save();
     // calc css
     child.context._styles = this.context.styles;
     this.context.styles = Object.assign({}, this.context.styles, child.context.css.computeStyles(child, this.context.css));
   }
 
-  childHasRendered(child, vnode) {
+  childHasRendered(child: any, vnode: any) {
     //const style = child.context.css.computeStyles(child, context.css);
     _applyStyles(this.context.context2d, this.context.styles || {}, child.props);
     //this.context.context2d.stroke();

@@ -11,7 +11,7 @@ import isFunction from '../util/isFunction';
  *
  * @returns The virtual node in the PDF tree
  */
-export default (type, props, children, component) => {
+export default (type: any, props: any, children: any, component: any) => {
   const result = {
     type,
     props,

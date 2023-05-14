@@ -1,7 +1,7 @@
 import bind from '../bind';
 import { collectArguments } from './pathParser';
 
-const Polygon = (props, context) => {
+const Polygon = (props: any, context: any) => {
   const { points } = props;
   const pts = collectArguments(points);
   

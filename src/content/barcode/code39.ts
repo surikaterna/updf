@@ -5,7 +5,7 @@ import svg from '../svg/Svg';
 const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%*';
 const encoding = 'g65mzbi8nnitg5zn05i9hg3bmzhi8tn4nidznk5h7bn9hiitgonn4tie5h7hn5zifbnkhh8nn9tij5gxzn75ighh9tmdze3bmhhdsnmete45dpzme5e3hdhhdhtdn5g0hrlm';
 
-function sym(ch) {
+function sym(ch: any) {
   const index = alphabet.indexOf(ch);
   if (index === -1) {
     return -1;
@@ -15,7 +15,7 @@ function sym(ch) {
   }
 };
 
-export function enc(text) {
+export function enc(text: any) {
   const STAR = sym('*');
   let res = STAR;
   // starts and ends with *
@@ -23,10 +23,11 @@ export function enc(text) {
   for (const ch of data) {
     res += `${sym(ch)}0`;
   }
+  // @ts-expect-error TS(2365): Operator '+' cannot be applied to types 'string | ... Remove this comment to see the full error message
   return res + STAR;
 }
 
-export const code39 = (props) => {
+export const code39 = (props: any) => {
   const Svg = props.Svg || svg;
   const Rect = props.Rect || rect;
   const b = enc(props.value);
@@ -51,4 +52,5 @@ export const code39 = (props) => {
   return Svg({ viewBox: [0, 0, width, height], style: props.style }, children.filter(n => n !== null));
 };
 
+// @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
 export default bind(code39);

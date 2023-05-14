@@ -1,5 +1,7 @@
 export default class BaseFont {
-  constructor(widths, kerning) {
+  _kerning: any;
+  _widths: any;
+  constructor(widths: any, kerning: any) {
     this._widths = widths;
     this._kerning = kerning;
   }
@@ -7,7 +9,7 @@ export default class BaseFont {
   /**
    * @return width of text for a 1pt size font
    */
-  width(text, size = 1) {
+  width(text: any, size = 1) {
     let width = 0;
     let kerning = 0;
     let lastCC;

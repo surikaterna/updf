@@ -1,7 +1,7 @@
 const F = 'fill';
 const S = 'stroke';
 
-const _renderOp = (ctx, style) => {
+const _renderOp = (ctx: any, style: any) => {
   const shouldFill = style[F] && style[F] !== 'none' && style[F] !== 'transparent';
   const shouldStroke = style[S] && style[S] !== 'none';
   if (shouldFill && shouldStroke) {

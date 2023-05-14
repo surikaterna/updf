@@ -1,5 +1,8 @@
 export default class Ref {
-  constructor(doc, index, obj) {
+  _doc: any;
+  _index: any;
+  _obj: any;
+  constructor(doc: any, index: any, obj: any) {
     this._doc = doc;
     this._index = index;
     this._obj = obj;
@@ -10,5 +13,4 @@ export default class Ref {
   get index() {
     return this._index;
   }
-
 }

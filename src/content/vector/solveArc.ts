@@ -1,5 +1,5 @@
 // from Inkscape svg to pdf / pdfkit
-export function arcToSegments(x, y, rx, ry, large, sweep, rotateX, ox, oy) {
+export function arcToSegments(x: any, y: any, rx: any, ry: any, large: any, sweep: any, rotateX: any, ox: any, oy: any) {
   const th = rotateX * (Math.PI / 180);
   const sinTh = Math.sin(th);
   const cosTh = Math.cos(th);
@@ -59,7 +59,7 @@ export function arcToSegments(x, y, rx, ry, large, sweep, rotateX, ox, oy) {
   return result;
 }
 
-function segmentToBezier(cx, cy, th0, th1, rx, ry, sinTh, cosTh) {
+function segmentToBezier(cx: any, cy: any, th0: any, th1: any, rx: any, ry: any, sinTh: any, cosTh: any) {
   const a00 = cosTh * rx;
   const a01 = -sinTh * ry;
   const a10 = sinTh * rx;
@@ -81,10 +81,11 @@ function segmentToBezier(cx, cy, th0, th1, rx, ry, sinTh, cosTh) {
   ];
 }
 
-export default function solveArc(x, y, coords, ctx2d) {
+export default function solveArc(x: any, y: any, coords: any, ctx2d: any) {
   const [rx, ry, rot, large, sweep, ex, ey] = coords;
   const segs = arcToSegments(ex, ey, rx, ry, large, sweep, rot, x, y);
   segs.forEach(seg => {
+    // @ts-expect-error TS(2556): A spread argument must either have a tuple type or... Remove this comment to see the full error message
     const bez = segmentToBezier(...seg);
     ctx2d.bezierCurveTo(...bez);
   });

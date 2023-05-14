@@ -1,11 +1,11 @@
 import Ref from './ref';
 import Stream from './stream';
 
-function isObject(obj) {
+function isObject(obj: any) {
   return obj === Object(obj);
 }
 
-function _leftPad(str, i, ch = ' ') {
+function _leftPad(str: any, i: any, ch = ' ') {
   while (str.length < i) str = ch + str;
   return str;
 }
@@ -42,22 +42,26 @@ function _leftPad(str, i, ch = ' ') {
 
 const version = '1.3';
 class Writer {
-  constructor(out) {
+  _doc: any;
+  _offset: any;
+  _out: any;
+  _xref: any;
+  constructor(out: any) {
     this._offset = 0;
-    this._out = (e) => {
+    this._out = (e: any) => {
       // console.log('!!!!!' + e + '%%%%');
       out(e);
       this._offset += e.length;
       return this;
     };
   }
-  start(doc) {
+  start(doc: any) {
     this._doc = doc;
     this._out('%PDF-' + version + '\n');
     // todo, store offsets;
     this._xref = [];
 
-    this._doc._objects.forEach((o, i) => this.obj(o, i + 1));
+    this._doc._objects.forEach((o: any, i: any) => this.obj(o, i + 1));
 
 
     // xref
@@ -66,7 +70,7 @@ class Writer {
     this._out('xref\n');
     this._out('0 ' + (xrefs) + '\n');
     this._out('0000000000 65535 f\n');
-    this._xref.forEach(xref => {
+    this._xref.forEach((xref: any) => {
       this._out(_leftPad(xref.toString(), 10, '0') + ' 00000 n\n');
     });
     // trailer
@@ -80,13 +84,14 @@ class Writer {
 
     // console.log('XR', this._xref);
   }
-  ref(ref) {
+  ref(ref: any) {
     this._out(`${ref.index} 0 R`);
   }
-  any(any) {
+  any(any: any) {
     if (any instanceof Ref) {
       this.ref(any);
     } else if (any instanceof Stream) {
+      // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
       this.stream(any);
     } else if (any && any.constructor === Array) {
       this._out('[');
@@ -109,7 +114,7 @@ class Writer {
     return this;
   }
 
-  stream(stream, noLength) {
+  stream(stream: any, noLength: any) {
     const content = stream.content;
     if (!noLength) {
       this.any({
@@ -123,7 +128,7 @@ class Writer {
       ._out('endstream\n');
   }
 
-  dict(dict) {
+  dict(dict: any) {
     this._out('<<');
     const keys = Object.keys(dict);
     keys.forEach((k, i) => {
@@ -141,7 +146,7 @@ class Writer {
     }
   }
 
-  obj(obj, index) {
+  obj(obj: any, index: any) {
     this._xref.push(this._offset);
     this._out(`${index} 0 obj\n`);
     this.any(obj);

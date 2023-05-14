@@ -2,7 +2,7 @@ import bind from '../bind';
 import cssParser from '../styles/cssParser';
 import classRule from '../styles/classRule';
 
-const Style = (props, context) => {
+const Style = (props: any, context: any) => {
   // this will change
   const css = props.children[0].props.str;
   const rules = cssParser(css);

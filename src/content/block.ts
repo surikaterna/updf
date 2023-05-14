@@ -4,7 +4,7 @@ import bind from './bind';
 import border from './styles/border';
 
 /** blocks are full parent width by default */
-const block = (props, context) => {
+const block = (props: any, context: any) => {
 /*  const ctx = Object.assign({}, context);
   const style = props.style || {};
   let cx = style.left;

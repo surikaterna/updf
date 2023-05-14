@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import bind from '../src/content/bind';
 import block from '../src/content/block';
 import page from '../src/content/page';
@@ -5,27 +6,18 @@ import document from '../src/content/document';
 import inline from '../src/content/inline';
 import rect from '../src/content/vector/rect';
 import code39 from '../src/content/barcode/code39';
-
 import Svg from '../src/content/svg/Svg';
 import SvgFromText from '../src/content/svg/SvgFromText';
 import svgFactory from '../src/content/svg/svgFactory';
 import Polyline from '../src/content/svg/Polyline';
 import Circle from '../src/content/svg/Circle';
 import Path from '../src/content/svg/Path';
-
-
 import text from '../src/content/text';
 import a4 from '../src/boxes/a4';
 import helvetica from '../src/font/helvetica';
-
 import reduce from '../src/vdom/reduce';
 import layouter from '../src/vdom/layouter';
 import renderer from '../src/vdom/renderer';
-
-import should from 'should';
-
-import fs from 'fs';
-
 import shipmentData from './shipmentData';
 import observationData from './obsData';
 
@@ -39,7 +31,7 @@ import observationData from './obsData';
 
 
 
-function dumpDom(vdom, indent = 0) {
+function dumpDom(vdom: any, indent = 0) {
   let out = '';
   //if(vdom.context == null || vdom.props == null) {}
   for (let i = 0; i < indent; i++) { out += '  '; }
@@ -55,7 +47,7 @@ function dumpDom(vdom, indent = 0) {
   out += '>';
   console.log(out);
   if (vdom.children) {
-    vdom.children.forEach(ch => {
+    vdom.children.forEach((ch: any) => {
       /*      if (isText(ch)) {
               console.log(ch.str);
             } else {*/
@@ -71,14 +63,15 @@ function dumpDom(vdom, indent = 0) {
 
 
 class Fonts {
+  _fonts: any;
   constructor() {
     this._fonts = {};
   }
-  add(family, font) {
+  add(family: any, font: any) {
     this._fonts[family] = font;
     return font;
   }
-  get(family) {
+  get(family: any) {
     return this._fonts[family];
   }
 }
@@ -173,7 +166,6 @@ const getIllustrationsByVehicleType = (type) => {
 
 import VehicleIllustrationService from './VehicleIllustrationService';
 
-
 const generatePdf = (diagrams, shipment, observation) => {
   const width = 595.28;
   const height = 841.89;
@@ -222,11 +214,14 @@ const generatePdf = (diagrams, shipment, observation) => {
     paddingBottom: 0.05
   };
 
+  // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
   const XPoint = bind(({ x, y, r, style }) => {
+    // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
     return Path({ d: `M${x - r},${y - r}l${2 * r},${2 * r}m0,${2 * -r}l${2*-r},${2*r}`, style });
   });
 
   //const diagrams = getIllustrationsByVehicleType('T1');
+  // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
   const DamageOverlay = bind(({ damage, diagrams }) => {
     const side = damage.template.side;
     const props = diagrams[side].props;
@@ -239,10 +234,12 @@ const generatePdf = (diagrams, shipment, observation) => {
       }
     });
     //    const child = points.length === 2 ? Circle({ cx: points[0], cy: points[1], r: 10, style: { fill: '#f00' } }) : Polyline({ points, style: { stroke: '#f00' } });
+    // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
     const child = points.length === 2 ? XPoint({ x: points[0], y: points[1], r: 15, style: { stroke: '#00f' } }) : Polyline({ points, style: { stroke: '#00f' } });
     const overlay = Svg(props, [child]);
     return overlay;
   });
+  // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
   const Diagrams = bind(({ diags, observation }, context) => {
     let width = 0;
     let height = 0;
@@ -287,6 +284,7 @@ const generatePdf = (diagrams, shipment, observation) => {
     dg['front'] && (dg['front'].props.style.height = rh);
     let overlays = [];
     if (exts.length > 0) {
+      // @ts-expect-error TS(7006): Parameter 'damage' implicitly has an 'any' type.
       overlays = exts[0].damages.map(damage => DamageOverlay({ damage, diagrams: dg }));
     }
     //Object.keys(dg).map(k => dg[k].props.style.left);
@@ -294,9 +292,11 @@ const generatePdf = (diagrams, shipment, observation) => {
   });
 
   const Header = () =>
+    // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
     block({ style: { top: 10, left: 40, position: 'fixed' } }, [SvgFromText({ svg: SvgLogo, style: { height: 50 } })]);
 
 
+  // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
   const Cell = bind(({ title, value, style, children }) => {
     return block({ style: Object.assign({}, { border: true }, style) }, [
       block({ style: { fontSize: 7 } }, title)
@@ -304,6 +304,7 @@ const generatePdf = (diagrams, shipment, observation) => {
     ]);
   });
 
+  // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
   const DamageTable = bind((props, context) => {
     const colWidths = [150, 110, 255];
     const cols = [' 4. Type', ' 5. Deviation / Part', ' 6. Remark'];
@@ -366,12 +367,16 @@ const generatePdf = (diagrams, shipment, observation) => {
         observation.type === 'observation' ? 'VEHICLE OBSERVATION' : observation.type === 'reservation' ? 'VEHICLE NOTIFICATION' : 'VEHICLE CONDITION CHECK',
       ]),
       block({ id: 'body', style: { position: 'relative', top: 10, left: 0, border: false } }, [
+        // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
         code39({ value: shipment.identifiers[0].identifier, style: { position: 'fixed', top: 70, left: 310, width: 220, height: 25 } })
         //Logo2()
         , Cell({ title: ' 1. Order Number', style: { height: 35 } }, block({ style: {} }, ' ' + shipment.identifiers[0].identifier))
+        // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
         , Cell({ title: ' 2. Drawing', value: ' ' }, Diagrams({ diags: diagrams, observation }))
+        // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
         , Cell({ title: ' 3. Reports', style: { marginTop: 0, height: 15, textAlign: 'center' } })
         //...observation.reports.map(rep => block({ style: { fontSize: 10 } }, rep.handle)),
+        // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
         , DamageTable({ observation })
       ]),
       block({ style: { position: 'fixed', top: 800, left: 40, right: 40 } }, [
@@ -403,6 +408,7 @@ const generatePdf = (diagrams, shipment, observation) => {
     ay: 0,
     fonts: new Fonts()
   };
+  // @ts-expect-error TS(2551): Property 'font' does not exist on type '{ width: n... Remove this comment to see the full error message
   ctx.font = ctx.fonts.add('Helvetica', helvetica);
   // defaults
 
@@ -410,6 +416,7 @@ const generatePdf = (diagrams, shipment, observation) => {
   //dumpDom(rb);
   layouter(rb, ctx);
   // dumpDom(rb);
+  // @ts-expect-error TS(2554): Expected 1 arguments, but got 2.
   const doc = renderer(rb, ctx);
   const out = [];
   try {
@@ -430,7 +437,7 @@ const generatePdf = (diagrams, shipment, observation) => {
 }
 
 describe('container', () => {
-  it.only('should put absolute position', (done) => {
+  it('should put absolute position', (done) => {
     const typeMapping2 = {
       AR: 'artic',
       CC: 'artic',
@@ -468,19 +475,41 @@ describe('container', () => {
     let n = 0;
     function dd() {
       n++;
+      // @ts-expect-error TS(2339): Property 'count' does not exist on type 'string[]'... Remove this comment to see the full error message
       if (n == keys.count) {
         done();
       }
     }
-    keys.forEach(key => {
+
+    let failed = false;
+    let counter = 0;
+    for (const key of keys) {
+      // @ts-expect-error TS(2554): Expected 3 arguments, but got 2.
       new VehicleIllustrationService().getIllustrationsByVehicleType(key, function (err, diagrams) {
-        //console.log('OBS', observationData);
-        const data = generatePdf(diagrams, shipmentData, observationData);
-        require('fs').writeFileSync(`d:\\temp_${key}.pdf`, data);
-        require('fs').writeFileSync(`d:\\temp.pdf`, data);
-        console.log('Wrote file');
+        try {
+          if (failed) {
+            return;
+          }
+          const data = generatePdf(diagrams, shipmentData, observationData);
+          fs.writeFileSync(`./temp_${key}.pdf`, data);
+          fs.writeFileSync(`./temp.pdf`, data);
+          console.log('Wrote file');
+          counter++;
+
+          if (counter === keys.length) {
+            done();
+          }
+        } catch (err) {
+          if (failed) {
+            return;
+          }
+
+          failed = true;
+          done(err);
+          return;
+        }
       });
-    })
+    }
   });
 });
 

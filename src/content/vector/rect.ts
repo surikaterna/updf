@@ -1,6 +1,6 @@
 import bind from '../bind';
 
-const rect = (props, context) => {
+const rect = (props: any, context: any) => {
   const { out } = context;
   // out('q');
   console.log('RECT', props, context.ax, context.ay, context.width, context.height, context.mediaBox);

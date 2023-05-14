@@ -1,13 +1,13 @@
 import createElement from './element';
 
-function isChildren(x) {
+function isChildren(x: any) {
   return typeof x === 'string' || typeof x === 'number' || Array.isArray(x);
 }
 
 /**
  * Pragma pack
  */
-export default (component, render) => (properties, children) => {
+export default (component: any, render: any) => (properties: any, children: any) => {
   let p = properties;
   let c = children;
   if (!c && isChildren(p)) {
