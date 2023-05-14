@@ -71,7 +71,8 @@ export default class Lexer {
             this._fwd(ws.length);
           } else {
             token = { type };
-            if (process(token, this._stream));
+            if (process(token, this._stream)) {
+            }
             break;
           }
         }
