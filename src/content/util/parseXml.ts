@@ -62,7 +62,8 @@ class Parser {
   _children() {
     const children = [];
     let child;
-    while (child = this._child()) { // eslint-disable-line no-cond-assign
+    while ((child = this._child())) {
+      // eslint-disable-line no-cond-assign
       children.push(child);
     }
     return children;

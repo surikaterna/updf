@@ -16,7 +16,7 @@ class Svg {
     // create transformation matrix?
     let viewBox = props.viewBox || [0, 0, context.height, context.width];
     if (typeof viewBox === 'string') {
-      viewBox = viewBox.split(' ').map(e => parseFloat(e));
+      viewBox = viewBox.split(' ').map((e) => parseFloat(e));
     }
     const width = Number(props.width) || viewBox[2];
     const height = Number(props.height) || viewBox[3];
@@ -34,7 +34,6 @@ class Svg {
     } else {
       yScale = 1;
     }
-
 
     if (maxWidth && width > maxWidth) {
       xScale = maxWidth / width;

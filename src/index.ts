@@ -14,7 +14,6 @@ function text() {
 }
 */
 
-
 export default class Document {
   _cat: any;
   _currentPage: any;
@@ -28,39 +27,34 @@ export default class Document {
       Type: 'Pages',
       Kids: []
     });
-    this._cat = this.ref(
-      {
-        Type: 'Catalog',
-        Pages: this._pages
-      }
-    );
+    this._cat = this.ref({
+      Type: 'Catalog',
+      Pages: this._pages
+    });
     this._imageCount = 0;
   }
 
   addPage(options = {}) {
     const content = new Stream(this);
     const pages = this._pages.object;
-    this._currentPage = this.ref(
-      {
-        Type: 'Page',
-        // @ts-expect-error TS(2339): Property 'mediaBox' does not exist on type '{}'.
-        MediaBox: options.mediaBox || A4,
-        Parent: this._pages,
-        Contents: this.ref(content),
-        Resources: this.ref({
-          Font: {
-            G: this.ref(
-              {
-                Type: 'Font',
-                Subtype: 'Type1',
-                BaseFont: 'Helvetica',
-                Encoding: 'WinAnsiEncoding'
-              })
-          },
-          XObject: {}
-        })
-      }
-    );
+    this._currentPage = this.ref({
+      Type: 'Page',
+      // @ts-expect-error TS(2339): Property 'mediaBox' does not exist on type '{}'.
+      MediaBox: options.mediaBox || A4,
+      Parent: this._pages,
+      Contents: this.ref(content),
+      Resources: this.ref({
+        Font: {
+          G: this.ref({
+            Type: 'Font',
+            Subtype: 'Type1',
+            BaseFont: 'Helvetica',
+            Encoding: 'WinAnsiEncoding'
+          })
+        },
+        XObject: {}
+      })
+    });
     pages.Kids.push(this._currentPage);
     pages.Count++;
     return this._currentPage;

@@ -21,25 +21,23 @@ import renderer from '../src/vdom/renderer';
 import shipmentData from './shipmentData';
 import observationData from './obsData';
 
-
 /* processes:
-  * layout (x,y, width & height)
-   *  width needs font (inline)
-  * render
-*/
-
-
-
+ * layout (x,y, width & height)
+ *  width needs font (inline)
+ * render
+ */
 
 function dumpDom(vdom: any, indent = 0) {
   let out = '';
   //if(vdom.context == null || vdom.props == null) {}
-  for (let i = 0; i < indent; i++) { out += '  '; }
+  for (let i = 0; i < indent; i++) {
+    out += '  ';
+  }
   out += `<${vdom.type}`;
-  Object.keys(vdom.props || {}).forEach(key => {
+  Object.keys(vdom.props || {}).forEach((key) => {
     out += ` ${key}=${JSON.stringify(vdom.props[key])}`;
   });
-  Object.keys(vdom.context || {}).forEach(key => {
+  Object.keys(vdom.context || {}).forEach((key) => {
     if (key !== 'font' && key !== 'fonts' && key !== '_contexts') {
       out += ` $${key}=${JSON.stringify(vdom.context[key])}`;
     }
@@ -56,11 +54,12 @@ function dumpDom(vdom: any, indent = 0) {
     });
   }
   out = '';
-  for (let i = 0; i < indent; i++) { out += '  '; }
+  for (let i = 0; i < indent; i++) {
+    out += '  ';
+  }
 
   console.log(`${out}</${vdom.type}>`);
 }
-
 
 class Fonts {
   _fonts: any;
@@ -217,7 +216,7 @@ const generatePdf = (diagrams, shipment, observation) => {
   // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
   const XPoint = bind(({ x, y, r, style }) => {
     // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
-    return Path({ d: `M${x - r},${y - r}l${2 * r},${2 * r}m0,${2 * -r}l${2*-r},${2*r}`, style });
+    return Path({ d: `M${x - r},${y - r}l${2 * r},${2 * r}m0,${2 * -r}l${2 * -r},${2 * r}`, style });
   });
 
   //const diagrams = getIllustrationsByVehicleType('T1');
@@ -227,7 +226,7 @@ const generatePdf = (diagrams, shipment, observation) => {
     const props = diagrams[side].props;
 
     const points = [];
-    damage.coordinates.points.forEach(pt => {
+    damage.coordinates.points.forEach((pt) => {
       if (pt.docX !== null) {
         points.push(pt.docX);
         points.push(pt.docY);
@@ -235,7 +234,8 @@ const generatePdf = (diagrams, shipment, observation) => {
     });
     //    const child = points.length === 2 ? Circle({ cx: points[0], cy: points[1], r: 10, style: { fill: '#f00' } }) : Polyline({ points, style: { stroke: '#f00' } });
     // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
-    const child = points.length === 2 ? XPoint({ x: points[0], y: points[1], r: 15, style: { stroke: '#00f' } }) : Polyline({ points, style: { stroke: '#00f' } });
+    const child =
+      points.length === 2 ? XPoint({ x: points[0], y: points[1], r: 15, style: { stroke: '#00f' } }) : Polyline({ points, style: { stroke: '#00f' } });
     const overlay = Svg(props, [child]);
     return overlay;
   });
@@ -245,18 +245,18 @@ const generatePdf = (diagrams, shipment, observation) => {
     let height = 0;
     let length = 0;
 
-    const exts = observation.reports.filter(e => e.type === 'exteriorCheck');
+    const exts = observation.reports.filter((e) => e.type === 'exteriorCheck');
     //console.log('EXX', JSON.stringify(exts, null, 2))
     const dg = {};
-    diags.metadata.sides.forEach(side => {
+    diags.metadata.sides.forEach((side) => {
       const svgDiag = svgFactory(diags[side].toString(), { top: 105, left: 80, position: 'fixed' });
 
       if (side === 'right') {
-        const vb = svgDiag.props.viewBox.split(' ').map(e => Number(e));
+        const vb = svgDiag.props.viewBox.split(' ').map((e) => Number(e));
         length = vb[2];
         height = vb[3];
       } else if (side === 'top') {
-        const vb = svgDiag.props.viewBox.split(' ').map(e => Number(e));
+        const vb = svgDiag.props.viewBox.split(' ').map((e) => Number(e));
         width = vb[3];
       }
       dg[side] = svgDiag;
@@ -272,7 +272,7 @@ const generatePdf = (diagrams, shipment, observation) => {
     dg['right'] && (dg['right'].props.style.width = rl);
     dg['back'] && (dg['back'].props.style.height = rh);
     dg['back'] && (dg['back'].props.style.left += rl + 50);
-    dg['back2'] && (dg['back2'].props.style.top += (rh + rw - rh));
+    dg['back2'] && (dg['back2'].props.style.top += rh + rw - rh);
     dg['back2'] && (dg['back2'].props.style.height = rh);
     dg['back2'] && (dg['back2'].props.style.left += rl + 50);
     dg['top'] && (dg['top'].props.style.top += rh);
@@ -285,23 +285,19 @@ const generatePdf = (diagrams, shipment, observation) => {
     let overlays = [];
     if (exts.length > 0) {
       // @ts-expect-error TS(7006): Parameter 'damage' implicitly has an 'any' type.
-      overlays = exts[0].damages.map(damage => DamageOverlay({ damage, diagrams: dg }));
+      overlays = exts[0].damages.map((damage) => DamageOverlay({ damage, diagrams: dg }));
     }
     //Object.keys(dg).map(k => dg[k].props.style.left);
-    return block({ id: 'diagrams', style: { height: 2 * rh + rw } }, [...Object.keys(dg).map(k => dg[k]), ...overlays]);
+    return block({ id: 'diagrams', style: { height: 2 * rh + rw } }, [...Object.keys(dg).map((k) => dg[k]), ...overlays]);
   });
 
   const Header = () =>
     // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
     block({ style: { top: 10, left: 40, position: 'fixed' } }, [SvgFromText({ svg: SvgLogo, style: { height: 50 } })]);
 
-
   // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
   const Cell = bind(({ title, value, style, children }) => {
-    return block({ style: Object.assign({}, { border: true }, style) }, [
-      block({ style: { fontSize: 7 } }, title)
-      , ...children
-    ]);
+    return block({ style: Object.assign({}, { border: true }, style) }, [block({ style: { fontSize: 7 } }, title), ...children]);
   });
 
   // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
@@ -310,7 +306,7 @@ const generatePdf = (diagrams, shipment, observation) => {
     const cols = [' 4. Type', ' 5. Deviation / Part', ' 6. Remark'];
     const colKeys = ['type', 'deviation', 'remark'];
     let cx = 0;
-    const rowHeight = 15
+    const rowHeight = 15;
 
     //colWidths[1] = mw - colWidths[0] + colWidths[2];
 
@@ -319,37 +315,42 @@ const generatePdf = (diagrams, shipment, observation) => {
       cx += colWidths[i];
       return result;
     });
-    const exts = props.observation.reports.filter(e => e.type === 'exteriorCheck');
-    const nonExts = props.observation.reports.filter(e => e.type !== 'exteriorCheck');
+    const exts = props.observation.reports.filter((e) => e.type === 'exteriorCheck');
+    const nonExts = props.observation.reports.filter((e) => e.type !== 'exteriorCheck');
     let row = 1;
 
     const colRows = nonExts.map((rep, i) => {
       return block({}, [
-        block({ style: { fontSize: 7, position: 'absolute', top: rowHeight * row, left: 0, border: true, width: 150, height: rowHeight } }, ' ' + rep.handle)
-        , block({ style: { fontSize: 7, position: 'absolute', top: rowHeight * row, left: 150, border: true, width: 110, height: rowHeight } }, ' ' + rep.deviation)
-        , block({ style: { fontSize: 7, position: 'absolute', top: rowHeight * row++, left: 260, border: true, width: 255, height: rowHeight } }, ' ' + rep.remark)
+        block({ style: { fontSize: 7, position: 'absolute', top: rowHeight * row, left: 0, border: true, width: 150, height: rowHeight } }, ' ' + rep.handle),
+        block(
+          { style: { fontSize: 7, position: 'absolute', top: rowHeight * row, left: 150, border: true, width: 110, height: rowHeight } },
+          ' ' + rep.deviation
+        ),
+        block(
+          { style: { fontSize: 7, position: 'absolute', top: rowHeight * row++, left: 260, border: true, width: 255, height: rowHeight } },
+          ' ' + rep.remark
+        )
       ]);
       row++;
     });
     let extRows = [];
     const parts = [];
-    exts[0].damages.forEach(dmg =>
-      dmg.partIdentifiers.forEach(pi => parts.push({ remark: dmg.remark, part: pi.identifier, reason: '', type: 'Broken' }))
-    );
+    exts[0].damages.forEach((dmg) => dmg.partIdentifiers.forEach((pi) => parts.push({ remark: dmg.remark, part: pi.identifier, reason: '', type: 'Broken' })));
     if (exts.length > 0) {
       extRows = parts.map((rep, i) => {
         return block({}, [
-          block({ style: { fontSize: 7, position: 'absolute', top: rowHeight * row, left: 0, border: true, width: 150, height: rowHeight } }, ' Exterior')
-          , block({ style: { fontSize: 7, position: 'absolute', top: rowHeight * row, left: 150, border: true, width: 110, height: rowHeight } }, ' ' + rep.part)
-          , block({ style: { fontSize: 7, position: 'absolute', top: rowHeight * row++, left: 260, border: true, width: 255, height: rowHeight } }, ' ' + rep.type + ' ' + rep.remark)
+          block({ style: { fontSize: 7, position: 'absolute', top: rowHeight * row, left: 0, border: true, width: 150, height: rowHeight } }, ' Exterior'),
+          block({ style: { fontSize: 7, position: 'absolute', top: rowHeight * row, left: 150, border: true, width: 110, height: rowHeight } }, ' ' + rep.part),
+          block(
+            { style: { fontSize: 7, position: 'absolute', top: rowHeight * row++, left: 260, border: true, width: 255, height: rowHeight } },
+            ' ' + rep.type + ' ' + rep.remark
+          )
         ]);
         row++;
       });
     }
 
-    return block({ id: 'table', style: { textAlign: left, position: 'relative', height: row * rowHeight } },
-      [...colHeaders, ...colRows, ...extRows]
-    );
+    return block({ id: 'table', style: { textAlign: left, position: 'relative', height: row * rowHeight } }, [...colHeaders, ...colRows, ...extRows]);
   });
 
   const formatDate = (dt) => {
@@ -358,32 +359,32 @@ const generatePdf = (diagrams, shipment, observation) => {
       dtString = new Date(dt).toISOString();
     }
     return dtString;
-  }
+  };
 
-  const b = document({},
+  const b = document(
+    {},
     page(Object.assign({ mediaBox: a4, style: Object.assign({ fontFamily: 'Helvetica', fontSize: 12, lineHeight: 1.2 }, margins, paddings) }), [
       Header(),
       block({ id: 'title', style: { textAlign: 'right' } }, [
-        observation.type === 'observation' ? 'VEHICLE OBSERVATION' : observation.type === 'reservation' ? 'VEHICLE NOTIFICATION' : 'VEHICLE CONDITION CHECK',
+        observation.type === 'observation' ? 'VEHICLE OBSERVATION' : observation.type === 'reservation' ? 'VEHICLE NOTIFICATION' : 'VEHICLE CONDITION CHECK'
       ]),
       block({ id: 'body', style: { position: 'relative', top: 10, left: 0, border: false } }, [
         // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
-        code39({ value: shipment.identifiers[0].identifier, style: { position: 'fixed', top: 70, left: 310, width: 220, height: 25 } })
+        code39({ value: shipment.identifiers[0].identifier, style: { position: 'fixed', top: 70, left: 310, width: 220, height: 25 } }),
         //Logo2()
-        , Cell({ title: ' 1. Order Number', style: { height: 35 } }, block({ style: {} }, ' ' + shipment.identifiers[0].identifier))
+        Cell({ title: ' 1. Order Number', style: { height: 35 } }, block({ style: {} }, ' ' + shipment.identifiers[0].identifier)),
         // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
-        , Cell({ title: ' 2. Drawing', value: ' ' }, Diagrams({ diags: diagrams, observation }))
+        Cell({ title: ' 2. Drawing', value: ' ' }, Diagrams({ diags: diagrams, observation })),
         // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
-        , Cell({ title: ' 3. Reports', style: { marginTop: 0, height: 15, textAlign: 'center' } })
+        Cell({ title: ' 3. Reports', style: { marginTop: 0, height: 15, textAlign: 'center' } }),
         //...observation.reports.map(rep => block({ style: { fontSize: 10 } }, rep.handle)),
         // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
-        , DamageTable({ observation })
+        DamageTable({ observation })
       ]),
       block({ style: { position: 'fixed', top: 800, left: 40, right: 40 } }, [
         Cell({ title: ' 7. Created', style: { height: 15, border: false } }, block({ style: { fontSize: 10 } }, formatDate(observation.createDateTime)))
-      ]
-      )
-    ]),
+      ])
+    ])
     //        Diagrams({diags: diagrams}),
 
     //block({ style: { top: 0, left: 0, position: 'fixed' } }, [Logo2(front)]),
@@ -395,8 +396,6 @@ const generatePdf = (diagrams, shipment, observation) => {
               */
     //rect({ style: { left: 200, top: 100 } })
   );
-
-
 
   const ctx = {
     width,
@@ -434,7 +433,7 @@ const generatePdf = (diagrams, shipment, observation) => {
   //console.log('>>', b.children[0].children[0].context);
   //b.children[0].children[0].context.ax.should.equal(left);
   //b.children[0].children[0].context.ay.should.equal(top);
-}
+};
 
 describe('container', () => {
   it('should put absolute position', (done) => {
@@ -512,4 +511,3 @@ describe('container', () => {
     }
   });
 });
-

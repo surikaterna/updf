@@ -4,7 +4,7 @@ import { collectArguments } from './pathParser';
 const Polygon = (props: any, context: any) => {
   const { points } = props;
   const pts = collectArguments(points);
-  
+
   context.context2d.polyline(pts);
 };
 

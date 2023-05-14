@@ -2,7 +2,11 @@ import asStyle from '../util/asStyle';
 
 export default function cssParser(css: any) {
   const rules = [];
-  const parts = css.trim().split(/[{}]/).filter(String).map((str: any) => str.trim());
+  const parts = css
+    .trim()
+    .split(/[{}]/)
+    .filter(String)
+    .map((str: any) => str.trim());
   while (parts.length > 0) {
     const ruleData = parts.splice(0, 2);
     const style = asStyle(ruleData[1]);

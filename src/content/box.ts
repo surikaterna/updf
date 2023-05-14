@@ -1,7 +1,6 @@
 import bind from './bind';
 import _render from './_render';
 
-
 /** out */
 const out = bind('out', (props: any, context: any) => {
   context.page.object.Contents.object.append(props.ops);
@@ -13,8 +12,7 @@ const seq = bind('seq', (props: any, context: any) => {
 });
 
 // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
-const stack = bind((props: any) => seq(out({ ops: 'q' }), props.children, out({ ops: 'Q' }))
-);
+const stack = bind((props: any) => seq(out({ ops: 'q' }), props.children, out({ ops: 'Q' })));
 
 const box = (props: any) => {
   let children = props.children;
@@ -23,9 +21,7 @@ const box = (props: any) => {
     }*/
 
   // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
-  return stack(
-    children
-  );
+  return stack(children);
 };
 
 // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.

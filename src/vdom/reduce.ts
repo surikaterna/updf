@@ -12,7 +12,7 @@ export default function reduce(vnode: any, context: any) {
     node = buildComponent(node, context);
   }
 
-  if (typeof (node) === 'string') {
+  if (typeof node === 'string') {
     // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
     node = text({ str: node });
   }

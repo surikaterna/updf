@@ -25,17 +25,18 @@ const cnv = {
 
 function convertProps(props: any, rest: any) {
   const nProps = Object.assign({}, rest);
-  props && Object.keys(props).forEach(prop => {
-    const p = props[prop];
-    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-    const nw = cnv[prop] && cnv[prop](p);
-    if (typeof nw === 'object') {
-      delete nProps[prop]
-      Object.assign(nProps, props[prop], nw, rest && rest[prop] && { [prop]: rest[prop] } || {});
-    } else {
-      nProps[prop] = nw || p;
-    }
-  });
+  props &&
+    Object.keys(props).forEach((prop) => {
+      const p = props[prop];
+      // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+      const nw = cnv[prop] && cnv[prop](p);
+      if (typeof nw === 'object') {
+        delete nProps[prop];
+        Object.assign(nProps, props[prop], nw, (rest && rest[prop] && { [prop]: rest[prop] }) || {});
+      } else {
+        nProps[prop] = nw || p;
+      }
+    });
   return nProps || {};
 }
 

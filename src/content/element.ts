@@ -26,4 +26,3 @@ export default (type: any, props: any, children: any, component: any) => {
   }*/
   return result;
 };
-

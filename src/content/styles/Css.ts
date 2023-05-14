@@ -20,4 +20,4 @@ export default class Css {
     }
     return style;
   }
-};
+}

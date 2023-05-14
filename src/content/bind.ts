@@ -22,4 +22,3 @@ export default (component: any, render: any) => (properties: any, children: any)
   }
   return createElement(component, p, c, render);
 };
-

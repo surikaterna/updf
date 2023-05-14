@@ -1,13 +1,17 @@
 const makeKey = (attr: any) => {
-  return attr.split(/[-:]/).map((s: any, i: any) => {
-    return i === 0 ? s : s[0].toUpperCase() + s.slice(1);
-  }).join('').trim();
+  return attr
+    .split(/[-:]/)
+    .map((s: any, i: any) => {
+      return i === 0 ? s : s[0].toUpperCase() + s.slice(1);
+    })
+    .join('')
+    .trim();
 };
 
 const makeValue = (attr: any) => {
   // console.log('A', attr, parseFloat(attr), );
   let result = attr.trim();
-  if (result[0] === '\'') {
+  if (result[0] === "'") {
     result = result.substring(1, result.length - 1);
   }
   return result;

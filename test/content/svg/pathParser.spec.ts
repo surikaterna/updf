@@ -29,12 +29,20 @@ describe('pathParser', () => {
     it('should parse allow multipl of argument count', (done) => {
       let called = 0;
       pathParser('s.84,8.27.83,10.83,0,26.11,0,26.11-.44,6.79-1.31,11.68-1.59,8.36-1.59,8.36h12.16', {
-        s: () => { called++; },
-        h: () => { expect(called).toBe(4); done(); }
+        s: () => {
+          called++;
+        },
+        h: () => {
+          expect(called).toBe(4);
+          done();
+        }
       });
     });
-    it('should parse curious paths', (done)=> {
-      const log = (t: any) => (...args: any[]) => console.log(t, args);
+    it('should parse curious paths', (done) => {
+      const log =
+        (t: any) =>
+        (...args: any[]) =>
+          console.log(t, args);
       pathParser('M196.3,14.58l5.31,21.94s7.25,23.2,9.92,44.61a182.89,182.89,0,0,1,0,41.48', {
         M: log('M'),
         l: log('l'),
@@ -43,6 +51,5 @@ describe('pathParser', () => {
       });
       done();
     });
-  
   });
 });

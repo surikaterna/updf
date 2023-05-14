@@ -12,26 +12,29 @@ describe('BaseFont', () => {
       const font = new BaseFont({}, {});
       expect(font.width('Abc')).toBe(3);
     });
-    
+
     it('should add kerning between characters', () => {
-      const font = new BaseFont({
-        ['A'.charCodeAt(0)]:2,
-        ['b'.charCodeAt(0)]:3,
-        ['c'.charCodeAt(0)]:4,
-        fof: 1
-      }, {
-        ['A'.charCodeAt(0)]:{
-          ['b'.charCodeAt(0)]:20
+      const font = new BaseFont(
+        {
+          ['A'.charCodeAt(0)]: 2,
+          ['b'.charCodeAt(0)]: 3,
+          ['c'.charCodeAt(0)]: 4,
+          fof: 1
         },
-        ['b'.charCodeAt(0)]:{
-          ['c'.charCodeAt(0)]:10
-        },
-        fof:-1
-      });
-      expect(font.width('Abc')).toBe(2+3+4+10+20);
-    })        
+        {
+          ['A'.charCodeAt(0)]: {
+            ['b'.charCodeAt(0)]: 20
+          },
+          ['b'.charCodeAt(0)]: {
+            ['c'.charCodeAt(0)]: 10
+          },
+          fof: -1
+        }
+      );
+      expect(font.width('Abc')).toBe(2 + 3 + 4 + 10 + 20);
+    });
     it('should calculate correct width for helvetica', () => {
-      expect((helvetica.width('Hello World') * 30)).toBe(153.9);
-    })
+      expect(helvetica.width('Hello World') * 30).toBe(153.9);
+    });
   });
 });

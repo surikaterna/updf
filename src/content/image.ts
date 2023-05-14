@@ -18,7 +18,7 @@ const transform = (m11: any, m12: any, m21: any, m22: any, dx: any, dy: any) => 
   matrix[4] = m0 * dx + m2 * dy + m4;
   matrix[5] = m1 * dx + m3 * dy + m5;
 
-  const values = [m11, m12, m21, m22, dx, dy].map(v => number(v)).join(' ');
+  const values = [m11, m12, m21, m22, dx, dy].map((v) => number(v)).join(' ');
   return `${values} cm`;
 };
 
@@ -52,9 +52,9 @@ const image = (props: any, context: any) => {
   const xObject = context.document.addImage(data);
   const labels = Object.keys(xObject);
   const mediaBox = context.document.currentPage()._obj.MediaBox;
-  const [,, pageWidth, pageHeight] = mediaBox;
+  const [, , pageWidth, pageHeight] = mediaBox;
 
-  labels.forEach(label => {
+  labels.forEach((label) => {
     const { Width, Height } = xObject[label]._obj;
     const size = {
       page: { width: pageWidth, height: pageHeight },

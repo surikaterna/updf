@@ -11,5 +11,4 @@ const rect = (props: any, context: any) => {
   //out('175 720 m 175 700 l h S');
 };
 
-
 export default bind('rect', rect);

@@ -13,7 +13,7 @@ function sym(ch: any) {
     const symbol = encoding.substring(index * 3, index * 3 + 3);
     return parseInt(symbol, 36).toString(2);
   }
-};
+}
 
 export function enc(text: any) {
   const STAR = sym('*');
@@ -33,7 +33,7 @@ export const code39 = (props: any) => {
   const b = enc(props.value);
   const height = (props.style && props.style.height) || props.height || 20;
   const width = (props.style && props.style.width) || props.height || 100;
-  const elemWidth = width / (b.length);
+  const elemWidth = width / b.length;
   let x = 0;
   let cWidth = 0;
   const children = [...b].map((s, i) => {
@@ -49,7 +49,10 @@ export const code39 = (props: any) => {
   });
 
   // children.push(rect({ style: { left: x - elemWidth * (cWidth - 1), top: 0, width: elemWidth * cWidth, height, position: 'absolute' } }));
-  return Svg({ viewBox: [0, 0, width, height], style: props.style }, children.filter(n => n !== null));
+  return Svg(
+    { viewBox: [0, 0, width, height], style: props.style },
+    children.filter((n) => n !== null)
+  );
 };
 
 // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.

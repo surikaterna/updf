@@ -1,6 +1,7 @@
 const fs = require('fs');
 
-const paths = ['/temp/vh/img/artic/v1/Artic_front.svg',
+const paths = [
+  '/temp/vh/img/artic/v1/Artic_front.svg',
   '/temp/vh/img/artic/v1/Artic_left.svg',
   '/temp/vh/img/artic/v1/Artic_rear.svg',
   '/temp/vh/img/artic/v1/Artic_right.svg',
@@ -125,7 +126,8 @@ const paths = ['/temp/vh/img/artic/v1/Artic_front.svg',
   '/temp/vh/img/van/v1/Van_left.svg',
   '/temp/vh/img/van/v1/Van_rear.svg',
   '/temp/vh/img/van/v1/Van_right.svg',
-  '/temp/vh/img/van/v1/Van_roof.svg'];
+  '/temp/vh/img/van/v1/Van_roof.svg'
+];
 
 const typeMapping = {
   AR: 'artic',
@@ -191,7 +193,10 @@ export default class VehicleIllustrationService {
       }
     };
     set.metadata.sides.forEach((side: any) => {
-      fs.readFile(set[side], 'utf-8', (err: any, data: any) => { set[side] = data; cb(); });
+      fs.readFile(set[side], 'utf-8', (err: any, data: any) => {
+        set[side] = data;
+        cb();
+      });
     });
   }
 
@@ -199,13 +204,15 @@ export default class VehicleIllustrationService {
     const set = {};
     // @ts-expect-error TS(2339): Property 'metadata' does not exist on type '{}'.
     set.metadata = { sides: [] };
-    Object.keys(sideKeys).forEach(k => {
+    Object.keys(sideKeys).forEach((k) => {
       let keys = sideKeys[k];
       if (!Array.isArray(keys)) {
         keys = [keys];
       }
       keys = keys.map((key: any) => files.find((file: any) => file.indexOf(key) > -1)).filter((key: any) => key !== undefined);
-      keys.forEach((key: any, i: any) => { set[k + (i > 0 ? i + 1 : '')] = key; });
+      keys.forEach((key: any, i: any) => {
+        set[k + (i > 0 ? i + 1 : '')] = key;
+      });
       if (keys.length > 0) {
         // @ts-expect-error TS(2339): Property 'metadata' does not exist on type '{}'.
         set.metadata.sides.push(k);
@@ -213,7 +220,7 @@ export default class VehicleIllustrationService {
     });
     // @ts-expect-error TS(2339): Property 'metadata' does not exist on type '{}'.
     if (set.metadata.sides.length < 5) {
-//      throw new Error('unable to find sides' + files);
+      //      throw new Error('unable to find sides' + files);
     }
     return set;
   }

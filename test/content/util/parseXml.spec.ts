@@ -27,19 +27,19 @@ describe('parseXml', () => {
     });
     it('should parse elements with arguments with numbers', () => {
       expect(
-          // @ts-expect-error TS(2339): Property 'type' does not exist on type '{}'.
-          parseXml('<line class="st1" x1="12.36" y1="79.86" x2="17.67" y2="76.85"/>').type
+        // @ts-expect-error TS(2339): Property 'type' does not exist on type '{}'.
+        parseXml('<line class="st1" x1="12.36" y1="79.86" x2="17.67" y2="76.85"/>').type
       ).toBe('line');
     });
     it('should parse element with complex text', () => {
-      expect(parseXml(`<xml><style>
+      expect(
+        // @ts-expect-error TS(2339): Property 'children' does not exist on type '{}'.
+        parseXml(`<xml><style>
           .st0{fill:#002F87;}
           .st1{fill:#FFFFFF;}
           .st2{fill:#E2231A;}      
-        </style></xml>`)
-        // @ts-expect-error TS(2339): Property 'children' does not exist on type '{}'.
-        .children[0].type).toBe('style');
-
+        </style></xml>`).children[0].type
+      ).toBe('style');
     });
     it('should parse complex structures', () => {
       const svg = parseXml(`<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"

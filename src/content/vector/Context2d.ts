@@ -6,33 +6,28 @@ const KAPPA = 0.5522848;
 
 const _f = (f: any) => Number(Number(f).toFixed(4)).toString();
 
+const TAU = Math.PI * 2;
 
+const mapToEllipse = ({ x, y }: any, rx: any, ry: any, cosphi: any, sinphi: any, centerx: any, centery: any) => {
+  x *= rx;
+  y *= ry;
 
-const TAU = Math.PI * 2
-
-const mapToEllipse = ({
-  x,
-  y
-}: any, rx: any, ry: any, cosphi: any, sinphi: any, centerx: any, centery: any) => {
-  x *= rx
-  y *= ry
-
-  const xp = cosphi * x - sinphi * y
-  const yp = sinphi * x + cosphi * y
+  const xp = cosphi * x - sinphi * y;
+  const yp = sinphi * x + cosphi * y;
 
   return {
     x: xp + centerx,
     y: yp + centery
-  }
-}
+  };
+};
 
 const approxUnitArc = (ang1: any, ang2: any) => {
-  const a = 4 / 3 * Math.tan(ang2 / 4)
+  const a = (4 / 3) * Math.tan(ang2 / 4);
 
-  const x1 = Math.cos(ang1)
-  const y1 = Math.sin(ang1)
-  const x2 = Math.cos(ang1 + ang2)
-  const y2 = Math.sin(ang1 + ang2)
+  const x1 = Math.cos(ang1);
+  const y1 = Math.sin(ang1);
+  const x2 = Math.cos(ang1 + ang2);
+  const y2 = Math.sin(ang1 + ang2);
 
   return [
     {
@@ -47,27 +42,27 @@ const approxUnitArc = (ang1: any, ang2: any) => {
       x: x2,
       y: y2
     }
-  ]
-}
+  ];
+};
 
 const vectorAngle = (ux: any, uy: any, vx: any, vy: any) => {
-  const sign = (ux * vy - uy * vx < 0) ? -1 : 1
-  const umag = Math.sqrt(ux * ux + uy * uy)
-  const vmag = Math.sqrt(ux * ux + uy * uy)
-  const dot = ux * vx + uy * vy
+  const sign = ux * vy - uy * vx < 0 ? -1 : 1;
+  const umag = Math.sqrt(ux * ux + uy * uy);
+  const vmag = Math.sqrt(ux * ux + uy * uy);
+  const dot = ux * vx + uy * vy;
 
-  let div = dot / (umag * vmag)
+  let div = dot / (umag * vmag);
 
   if (div > 1) {
-    div = 1
+    div = 1;
   }
 
   if (div < -1) {
-    div = -1
+    div = -1;
   }
 
-  return sign * Math.acos(div)
-}
+  return sign * Math.acos(div);
+};
 
 const getArcCenter = (
   px: any,
@@ -83,116 +78,91 @@ const getArcCenter = (
   pxp: any,
   pyp: any
 ) => {
-  const rxsq = Math.pow(rx, 2)
-  const rysq = Math.pow(ry, 2)
-  const pxpsq = Math.pow(pxp, 2)
-  const pypsq = Math.pow(pyp, 2)
+  const rxsq = Math.pow(rx, 2);
+  const rysq = Math.pow(ry, 2);
+  const pxpsq = Math.pow(pxp, 2);
+  const pypsq = Math.pow(pyp, 2);
 
-  let radicant = (rxsq * rysq) - (rxsq * pypsq) - (rysq * pxpsq)
+  let radicant = rxsq * rysq - rxsq * pypsq - rysq * pxpsq;
 
   if (radicant < 0) {
-    radicant = 0
+    radicant = 0;
   }
 
-  radicant /= (rxsq * pypsq) + (rysq * pxpsq)
-  radicant = Math.sqrt(radicant) * (largeArcFlag === sweepFlag ? -1 : 1)
+  radicant /= rxsq * pypsq + rysq * pxpsq;
+  radicant = Math.sqrt(radicant) * (largeArcFlag === sweepFlag ? -1 : 1);
 
-  const centerxp = radicant * rx / ry * pyp
-  const centeryp = radicant * -ry / rx * pxp
+  const centerxp = ((radicant * rx) / ry) * pyp;
+  const centeryp = ((radicant * -ry) / rx) * pxp;
 
-  const centerx = cosphi * centerxp - sinphi * centeryp + (px + cx) / 2
-  const centery = sinphi * centerxp + cosphi * centeryp + (py + cy) / 2
+  const centerx = cosphi * centerxp - sinphi * centeryp + (px + cx) / 2;
+  const centery = sinphi * centerxp + cosphi * centeryp + (py + cy) / 2;
 
-  const vx1 = (pxp - centerxp) / rx
-  const vy1 = (pyp - centeryp) / ry
-  const vx2 = (-pxp - centerxp) / rx
-  const vy2 = (-pyp - centeryp) / ry
+  const vx1 = (pxp - centerxp) / rx;
+  const vy1 = (pyp - centeryp) / ry;
+  const vx2 = (-pxp - centerxp) / rx;
+  const vy2 = (-pyp - centeryp) / ry;
 
-  let ang1 = vectorAngle(1, 0, vx1, vy1)
-  let ang2 = vectorAngle(vx1, vy1, vx2, vy2)
+  let ang1 = vectorAngle(1, 0, vx1, vy1);
+  let ang2 = vectorAngle(vx1, vy1, vx2, vy2);
 
   if (sweepFlag === 0 && ang2 > 0) {
-    ang2 -= TAU
+    ang2 -= TAU;
   }
 
   if (sweepFlag === 1 && ang2 < 0) {
-    ang2 += TAU
+    ang2 += TAU;
   }
 
-  return [centerx, centery, ang1, ang2]
-}
+  return [centerx, centery, ang1, ang2];
+};
 
-const arcToBezier = ({
-  px,
-  py,
-  cx,
-  cy,
-  rx,
-  ry,
-  xAxisRotation = 0,
-  largeArcFlag = 0,
-  sweepFlag = 0
-}: any) => {
-  const curves = []
+const arcToBezier = ({ px, py, cx, cy, rx, ry, xAxisRotation = 0, largeArcFlag = 0, sweepFlag = 0 }: any) => {
+  const curves = [];
 
   if (rx === 0 || ry === 0) {
-    return []
+    return [];
   }
 
-  const sinphi = Math.sin(xAxisRotation * TAU / 360)
-  const cosphi = Math.cos(xAxisRotation * TAU / 360)
+  const sinphi = Math.sin((xAxisRotation * TAU) / 360);
+  const cosphi = Math.cos((xAxisRotation * TAU) / 360);
 
-  const pxp = cosphi * (px - cx) / 2 + sinphi * (py - cy) / 2
-  const pyp = -sinphi * (px - cx) / 2 + cosphi * (py - cy) / 2
+  const pxp = (cosphi * (px - cx)) / 2 + (sinphi * (py - cy)) / 2;
+  const pyp = (-sinphi * (px - cx)) / 2 + (cosphi * (py - cy)) / 2;
 
   if (pxp === 0 && pyp === 0) {
-    return []
+    return [];
   }
 
-  rx = Math.abs(rx)
-  ry = Math.abs(ry)
+  rx = Math.abs(rx);
+  ry = Math.abs(ry);
 
-  const lambda =
-    Math.pow(pxp, 2) / Math.pow(rx, 2) +
-    Math.pow(pyp, 2) / Math.pow(ry, 2)
+  const lambda = Math.pow(pxp, 2) / Math.pow(rx, 2) + Math.pow(pyp, 2) / Math.pow(ry, 2);
 
   if (lambda > 1) {
-    rx *= Math.sqrt(lambda)
-    ry *= Math.sqrt(lambda)
+    rx *= Math.sqrt(lambda);
+    ry *= Math.sqrt(lambda);
   }
 
-  let [centerx, centery, ang1, ang2] = getArcCenter(
-    px,
-    py,
-    cx,
-    cy,
-    rx,
-    ry,
-    largeArcFlag,
-    sweepFlag,
-    sinphi,
-    cosphi,
-    pxp,
-    pyp
-  )
+  let [centerx, centery, ang1, ang2] = getArcCenter(px, py, cx, cy, rx, ry, largeArcFlag, sweepFlag, sinphi, cosphi, pxp, pyp);
 
-  const segments = Math.max(Math.ceil(Math.abs(ang2) / (TAU / 4)), 1)
+  const segments = Math.max(Math.ceil(Math.abs(ang2) / (TAU / 4)), 1);
 
-  ang2 /= segments
+  ang2 /= segments;
 
   for (let i = 0; i < segments; i++) {
-    curves.push(approxUnitArc(ang1, ang2))
-    ang1 += ang2
+    curves.push(approxUnitArc(ang1, ang2));
+    ang1 += ang2;
   }
 
-  return curves.map(curve => {
-    const { x: x1, y: y1 } = mapToEllipse(curve[0], rx, ry, cosphi, sinphi, centerx, centery)
-    const { x: x2, y: y2 } = mapToEllipse(curve[1], rx, ry, cosphi, sinphi, centerx, centery)
-    const { x, y } = mapToEllipse(curve[2], rx, ry, cosphi, sinphi, centerx, centery)
+  return curves.map((curve) => {
+    const { x: x1, y: y1 } = mapToEllipse(curve[0], rx, ry, cosphi, sinphi, centerx, centery);
+    const { x: x2, y: y2 } = mapToEllipse(curve[1], rx, ry, cosphi, sinphi, centerx, centery);
+    const { x, y } = mapToEllipse(curve[2], rx, ry, cosphi, sinphi, centerx, centery);
 
-    return { x1, y1, x2, y2, x, y }
-  })
-}
+    return { x1, y1, x2, y2, x, y };
+  });
+};
 
 /**
  * functions ending with R is with relative coordinates
@@ -225,7 +195,8 @@ export default class Context2d {
 
   moveTo(x: any, y: any) {
     this._draw(`${_f(x)} ${_f(y)} m`);
-    this._cx = x; this._cy = y;
+    this._cx = x;
+    this._cy = y;
     this._ax = this._ay = undefined;
     return this;
   }
@@ -234,7 +205,8 @@ export default class Context2d {
   }
   lineTo(x: any, y: any) {
     this._draw(`${_f(x)} ${_f(y)} l`);
-    this._cx = x; this._cy = y;
+    this._cx = x;
+    this._cy = y;
     this._ax = this._ay = undefined;
     return this;
   }
@@ -264,25 +236,17 @@ export default class Context2d {
   bezierCurveToR(c1x: any, c1y: any, c2x: any, c2y: any, x: any, y: any) {
     const cx = this._cx;
     const cy = this._cy;
-    return this.bezierCurveTo(
-      c1x + cx,
-      c1y + cy,
-      c2x + cx,
-      c2y + cy,
-      x + cx,
-      y + cy
-    );
+    return this.bezierCurveTo(c1x + cx, c1y + cy, c2x + cx, c2y + cy, x + cx, y + cy);
   }
   smoothCurveTo(x2: any, y2: any, x: any, y: any) {
-    if(this._ax === undefined) {
+    if (this._ax === undefined) {
       this._ax = this._cx;
       this._ay = this._cy;
     }
     this.bezierCurveTo(this._cx - (this._ax - this._cx), this._cy - (this._ay - this._cy), x2, y2, x, y);
   }
   smoothCurveToR(x2: any, y2: any, x: any, y: any) {
-    if(this._ax === undefined) {
-      
+    if (this._ax === undefined) {
       this._ax = this._cx;
       this._ay = this._cy;
     }
@@ -297,12 +261,7 @@ export default class Context2d {
   quadraticCurveToR(cx: any, cy: any, x: any, y: any) {
     const cx_old = this._cx;
     const cy_old = this._cy;
-    return this.quadraticCurveTo(
-      cx + cx_old,
-      cy + cy_old,
-      x + cx_old,
-      y + cy_old
-    );
+    return this.quadraticCurveTo(cx + cx_old, cy + cy_old, x + cx_old, y + cy_old);
   }
   rect(x: any, y: any, width: any, height: any) {
     this._draw(`${_f(x || 0)} ${_f(y || 0)} ${_f(width)} ${_f(height)} re`);
@@ -359,7 +318,7 @@ export default class Context2d {
     if (this._isDirty()) {
       this._out(this._curr.join('\n'));
       this._out(op);
-          this._curr = [];
+      this._curr = [];
       //this.clear();
     }
   }
@@ -394,7 +353,7 @@ export default class Context2d {
 
   // a, b, c, d, e, f
   transform(...args: any[]) {
-    this._out(`${args.map(f => _f(f)).join(' ')} cm`);
+    this._out(`${args.map((f) => _f(f)).join(' ')} cm`);
     return this;
   }
 
@@ -435,8 +394,8 @@ export default class Context2d {
 
     const a00 = cosTh / rx;
     const a01 = sinTh / rx;
-    const a10 = (-sinTh) / ry;
-    const a11 = (cosTh) / ry;
+    const a10 = -sinTh / ry;
+    const a11 = cosTh / ry;
     const x0 = a00 * ox + a01 * oy;
     const y0 = a10 * ox + a11 * oy;
     const x1 = a00 * x + a01 * y;
@@ -470,8 +429,8 @@ export default class Context2d {
     const result = [];
 
     for (let i = 0; i < segments; i++) {
-      const th2 = th0 + i * thArc / segments;
-      const th3 = th0 + (i + 1) * thArc / segments;
+      const th2 = th0 + (i * thArc) / segments;
+      const th3 = th0 + ((i + 1) * thArc) / segments;
       result[i] = [xc, yc, th2, th3, rx, ry, sinTh, cosTh];
     }
 
@@ -485,7 +444,7 @@ export default class Context2d {
     const a11 = cosTh * ry;
 
     const thHalf = 0.5 * (th1 - th0);
-    const t = (8 / 3) * Math.sin(thHalf * 0.5) * Math.sin(thHalf * 0.5) / Math.sin(thHalf);
+    const t = ((8 / 3) * Math.sin(thHalf * 0.5) * Math.sin(thHalf * 0.5)) / Math.sin(thHalf);
     const x1 = cx + Math.cos(th0) - t * Math.sin(th0);
     const y1 = cy + Math.sin(th0) + t * Math.cos(th0);
     const x3 = cx + Math.cos(th1);
@@ -493,11 +452,7 @@ export default class Context2d {
     const x2 = x3 + t * Math.sin(th1);
     const y2 = y3 - t * Math.cos(th1);
 
-    return [
-      a00 * x1 + a01 * y1, a10 * x1 + a11 * y1,
-      a00 * x2 + a01 * y2, a10 * x2 + a11 * y2,
-      a00 * x3 + a01 * y3, a10 * x3 + a11 * y3
-    ];
+    return [a00 * x1 + a01 * y1, a10 * x1 + a11 * y1, a00 * x2 + a01 * y2, a10 * x2 + a11 * y2, a00 * x3 + a01 * y3, a10 * x3 + a11 * y3];
   }
 
   solveArc(x: any, y: any, s: any, ctx2d: any) {
@@ -512,6 +467,5 @@ export default class Context2d {
     //       console.log('BEZ', bez);
     //       ctx2d.bezierCurveTo(...bez);
     //     });
-    
   }
 }

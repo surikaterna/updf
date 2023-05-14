@@ -2,9 +2,7 @@
 // https://github.com/fontello/svgpath/blob/319b21683ec0af3f73e6cecb86448b1306780a09/lib/a2c.js
 'use strict';
 
-
 var TAU = Math.PI * 2;
-
 
 /* eslint-disable space-infix-ops */
 
@@ -14,19 +12,22 @@ var TAU = Math.PI * 2;
 // we can use simplified math (without length normalization)
 //
 function unit_vector_angle(ux: any, uy: any, vx: any, vy: any) {
-  var sign = (ux * vy - uy * vx < 0) ? -1 : 1;
+  var sign = ux * vy - uy * vx < 0 ? -1 : 1;
   var dot = ux * vx + uy * vy;
 
   // Add this to work with arbitrary vectors:
   // dot /= Math.sqrt(ux * ux + uy * uy) * Math.sqrt(vx * vx + vy * vy);
 
   // rounding errors, e.g. -1.0000000000000002 can screw up this
-  if (dot > 1.0) { dot = 1.0; }
-  if (dot < -1.0) { dot = -1.0; }
+  if (dot > 1.0) {
+    dot = 1.0;
+  }
+  if (dot < -1.0) {
+    dot = -1.0;
+  }
 
   return sign * Math.acos(dot);
 }
-
 
 // Convert from endpoint to center parameterization,
 // see http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
@@ -40,8 +41,8 @@ function get_arc_center(x1: any, y1: any, x2: any, y2: any, fa: any, fs: any, rx
   // points. After that, rotate it to line up ellipse axes with coordinate
   // axes.
   //
-  var x1p = cos_phi * (x1 - x2) / 2 + sin_phi * (y1 - y2) / 2;
-  var y1p = -sin_phi * (x1 - x2) / 2 + cos_phi * (y1 - y2) / 2;
+  var x1p = (cos_phi * (x1 - x2)) / 2 + (sin_phi * (y1 - y2)) / 2;
+  var y1p = (-sin_phi * (x1 - x2)) / 2 + (cos_phi * (y1 - y2)) / 2;
 
   var rx_sq = rx * rx;
   var ry_sq = ry * ry;
@@ -53,18 +54,18 @@ function get_arc_center(x1: any, y1: any, x2: any, y2: any, fa: any, fs: any, rx
   // Compute coordinates of the centre of this ellipse (cx', cy')
   // in the new coordinate system.
   //
-  var radicant = (rx_sq * ry_sq) - (rx_sq * y1p_sq) - (ry_sq * x1p_sq);
+  var radicant = rx_sq * ry_sq - rx_sq * y1p_sq - ry_sq * x1p_sq;
 
   if (radicant < 0) {
     // due to rounding errors it might be e.g. -1.3877787807814457e-17
     radicant = 0;
   }
 
-  radicant /= (rx_sq * y1p_sq) + (ry_sq * x1p_sq);
+  radicant /= rx_sq * y1p_sq + ry_sq * x1p_sq;
   radicant = Math.sqrt(radicant) * (fa === fs ? -1 : 1);
 
-  var cxp = radicant * rx / ry * y1p;
-  var cyp = radicant * -ry / rx * x1p;
+  var cxp = ((radicant * rx) / ry) * y1p;
+  var cyp = ((radicant * -ry) / rx) * x1p;
 
   // Step 3.
   //
@@ -101,7 +102,7 @@ function get_arc_center(x1: any, y1: any, x2: any, y2: any, fa: any, fs: any, rx
 // see http://math.stackexchange.com/questions/873224
 //
 function approximate_unit_arc(theta1: any, delta_theta: any) {
-  var alpha = 4 / 3 * Math.tan(delta_theta / 4);
+  var alpha = (4 / 3) * Math.tan(delta_theta / 4);
 
   var x1 = Math.cos(theta1);
   var y1 = Math.sin(theta1);
@@ -112,13 +113,13 @@ function approximate_unit_arc(theta1: any, delta_theta: any) {
 }
 
 module.exports = function a2c(x1: any, y1: any, x2: any, y2: any, fa: any, fs: any, rx: any, ry: any, phi: any) {
-  var sin_phi = Math.sin(phi * TAU / 360);
-  var cos_phi = Math.cos(phi * TAU / 360);
+  var sin_phi = Math.sin((phi * TAU) / 360);
+  var cos_phi = Math.cos((phi * TAU) / 360);
 
   // Make sure radii are valid
   //
-  var x1p = cos_phi * (x1 - x2) / 2 + sin_phi * (y1 - y2) / 2;
-  var y1p = -sin_phi * (x1 - x2) / 2 + cos_phi * (y1 - y2) / 2;
+  var x1p = (cos_phi * (x1 - x2)) / 2 + (sin_phi * (y1 - y2)) / 2;
+  var y1p = (-sin_phi * (x1 - x2)) / 2 + (cos_phi * (y1 - y2)) / 2;
 
   if (x1p === 0 && y1p === 0) {
     // we're asked to draw line to itself
@@ -130,7 +131,6 @@ module.exports = function a2c(x1: any, y1: any, x2: any, y2: any, fa: any, fs: a
     return [];
   }
 
-
   // Compensate out-of-range radii
   //
   rx = Math.abs(rx);
@@ -141,7 +141,6 @@ module.exports = function a2c(x1: any, y1: any, x2: any, y2: any, fa: any, fs: a
     rx *= Math.sqrt(lambda);
     ry *= Math.sqrt(lambda);
   }
-
 
   // Get center parameters (cx, cy, theta1, delta_theta)
   //

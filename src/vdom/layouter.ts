@@ -3,13 +3,12 @@ import text from '../content/text';
 const isText = (obj: any) => typeof obj === 'string' || (obj.type && obj.type === 'text');
 
 const dumpContext = (ctx: any) => {
-  Object.keys(ctx).forEach(k => {
+  Object.keys(ctx).forEach((k) => {
     if (k !== 'font') {
       console.log(k, ctx[k]);
     }
   });
 };
-
 
 const ss = {
   // @ts-expect-error TS(7006): Parameter 'ctx' implicitly has an 'any' type.
@@ -35,7 +34,6 @@ const ss = {
     height: (ctx, val) => ({ height: Math.min(val, ctx.maxHeight), maxHeight: Math.min(val, ctx.maxHeight) }),
     right: (ctx, val) => ({ width: ctx.width - val, ax: val })*/
 };
-
 
 const getMargins = (style: any) => ({
   left: style.marginLeft || 0,
@@ -92,17 +90,16 @@ const processors = [
       context.width = width;
       context.height = height;
     } else {
-
     }
     //console.log('PPP', position);
     if (margins.left || margins.right) {
       context.ax += margins.left;
       context.width -= margins.right + margins.left;
-    };
+    }
     if (margins.top || margins.bottom) {
       context.ay += margins.top;
       context.height += margins.bottom + margins.top;
-    };
+    }
     if (position !== 'static') {
       context.ancX = context.ax;
       context.ancY = context.ay;
@@ -125,10 +122,10 @@ function styler(vdom: any, context: any) {
   // call style setters
   // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
   const stil = styleProp(vdom.props);
-  processors.forEach(p => {
+  processors.forEach((p) => {
     p(vdom, context);
-  })
-  Object.keys(stil).forEach(key => {
+  });
+  Object.keys(stil).forEach((key) => {
     // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
     if (ss[key]) {
       // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
@@ -143,7 +140,6 @@ function styler(vdom: any, context: any) {
 }
 
 function layoutText(width: any, currentX: any, txt: any, font: any, fontSize: any) {
-
   const result = [''];
   const spaceSize = font.width(' ', fontSize);
 
@@ -159,7 +155,7 @@ function layoutText(width: any, currentX: any, txt: any, font: any, fontSize: an
     line.forEach((word: any) => {
       const wordsize = font.width(word, fontSize);
 
-      if (!cx || ((cx + wordsize + spaceSize) < width)) {
+      if (!cx || cx + wordsize + spaceSize < width) {
         cx += wordsize + spaceSize;
         result[result.length - 1] += word + ' ';
       } else {
@@ -168,10 +164,10 @@ function layoutText(width: any, currentX: any, txt: any, font: any, fontSize: an
         const extraSpace = font.width(' - ', fontSize);
 
         // Split word if it is still to long for new line
-        if ((cx + extraSpace) > width) {
+        if (cx + extraSpace > width) {
           cx += extraSpace;
           const iterations = Math.ceil(wordsize / width);
-          const percentage = (Math.floor(((width - extraSpace) / wordsize) * 100)) / 100;
+          const percentage = Math.floor(((width - extraSpace) / wordsize) * 100) / 100;
           const charsPerLine = Math.floor(word.length * percentage);
 
           const subStrings = [];
@@ -223,15 +219,15 @@ function fitText(vdom: any, maxWidth: any, context: any, cx = 0, cy = 0) {
   const layout = layoutText(maxWidth, cx, vdom.props.str, context.font, context.fontSize);
 
   layout.lines.forEach((line, index) => {
-    let x = (index === 0) ? cx : 0;
+    let x = index === 0 ? cx : 0;
     if (context.textAlign) {
       if (context.textAlign === 'right') {
         x += maxWidth - context.font.width(line, context.fontSize);
       } else if (context.textAlign === 'center') {
-        x += (maxWidth / 2 - context.font.width(line, context.fontSize) / 2);
+        x += maxWidth / 2 - context.font.width(line, context.fontSize) / 2;
       }
     }
-    const y = cy + ((index) * context.fontSize * context.lineHeight);
+    const y = cy + index * context.fontSize * context.lineHeight;
     // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
     const txt = text({
       str: line,
@@ -255,7 +251,6 @@ function fitText(vdom: any, maxWidth: any, context: any, cx = 0, cy = 0) {
 
   return result;
 }
-
 
 /** Travel vdom tree and calculate all size dependent properties
  *  and set them explicitly for easier render
@@ -288,7 +283,7 @@ export default function layouter(vdom: any, context: any) {
           // skip already layed out children
           chIndex += fittedText.length - 1;
           // @ts-expect-error TS(7006): Parameter 'txt' implicitly has an 'any' type.
-          fittedText.forEach(txt => {
+          fittedText.forEach((txt) => {
             nodeHeight = Math.max(nodeHeight, txt.props.style.height + txt.props.style.top);
             lineHeight = Math.max(lineHeight, txt.props.style.height);
             styler(txt, txt.context);
@@ -299,7 +294,7 @@ export default function layouter(vdom: any, context: any) {
         } else {
           // block
           //      console.log('>', ch.props.style && ch.props.style.width);
-          const ctx = Object.assign({}, context);// context.push();
+          const ctx = Object.assign({}, context); // context.push();
           ctx.x = 0;
           ctx.y = y;
           ctx.ax = context.ax;
@@ -315,28 +310,28 @@ export default function layouter(vdom: any, context: any) {
           //console.log('CHILD', ch.context.width, ch.context.height, nodeHeight);
 
           nodeHeight = Math.max(ch.context.ay - context.ay + ch.context.height, nodeHeight);
-          if(ch.props.style) {
-            if(ch.props.style.position !== 'absolute' && ch.props.style.position !== 'fixed') {
+          if (ch.props.style) {
+            if (ch.props.style.position !== 'absolute' && ch.props.style.position !== 'fixed') {
               x += ch.context.width;
               y += ch.context.height;
             }
           }
-           
+
           if (x > maxWidth) {
             x = context.x;
           }
-          x=0;
+          x = 0;
           //ctx.ax = vdom.ax + x;
           //ctx.ay = vdom.ay + y;
         }
-      };
+      }
     }
     vdom.context.width = maxWidth || 100;
     //console.log('HEIGHT', vdom.type, nodeHeight);
 
     vdom.context.height = nodeHeight || 100;
-//    console.log('> > LY', vdom.type, vdom.props.id || '', vdom.context.ax, vdom.context.ay, vdom.context.width, vdom.context.height);
+    //    console.log('> > LY', vdom.type, vdom.props.id || '', vdom.context.ax, vdom.context.ay, vdom.context.width, vdom.context.height);
     //vdom.context.x = 0;
     //vdom.context.y = 0;
   }
-};
+}

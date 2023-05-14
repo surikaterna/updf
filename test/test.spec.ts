@@ -47,7 +47,6 @@ function flatten(array: any, mutable: any) {
   return result;
 }
 
-
 function solve(vnode: any, context: any) {
   return reduce(vnode, context);
 }
@@ -56,7 +55,6 @@ function render(vnode: any, context: any) {
   const solved = solve(vnode, context);
   return solved.render(buildProps(solved), context);
 }
-
 
 // seq
 // instr
@@ -155,13 +153,7 @@ describe('PdfDoc', () => {
 
   it('stream', () => {
     const doc = new PdfDoc();
-    const r = Page(
-      { mediaBox: [0, 0, 595.28, 841.89] },
-      Block(
-        { style: { top: 0, left: 100, position: 'absolute' } },
-        ['Hello world!', 'Again!']
-      )
-    );
+    const r = Page({ mediaBox: [0, 0, 595.28, 841.89] }, Block({ style: { top: 0, left: 100, position: 'absolute' } }, ['Hello world!', 'Again!']));
     const out: any = [];
     try {
       doc.write((e: any) => {

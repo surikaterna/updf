@@ -1,4 +1,5 @@
-const rMatch = (re: any, process: any) => { // eslint-disable-line arrow-body-style
+const rMatch = (re: any, process: any) => {
+  // eslint-disable-line arrow-body-style
   return {
     match: (stream: any) => re.test(stream),
     process
@@ -28,7 +29,9 @@ const feeder = (startChar: any, endChar: any) => (token: any, stream: any) => {
   const result = token;
   while (!end) {
     switch (stream[pos++]) {
-      case startChar: count++; break;
+      case startChar:
+        count++;
+        break;
       case endChar:
         count--;
         if (!count) {

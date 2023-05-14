@@ -12,7 +12,7 @@ const transformer = {
 
 const _applyStyles = (ctx: any, style: any, props: any) => {
   if (props.transform) {
-    collect(props.transform, /\b([^()]+)\(([^)]*)\)/g).forEach(opDef => {
+    collect(props.transform, /\b([^()]+)\(([^)]*)\)/g).forEach((opDef) => {
       const op = opDef[1];
       const args = collectArguments(opDef[2]);
       // @ts-expect-error FIXME
@@ -25,7 +25,7 @@ const _applyStyles = (ctx: any, style: any, props: any) => {
     });
   }
 
-  Object.keys(style).forEach(key => {
+  Object.keys(style).forEach((key) => {
     // @ts-expect-error FIXME
     const styleApply = styler[key];
     if (styleApply) {

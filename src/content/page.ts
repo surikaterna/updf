@@ -3,9 +3,7 @@ import _render from './_render';
 import border from './styles/border';
 import Context2d from './vector/Context2d';
 
-function buildStyle({
-  mediaBox
-}: any) {
+function buildStyle({ mediaBox }: any) {
   return {
     top: mediaBox[0],
     left: mediaBox[1],

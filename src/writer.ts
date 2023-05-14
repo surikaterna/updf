@@ -39,7 +39,6 @@ function _leftPad(str: any, i: any, ch = ' ') {
  *  %%EOF
  */
 
-
 const version = '1.3';
 class Writer {
   _doc: any;
@@ -63,24 +62,24 @@ class Writer {
 
     this._doc._objects.forEach((o: any, i: any) => this.obj(o, i + 1));
 
-
     // xref
     const startxref = this._offset;
     const xrefs = this._xref.length + 1;
     this._out('xref\n');
-    this._out('0 ' + (xrefs) + '\n');
+    this._out('0 ' + xrefs + '\n');
     this._out('0000000000 65535 f\n');
     this._xref.forEach((xref: any) => {
       this._out(_leftPad(xref.toString(), 10, '0') + ' 00000 n\n');
     });
     // trailer
-    this._out('trailer\n').any({
-      Size: xrefs,
-      Root: doc._cat
-    })
-      ._out('startxref\n').any(startxref)
+    this._out('trailer\n')
+      .any({
+        Size: xrefs,
+        Root: doc._cat
+      })
+      ._out('startxref\n')
+      .any(startxref)
       ._out('\n%%EOF');
-
 
     // console.log('XR', this._xref);
   }
@@ -121,11 +120,7 @@ class Writer {
         Length: content.length + 1
       });
     }
-    this
-      ._out('stream\n')
-      ._out(content)
-      ._out('\n')
-      ._out('endstream\n');
+    this._out('stream\n')._out(content)._out('\n')._out('endstream\n');
   }
 
   dict(dict: any) {

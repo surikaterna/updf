@@ -6,21 +6,27 @@ expect();
 describe('cssParser', () => {
   describe('#parse', () => {
     it('should parse one class descriptor', () => {
-      expect(cssParser(`
+      expect(
+        cssParser(`
         .className {style: 'value'; style2: 'v2'}
-        `).length).toBe(1);
+        `).length
+      ).toBe(1);
     });
     it('should parse many class descriptors', () => {
-      expect(cssParser(`
+      expect(
+        cssParser(`
         .className {style: 'value'; style2: 'v2'}
         .className {style: 'value2'}
-        `).length).toBe(2);
+        `).length
+      ).toBe(2);
     });
     it('should parse out values', () => {
-      expect(cssParser(`
+      expect(
+        cssParser(`
         .className {style: 'value'; style2: 'v2'}
         // @ts-expect-error TS(2339): Property 'style2' does not exist on type '{}'.
-        `)[0].style.style2).toBe('v2');
+        `)[0].style.style2
+      ).toBe('v2');
     });
   });
 });
