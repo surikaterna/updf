@@ -7,7 +7,7 @@ const number = n => {
   throw new Error(`unsupported number: ${n}`);
 };
 
-const transform = (m11, m12, m21, m22, dx, dy) => {
+export const transform = (m11, m12, m21, m22, dx, dy) => {
   const matrix = [1, 0, 0, 1, 0, 0];
   const [m0, m1, m2, m3, m4, m5] = matrix;
 
