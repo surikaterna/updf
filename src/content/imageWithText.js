@@ -1,5 +1,5 @@
-import bind from "./bind";
-import { transform } from "./image";
+import bind from './bind';
+import { transform } from './image';
 
 const imageWithText = (props, context) => {
   const string = props.children[0].props.str;
@@ -25,10 +25,10 @@ const imageWithText = (props, context) => {
 
     context.out(
       `BT /G ${fontSize} Tf 1 0 0 -1 ${style.left} ${positionBelowImage} Tm (${
-        props.text || ""
+        props.text || ''
       }) Tj ET`
     );
   });
 };
 
-export default bind("imageWithText", imageWithText);
+export default bind('imageWithText', imageWithText);
