@@ -1,6 +1,5 @@
 import bind from './bind';
 import { transform } from './image';
-import replaceDiacritics from './util/replaceDiacritics';
 
 const imageWithText = (props, context) => {
   const string = props.children[0].props.str;
@@ -24,17 +23,14 @@ const imageWithText = (props, context) => {
     const positionBelowImage = style.top + style.height + 10;
     const fontSize = props.fontSize || 10;
 
-    const str = props.text
-      ? replaceDiacritics(
-          props.text
-            .replace(/\\/g, '\\\\')
-            .replace(/\(/g, '\\(')
-            .replace(/\)/g, '\\)')
-        )
-      : '';
+    // Convert text to UTF-16LE (WITHOUT BOM)
+    const utf16Buffer = Buffer.from(props.text, 'utf16le');
+
+    // Wrap in brackets <> for proper PDF UTF-16 syntax
+    const pdfText = `<${utf16Buffer.toString('hex')}>`;
 
     context.out(
-      `BT /G ${fontSize} Tf 1 0 0 -1 ${style.left} ${positionBelowImage} Tm (${str}) Tj ET`
+      `BT /G ${fontSize} Tf -1 Tc 1 0 0 -1 ${style.left} ${positionBelowImage} Tm ${pdfText} Tj ET`
     );
   });
 };
