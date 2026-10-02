@@ -34,6 +34,11 @@ function deliveryEvidence(): Plugin {
         fileName: "notices/LICENSE",
         source: readFileSync(new URL("../../LICENSE", import.meta.url)),
       });
+      this.emitFile({
+        type: "asset",
+        fileName: "notices/LICENSE.pdfjs",
+        source: readFileSync(new URL("../../node_modules/pdfjs-dist/LICENSE", import.meta.url)),
+      });
     },
   };
 }

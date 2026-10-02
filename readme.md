@@ -77,7 +77,9 @@ vulnerable tooling and is nonzero. No legacy modernization is included here.
 
 The private [showcase](apps/showcase) runs native text/layout, reusable TSX,
 painting and optional on-demand SVG demos. It generates downloadable PDFs locally,
-with a mobile open/download fallback. No Fontkit, React, arbitrary source evaluation
+with automatic, multi-page PDF.js canvas previews and a mobile open/download fallback.
+PDF.js and its worker are lazy, locally bundled assets; SVG remains optional.
+No Fontkit, React, arbitrary source evaluation
 or editor is included. From the repository root:
 
 ```sh

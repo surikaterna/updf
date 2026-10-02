@@ -14,34 +14,37 @@ const title = element("title", HTMLInputElement);
 const source = element("source", HTMLElement);
 const status = element("status", HTMLElement);
 const output = element("output", HTMLElement);
-const preview = element("preview", HTMLIFrameElement);
+const preview = element("preview", HTMLElement);
+const actions = element("pdf-actions", HTMLElement);
 const download = element("download", HTMLAnchorElement);
 const open = element("open", HTMLAnchorElement);
-const submit = element("generate", HTMLButtonElement);
 let blobUrl: string | undefined;
 let generation = 0;
+let timer: ReturnType<typeof setTimeout> | undefined;
+let renderer: import("./preview.js").CanvasPreview | undefined;
+let rendererLoad: Promise<import("./preview.js").CanvasPreview> | undefined;
+let disposed = false;
 
 function clearOutput(): void {
-  preview.removeAttribute("src");
+  preview.replaceChildren();
   download.removeAttribute("href");
   open.removeAttribute("href");
   output.hidden = true;
+  actions.hidden = true;
   if (blobUrl) URL.revokeObjectURL(blobUrl);
   blobUrl = undefined;
 }
 
-function invalidate(): void {
+function invalidate(): number {
+  clearTimeout(timer);
   generation += 1;
-  clearOutput();
-  submit.disabled = false;
-  form.setAttribute("aria-busy", "false");
-  status.textContent = "Ready. Generate a PDF; nothing leaves this browser.";
+  renderer?.cancel();
+  return generation;
 }
 
 function showSource(): void {
   const id = demoId(selection.value);
-  source.textContent =
-    id === "svg" ? "SVG adapter and source load only when you generate this example." : demos[id].source;
+  source.textContent = id === "svg" ? "Loading optional SVG adapter and source…" : demos[id].source;
 }
 
 function readableError(error: unknown): string {
@@ -52,31 +55,64 @@ function readableError(error: unknown): string {
 }
 
 async function renderExample(): Promise<void> {
-  invalidate();
-  const current = generation;
-  submit.disabled = true;
+  if (disposed) return;
+  const current = invalidate();
   form.setAttribute("aria-busy", "true");
-  status.textContent = "Generating…";
+  status.textContent = blobUrl ? "Updating… Previous PDF remains shown and linked." : "Generating…";
+  output.hidden = false;
   try {
     const id = demoId(selection.value);
     const result = await generate(id, title.value);
     if (current !== generation) return;
     source.textContent = result.source;
-    blobUrl = URL.createObjectURL(new Blob([new Uint8Array(result.bytes)], { type: "application/pdf" }));
-    download.href = blobUrl;
-    download.download = `updf-${id}.pdf`;
-    open.href = blobUrl;
-    preview.src = blobUrl;
-    output.hidden = false;
-    status.textContent = `Generated ${result.bytes.length.toLocaleString()} bytes locally. Download or open the PDF below.`;
+    await renderOutput(current, id, result.bytes);
   } catch (error) {
-    if (current === generation) status.textContent = readableError(error);
+    if (current === generation) {
+      status.textContent = `${readableError(error)}${blobUrl ? " Previous PDF remains shown and linked." : ""}`;
+      output.hidden = !blobUrl;
+    }
   } finally {
     if (current === generation) {
-      submit.disabled = false;
       form.setAttribute("aria-busy", "false");
     }
   }
+}
+
+async function renderOutput(current: number, id: string, bytes: Uint8Array): Promise<void> {
+  let pages: DocumentFragment | undefined;
+  let failure = false;
+  try {
+    rendererLoad ??= import("./preview.js").then(({ CanvasPreview }) => new CanvasPreview());
+    renderer = await rendererLoad;
+    if (current !== generation) return;
+    pages = await renderer.render(bytes, Math.max(1, preview.clientWidth));
+  } catch {
+    failure = true;
+  }
+  if (current !== generation) return;
+  if (!pages && !failure) return;
+  publishPdf(id, bytes);
+  preview.replaceChildren(pages ?? "Canvas preview unavailable. Open or download this PDF instead.");
+  status.textContent = failure
+    ? "PDF generated locally, but preview failed. Open or download the new PDF below."
+    : `Generated ${bytes.length.toLocaleString()} bytes locally. ${preview.childElementCount} page(s) previewed. Download or open the PDF below.`;
+}
+
+function publishPdf(id: string, bytes: Uint8Array): void {
+  const previous = blobUrl;
+  blobUrl = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: "application/pdf" }));
+  download.href = blobUrl;
+  download.download = `updf-${id}.pdf`;
+  open.href = blobUrl;
+  actions.hidden = false;
+  if (previous) URL.revokeObjectURL(previous);
+}
+
+function scheduleUpdate(): void {
+  invalidate();
+  form.setAttribute("aria-busy", "true");
+  status.textContent = blobUrl ? "Updating… Previous PDF remains shown and linked." : "Waiting for input…";
+  timer = setTimeout(() => void renderExample(), 300);
 }
 
 form.addEventListener("submit", (event) => {
@@ -84,17 +120,36 @@ form.addEventListener("submit", (event) => {
   void renderExample();
 });
 selection.addEventListener("change", () => {
-  invalidate();
   showSource();
+  void renderExample();
 });
-title.addEventListener("input", invalidate);
+title.addEventListener("input", scheduleUpdate);
 element("reset-demo", HTMLButtonElement).addEventListener("click", () => {
   form.reset();
-  invalidate();
   showSource();
+  void renderExample();
 });
-window.addEventListener("pagehide", invalidate);
+window.addEventListener("pagehide", () => {
+  disposed = true;
+  invalidate();
+  clearOutput();
+});
+window.addEventListener("pageshow", () => {
+  if (!disposed) return;
+  disposed = false;
+  void renderExample();
+});
+let previewWidth = 0;
+const resize = new ResizeObserver(() => {
+  const width = preview.clientWidth;
+  if (!width || width === previewWidth) return;
+  const previous = previewWidth;
+  previewWidth = width;
+  if (previous && !disposed) scheduleUpdate();
+});
+resize.observe(preview);
 showSource();
+void renderExample();
 
 for (const link of Array.from(document.querySelectorAll<HTMLAnchorElement>("[data-local]"))) {
   link.href = `${import.meta.env.BASE_URL}${link.dataset.local}`;

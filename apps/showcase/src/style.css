@@ -91,10 +91,18 @@ pre {
   white-space: pre-wrap;
   min-height: 3em;
 }
-iframe {
+#preview {
   width: 100%;
-  height: 480px;
-  border: 1px solid #cad9e5;
+  min-height: 3rem;
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+}
+#preview canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  box-shadow: 0 2px 8px #18304733;
 }
 .actions {
   display: flex;
@@ -125,8 +133,5 @@ iframe {
   }
   section {
     padding: 1rem;
-  }
-  iframe {
-    height: 350px;
   }
 }

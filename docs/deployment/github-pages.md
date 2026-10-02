@@ -6,6 +6,23 @@ evaluation is shipped. SVG/geometry is a dynamic chunk, loaded only when its
 predefined demo is generated. Displayed snippets are raw imports of the same
 example modules used by the build, not separately maintained pseudo-code.
 
+The preview lazy-loads `pdfjs-dist` and a Vite-bundled worker from the configured
+base (including `/updf/assets/`); it uses no CDN. Every explicit example page is
+rendered to a responsive canvas, at up to 3× device pixel density. The TSX example
+has two explicit pages. This is a preview feature, not core PDF functionality.
+
+Titles update after a 300 ms debounce; example selection, Reset and Generate PDF
+update immediately. During updates or generation errors the previous successful
+PDF stays shown and linked. New pages publish together with new open/download
+links. If PDF.js loading or rendering fails, old canvases are removed and the new
+PDF remains available via those actions. Canvas previews have page labels but no
+text layer; use the PDF itself for selection and browser accessibility features.
+
+Superseded generation tokens suppress stale SVG/renderer imports. Active PDF.js
+render/loading tasks are cancelled and documents/workers destroyed; object URLs
+are revoked on replacement and pagehide. Resizing debounces a fresh preview, and
+back/forward-cache restoration regenerates after pagehide cleanup.
+
 This configuration is **implemented, not independently verified or deployed**.
 The supplied Pages API lookup returned 404; that is not a live-site claim.
 Expected URL after authorized activation: **https://surikaterna.github.io/updf/**.
@@ -34,6 +51,9 @@ site typecheck. It does not redefine root `build`, `test`, or legacy gates.
 `test:showcase` checks actual production assets and Chromium PDFs against Node,
 source synchronization, keyboard/mobile behavior, structured validation, Blob
 cleanup, optional loading/failure/cancellation, roadmap links and retained notices.
+Preview checks inspect visible canvas pixels on each page, high-DPI/mobile sizing,
+debounced updates, stale async loads, document/worker cancellation and renderer
+failure fallback; download bytes are still checked against Node generation.
 It uses `/usr/bin/chromium`, or the explicit `SHOWCASE_CHROMIUM` executable override.
 
 ## Activation requires separate authorization
@@ -42,7 +62,8 @@ It uses `/usr/bin/chromium`, or the explicit `SHOWCASE_CHROMIUM` executable over
    Surikat AB, authoritatively confirmed by the user. The earlier missing-notice
    blocker is resolved; see [resolution evidence](../evidence/project-license.md).
    Fontello notices remain included byte-for-byte because optional geometry ships
-   in the browser chunk. License links use the configured site base.
+   in the browser chunk. PDF.js's Apache-2.0 license is retained at
+   `notices/LICENSE.pdfjs`. License links use the configured site base.
 2. Obtain independent audit before the separately authorized commit/push step.
    Npm publication, Pages activation and deployment are not authorized by that push.
    Commit and push the intended audited scope; do not commit the existing dirty

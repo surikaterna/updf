@@ -4,7 +4,7 @@ import { paintingDemo } from "../../apps/showcase/src/painting.js";
 import { svgDemo } from "../../apps/showcase/src/svg.js";
 import { templateDemo } from "../../apps/showcase/src/template.js";
 import { textDemo } from "../../apps/showcase/src/text.js";
-import { observeUrls, pageErrors, pdf, screenshot, site, source } from "./helpers.js";
+import { observeUrls, pageErrors, pdf, rendered, screenshot, site, source } from "./helpers.js";
 
 const title = "Hello portable PDF";
 
@@ -28,10 +28,12 @@ test("actual /updf/ site: synchronized sources, all downloadable PDFs identical 
       await page.getByLabel("Example", { exact: true }).selectOption(id);
       await page.getByRole("button", { name: "Generate PDF", exact: true }).click();
       assert.deepEqual(await pdf(page), render(title));
+      await rendered(page, id === "template" ? 2 : 1);
       await source(page, file);
       if (id !== "svg") assert.ok(!requests.some((url) => /optional-.*\.js/.test(url)));
     }
     assert.ok(requests.some((url) => /optional-.*\.js/.test(url)));
+    assert.ok(requests.some((url) => /\/updf\/assets\/pdf\.worker.min-.*\.mjs/.test(url)));
     assert.ok(requests.filter((url) => url.includes("/assets/")).every((url) => url.includes("/updf/assets/")));
     const notices = await page
       .locator("[data-local]")
@@ -48,8 +50,7 @@ test("actual /updf/ site: synchronized sources, all downloadable PDFs identical 
       issues,
       Array.from({ length: 11 }, (_, i) => `https://github.com/surikaterna/updf/issues/${25 + i}`),
     );
-    assert.equal(await page.evaluate(() => typeof Buffer), "undefined");
-    assert.equal(await page.evaluate(() => typeof process), "undefined");
+    assert.deepEqual(await page.evaluate(() => [typeof Buffer, typeof process]), ["undefined", "undefined"]);
     assert.deepEqual(errors, []);
     await screenshot(page, "desktop");
   } finally {
@@ -57,10 +58,10 @@ test("actual /updf/ site: synchronized sources, all downloadable PDFs identical 
   }
 });
 
-test("mobile keyboard, readable validation and Blob cleanup on edits, repeat generation, reset and pagehide", async () => {
+test("mobile keyboard, automatic updates, validation retains previous PDF, URL cleanup and reset", async () => {
   const app = await site();
   try {
-    const page = await app.browser.newPage({ viewport: { width: 375, height: 812 } });
+    const page = await app.browser.newPage({ viewport: { width: 375, height: 812 }, deviceScaleFactor: 2 });
     const errors = pageErrors(page);
     await observeUrls(page);
     await page.goto(app.url);
@@ -70,25 +71,30 @@ test("mobile keyboard, readable validation and Blob cleanup on edits, repeat gen
     assert.equal(await page.locator("#generate").evaluate((element) => element === document.activeElement), true);
     await page.keyboard.press("Enter");
     await pdf(page);
+    await rendered(page);
+    assert.equal(
+      await page.locator("canvas").evaluate((c) => c instanceof HTMLCanvasElement && c.width > c.clientWidth),
+      true,
+    );
     await screenshot(page, "mobile");
     await page.getByRole("button", { name: "Generate PDF" }).click();
     await pdf(page);
     assert.equal(await activeUrls(page), 1);
     await page.getByLabel("PDF title", { exact: true }).fill("Привет");
-    assert.equal(await activeUrls(page), 0);
-    await page.getByRole("button", { name: "Generate PDF" }).click();
+    assert.equal(await activeUrls(page), 1);
     await page
       .getByRole("status")
       .filter({ hasText: /at .*:/ })
       .waitFor();
-    assert.equal(await page.locator("#output").isVisible(), false);
+    assert.equal(await page.locator("#output").isVisible(), true);
+    assert.deepEqual(await pdf(page), textDemo(title));
     await page.getByRole("button", { name: "Reset", exact: true }).click();
-    await page.getByRole("button", { name: "Generate PDF" }).click();
     await pdf(page);
-    await page.getByRole("button", { name: "Reset", exact: true }).click();
-    assert.equal(await activeUrls(page), 0);
-    await page.getByRole("button", { name: "Generate PDF" }).click();
+    await page.getByLabel("PDF title", { exact: true }).fill("Automatic mobile title");
+    assert.deepEqual(await pdf(page), textDemo("Automatic mobile title"));
+    await page.setViewportSize({ width: 320, height: 812 });
     await pdf(page);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
     assert.equal(await activeUrls(page), 0);
     assert.deepEqual(errors, []);
@@ -127,18 +133,15 @@ test("optional load failure is readable and core remains usable; reset cancels p
       await route.continue();
     });
     await slow.goto(app.url);
-    await slow.getByLabel("Example", { exact: true }).selectOption("svg");
+    await pdf(slow);
     const request = slow.waitForRequest("**/assets/optional-*.js");
-    await slow.getByRole("button", { name: "Generate PDF" }).click();
+    await slow.getByLabel("Example", { exact: true }).selectOption("svg");
     const requested = await request;
     await slow.getByRole("button", { name: "Reset", exact: true }).click();
     release?.();
     await slow.evaluate(async (url) => {
       await import(url);
     }, requested.url());
-    assert.equal(await slow.locator("#output").isVisible(), false);
-    assert.match(await slow.getByRole("status").innerText(), /^Ready/);
-    await slow.getByRole("button", { name: "Generate PDF" }).click();
     assert.deepEqual(await pdf(slow), textDemo(title));
     await source(slow, "text.ts");
   } finally {

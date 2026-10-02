@@ -22,6 +22,11 @@ export function templateDemo(title: string): Uint8Array {
           <Card title="Same typed component, reused" />
         </group>
       </page>
+      <page width={420} height={300}>
+        <group x={35} y={35}>
+          <Card title="Explicit second page" />
+        </group>
+      </page>
     </document>
   );
   return render(lower(tree));
