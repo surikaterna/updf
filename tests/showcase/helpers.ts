@@ -31,6 +31,7 @@ export async function site() {
 }
 
 export async function pdf(page: Page, savedName?: string): Promise<Uint8Array> {
+  await page.locator('#demo-form[aria-busy="false"]').waitFor();
   const link = page.getByRole("link", { name: "Download PDF", exact: true });
   await link.waitFor();
   const result = await link.evaluate(async (element) => {
@@ -57,6 +58,33 @@ export async function pdf(page: Page, savedName?: string): Promise<Uint8Array> {
   assert.deepEqual(new Uint8Array(await readFile(path)), bytes);
   assert.equal(await page.locator("#open").getAttribute("href"), await link.getAttribute("href"));
   return bytes;
+}
+
+export async function rendered(page: Page, count = 1): Promise<number[]> {
+  await page.locator('#demo-form[aria-busy="false"]').waitFor();
+  const canvases = page.locator("#preview canvas");
+  assert.equal(await canvases.count(), count);
+  const ink = await canvases.evaluateAll((elements) =>
+    elements.map((element) => {
+      if (!(element instanceof HTMLCanvasElement)) throw new Error("Expected canvas");
+      const context = element.getContext("2d");
+      if (!context) throw new Error("Missing context");
+      const data = context.getImageData(0, 0, element.width, element.height).data;
+      let dark = 0;
+      let white = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        if ((data[i + 3] ?? 0) < 200) continue;
+        if ((data[i] ?? 255) < 100 && (data[i + 1] ?? 255) < 100 && (data[i + 2] ?? 255) < 100) dark += 1;
+        if ((data[i] ?? 0) > 245 && (data[i + 1] ?? 0) > 245 && (data[i + 2] ?? 0) > 245) white += 1;
+      }
+      return { dark, white, total: data.length / 4 };
+    }),
+  );
+  assert.ok(
+    ink.every(({ dark, white, total }) => dark > 100 && white > total * 0.2),
+    `Expected opaque PDF marks on paper, got ${JSON.stringify(ink)}`,
+  );
+  return ink.map(({ dark }) => dark);
 }
 
 export async function source(page: Page, name: string): Promise<void> {

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@updf/core": "2.0.0-poc.0",
-    "@updf/svg": "2.0.0-poc.0"
+    "@updf/svg": "2.0.0-poc.0",
+    "pdfjs-dist": "6.3.289"
   }
 }

@@ -21,28 +21,23 @@ test("bounded form input is data, never HTML or evaluated source", async () => {
     });
     await page.getByRole("button", { name: "Generate PDF" }).click();
     await page.getByRole("status").filter({ hasText: "at most 40 characters" }).waitFor();
-    assert.equal(await page.locator("#output").isVisible(), false);
+    assert.equal(await page.locator("#output").isVisible(), true);
+    assert.deepEqual(await pdf(page), textDemo(title));
     assert.deepEqual(errors, []);
   } finally {
     await app.close();
   }
 });
 
-test("open/download fallback works when embedded PDF is blocked by browser policy", async () => {
+test("open/download fallback works when the lazy PDF.js module cannot load", async () => {
   const app = await site();
   try {
     const page = await app.browser.newPage();
-    await page.route(app.url, async (route) => {
-      const response = await route.fetch();
-      await route.fulfill({
-        response,
-        headers: { ...response.headers(), "content-security-policy": "frame-src 'none'" },
-      });
-    });
+    await page.route("**/assets/preview-*.js", (route) => route.abort());
     await page.goto(app.url);
     await page.getByRole("button", { name: "Generate PDF" }).click();
     assert.deepEqual(await pdf(page, "fallback-proof.pdf"), textDemo("Hello portable PDF"));
-    assert.equal(await page.getByText(/Embedded preview may be unavailable/).isVisible(), true);
+    assert.equal(await page.getByText(/Canvas preview unavailable/).isVisible(), true);
     assert.equal(await page.getByRole("link", { name: "Open PDF in a new tab" }).isVisible(), true);
   } finally {
     await app.close();
