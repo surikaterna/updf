@@ -1,0 +1,15 @@
+{
+  "name": "@updf/example-node",
+  "version": "2.0.0-poc.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@updf/core": "2.0.0-poc.0",
+    "@updf/fontkit": "2.0.0-poc.0",
+    "@updf/svg": "2.0.0-poc.0",
+    "@updf/example-cmr": "2.0.0-poc.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "status": "baseline evidence, not a passing legacy gate",
+  "root": "/home/sprawl/projects/updf/trees/declarative-cmr-poc",
+  "legacy": "/home/sprawl/projects/updf/trees/declarative-cmr-poc/packages/legacy",
+  "head": "7782bb3ba468a721ef7bd68fedd19b8f6c029d16",
+  "node": "v24.21.0",
+  "raw": {
+    "command": [
+      "npm",
+      "test"
+    ],
+    "cwd": "/tmp/opencode/updf-legacy-baseline-SZt8gK",
+    "exit": 1,
+    "signal": null,
+    "error": null,
+    "stdout": "raw.stdout.log",
+    "stderr": "raw.stderr.log"
+  },
+  "full": {
+    "command": [
+      "/home/sprawl/.local/share/mise/installs/node/24.21.0/bin/node",
+      "focus-harness.cjs"
+    ],
+    "cwd": "/tmp/opencode/updf-legacy-baseline-rdnCT7",
+    "exit": 1,
+    "signal": null,
+    "error": null,
+    "stdout": "full.stdout.log",
+    "stderr": "full.stderr.log"
+  },
+  "fullResults": {
+    "passed": [
+      "cssParser #parse should parse one class descriptor",
+      "cssParser #parse should parse many class descriptors",
+      "cssParser #parse should parse out values",
+      "pathParser #parse should support one op + args",
+      "pathParser #parse should support multiple op + args",
+      "pathParser #parse should parse allow multipl of argument count",
+      "pathParser #parse should parse curious paths",
+      "parseXml #parse should parse element",
+      "parseXml #parse should parse self closing element",
+      "parseXml #parse should parse element with arguments",
+      "parseXml #parse should parse element with child",
+      "parseXml #parse should parse element with multiple children",
+      "parseXml #parse should parse elements with arguments with numbers",
+      "parseXml #parse should parse element with complex text",
+      "parseXml #parse should parse complex structures",
+      "BaseFont width should calculate correct width for helvetica",
+      "PdfDoc should create a file",
+      "PdfDoc Should create an image pdf"
+    ],
+    "pending": [
+      "afm uncompress should decode object"
+    ],
+    "failed": [
+      {
+        "title": "code39 correct symbol for 1",
+        "name": "AssertionError",
+        "message": "expected '100010111011101010101110111000101110101110001010101110101110001010101110111000101000101110111010' to be '10001011101110101010111011100011110101110001011011101011100011010111011100011000101110111010'"
+      },
+      {
+        "title": "container should put absolute position",
+        "name": "TypeError",
+        "message": "Cannot read properties of undefined (reading 'toString')"
+      },
+      {
+        "title": "BaseFont width should default to 1 as width per char",
+        "name": "AssertionError",
+        "message": "expected NaN to be 1"
+      },
+      {
+        "title": "BaseFont width should add width of all characters",
+        "name": "AssertionError",
+        "message": "expected NaN to be 3"
+      },
+      {
+        "title": "BaseFont width should add kerning between characters",
+        "name": "AssertionError",
+        "message": "expected -21 to be 39"
+      },
+      {
+        "title": "PdfDoc stream",
+        "name": "TypeError",
+        "message": "solved.render is not a function"
+      }
+    ]
+  },
+  "outputFiles": {
+    "raw": [],
+    "full": [
+      {
+        "name": "test.pdf",
+        "bytes": 708,
+        "sha256": "ce5cc5e75a0b293ffd8ea2908a1305fe28be3de2dbab0951f386ad45d0322b68"
+      }
+    ]
+  }
+}

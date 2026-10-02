@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022", "DOM"],
+    "jsx": "react-jsx",
+    "paths": {
+      "@updf/declarative-poc/jsx-runtime": ["./jsx-runtime.ts"],
+      "@updf/declarative-poc/jsx-dev-runtime": ["./jsx-dev-runtime.ts"]
+    },
+    "strict": true,
+    "noImplicitAny": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "useUnknownInCatchVariables": true,
+    "noEmitOnError": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "verbatimModuleSyntax": true,
+    "rootDir": ".",
+    "outDir": "dist",
+    "types": ["node", "react", "react-dom"]
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "dist", "artifacts", "fixtures/vite-react/node_modules", "fixtures/vite-react/dist", "fixtures/vite-react/dist-core", "fixtures/vite-react/dist-vdom"]
+}

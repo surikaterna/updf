@@ -1,0 +1,376 @@
+{
+  "status": "baseline tarball smoke passed; migration not performed",
+  "legacy": "/home/sprawl/projects/updf/trees/declarative-cmr-poc",
+  "package": "@surikat/updf",
+  "main": "lib/index.js",
+  "generated": {
+    "bytes": 651,
+    "sha256": "4d81741fb1650c5075a0e56a291a76b870677defd5413138f4da0fa00f464abc",
+    "exportKeys": [
+      "default"
+    ],
+    "defaultCommonJS": true
+  },
+  "shim": {
+    "bytes": 651,
+    "sha256": "4d81741fb1650c5075a0e56a291a76b870677defd5413138f4da0fa00f464abc",
+    "exportKeys": [
+      "default"
+    ],
+    "defaultCommonJS": true
+  },
+  "rebuilt": {
+    "bytes": 651,
+    "sha256": "4d81741fb1650c5075a0e56a291a76b870677defd5413138f4da0fa00f464abc",
+    "exportKeys": [
+      "default"
+    ],
+    "defaultCommonJS": true
+  },
+  "installed": {
+    "bytes": 651,
+    "sha256": "4d81741fb1650c5075a0e56a291a76b870677defd5413138f4da0fa00f464abc",
+    "exportKeys": [
+      "default"
+    ],
+    "defaultCommonJS": true
+  },
+  "pack": [
+    {
+      "id": "@surikat/updf@0.4.15",
+      "name": "@surikat/updf",
+      "version": "0.4.15",
+      "size": 29794,
+      "unpackedSize": 119279,
+      "shasum": "395253964c73c66d1f1fa8eb1a2386a2534753c7",
+      "integrity": "sha512-L2FLfwGPkKVyNh6gQuoMgGGW8e7V6Ihg8SV9h2qU2rCoSUwQN0+N+yDZ7QpSfHQXGPyASMbCn00codehU8GA6w==",
+      "filename": "surikat-updf-0.4.15.tgz",
+      "files": [
+        {
+          "path": ".babelrc",
+          "size": 27,
+          "mode": 420
+        },
+        {
+          "path": ".eslintrc",
+          "size": 102,
+          "mode": 420
+        },
+        {
+          "path": "index.js",
+          "size": 60,
+          "mode": 420
+        },
+        {
+          "path": "keytest.html",
+          "size": 2649,
+          "mode": 420
+        },
+        {
+          "path": "lib/boxes/a4.js",
+          "size": 121,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/_render.js",
+          "size": 445,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/barcode/code39.js",
+          "size": 2928,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/bind.js",
+          "size": 804,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/block.js",
+          "size": 1536,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/box.js",
+          "size": 1031,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/document.js",
+          "size": 1440,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/element.js",
+          "size": 990,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/image.js",
+          "size": 3088,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/imageWithText.js",
+          "size": 1368,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/inline.js",
+          "size": 497,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/page.js",
+          "size": 2547,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/styles/border.js",
+          "size": 527,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/styles/classRule.js",
+          "size": 232,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/styles/Css.js",
+          "size": 1452,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/styles/cssParser.js",
+          "size": 644,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/svg/_applyStyles.js",
+          "size": 1430,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/svg/_renderOp.js",
+          "size": 579,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/svg/Circle.js",
+          "size": 465,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/svg/Ellipse.js",
+          "size": 496,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/svg/Group.js",
+          "size": 340,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/svg/Line.js",
+          "size": 491,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/svg/Path.js",
+          "size": 1264,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/svg/pathParser.js",
+          "size": 2170,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/svg/Polygon.js",
+          "size": 532,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/svg/Polyline.js",
+          "size": 536,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/svg/Rect.js",
+          "size": 497,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/svg/Style.js",
+          "size": 810,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/svg/Svg.js",
+          "size": 4622,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/svg/svgFactory.js",
+          "size": 1790,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/svg/SvgFromText.js",
+          "size": 545,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/text.js",
+          "size": 1246,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/util/asStyle.js",
+          "size": 840,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/util/Lexer.js",
+          "size": 4051,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/util/parseXml.js",
+          "size": 4068,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/util/replaceDiacritics.js",
+          "size": 677,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/util/transform.js",
+          "size": 2204,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/vector/a2c.js",
+          "size": 4928,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/vector/Context2d.js",
+          "size": 17180,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/vector/parseColor.js",
+          "size": 819,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/vector/rect.js",
+          "size": 727,
+          "mode": 420
+        },
+        {
+          "path": "lib/content/vector/solveArc.js",
+          "size": 3751,
+          "mode": 420
+        },
+        {
+          "path": "lib/font/BaseFont.js",
+          "size": 1695,
+          "mode": 420
+        },
+        {
+          "path": "lib/font/helvetica.js",
+          "size": 5079,
+          "mode": 420
+        },
+        {
+          "path": "lib/image.js",
+          "size": 1675,
+          "mode": 420
+        },
+        {
+          "path": "lib/image/jpeg.js",
+          "size": 2975,
+          "mode": 420
+        },
+        {
+          "path": "lib/index.js",
+          "size": 3279,
+          "mode": 420
+        },
+        {
+          "path": "lib/ref.js",
+          "size": 1196,
+          "mode": 420
+        },
+        {
+          "path": "lib/stream.js",
+          "size": 1367,
+          "mode": 420
+        },
+        {
+          "path": "lib/units/mm.js",
+          "size": 169,
+          "mode": 420
+        },
+        {
+          "path": "lib/util/isFunction.js",
+          "size": 193,
+          "mode": 420
+        },
+        {
+          "path": "lib/vdom/buildComponent.js",
+          "size": 440,
+          "mode": 420
+        },
+        {
+          "path": "lib/vdom/buildProps.js",
+          "size": 229,
+          "mode": 420
+        },
+        {
+          "path": "lib/vdom/isComponent.js",
+          "size": 426,
+          "mode": 420
+        },
+        {
+          "path": "lib/vdom/layouter.js",
+          "size": 11518,
+          "mode": 420
+        },
+        {
+          "path": "lib/vdom/reduce.js",
+          "size": 1423,
+          "mode": 420
+        },
+        {
+          "path": "lib/vdom/renderer.js",
+          "size": 1967,
+          "mode": 420
+        },
+        {
+          "path": "lib/writer.js",
+          "size": 5203,
+          "mode": 420
+        },
+        {
+          "path": "package.json",
+          "size": 807,
+          "mode": 420
+        },
+        {
+          "path": "readme.md",
+          "size": 92,
+          "mode": 420
+        }
+      ],
+      "entryCount": 64,
+      "bundled": []
+    }
+  ],
+  "dir": "/tmp/opencode/updf-legacy-pack-x2q3Sr",
+  "consumer": "/tmp/opencode/updf-legacy-consumer-YomfjR"
+}

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+fixtures/vite-react/node_modules/
+fixtures/vite-react/dist/
+fixtures/vite-react/dist-core/
+fixtures/vite-react/dist-vdom/
+fixtures/vite-react/dist-geometry/
+fixtures/vite-react/dist-svg/
+fixtures/vite-react/dist-fonts/
+fixtures/vite-react/dist-fontkit/
+fixtures/font-browser/dist/
+artifacts/

@@ -1,0 +1,33 @@
+{
+  "name": "@updf/example-cmr",
+  "version": "2.0.0-poc.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./cmr": {
+      "types": "./dist/cmr.d.ts",
+      "import": "./dist/cmr.js"
+    },
+    "./cmr-tree": {
+      "types": "./dist/cmr-tree.d.ts",
+      "import": "./dist/cmr-tree.js"
+    },
+    "./cmr-unicode": {
+      "types": "./dist/cmr-unicode.d.ts",
+      "import": "./dist/cmr-unicode.js"
+    },
+    "./cmr-types": {
+      "types": "./dist/cmr-types.d.ts",
+      "import": "./dist/cmr-types.js"
+    }
+  },
+  "dependencies": {
+    "@updf/core": "2.0.0-poc.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
+}

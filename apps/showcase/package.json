@@ -1,0 +1,15 @@
+{
+  "name": "@updf/showcase",
+  "version": "2.0.0-poc.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "dev": "vite --host 127.0.0.1"
+  },
+  "dependencies": {
+    "@updf/core": "2.0.0-poc.0",
+    "@updf/svg": "2.0.0-poc.0"
+  }
+}

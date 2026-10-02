@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Try UPDF's unreleased portable TypeScript PDF engine, native TSX and optional SVG adapter locally in your browser." />
+    <title>UPDF — portable PDFs, immutable templates</title>
+  </head>
+  <body>
+    <a class="skip" href="#demos">Skip to demos</a>
+    <header>
+      <p class="badge">Unreleased checkout showcase · private 2.0.0-poc.0</p>
+      <h1>Small engine.<br />Reusable PDF ideas.</h1>
+      <p>UPDF is a micro, portable TypeScript PDF engine: immutable declarative data, typed reusable components and native TSX. The synchronous core returns Uint8Array bytes in Node and browsers, without React or a server.</p>
+      <nav aria-label="Primary"><a href="#demos">Try the engine</a> · <a href="#limits">Know the limits</a> · <a href="#roadmap">Roadmap</a> · <a href="https://github.com/surikaterna/updf">Source checkout</a></nav>
+    </header>
+    <main>
+      <section id="demos" aria-labelledby="demo-heading">
+        <h2 id="demo-heading">Generate a real PDF, right here</h2>
+        <p>Predefined examples only, no code execution or editor. The title is bounded to 40 printable ASCII characters. All generation stays in this browser. Displayed source is the actual compiled example module; your title is passed as its argument.</p>
+        <div class="grid">
+          <form id="demo-form">
+            <label for="example">Example</label>
+            <select id="example" name="example">
+              <option value="text">Fixed-position text &amp; simple layout</option>
+              <option value="template">Immutable typed TSX components → lower → render</option>
+              <option value="painting">Native paths, paint, colors, clips &amp; transforms</option>
+              <option value="svg">Optional SVG subset (loaded on demand)</option>
+            </select>
+            <label for="title">PDF title</label>
+            <input id="title" name="title" value="Hello portable PDF" maxlength="40" aria-describedby="title-help" />
+            <p id="title-help">Helvetica accepts printable ASCII only. Unsupported characters produce readable engine diagnostics, not silent replacement.</p>
+            <button id="generate" type="submit">Generate PDF</button>
+            <button id="reset-demo" type="button">Reset</button>
+            <p id="status" role="status" aria-live="polite" aria-atomic="true">Ready. Generate a PDF; nothing leaves this browser.</p>
+          </form>
+          <div><h3>Executed TypeScript / TSX</h3><pre tabindex="0" aria-label="Example source"><code id="source"></code></pre></div>
+        </div>
+        <div id="output" hidden>
+          <h3>Your PDF</h3>
+          <p class="actions"><a id="download">Download PDF</a><a id="open" target="_blank" rel="noopener">Open PDF in a new tab</a></p>
+          <p>Embedded preview may be unavailable on mobile or in your browser. Use Open or Download above; both contain the same generated PDF.</p>
+          <iframe id="preview" title="Generated PDF preview"></iframe>
+        </div>
+      </section>
+      <section id="limits" aria-labelledby="limits-heading">
+        <h2 id="limits-heading">Core first. Optional means optional.</h2>
+        <p>The entry loads core and native VDOM, not React, Fontkit, Node APIs or SVG. The SVG adapter and geometry load in a separate chunk only when requested. Native paths need no geometry adapter.</p>
+        <p>Fonts can use prepared resources through <code>@updf/core/fonts</code>; the optional <code>@updf/fontkit</code> adapter prepares trusted static TrueType bytes. This showcase does not load Fontkit or ship font assets.</p>
+        <ul>
+          <li>Fixed point geometry and explicit pages, not automatic flow, pagination or general tables.</li>
+          <li>Built-in Helvetica: printable ASCII and LF. No shaping, bidi, raster images or full SVG.</li>
+          <li>Prepared fonts support a documented simple LTR Latin/Cyrillic profile, not general typography.</li>
+          <li>Runtime validation and current resource caps still apply. Trusted components are not a sandbox.</li>
+        </ul>
+        <p>This is the unreleased native checkout, not legacy 0.4.15 and not a claim that roadmap features are delivered. Legacy remains separate; a fixed CMR reference is not operational freight paperwork.</p>
+        <p><a href="https://github.com/surikaterna/updf/blob/feature/declarative-cmr-poc/docs/native-api.md">Native API contract</a> · <a href="https://github.com/surikaterna/updf/blob/feature/declarative-cmr-poc/readme.md">Checkout instructions</a></p>
+      </section>
+      <section id="roadmap" aria-labelledby="roadmap-heading">
+        <h2 id="roadmap-heading">Roadmap, not promises</h2>
+        <ul>
+          <li><a href="https://github.com/surikaterna/updf/issues/25">#25 Configurable budgets</a></li>
+          <li><a href="https://github.com/surikaterna/updf/issues/26">#26 Rich text and measurement</a></li>
+          <li><a href="https://github.com/surikaterna/updf/issues/27">#27 Flow and page templates</a></li>
+          <li><a href="https://github.com/surikaterna/updf/issues/28">#28 Paged tables</a></li>
+          <li><a href="https://github.com/surikaterna/updf/issues/29">#29 Markdown lists</a></li>
+          <li><a href="https://github.com/surikaterna/updf/issues/30">#30 Native Code39</a></li>
+          <li><a href="https://github.com/surikaterna/updf/issues/31">#31 QR codes</a></li>
+          <li><a href="https://github.com/surikaterna/updf/issues/32">#32 Bundle-cost regression budgets</a> (graph checks and measurements are not completion)</li>
+          <li><a href="https://github.com/surikaterna/updf/issues/33">#33 Raster images</a></li>
+          <li><a href="https://github.com/surikaterna/updf/issues/34">#34 Workspace restructuring</a> · locally audited, not released</li>
+          <li><a href="https://github.com/surikaterna/updf/issues/35">#35 README, examples and roadmap</a> · locally audited, not released</li>
+        </ul>
+      </section>
+    </main>
+    <footer>
+      <p>Local implementation; this showcase awaits independent audit. No release or live deployment is claimed.</p>
+      <p>UPDF is MIT licensed. Copyright (c) 2026 Surikat AB. <a data-local="notices/LICENSE" href="./notices/LICENSE">Project MIT license</a>. Project attribution is confirmed; deployment still requires separate authorization.</p>
+      <p>Optional geometry incorporates Fontello svgpath code. <a data-local="notices/LICENSE.svgpath" href="./notices/LICENSE.svgpath">Fontello MIT notice</a> · <a data-local="notices/REUSE.md" href="./notices/REUSE.md">Reuse provenance</a></p>
+    </footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

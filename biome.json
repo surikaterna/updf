@@ -1,0 +1,78 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.13/schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": {
+    "includes": [
+      "packages/core/**",
+      "packages/geometry/**",
+      "packages/svg/**",
+      "packages/fontkit/**",
+      "apps/**",
+      "scripts/**",
+      "tests/**",
+      "package.json",
+      "tsconfig*.json",
+      "eslint.config.ts",
+      "biome.json",
+      "!**/dist",
+      "!**/dist-*",
+      "!**/build",
+      "!**/out",
+      "!**/artifacts",
+      "!**/node_modules",
+      "!**/archive",
+      "!**/snapshots",
+      "!**/__snapshots__",
+      "!**/generated-reports",
+      "!**/package-lock.json",
+      "!tests/fixtures/fonts/liberation-sans.json",
+      "!tests/fixtures/fonts/*.ttf"
+    ]
+  },
+  "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2, "lineWidth": 120, "lineEnding": "lf" },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "all",
+      "arrowParentheses": "always"
+    }
+  },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "style": {
+        "noDefaultExport": "error",
+        "useConst": "error",
+        "useImportType": "error",
+        "noNonNullAssertion": "warn"
+      },
+      "suspicious": { "noExplicitAny": "error", "noArrayIndexKey": "warn" },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": { "level": "warn", "options": { "maxAllowedComplexity": 15 } },
+        "noForEach": "warn",
+        "useLiteralKeys": "off"
+      },
+      "correctness": { "noUnusedImports": "error", "noUnusedVariables": "error" }
+    }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "apps/browser-react/vite.config.ts",
+        "apps/browser-react/vite.core.config.ts",
+        "apps/browser-react/vite.vdom.config.ts",
+        "apps/browser-react/vite.fonts.config.ts",
+        "apps/browser-react/vite.geometry.config.ts",
+        "apps/browser-react/vite.svg.config.ts",
+        "apps/browser-react/vite.fontkit.config.ts",
+        "apps/browser-fonts/vite.config.ts",
+        "apps/showcase/vite.config.ts",
+        "eslint.config.ts"
+      ],
+      "linter": { "rules": { "style": { "noDefaultExport": "off" } } }
+    }
+  ]
+}

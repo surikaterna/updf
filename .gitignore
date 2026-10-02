@@ -38,3 +38,8 @@ jspm_packages
 
 # ES5 version
 /lib
+/packages/legacy/lib/
+**/dist/
+**/dist-*/
+/artifacts/
+**/artifacts/

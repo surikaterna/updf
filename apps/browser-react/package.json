@@ -1,0 +1,16 @@
+{
+  "name": "@updf/example-browser-react",
+  "version": "2.0.0-poc.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@updf/core": "2.0.0-poc.0",
+    "@updf/example-cmr": "2.0.0-poc.0"
+  },
+  "devDependencies": {
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0"
+  }
+}
