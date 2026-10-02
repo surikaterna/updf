@@ -1,0 +1,27 @@
+import { render } from "@updf/core";
+import { createUnicodeCmrDocument } from "@updf/example-cmr/cmr-unicode";
+import { prepareFont } from "@updf/fontkit";
+import fontUrl from "../../tests/fixtures/fonts/LiberationSans-Regular.ttf?url";
+
+const fontBytes = new Uint8Array(await (await fetch(fontUrl)).arrayBuffer());
+const font = prepareFont(fontBytes);
+const bytes = render(createUnicodeCmrDocument(font), { resources: { CmrFont: font } });
+const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+const status = document.getElementById("status");
+if (!status) throw new Error("Missing proof status");
+status.textContent = "Browser parsed the TTF and generated the Unicode PDF.";
+const link = document.createElement("a");
+link.href = url;
+link.download = "cmr-unicode.pdf";
+link.textContent = "Download Unicode CMR PDF";
+link.style.display = "block";
+link.style.margin = "1rem 0";
+document.body.append(link);
+const viewer = document.createElement("object");
+viewer.type = "application/pdf";
+viewer.data = url;
+viewer.width = "750";
+viewer.height = "1000";
+viewer.style.display = "block";
+document.body.append(viewer);
+window.addEventListener("pagehide", () => URL.revokeObjectURL(url), { once: true });

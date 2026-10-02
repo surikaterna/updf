@@ -1,29 +1,44 @@
 {
-  "name": "@surikat/updf",
-  "version": "0.4.15",
-  "description": "Hopefully tiny and modular library to generate PDF's in JS",
-  "main": "lib/index.js",
+  "name": "updf-workspace",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
-    "test": "mocha --compilers js:babel-register --recursive test",
-    "test.watch": "mocha --watch --color --compilers js:babel-register --recursive test",
-    "compile": "babel -d lib src",
-    "compile.watch": "babel --watch -d lib src",
-    "prepublish": "npm run compile"
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint:biome": "biome check --diagnostic-level=error .",
+    "check:code-principles": "eslint packages apps tests scripts eslint.config.ts",
+    "lint": "npm run lint:biome && npm run check:code-principles",
+    "typecheck": "npm run build && tsc --noEmit",
+    "build": "npm run build -w @updf/core && npm run build -w @updf/geometry && npm run build -w @updf/fontkit && npm run build -w @updf/svg && npm run build -w @updf/example-cmr && npm run build -w @updf/example-node && npm run compile -w @updf/legacy",
+    "build:showcase": "npm run build -w @updf/core && npm run build -w @updf/geometry && npm run build -w @updf/svg && npm run build -w @updf/showcase",
+    "test:showcase": "tsx --test tests/showcase/*.test.ts",
+    "test": "tsx --test packages/*/test/*.test.ts tests/integration/*.test.ts tests/consumer/*.test.ts scripts/migration/migration.test.ts",
+    "test:legacy": "npm test -w @updf/legacy",
+    "test:legacy:comparison": "tsx scripts/migration/legacy-baseline.ts packages/legacy artifacts/legacy-after.json && tsx scripts/migration/legacy-comparison.ts docs/evidence/legacy-baseline.json artifacts/legacy-after.json",
+    "build:browser": "vite build --config apps/browser-react/vite.config.ts && vite build --config apps/browser-react/vite.core.config.ts && vite build --config apps/browser-react/vite.vdom.config.ts && vite build --config apps/browser-react/vite.fonts.config.ts && vite build --config apps/browser-react/vite.geometry.config.ts && vite build --config apps/browser-react/vite.svg.config.ts && vite build --config apps/browser-react/vite.fontkit.config.ts && vite build --config apps/browser-fonts/vite.config.ts",
+    "test:browser": "tsx --test tests/browser/*.test.ts tests/svg-reference/browser.test.ts",
+    "test:consumer": "tsx scripts/packed-consumer.ts",
+    "check:graphs": "tsx scripts/graph-check.ts",
+    "check:licenses": "tsx scripts/check-licenses.ts",
+    "sizes": "tsx scripts/sizes.ts"
   },
   "devDependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-eslint": "^6.0.2",
-    "babel-preset-es2015": "^6.6.0",
-    "babel-register": "^6.7.2",
-    "eslint": "^2.6.0",
-    "eslint-config-surikat": "^1.1.0",
-    "mocha": "^2.4.5",
-    "should": "^8.3.0"
-  },
-  "keywords": [
-    "PDF",
-    "JS"
-  ],
-  "author": "Surikat AB",
-  "license": "MIT"
+    "@biomejs/biome": "2.4.13",
+    "@types/node": "24.19.0",
+    "eslint": "10.11.0",
+    "jiti": "2.7.0",
+    "playwright": "1.55.1",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.0",
+    "vite": "7.3.6"
+  }
 }

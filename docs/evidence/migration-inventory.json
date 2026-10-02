@@ -1,0 +1,2067 @@
+{
+  "status": "pre-migration; destinations planned, no files moved",
+  "root": "/home/sprawl/projects/updf/trees/declarative-cmr-poc",
+  "branch": "feature/declarative-cmr-poc",
+  "head": "7782bb3ba468a721ef7bd68fedd19b8f6c029d16",
+  "counts": {
+    "tracked": 81,
+    "native": 142,
+    "roadmap": 12,
+    "generated": 58
+  },
+  "entries": [
+    {
+      "old": ".babelrc",
+      "new": "packages/legacy/.babelrc",
+      "kind": "tracked-legacy",
+      "bytes": 27,
+      "sha256": "6c25318e9171b8ee2bb41b2f734a34dcc848cd1b58e86a4f7c8bbc8ec781c5b1"
+    },
+    {
+      "old": ".eslintrc",
+      "new": "packages/legacy/.eslintrc",
+      "kind": "tracked-legacy",
+      "bytes": 102,
+      "sha256": "da936a3136695b3ce65cb9443744329fc630e1fa7b687dafce5f2ed2c17b276f"
+    },
+    {
+      "old": ".gitignore",
+      "new": ".gitignore",
+      "kind": "tracked-legacy",
+      "bytes": 597,
+      "sha256": "9e4b3040d976ef5960a910b71d403aca8cc56f777c18d97d858ed098cc2a36fa"
+    },
+    {
+      "old": ".npmignore",
+      "new": "packages/legacy/.npmignore",
+      "kind": "tracked-legacy",
+      "bytes": 10,
+      "sha256": "5676b02b66bb4036ae6f5333c7e6207e6193d8cce2396a75930d04940118e230"
+    },
+    {
+      "old": "index.js",
+      "new": "packages/legacy/index.js",
+      "kind": "tracked-legacy",
+      "bytes": 60,
+      "sha256": "5d41ed89f711c6d04d14288347630181d4b77ea32c6a21e2dce04a6bf982390b"
+    },
+    {
+      "old": "keytest.html",
+      "new": "packages/legacy/keytest.html",
+      "kind": "tracked-legacy",
+      "bytes": 2649,
+      "sha256": "53e49f4d52ff84f6606bc5eda9b1f799ae417bb7dd136db908891ac10ee36918"
+    },
+    {
+      "old": "package-lock.json",
+      "new": "docs/evidence/baseline/legacy-package-lock.json",
+      "kind": "tracked-legacy",
+      "bytes": 131466,
+      "sha256": "2c790f1d9c3880ac5a64c42f658fe17c68e54c512bc5590ebf8a8c49bf00e769"
+    },
+    {
+      "old": "package.json",
+      "new": "packages/legacy/package.json",
+      "kind": "tracked-legacy",
+      "bytes": 807,
+      "sha256": "fa41ef7436074dc3539cafd75e6b910f523468b55930f6a76f5e1d1896094d82"
+    },
+    {
+      "old": "readme.md",
+      "new": "docs/migration/legacy-readme.md",
+      "kind": "tracked-legacy",
+      "bytes": 92,
+      "sha256": "5b442256ebb97950cd1fa45b9c5fa5956e99b0439afc9e948789caa351dc8220"
+    },
+    {
+      "old": "src/boxes/a4.js",
+      "new": "packages/legacy/src/boxes/a4.js",
+      "kind": "tracked-legacy",
+      "bytes": 39,
+      "sha256": "f0b8062e79a1c26ed8c685666b76facd96cbee4f56971e22158b1e0e70c85376"
+    },
+    {
+      "old": "src/content/_render.js",
+      "new": "packages/legacy/src/content/_render.js",
+      "kind": "tracked-legacy",
+      "bytes": 180,
+      "sha256": "60345fbfe3f3c0fee8ea86d0f5767b89fb0d82ff79b53b1d29c98919d17f8cc7"
+    },
+    {
+      "old": "src/content/barcode/code39.js",
+      "new": "packages/legacy/src/content/barcode/code39.js",
+      "kind": "tracked-legacy",
+      "bytes": 1760,
+      "sha256": "6ed41bb65a67968e02110de49b3341e17653e6b655fd81ff0b1f4adf12ffe7ed"
+    },
+    {
+      "old": "src/content/bind.js",
+      "new": "packages/legacy/src/content/bind.js",
+      "kind": "tracked-legacy",
+      "bytes": 512,
+      "sha256": "5d2f62792c57062dc99e3b85ab129c640613aa3db7f6116762bcba3b174fb350"
+    },
+    {
+      "old": "src/content/block.js",
+      "new": "packages/legacy/src/content/block.js",
+      "kind": "tracked-legacy",
+      "bytes": 1102,
+      "sha256": "9267463661fdf3356f951e47066f1680b3ca5e4abb045746d3e6b93edc246ce8"
+    },
+    {
+      "old": "src/content/box.js",
+      "new": "packages/legacy/src/content/box.js",
+      "kind": "tracked-legacy",
+      "bytes": 625,
+      "sha256": "f1a82cc6a5582c0fe72193e76d82c0a19434d1112543a78bcceae220c0437cfc"
+    },
+    {
+      "old": "src/content/document.js",
+      "new": "packages/legacy/src/content/document.js",
+      "kind": "tracked-legacy",
+      "bytes": 213,
+      "sha256": "ebaa7e63f5460eb1356f3027f5164d69aff61e8948ad76f17eb7b677b52ec8ee"
+    },
+    {
+      "old": "src/content/element.js",
+      "new": "packages/legacy/src/content/element.js",
+      "kind": "tracked-legacy",
+      "bytes": 712,
+      "sha256": "4451df690aac02c756dd29a1bca4325dfd269ef2a2b0e52563b56ff32f68e1fc"
+    },
+    {
+      "old": "src/content/image.js",
+      "new": "packages/legacy/src/content/image.js",
+      "kind": "tracked-legacy",
+      "bytes": 1777,
+      "sha256": "12b3f17551fc33b73459ba88dc385c4c8bd5dabe87acf747bf4b554b4d23c833"
+    },
+    {
+      "old": "src/content/imageWithText.js",
+      "new": "packages/legacy/src/content/imageWithText.js",
+      "kind": "tracked-legacy",
+      "bytes": 1114,
+      "sha256": "d376f90ff83c1c3109faf1348f909d7970300e8da533ee917fb672a53a95caca"
+    },
+    {
+      "old": "src/content/inline.js",
+      "new": "packages/legacy/src/content/inline.js",
+      "kind": "tracked-legacy",
+      "bytes": 199,
+      "sha256": "6eb1f22b5e07d321e34191a509ce838b2a743f91188f206a0656759713926581"
+    },
+    {
+      "old": "src/content/page.js",
+      "new": "packages/legacy/src/content/page.js",
+      "kind": "tracked-legacy",
+      "bytes": 1132,
+      "sha256": "c1416c07f43254d9ca0d63d0876c2df753b659d40dd5c69fc654d26a0827c49f"
+    },
+    {
+      "old": "src/content/styles/Css.js",
+      "new": "packages/legacy/src/content/styles/Css.js",
+      "kind": "tracked-legacy",
+      "bytes": 427,
+      "sha256": "ddec9af8bcbdba4adce448a8a21b4766c2895c7a8db682edd09c46e261103f8f"
+    },
+    {
+      "old": "src/content/styles/border.js",
+      "new": "packages/legacy/src/content/styles/border.js",
+      "kind": "tracked-legacy",
+      "bytes": 283,
+      "sha256": "4bb06c580aa40f281360a1b73f4558fcc8628207ef7070ee6f3eea2e577bc84e"
+    },
+    {
+      "old": "src/content/styles/classRule.js",
+      "new": "packages/legacy/src/content/styles/classRule.js",
+      "kind": "tracked-legacy",
+      "bytes": 117,
+      "sha256": "2921d6f4765a02d4886c5639fbb202f8aa0f1687806e7c8ec729f535aadfde4d"
+    },
+    {
+      "old": "src/content/styles/cssParser.js",
+      "new": "packages/legacy/src/content/styles/cssParser.js",
+      "kind": "tracked-legacy",
+      "bytes": 360,
+      "sha256": "1037c0b2dbe4f47bcd57c8d844945cbde87cea547c57fc367d8a9830f5fcff6a"
+    },
+    {
+      "old": "src/content/svg/Circle.js",
+      "new": "packages/legacy/src/content/svg/Circle.js",
+      "kind": "tracked-legacy",
+      "bytes": 186,
+      "sha256": "8217d33c099db1ba92487f87655a3ecb624f7b0bd98d2e52232450c3e441a132"
+    },
+    {
+      "old": "src/content/svg/Ellipse.js",
+      "new": "packages/legacy/src/content/svg/Ellipse.js",
+      "kind": "tracked-legacy",
+      "bytes": 192,
+      "sha256": "04cc3b07842aa3e74db5ae5a06d946610916ef7bcf0aa05433692b7bb24b285e"
+    },
+    {
+      "old": "src/content/svg/Group.js",
+      "new": "packages/legacy/src/content/svg/Group.js",
+      "kind": "tracked-legacy",
+      "bytes": 89,
+      "sha256": "235ac04bda06464c16b1f3eb9a98f733f7e73fbb40927077884d094046636ff6"
+    },
+    {
+      "old": "src/content/svg/Line.js",
+      "new": "packages/legacy/src/content/svg/Line.js",
+      "kind": "tracked-legacy",
+      "bytes": 196,
+      "sha256": "49265f095a1a800031ae771eae79ab07bc5199641e8358261c3f0c6dc302a9f2"
+    },
+    {
+      "old": "src/content/svg/Path.js",
+      "new": "packages/legacy/src/content/svg/Path.js",
+      "kind": "tracked-legacy",
+      "bytes": 909,
+      "sha256": "5820678acd2a736b2191ec4f643c5cc00c6637cd2b5ffeb1b4d7c0caccd5192e"
+    },
+    {
+      "old": "src/content/svg/Polygon.js",
+      "new": "packages/legacy/src/content/svg/Polygon.js",
+      "kind": "tracked-legacy",
+      "bytes": 267,
+      "sha256": "e2a1d60594c31d87184692362b749e4ad487b2d5e620f097a45467a07d0c327f"
+    },
+    {
+      "old": "src/content/svg/Polyline.js",
+      "new": "packages/legacy/src/content/svg/Polyline.js",
+      "kind": "tracked-legacy",
+      "bytes": 279,
+      "sha256": "f541610ad238ec4adacff3a4216255b4046f4123a1600d6e2a8cd38116c75677"
+    },
+    {
+      "old": "src/content/svg/Rect.js",
+      "new": "packages/legacy/src/content/svg/Rect.js",
+      "kind": "tracked-legacy",
+      "bytes": 197,
+      "sha256": "4b1b6421c1e58974bdf8e5357bec6571d4d1d76255e05f7996c9d4d51f5acafb"
+    },
+    {
+      "old": "src/content/svg/Style.js",
+      "new": "packages/legacy/src/content/svg/Style.js",
+      "kind": "tracked-legacy",
+      "bytes": 392,
+      "sha256": "47e4358b55fec66eb876d8c3de8e3cbe672a76245b0d4fb9b32f040baf0077e5"
+    },
+    {
+      "old": "src/content/svg/Svg.js",
+      "new": "packages/legacy/src/content/svg/Svg.js",
+      "kind": "tracked-legacy",
+      "bytes": 2960,
+      "sha256": "3c164002044c1122309dbd2b2a9aead2d6c10679a53b4a2fc5458a173ce6f895"
+    },
+    {
+      "old": "src/content/svg/SvgFromText.js",
+      "new": "packages/legacy/src/content/svg/SvgFromText.js",
+      "kind": "tracked-legacy",
+      "bytes": 211,
+      "sha256": "0eaeef74145aacb72cf43c69516e4f8bf3a25a6b99066b478a2787786948b212"
+    },
+    {
+      "old": "src/content/svg/_applyStyles.js",
+      "new": "packages/legacy/src/content/svg/_applyStyles.js",
+      "kind": "tracked-legacy",
+      "bytes": 928,
+      "sha256": "c73540281869814652e375b95586fb7778ff4e429f092bd2cdfcc557b06b82ad"
+    },
+    {
+      "old": "src/content/svg/_renderOp.js",
+      "new": "packages/legacy/src/content/svg/_renderOp.js",
+      "kind": "tracked-legacy",
+      "bytes": 492,
+      "sha256": "99231da3afa66978f0bb07ec87ffea7e52f752d2a9f4359230fcf70af03c9f64"
+    },
+    {
+      "old": "src/content/svg/pathParser.js",
+      "new": "packages/legacy/src/content/svg/pathParser.js",
+      "kind": "tracked-legacy",
+      "bytes": 1604,
+      "sha256": "337f60c16d9ccb601e4ecf29d7d92da1c41eb9b73ca2c5c39d88492fc42d1846"
+    },
+    {
+      "old": "src/content/svg/svgFactory.js",
+      "new": "packages/legacy/src/content/svg/svgFactory.js",
+      "kind": "tracked-legacy",
+      "bytes": 725,
+      "sha256": "499ba7b6232279d7e1fa837e33b423f79030f1421846dbbefff9817c93927953"
+    },
+    {
+      "old": "src/content/text.js",
+      "new": "packages/legacy/src/content/text.js",
+      "kind": "tracked-legacy",
+      "bytes": 911,
+      "sha256": "1e6ed0b7e77f27a9370750088322bbbcebe01ca621da73811e117978f4c52b56"
+    },
+    {
+      "old": "src/content/util/Lexer.js",
+      "new": "packages/legacy/src/content/util/Lexer.js",
+      "kind": "tracked-legacy",
+      "bytes": 2674,
+      "sha256": "dbb5c756f52a98585353838123bbad870447ffa78bedc4046bab42023790b13c"
+    },
+    {
+      "old": "src/content/util/asStyle.js",
+      "new": "packages/legacy/src/content/util/asStyle.js",
+      "kind": "tracked-legacy",
+      "bytes": 717,
+      "sha256": "8649d8b3d102b42ba575c925b96cbd189caf2adabe8b5ef14d181a938854cf97"
+    },
+    {
+      "old": "src/content/util/parseXml.js",
+      "new": "packages/legacy/src/content/util/parseXml.js",
+      "kind": "tracked-legacy",
+      "bytes": 2108,
+      "sha256": "6dd3511b09a0672fce9e5467c1e5373e3ef36ddd462cb2415e8b7b85c8597c3d"
+    },
+    {
+      "old": "src/content/util/replaceDiacritics.js",
+      "new": "packages/legacy/src/content/util/replaceDiacritics.js",
+      "kind": "tracked-legacy",
+      "bytes": 557,
+      "sha256": "aac364e55adeb46154d58579158bef8345a04364098b7624b34965a04e82ac0d"
+    },
+    {
+      "old": "src/content/util/transform.js",
+      "new": "packages/legacy/src/content/util/transform.js",
+      "kind": "tracked-legacy",
+      "bytes": 1263,
+      "sha256": "3193739fdf360b550ff5f8411db46c2433e97e2256c0496959fcbbf043c96ede"
+    },
+    {
+      "old": "src/content/vector/Context2d.js",
+      "new": "packages/legacy/src/content/vector/Context2d.js",
+      "kind": "tracked-legacy",
+      "bytes": 11645,
+      "sha256": "7b1411869b9f123fe76f7f2eb9d6208b8ba5825a97acbee2293e68d6065944fb"
+    },
+    {
+      "old": "src/content/vector/a2c.js",
+      "new": "packages/legacy/src/content/vector/a2c.js",
+      "kind": "tracked-legacy",
+      "bytes": 4937,
+      "sha256": "7de7be8f3ddeaa51a1b1fc1821c450d3890e35e2432103609296e4b56549ca16"
+    },
+    {
+      "old": "src/content/vector/parseColor.js",
+      "new": "packages/legacy/src/content/vector/parseColor.js",
+      "kind": "tracked-legacy",
+      "bytes": 724,
+      "sha256": "baf6ff2f3e044c8dae9c693bebddb4ed53a9a63307cad0a25abbad48b37ec98f"
+    },
+    {
+      "old": "src/content/vector/rect.js",
+      "new": "packages/legacy/src/content/vector/rect.js",
+      "kind": "tracked-legacy",
+      "bytes": 457,
+      "sha256": "c53bd37a2f8abf64fc2fd63a78f1118037594d07f473d94cccdc6ce803523c12"
+    },
+    {
+      "old": "src/content/vector/solveArc.js",
+      "new": "packages/legacy/src/content/vector/solveArc.js",
+      "kind": "tracked-legacy",
+      "bytes": 2629,
+      "sha256": "54216b5522f9f7987cbae19f5d4c84266f1a7154f49e42455a2559a666015a05"
+    },
+    {
+      "old": "src/font/BaseFont.js",
+      "new": "packages/legacy/src/font/BaseFont.js",
+      "kind": "tracked-legacy",
+      "bytes": 622,
+      "sha256": "ba2200e644974b0ea78d2121899494f34a1cde53c7ff748a912b0adb14859d3a"
+    },
+    {
+      "old": "src/font/helvetica.js",
+      "new": "packages/legacy/src/font/helvetica.js",
+      "kind": "tracked-legacy",
+      "bytes": 3877,
+      "sha256": "1aa147969d84952f0b8a1507770fff1cd1742e53f191283fb86aa92440f96489"
+    },
+    {
+      "old": "src/image.js",
+      "new": "packages/legacy/src/image.js",
+      "kind": "tracked-legacy",
+      "bytes": 535,
+      "sha256": "fa4f58a4e05553458e3bc2350744103d026897ba5fefe12f4cda38f01ab7c269"
+    },
+    {
+      "old": "src/image/jpeg.js",
+      "new": "packages/legacy/src/image/jpeg.js",
+      "kind": "tracked-legacy",
+      "bytes": 1860,
+      "sha256": "e105b6d7d2a3eea463eaef4a4cae2ad6dd66d419d81ca43820a4bdb48af7aa14"
+    },
+    {
+      "old": "src/index.js",
+      "new": "packages/legacy/src/index.js",
+      "kind": "tracked-legacy",
+      "bytes": 1687,
+      "sha256": "406ead3a9c7caac06acceee7aa3a2fd0f23780b003f9c5a6ed90540ebfb3ff6a"
+    },
+    {
+      "old": "src/ref.js",
+      "new": "packages/legacy/src/ref.js",
+      "kind": "tracked-legacy",
+      "bytes": 221,
+      "sha256": "e16fb01cda0fac1f4366409b65817e9b47d3cd04d5da5182ba4652c46b609c27"
+    },
+    {
+      "old": "src/stream.js",
+      "new": "packages/legacy/src/stream.js",
+      "kind": "tracked-legacy",
+      "bytes": 326,
+      "sha256": "569438e9e451e01bff5509b83d18f0b2d7340e053d93658e4398656d53127c22"
+    },
+    {
+      "old": "src/units/mm.js",
+      "new": "packages/legacy/src/units/mm.js",
+      "kind": "tracked-legacy",
+      "bytes": 66,
+      "sha256": "062838ae26271983c4013b14da6bc3e53af5f67c86891cc014719cee5bac47fd"
+    },
+    {
+      "old": "src/util/isFunction.js",
+      "new": "packages/legacy/src/util/isFunction.js",
+      "kind": "tracked-legacy",
+      "bytes": 83,
+      "sha256": "90e81a8773a8d59f4442b33fd8c2987480ab3c7ab5a43fb20428b8b5efb0ec06"
+    },
+    {
+      "old": "src/vdom/buildComponent.js",
+      "new": "packages/legacy/src/vdom/buildComponent.js",
+      "kind": "tracked-legacy",
+      "bytes": 152,
+      "sha256": "85bf8bb1f2c46f5f2c70abff67a1d8a8f9cca15c825ae0bae4c832b3abb9450b"
+    },
+    {
+      "old": "src/vdom/buildProps.js",
+      "new": "packages/legacy/src/vdom/buildProps.js",
+      "kind": "tracked-legacy",
+      "bytes": 137,
+      "sha256": "3df231aca2461c151f7b1980c32be8418d7a8077d6dbc65e4aa809b5042fd1b8"
+    },
+    {
+      "old": "src/vdom/isComponent.js",
+      "new": "packages/legacy/src/vdom/isComponent.js",
+      "kind": "tracked-legacy",
+      "bytes": 141,
+      "sha256": "bb4ce998573cdf2147f751bb7477069c076e13885fb49783cb778817b93b123d"
+    },
+    {
+      "old": "src/vdom/layouter.js",
+      "new": "packages/legacy/src/vdom/layouter.js",
+      "kind": "tracked-legacy",
+      "bytes": 10665,
+      "sha256": "dd8ffbfb1e2832f8b75b02de2a0afd5b1072b6e637c185e51483e28179f0b6a5"
+    },
+    {
+      "old": "src/vdom/reduce.js",
+      "new": "packages/legacy/src/vdom/reduce.js",
+      "kind": "tracked-legacy",
+      "bytes": 972,
+      "sha256": "0725c2a0481e6c7ee5e8f5bac8844d5d7610d6571269259561cfecefe9c98292"
+    },
+    {
+      "old": "src/vdom/renderer.js",
+      "new": "packages/legacy/src/vdom/renderer.js",
+      "kind": "tracked-legacy",
+      "bytes": 1534,
+      "sha256": "20edf5a9852d020118ec9b2db51afb79ce98bb10a7116dad9e1126111f4e7e62"
+    },
+    {
+      "old": "src/writer.js",
+      "new": "packages/legacy/src/writer.js",
+      "kind": "tracked-legacy",
+      "bytes": 3131,
+      "sha256": "bc74b3fd93c39dd9fe111b6aa090b573a9ea0e93f064993e9a9bb24cb9272ed5"
+    },
+    {
+      "old": "test/VehicleIllustrationService.js",
+      "new": "packages/legacy/test/VehicleIllustrationService.js",
+      "kind": "tracked-legacy",
+      "bytes": 8224,
+      "sha256": "aae8d5d7d8890c358c01a0832e755e47fc29129c7f14e5584ed29d3f92568857"
+    },
+    {
+      "old": "test/barcode/code39.js",
+      "new": "packages/legacy/test/barcode/code39.js",
+      "kind": "tracked-legacy",
+      "bytes": 262,
+      "sha256": "fef5a89afbe326b7539506ca2c637ff5914443d89ba8c9afdecbf98a2cad878b"
+    },
+    {
+      "old": "test/container.js",
+      "new": "packages/legacy/test/container.js",
+      "kind": "tracked-legacy",
+      "bytes": 20624,
+      "sha256": "7f4bf95f56424e5cbeb4c5a91ade7f22f0c5ea263440ac79428c0705267a6249"
+    },
+    {
+      "old": "test/content/styles/cssParser.js",
+      "new": "packages/legacy/test/content/styles/cssParser.js",
+      "kind": "tracked-legacy",
+      "bytes": 704,
+      "sha256": "965defb22337d2ed741eaa9c9dd8978dc399b5accba54b97b5f38d85120e8b5f"
+    },
+    {
+      "old": "test/content/svg/pathParser.js",
+      "new": "packages/legacy/test/content/svg/pathParser.js",
+      "kind": "tracked-legacy",
+      "bytes": 1292,
+      "sha256": "c2eaa5857de49f5ff352ab09db78c8667b41771c0c41a7369ed402b1687e580b"
+    },
+    {
+      "old": "test/content/util/parseXml.js",
+      "new": "packages/legacy/test/content/util/parseXml.js",
+      "kind": "tracked-legacy",
+      "bytes": 7953,
+      "sha256": "f894bd7260e765554087a65234aa9129831dab7c8d44b624fcb802786e74cf66"
+    },
+    {
+      "old": "test/font/BaseFont.js",
+      "new": "packages/legacy/test/font/BaseFont.js",
+      "kind": "tracked-legacy",
+      "bytes": 1068,
+      "sha256": "c2906fe3faeecbd05722a594019c0607988076e8b0c3f47f146b3782f3f44beb"
+    },
+    {
+      "old": "test/font/afm.js",
+      "new": "packages/legacy/test/font/afm.js",
+      "kind": "tracked-legacy",
+      "bytes": 12746,
+      "sha256": "a2c09efd99f1c194a44c9fc4cc14bee22fee52849632b7d08f452c223387329d"
+    },
+    {
+      "old": "test/obsData.js",
+      "new": "packages/legacy/test/obsData.js",
+      "kind": "tracked-legacy",
+      "bytes": 44902,
+      "sha256": "d048bed2be0fcbc768790e8ad62ee2b70b4c87b964823934cc709627b147118a"
+    },
+    {
+      "old": "test/shipmentData.js",
+      "new": "packages/legacy/test/shipmentData.js",
+      "kind": "tracked-legacy",
+      "bytes": 8446,
+      "sha256": "c6bc6453b6c665be37f9c30f39793bb27fecb7e3af1818f6ec4da2752a39dbbc"
+    },
+    {
+      "old": "test/show.html",
+      "new": "packages/legacy/test/show.html",
+      "kind": "tracked-legacy",
+      "bytes": 2158,
+      "sha256": "5d44bb93b65da74988be4e54db871a76363506bd57b1a616ad105dc43b1e42be"
+    },
+    {
+      "old": "test/signData.js",
+      "new": "packages/legacy/test/signData.js",
+      "kind": "tracked-legacy",
+      "bytes": 37102,
+      "sha256": "1c635506136a3d38092be03abb83d260cd03029889ca0aaa22e610a800e5352f"
+    },
+    {
+      "old": "test/test.html",
+      "new": "packages/legacy/test/test.html",
+      "kind": "tracked-legacy",
+      "bytes": 896,
+      "sha256": "8e5876e6fda0efa0b3c40341253498d3d337d35984b8519e46e556a15cd9f657"
+    },
+    {
+      "old": "test/test.js",
+      "new": "packages/legacy/test/test.js",
+      "kind": "tracked-legacy",
+      "bytes": 5334,
+      "sha256": "21efd2584a51da51bec8e8a6763a9990db25144d35a9692ccce0b4a1535f367b"
+    },
+    {
+      "old": "experimental/declarative/.gitignore",
+      "new": "docs/evidence/baseline/poc-config/.gitignore",
+      "kind": "untracked-native",
+      "bytes": 312,
+      "sha256": "b40403e7e0d681d883a731de64ee6bad4686ac560a727ef038536edf59ccb236"
+    },
+    {
+      "old": "experimental/declarative/EVIDENCE.md",
+      "new": "docs/evidence/native-poc.md",
+      "kind": "untracked-native",
+      "bytes": 22218,
+      "sha256": "44a512f0e4a3e5f5928c628ab7e5f60058283166a077e41cc78783eaa55a59c0"
+    },
+    {
+      "old": "experimental/declarative/README.md",
+      "new": "docs/native-api.md",
+      "kind": "untracked-native",
+      "bytes": 37847,
+      "sha256": "16d2ea0968a4a755609101a53cc0956a7bf25df5c2a653971434a4dd7618ce43"
+    },
+    {
+      "old": "experimental/declarative/core/bytes.ts",
+      "new": "packages/core/src/core/bytes.ts",
+      "kind": "untracked-native",
+      "bytes": 1829,
+      "sha256": "8c8fe965c51e6a2398811623a815cb0225b6ebe9d3ec9848b4028487bf03eaab"
+    },
+    {
+      "old": "experimental/declarative/core/content.ts",
+      "new": "packages/core/src/core/content.ts",
+      "kind": "untracked-native",
+      "bytes": 3052,
+      "sha256": "9689a388f71673f2b0894ba6b1d6cca40d4b241f221d43d798a13a00b358583c"
+    },
+    {
+      "old": "experimental/declarative/core/error.ts",
+      "new": "packages/core/src/core/error.ts",
+      "kind": "untracked-native",
+      "bytes": 731,
+      "sha256": "26305fc9df83f7f5d62c20f36c5fa391ac0a36975d801b14373c564b40f05625"
+    },
+    {
+      "old": "experimental/declarative/core/measure.ts",
+      "new": "packages/core/src/core/measure.ts",
+      "kind": "untracked-native",
+      "bytes": 2915,
+      "sha256": "b76b1dd5ac84a18c7401190dbf92f1c8eaa881f6484bde189c8a93fccb92f042"
+    },
+    {
+      "old": "experimental/declarative/core/metrics.ts",
+      "new": "packages/core/src/core/metrics.ts",
+      "kind": "untracked-native",
+      "bytes": 1174,
+      "sha256": "fcf28b98f94602ef60730c3db834eb07300582b6a550b4bd01f867e5ff556c56"
+    },
+    {
+      "old": "experimental/declarative/core/pdf-values.ts",
+      "new": "packages/core/src/core/pdf-values.ts",
+      "kind": "untracked-native",
+      "bytes": 1697,
+      "sha256": "741de2ff379a537979292b0e5c50010857d12b6873eee9ff78651ed023935aa0"
+    },
+    {
+      "old": "experimental/declarative/core/plan.ts",
+      "new": "packages/core/src/core/plan.ts",
+      "kind": "untracked-native",
+      "bytes": 1137,
+      "sha256": "cddb7f5aa66d3e5f5959126ea7c042db101c1e9e63f09dd69f2385e4a533564f"
+    },
+    {
+      "old": "experimental/declarative/core/schema.ts",
+      "new": "packages/core/src/core/schema.ts",
+      "kind": "untracked-native",
+      "bytes": 2084,
+      "sha256": "5c38d1605c94db8ec0d069b042d6e3fcd8c748c72ea11b87834935430e838233"
+    },
+    {
+      "old": "experimental/declarative/core/serialize.ts",
+      "new": "packages/core/src/core/serialize.ts",
+      "kind": "untracked-native",
+      "bytes": 2347,
+      "sha256": "4d291907da8bb16a0c19f8c86fc75e2e4cef42a39d51f765b226305d85504085"
+    },
+    {
+      "old": "experimental/declarative/core/validate.ts",
+      "new": "packages/core/src/core/validate.ts",
+      "kind": "untracked-native",
+      "bytes": 7465,
+      "sha256": "808276a7799650c2ec3ec4880030787984064c9f32864f38d3ef4dbe042343fa"
+    },
+    {
+      "old": "experimental/declarative/eslint.config.ts",
+      "new": "docs/evidence/baseline/poc-config/eslint.config.ts",
+      "kind": "untracked-native",
+      "bytes": 753,
+      "sha256": "f1f1c5fddeadffb08106c8f8863772d7ad55808713ae8b23d59c01e4d30fb019"
+    },
+    {
+      "old": "experimental/declarative/examples/cli.ts",
+      "new": "examples/node/src/cli.ts",
+      "kind": "untracked-native",
+      "bytes": 418,
+      "sha256": "63e39498b92090934516adf08ed712e2e67e84c7db0578bba180d4bd5d171ad6"
+    },
+    {
+      "old": "experimental/declarative/examples/cmr-tree.tsx",
+      "new": "examples/cmr/src/cmr-tree.tsx",
+      "kind": "untracked-native",
+      "bytes": 4078,
+      "sha256": "0766e16b1c89c46eefd47705e3588738375d12e425dd1878baf801f2f9fa90e6"
+    },
+    {
+      "old": "experimental/declarative/examples/cmr-types.ts",
+      "new": "examples/cmr/src/cmr-types.ts",
+      "kind": "untracked-native",
+      "bytes": 905,
+      "sha256": "f7e6ffb17b3182e0bc1c498c573e3c8c6914ffadb8fa7d21e83ba7abbba1c43b"
+    },
+    {
+      "old": "experimental/declarative/examples/cmr-unicode.ts",
+      "new": "examples/cmr/src/cmr-unicode.ts",
+      "kind": "untracked-native",
+      "bytes": 1384,
+      "sha256": "618562da560445631dd7be7e7a49751556d6ba67f32b6a09ad751ecba1b8128d"
+    },
+    {
+      "old": "experimental/declarative/examples/cmr.ts",
+      "new": "examples/cmr/src/cmr.ts",
+      "kind": "untracked-native",
+      "bytes": 4202,
+      "sha256": "951d7c3f26cf232210eecf472463f3d1c89ddfc7264d56d16599c7d4f5f6047f"
+    },
+    {
+      "old": "experimental/declarative/examples/font-proof.ts",
+      "new": "examples/node/src/font-proof.ts",
+      "kind": "untracked-native",
+      "bytes": 1474,
+      "sha256": "b79533b385c8665ee48b53d8950b9690b9b218d8d5212af4744ce730c446ff5c"
+    },
+    {
+      "old": "experimental/declarative/examples/fontkit-cli.ts",
+      "new": "examples/node/src/fontkit-cli.ts",
+      "kind": "untracked-native",
+      "bytes": 608,
+      "sha256": "92ef3a14f1e12b144305dff96d376d48acdcf266fac780055eea0e09333abdd8"
+    },
+    {
+      "old": "experimental/declarative/examples/painting-document.ts",
+      "new": "examples/node/src/painting-document.ts",
+      "kind": "untracked-native",
+      "bytes": 1804,
+      "sha256": "d633a2bee211a2f8f22805d463eef03b4e8d9696929c4137e857752958ce0645"
+    },
+    {
+      "old": "experimental/declarative/examples/painting-proof.ts",
+      "new": "examples/node/src/painting-proof.ts",
+      "kind": "untracked-native",
+      "bytes": 345,
+      "sha256": "b3bdaf01cb6a0b616d60ec13acef6304ddc61401a4231267e3bf460b330e4f22"
+    },
+    {
+      "old": "experimental/declarative/examples/server.ts",
+      "new": "examples/node/src/server.ts",
+      "kind": "untracked-native",
+      "bytes": 780,
+      "sha256": "5401238fce947e35534af92c5be1281a220af3633bd213c1f1a6b5e4cf3f9b0d"
+    },
+    {
+      "old": "experimental/declarative/examples/svg-fixtures.ts",
+      "new": "examples/node/src/svg-fixtures.ts",
+      "kind": "untracked-native",
+      "bytes": 2208,
+      "sha256": "f5c74e7981831b9703306c2e67f81d2fb55bfec6c2f684006988e4566c09b479"
+    },
+    {
+      "old": "experimental/declarative/examples/svg-proof.ts",
+      "new": "examples/node/src/svg-proof.ts",
+      "kind": "untracked-native",
+      "bytes": 606,
+      "sha256": "37adc3ebb960d249ae569834a012690f207a3ee735a5a4b1f0e0d7c566409def"
+    },
+    {
+      "old": "experimental/declarative/fixtures/font-browser/app.ts",
+      "new": "examples/browser-fonts/app.ts",
+      "kind": "untracked-native",
+      "bytes": 1222,
+      "sha256": "891c910cc22148f59a42410670b4acf56f4c2fccd72fba09d5deeb95823fdc4e"
+    },
+    {
+      "old": "experimental/declarative/fixtures/font-browser/browser.test.ts",
+      "new": "tests/browser/browser-fonts.test.ts",
+      "kind": "untracked-native",
+      "bytes": 2451,
+      "sha256": "fbbcd36c656e290ade33f5756acfcf1c85e483e1b51dc7194fe02758e1605de5"
+    },
+    {
+      "old": "experimental/declarative/fixtures/font-browser/env.d.ts",
+      "new": "examples/browser-fonts/env.d.ts",
+      "kind": "untracked-native",
+      "bytes": 38,
+      "sha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
+    },
+    {
+      "old": "experimental/declarative/fixtures/font-browser/index.html",
+      "new": "examples/browser-fonts/index.html",
+      "kind": "untracked-native",
+      "bytes": 267,
+      "sha256": "eed2d0b20012d543040e6e73438a9b8ddd05e237ae6b86e89e35c52e037d20fa"
+    },
+    {
+      "old": "experimental/declarative/fixtures/font-browser/vite.config.ts",
+      "new": "examples/browser-fonts/vite.config.ts",
+      "kind": "untracked-native",
+      "bytes": 550,
+      "sha256": "75c21d41cd27ec155c56a2841c8679a11f9e190d364dd02b852a05bbe17e2f54"
+    },
+    {
+      "old": "experimental/declarative/fixtures/fonts/LICENSE",
+      "new": "tests/fixtures/fonts/LICENSE",
+      "kind": "untracked-native",
+      "bytes": 4407,
+      "sha256": "dcf04afc497fa905591940f21c79eb19b39884cc7da2b602c7995d1adb1e1948"
+    },
+    {
+      "old": "experimental/declarative/fixtures/fonts/LiberationSans-Regular.ttf",
+      "new": "tests/fixtures/fonts/LiberationSans-Regular.ttf",
+      "kind": "untracked-native",
+      "bytes": 410712,
+      "sha256": "76d04c18ea243f426b7de1f3ad208e927008f961dc5945e5aad352d0dfde8ee8"
+    },
+    {
+      "old": "experimental/declarative/fixtures/fonts/README.md",
+      "new": "tests/fixtures/fonts/README.md",
+      "kind": "untracked-native",
+      "bytes": 1871,
+      "sha256": "cb39134742d0ba90783785605eef3216039970e13641eb7e2c9ffb8ce374c9de"
+    },
+    {
+      "old": "experimental/declarative/fixtures/fonts/liberation-sans.json",
+      "new": "tests/fixtures/fonts/liberation-sans.json",
+      "kind": "untracked-native",
+      "bytes": 373653,
+      "sha256": "a912a66c7b4c7973381e00f9e722874749ab301aa72f1768ceee5a6dd00fb5d1"
+    },
+    {
+      "old": "experimental/declarative/fixtures/svg-reference/browser.test.ts",
+      "new": "tests/svg-reference/browser.test.ts",
+      "kind": "untracked-native",
+      "bytes": 5758,
+      "sha256": "014af68f22cbbe4cd958bd5a8182132d8d28d42eee651d9bf751623a70fc1b2d"
+    },
+    {
+      "old": "experimental/declarative/fixtures/svg-reference/compare.ts",
+      "new": "tests/svg-reference/compare.ts",
+      "kind": "untracked-native",
+      "bytes": 2310,
+      "sha256": "77cfb40260d8f9f8c418872f5db554c0766ba8e0f8363213013341963f85119f"
+    },
+    {
+      "old": "experimental/declarative/fixtures/svg-reference/foreground.ts",
+      "new": "tests/svg-reference/foreground.ts",
+      "kind": "untracked-native",
+      "bytes": 2079,
+      "sha256": "73377dedd6a57ffa611ee6b522f6f8e03e8bbe9b9343bab86f3552efac6077ab"
+    },
+    {
+      "old": "experimental/declarative/fixtures/vite-react/app.tsx",
+      "new": "examples/browser-react/app.tsx",
+      "kind": "untracked-native",
+      "bytes": 950,
+      "sha256": "c946d097e7758bd4faa1b2a9ba2f252f3c0b4263d5853a3ee509497f53de9405"
+    },
+    {
+      "old": "experimental/declarative/fixtures/vite-react/browser.test.ts",
+      "new": "tests/browser/browser-react.test.ts",
+      "kind": "untracked-native",
+      "bytes": 2981,
+      "sha256": "f5f4411c311fdb7459d5869b8a42e3e7b296192c345a74682f36a8297a91da22"
+    },
+    {
+      "old": "experimental/declarative/fixtures/vite-react/index.html",
+      "new": "examples/browser-react/index.html",
+      "kind": "untracked-native",
+      "bytes": 198,
+      "sha256": "a7ca26ce4655dc0d5145e108adecddd6400bcb0caf6c7941f211847ad41db04b"
+    },
+    {
+      "old": "experimental/declarative/fixtures/vite-react/module-graph.ts",
+      "new": "examples/browser-react/module-graph.ts",
+      "kind": "untracked-native",
+      "bytes": 438,
+      "sha256": "77350dfeb9bcc46ec2a6ce76a84f2953b0c1de2fab69dd6754acc8be824453e1"
+    },
+    {
+      "old": "experimental/declarative/fixtures/vite-react/vite.config.ts",
+      "new": "examples/browser-react/vite.config.ts",
+      "kind": "untracked-native",
+      "bytes": 510,
+      "sha256": "9cfeacc21a5ec2751b52d4ce3e12a44ef987d9563a84e1d65085fbf2fc7b58f6"
+    },
+    {
+      "old": "experimental/declarative/fixtures/vite-react/vite.core.config.ts",
+      "new": "examples/browser-react/vite.core.config.ts",
+      "kind": "untracked-native",
+      "bytes": 462,
+      "sha256": "665166cbfc077946a7cdca838b40005acc00c3ba3382407448fa7ca45de060ff"
+    },
+    {
+      "old": "experimental/declarative/fixtures/vite-react/vite.fontkit.config.ts",
+      "new": "examples/browser-react/vite.fontkit.config.ts",
+      "kind": "untracked-native",
+      "bytes": 459,
+      "sha256": "e0f0421179603734676673e093838ee3ed4817565511ac261ea118db7bba4cf4"
+    },
+    {
+      "old": "experimental/declarative/fixtures/vite-react/vite.fonts.config.ts",
+      "new": "examples/browser-react/vite.fonts.config.ts",
+      "kind": "untracked-native",
+      "bytes": 442,
+      "sha256": "5d08f3c6815a480e43dfcb18160bf32ae970348584efe8fe7e117ecb916fb798"
+    },
+    {
+      "old": "experimental/declarative/fixtures/vite-react/vite.geometry.config.ts",
+      "new": "examples/browser-react/vite.geometry.config.ts",
+      "kind": "untracked-native",
+      "bytes": 463,
+      "sha256": "e6d3902a1586b1aa615d2a8e18687d00908b70c4b79a59982e07b9934ae60c42"
+    },
+    {
+      "old": "experimental/declarative/fixtures/vite-react/vite.svg.config.ts",
+      "new": "examples/browser-react/vite.svg.config.ts",
+      "kind": "untracked-native",
+      "bytes": 443,
+      "sha256": "c774d21a3d6a93fc3515801f8f0800b2cadd5e3794cc194c84e36b94c694d32f"
+    },
+    {
+      "old": "experimental/declarative/fixtures/vite-react/vite.vdom.config.ts",
+      "new": "examples/browser-react/vite.vdom.config.ts",
+      "kind": "untracked-native",
+      "bytes": 440,
+      "sha256": "e7060540d700178c01697a7cac6f9f06d6a6a2d7c37790b768da2507bc5c5ab1"
+    },
+    {
+      "old": "experimental/declarative/fontkit/api.d.ts",
+      "new": "packages/fontkit/src/api.d.ts",
+      "kind": "untracked-native",
+      "bytes": 242,
+      "sha256": "a861f486de5b3fcb17fe4cf38fe2153e70fb8e27203a754ef76c9ea11d2b7dc9"
+    },
+    {
+      "old": "experimental/declarative/fontkit/cmap.ts",
+      "new": "packages/fontkit/src/cmap.ts",
+      "kind": "untracked-native",
+      "bytes": 4211,
+      "sha256": "544a7d62c7e4981b9430761ea2c6ae0b168ff7216d75f08158e7578c3690e486"
+    },
+    {
+      "old": "experimental/declarative/fontkit/index.ts",
+      "new": "packages/fontkit/src/index.ts",
+      "kind": "untracked-native",
+      "bytes": 1056,
+      "sha256": "78748635cf4d1fcaff33e441d93d88902d56f3c67601b109a26fd421f0368b7c"
+    },
+    {
+      "old": "experimental/declarative/fontkit/metadata.ts",
+      "new": "packages/fontkit/src/metadata.ts",
+      "kind": "untracked-native",
+      "bytes": 3861,
+      "sha256": "e0b28c8fe783d330c538b259467358e8c188558338b94c305aa6323ea245aba3"
+    },
+    {
+      "old": "experimental/declarative/fontkit/sfnt.ts",
+      "new": "packages/fontkit/src/sfnt.ts",
+      "kind": "untracked-native",
+      "bytes": 4297,
+      "sha256": "bab5428e6c6619d7ab5b286bb6e0df793c417ce7295ac3565039f598eddc9bd1"
+    },
+    {
+      "old": "experimental/declarative/fonts/checks.ts",
+      "new": "packages/core/src/fonts/checks.ts",
+      "kind": "untracked-native",
+      "bytes": 3437,
+      "sha256": "8af360718ff63a7b3697ccd02ef82219563a0350082c250800dfbd64b5f11fed"
+    },
+    {
+      "old": "experimental/declarative/fonts/cids.ts",
+      "new": "packages/core/src/fonts/cids.ts",
+      "kind": "untracked-native",
+      "bytes": 2312,
+      "sha256": "fd5156c430dc43e01bd45847309919d4fd5051da73436f48beaf2e6cd50dee30"
+    },
+    {
+      "old": "experimental/declarative/fonts/index.ts",
+      "new": "packages/core/src/fonts/index.ts",
+      "kind": "untracked-native",
+      "bytes": 207,
+      "sha256": "b5771f901b9484a48dfef6e16f0de4e2a55bbdf5db52e77235280effa33dc770"
+    },
+    {
+      "old": "experimental/declarative/fonts/measure.ts",
+      "new": "packages/core/src/fonts/measure.ts",
+      "kind": "untracked-native",
+      "bytes": 3506,
+      "sha256": "c5bd69c8e3a664fb906d797c818da0605309f1ef06c71545ebca5ef762e424c2"
+    },
+    {
+      "old": "experimental/declarative/fonts/pdf.ts",
+      "new": "packages/core/src/fonts/pdf.ts",
+      "kind": "untracked-native",
+      "bytes": 2513,
+      "sha256": "34b35a3791bf24e5b263969e44ee376f765c1781ab2f15cafeab1df7b6461115"
+    },
+    {
+      "old": "experimental/declarative/fonts/prepare.ts",
+      "new": "packages/core/src/fonts/prepare.ts",
+      "kind": "untracked-native",
+      "bytes": 4955,
+      "sha256": "e019ad004311ba5d2d5a364e4cb14c2cccbcbb3e1a47f0346cbad57e88a41b52"
+    },
+    {
+      "old": "experimental/declarative/fonts/profile.ts",
+      "new": "packages/core/src/fonts/profile.ts",
+      "kind": "untracked-native",
+      "bytes": 1473,
+      "sha256": "eb06d053cca1c65cdba0bc12296dfd3dec114b5bb60f04d7c3e16bb41d233b6b"
+    },
+    {
+      "old": "experimental/declarative/fonts/resources.ts",
+      "new": "packages/core/src/fonts/resources.ts",
+      "kind": "untracked-native",
+      "bytes": 1598,
+      "sha256": "17e45641d89778c25de539264a4922e020116ff959492b3c3dddb08be616d771"
+    },
+    {
+      "old": "experimental/declarative/fonts/types.ts",
+      "new": "packages/core/src/fonts/types.ts",
+      "kind": "untracked-native",
+      "bytes": 1497,
+      "sha256": "9d28d56eb74650ebdf44e7050027856d86107e5947b0e6bcac3feb4825a01402"
+    },
+    {
+      "old": "experimental/declarative/geometry/LICENSE.svgpath",
+      "new": "packages/geometry/LICENSE.svgpath",
+      "kind": "untracked-native",
+      "bytes": 1084,
+      "sha256": "b67a276d8fe3b4b856701b3554f1e17b39bba39ddac9112270a0497401215877"
+    },
+    {
+      "old": "experimental/declarative/geometry/REUSE.md",
+      "new": "packages/geometry/REUSE.md",
+      "kind": "untracked-native",
+      "bytes": 4396,
+      "sha256": "5e4eece5dfc81611191f10dfffcb00730982ff7f1cc25bd272265b7ced6f7552"
+    },
+    {
+      "old": "experimental/declarative/geometry/arc-center.ts",
+      "new": "packages/geometry/src/arc-center.ts",
+      "kind": "untracked-native",
+      "bytes": 1770,
+      "sha256": "60a8ce97032cb49f1242f139c7b2ca303df7e0a2c2f1f59664f9409e9a569eea"
+    },
+    {
+      "old": "experimental/declarative/geometry/arc.ts",
+      "new": "packages/geometry/src/arc.ts",
+      "kind": "untracked-native",
+      "bytes": 1985,
+      "sha256": "af3dd9f1a9feaad4340f78ef4b4902d4f4afd2e2f6770655cf260dffdb7294c5"
+    },
+    {
+      "old": "experimental/declarative/geometry/color.ts",
+      "new": "packages/geometry/src/color.ts",
+      "kind": "untracked-native",
+      "bytes": 2054,
+      "sha256": "7e63f806dc4f5d5c63d1beeed23a545e1b42eaf8aa64048e3b8263284ca344ef"
+    },
+    {
+      "old": "experimental/declarative/geometry/index.ts",
+      "new": "packages/geometry/src/index.ts",
+      "kind": "untracked-native",
+      "bytes": 273,
+      "sha256": "a11dbf9b73f2d3829837ead4ecf7008316f8c697f7f0f7252c22379e38cf47f1"
+    },
+    {
+      "old": "experimental/declarative/geometry/normalize.ts",
+      "new": "packages/geometry/src/normalize.ts",
+      "kind": "untracked-native",
+      "bytes": 5218,
+      "sha256": "5b53c14c716978309510fe3929ced011e761635fe082502e0d875dfb2ad4d447"
+    },
+    {
+      "old": "experimental/declarative/geometry/scanner.ts",
+      "new": "packages/geometry/src/scanner.ts",
+      "kind": "untracked-native",
+      "bytes": 1496,
+      "sha256": "631cc0a509d80b6693b40f1126400c6b72e02ab91f5d9fc6a31af84506ebede4"
+    },
+    {
+      "old": "experimental/declarative/geometry/shapes.ts",
+      "new": "packages/geometry/src/shapes.ts",
+      "kind": "untracked-native",
+      "bytes": 1576,
+      "sha256": "9a148e3b22e6d12d4c6577c69943fd0cbd15d51dea2c84966b0d76c400c39ea3"
+    },
+    {
+      "old": "experimental/declarative/index.ts",
+      "new": "packages/core/src/index.ts",
+      "kind": "untracked-native",
+      "bytes": 1412,
+      "sha256": "260cf3a03622df229f4892a913c451b639b300c482d072e02cd86722a3d787c7"
+    },
+    {
+      "old": "experimental/declarative/jsx-dev-runtime.ts",
+      "new": "packages/core/src/jsx-dev-runtime.ts",
+      "kind": "untracked-native",
+      "bytes": 423,
+      "sha256": "e6f838e882587d3ad5f97c5ca15a4e35b524d3e9665d1aa867316e6fd478bc58"
+    },
+    {
+      "old": "experimental/declarative/jsx-runtime.ts",
+      "new": "packages/core/src/jsx-runtime.ts",
+      "kind": "untracked-native",
+      "bytes": 834,
+      "sha256": "651ac6194f403614de6c220468b98022e1849337c971d60409406952370c85b2"
+    },
+    {
+      "old": "experimental/declarative/package-lock.json",
+      "new": "docs/evidence/baseline/poc-package-lock.json",
+      "kind": "untracked-native",
+      "bytes": 90947,
+      "sha256": "eb98c05517b6bb41bf8487faec290ee539b1ebb5b812104a482cd93d6926ed0f"
+    },
+    {
+      "old": "experimental/declarative/package.json",
+      "new": "docs/evidence/baseline/poc-config/package.json",
+      "kind": "untracked-native",
+      "bytes": 3373,
+      "sha256": "cbf2f83464e80c109fe537d48f33c05275d8c9d17f3407c378ddcab98aae6d12"
+    },
+    {
+      "old": "experimental/declarative/painting/affine.ts",
+      "new": "packages/core/src/painting/affine.ts",
+      "kind": "untracked-native",
+      "bytes": 1542,
+      "sha256": "903230c24ea9a80eb3e2946824370d7985ee47ff65500529f9d4423a8c07f84b"
+    },
+    {
+      "old": "experimental/declarative/painting/alpha.ts",
+      "new": "packages/core/src/painting/alpha.ts",
+      "kind": "untracked-native",
+      "bytes": 1181,
+      "sha256": "ca47266dfb44a9df15ba4d652cfc5c363d7f39523b27b96066352041d27b773f"
+    },
+    {
+      "old": "experimental/declarative/painting/bounds.ts",
+      "new": "packages/core/src/painting/bounds.ts",
+      "kind": "untracked-native",
+      "bytes": 3603,
+      "sha256": "2cce0034bf06c16678f9b387723644b53a64ef3876479c67367b10562951626c"
+    },
+    {
+      "old": "experimental/declarative/painting/commands.ts",
+      "new": "packages/core/src/painting/commands.ts",
+      "kind": "untracked-native",
+      "bytes": 1297,
+      "sha256": "43c2c0019f8ff1dc8a488c632170f1b5c9fa1fa2b7e2093f81b26841865feb54"
+    },
+    {
+      "old": "experimental/declarative/painting/index.ts",
+      "new": "packages/core/src/painting/index.ts",
+      "kind": "untracked-native",
+      "bytes": 220,
+      "sha256": "88b7b3e4a0537b9d5d03bf2dc7fbc9077747257833422c5a853d0d863772123a"
+    },
+    {
+      "old": "experimental/declarative/painting/pdf.ts",
+      "new": "packages/core/src/painting/pdf.ts",
+      "kind": "untracked-native",
+      "bytes": 1755,
+      "sha256": "50ca49e95c6787cae17b1ecd990993e2fa74f7c618091638cad6f67862ccf1fd"
+    },
+    {
+      "old": "experimental/declarative/painting/read.ts",
+      "new": "packages/core/src/painting/read.ts",
+      "kind": "untracked-native",
+      "bytes": 2052,
+      "sha256": "8088fbe5d52d92100ef95755a6fca5fb9fef240f6bec9869ac6bfed0051b853f"
+    },
+    {
+      "old": "experimental/declarative/painting/style.ts",
+      "new": "packages/core/src/painting/style.ts",
+      "kind": "untracked-native",
+      "bytes": 3401,
+      "sha256": "d2cc664d7b11b5b0761e41c54651bfca1634670e77f5fe1cace0fbaff1726709"
+    },
+    {
+      "old": "experimental/declarative/painting/types.ts",
+      "new": "packages/core/src/painting/types.ts",
+      "kind": "untracked-native",
+      "bytes": 2328,
+      "sha256": "e29d43fec1ee39ab741108311a624dfe2cb00e129939de7effa4e2bdb09585d8"
+    },
+    {
+      "old": "experimental/declarative/roadmap/README.md",
+      "new": "docs/roadmap/README.md",
+      "kind": "preserved-roadmap",
+      "bytes": 2069,
+      "sha256": "a29b161c26ef0bdbc4bb27dc34f3ecd9887af358d497d0e7f1cb6932719ca8fc"
+    },
+    {
+      "old": "experimental/declarative/roadmap/monorepo-package-structure.md",
+      "new": "docs/roadmap/monorepo-package-structure.md",
+      "kind": "preserved-roadmap",
+      "bytes": 3955,
+      "sha256": "2f3e8605aaac4090b1fe071aa1b03eceeb1757597c6fda59ca4ced035e1be9b4"
+    },
+    {
+      "old": "experimental/declarative/roadmap/repository-readme-vision-examples-roadmap.md",
+      "new": "docs/roadmap/repository-readme-vision-examples-roadmap.md",
+      "kind": "preserved-roadmap",
+      "bytes": 4103,
+      "sha256": "e54cb328a43b7a4bb95422358a4b09529a3fd7661e72f84a9dd2a75eab2e4724"
+    },
+    {
+      "old": "experimental/declarative/roadmap/step-1-configurable-resource-budgets.md",
+      "new": "docs/roadmap/step-1-configurable-resource-budgets.md",
+      "kind": "preserved-roadmap",
+      "bytes": 3490,
+      "sha256": "0f0b44e5140b715150d0968935b7341c48ff8347fd4f067b5ec404da033eab1a"
+    },
+    {
+      "old": "experimental/declarative/roadmap/step-2-raster-images.md",
+      "new": "docs/roadmap/step-2-raster-images.md",
+      "kind": "preserved-roadmap",
+      "bytes": 3368,
+      "sha256": "d34a081ff2920c196aa76301b2921aeb4708830115025640aa6981ce3a126b5d"
+    },
+    {
+      "old": "experimental/declarative/roadmap/step-3-rich-text-measurement-contract.md",
+      "new": "docs/roadmap/step-3-rich-text-measurement-contract.md",
+      "kind": "preserved-roadmap",
+      "bytes": 3514,
+      "sha256": "b4198f722141e298a5341c349f10dfadb49229a553aa17ba726eec50971e4661"
+    },
+    {
+      "old": "experimental/declarative/roadmap/step-4-flow-layout-page-templates.md",
+      "new": "docs/roadmap/step-4-flow-layout-page-templates.md",
+      "kind": "preserved-roadmap",
+      "bytes": 3470,
+      "sha256": "19162d5a1d1b919e4c2fb6ce16f7f363e586abf063b735a66048e76e39b71836"
+    },
+    {
+      "old": "experimental/declarative/roadmap/step-5-code39.md",
+      "new": "docs/roadmap/step-5-code39.md",
+      "kind": "preserved-roadmap",
+      "bytes": 2783,
+      "sha256": "fb4c3971d85568bd34f5b0c05a6be674935ad521bf3a4dca9a5941a7e2ffb109"
+    },
+    {
+      "old": "experimental/declarative/roadmap/step-5-markdown-lists.md",
+      "new": "docs/roadmap/step-5-markdown-lists.md",
+      "kind": "preserved-roadmap",
+      "bytes": 2986,
+      "sha256": "8b00104b3276a719111e976ee08fafa84536879d4cd2ff3d56ebaf5c4799a12e"
+    },
+    {
+      "old": "experimental/declarative/roadmap/step-5-paged-tables.md",
+      "new": "docs/roadmap/step-5-paged-tables.md",
+      "kind": "preserved-roadmap",
+      "bytes": 2967,
+      "sha256": "6f81f938007f726e53642b14bf20460a686f11a3dca68f0f92808b8eae6950d4"
+    },
+    {
+      "old": "experimental/declarative/roadmap/step-5-qr-codes.md",
+      "new": "docs/roadmap/step-5-qr-codes.md",
+      "kind": "preserved-roadmap",
+      "bytes": 2884,
+      "sha256": "bd388afb3452c36eb23ce6839cf9e35823d0a1b6b680ef94e59a498f8613c023"
+    },
+    {
+      "old": "experimental/declarative/roadmap/step-6-bundle-cost-regression.md",
+      "new": "docs/roadmap/step-6-bundle-cost-regression.md",
+      "kind": "preserved-roadmap",
+      "bytes": 3844,
+      "sha256": "5ce320d0412efc2e18d4dadaac6d6151f9b473a4448b45eddd3a089809f00c48"
+    },
+    {
+      "old": "experimental/declarative/svg/REUSE.md",
+      "new": "packages/svg/REUSE.md",
+      "kind": "untracked-native",
+      "bytes": 5798,
+      "sha256": "f4c72cb15a83254ad24616e8b0c664ace49a298f4509d9ae69aab5059fc79bfb"
+    },
+    {
+      "old": "experimental/declarative/svg/attributes.ts",
+      "new": "packages/svg/src/attributes.ts",
+      "kind": "untracked-native",
+      "bytes": 2814,
+      "sha256": "5d40ea3068e2a814819e22b3591cf911e460898dedd9a03f0036873c15ec5dfb"
+    },
+    {
+      "old": "experimental/declarative/svg/comments.ts",
+      "new": "packages/svg/src/comments.ts",
+      "kind": "untracked-native",
+      "bytes": 1377,
+      "sha256": "2b77537e667180e9d7de248d8ffc43b4a4659d35ac7ae50f32accfec560af80e"
+    },
+    {
+      "old": "experimental/declarative/svg/compile.ts",
+      "new": "packages/svg/src/compile.ts",
+      "kind": "untracked-native",
+      "bytes": 4725,
+      "sha256": "27ea5b8abd976b97f4044a3361478a58c70cb1aec2b8b0c7979f929a32563c69"
+    },
+    {
+      "old": "experimental/declarative/svg/css.ts",
+      "new": "packages/svg/src/css.ts",
+      "kind": "untracked-native",
+      "bytes": 3945,
+      "sha256": "4b86a668660087071bf16b2d000087875c365e5ca90b150fe836a5ed782c3af0"
+    },
+    {
+      "old": "experimental/declarative/svg/declaration.ts",
+      "new": "packages/svg/src/declaration.ts",
+      "kind": "untracked-native",
+      "bytes": 1793,
+      "sha256": "f0060f771df6f95f591db1f9c5cb997b84579f4ab9be9877c181d6338cf2b55f"
+    },
+    {
+      "old": "experimental/declarative/svg/error.ts",
+      "new": "packages/svg/src/error.ts",
+      "kind": "untracked-native",
+      "bytes": 1089,
+      "sha256": "d57e0824754e2f8c07997c5c095df6b1e3ec5f4e77fc665aadb340c80a18d7b2"
+    },
+    {
+      "old": "experimental/declarative/svg/index.ts",
+      "new": "packages/svg/src/index.ts",
+      "kind": "untracked-native",
+      "bytes": 1570,
+      "sha256": "f2f0fe7ce2a45e4ebe63d27bc08061ee3d5390eb1cc3e50bc87f68d7819ecfe5"
+    },
+    {
+      "old": "experimental/declarative/svg/inspect.ts",
+      "new": "packages/svg/src/inspect.ts",
+      "kind": "untracked-native",
+      "bytes": 2441,
+      "sha256": "3141e0f4b70d1b1f8505b11c56c4f08af26035c3ce98e6488656141b1dcc9487"
+    },
+    {
+      "old": "experimental/declarative/svg/numbers.ts",
+      "new": "packages/svg/src/numbers.ts",
+      "kind": "untracked-native",
+      "bytes": 1594,
+      "sha256": "2dc2e3e41d77bc05c1bf657dc5bdf8ae1bfdd159ffddcc1019a3b482619647bf"
+    },
+    {
+      "old": "experimental/declarative/svg/shapes.ts",
+      "new": "packages/svg/src/shapes.ts",
+      "kind": "untracked-native",
+      "bytes": 2214,
+      "sha256": "5766a03f64fa81f09b8a56caf33a898075bd2b9c0674b48f4db187a803cdc210"
+    },
+    {
+      "old": "experimental/declarative/svg/source.ts",
+      "new": "packages/svg/src/source.ts",
+      "kind": "untracked-native",
+      "bytes": 1119,
+      "sha256": "64adad4c0780f82ee06abfdc2e7a4bfcf7cfe2171da1ae3b475a91116d847279"
+    },
+    {
+      "old": "experimental/declarative/svg/style.ts",
+      "new": "packages/svg/src/style.ts",
+      "kind": "untracked-native",
+      "bytes": 3877,
+      "sha256": "d07fa987ec38ff86a9ddd8ccb007f3ba6c64f0b3715a615fff760bd68d2282cb"
+    },
+    {
+      "old": "experimental/declarative/svg/transform.ts",
+      "new": "packages/svg/src/transform.ts",
+      "kind": "untracked-native",
+      "bytes": 2639,
+      "sha256": "018abe5799814b9bc563f4beb3cfe257655bf7cbd2b782410fd45e8e9292d91d"
+    },
+    {
+      "old": "experimental/declarative/svg/tree.ts",
+      "new": "packages/svg/src/tree.ts",
+      "kind": "untracked-native",
+      "bytes": 1030,
+      "sha256": "530ed5c238abd04e0e049f51be9afbb67ab86bf72a1105aab234df52da8d401f"
+    },
+    {
+      "old": "experimental/declarative/svg/types.ts",
+      "new": "packages/svg/src/types.ts",
+      "kind": "untracked-native",
+      "bytes": 1436,
+      "sha256": "cb8281f66b7d904d2d18e92aa034f80a660aad990e02ea21dec54ad9c0e95e0e"
+    },
+    {
+      "old": "experimental/declarative/svg/viewport.ts",
+      "new": "packages/svg/src/viewport.ts",
+      "kind": "untracked-native",
+      "bytes": 2031,
+      "sha256": "89e0dd06bb7eb9dce8665ae3982af7e49606cf57124db3ba1e643c679fc34cfd"
+    },
+    {
+      "old": "experimental/declarative/svg/xml-lex.ts",
+      "new": "packages/svg/src/xml-lex.ts",
+      "kind": "untracked-native",
+      "bytes": 3487,
+      "sha256": "4c9509f302e5631c052988d6204f236e61fccffe06e4682e78e4bd0e117ceec9"
+    },
+    {
+      "old": "experimental/declarative/svg/xml.ts",
+      "new": "packages/svg/src/xml.ts",
+      "kind": "untracked-native",
+      "bytes": 5228,
+      "sha256": "20281e587eba724dd711d20f01651489eaa4a30a9de9c2b430e7d329a3b7bac8"
+    },
+    {
+      "old": "experimental/declarative/test/cmr-unicode.test.ts",
+      "new": "tests/integration/cmr-unicode.test.ts",
+      "kind": "untracked-native",
+      "bytes": 1631,
+      "sha256": "4d01b6118d5a36cef6d67e4500758606526e57888e1403571c99be906cd1fe43"
+    },
+    {
+      "old": "experimental/declarative/test/cmr.test.ts",
+      "new": "tests/integration/cmr.test.ts",
+      "kind": "untracked-native",
+      "bytes": 3822,
+      "sha256": "90456409ffbdf59621906795bab13940c4a15973ee20c0d0c5322e2acbdb35a6"
+    },
+    {
+      "old": "experimental/declarative/test/declarations.test.ts",
+      "new": "tests/consumer/declarations.test.ts",
+      "kind": "untracked-native",
+      "bytes": 4448,
+      "sha256": "7189d123bb80f7091adc470e0e46acb3e11cad832c50eca0b77ff390ed3aace7"
+    },
+    {
+      "old": "experimental/declarative/test/font-fixture.ts",
+      "new": "tests/fixtures/fonts/font-fixture.ts",
+      "kind": "untracked-native",
+      "bytes": 1089,
+      "sha256": "f4638f8efe93ebe80321cf8a0de3024f21d77881f02f2350046e449070122396"
+    },
+    {
+      "old": "experimental/declarative/test/font-render.test.ts",
+      "new": "tests/integration/font-render.test.ts",
+      "kind": "untracked-native",
+      "bytes": 9029,
+      "sha256": "cf602952080aeb3313c66b355f56a0ac53ee3c0299c0ca7ffc48a569e8a4b559"
+    },
+    {
+      "old": "experimental/declarative/test/font-resources.test.ts",
+      "new": "packages/core/test/font-resources.test.ts",
+      "kind": "untracked-native",
+      "bytes": 6235,
+      "sha256": "44845e48d458db3cd2df5721e57c0aa0c3ad32659eae80843edb2122d23b4970"
+    },
+    {
+      "old": "experimental/declarative/test/fontkit.test.ts",
+      "new": "packages/fontkit/test/fontkit.test.ts",
+      "kind": "untracked-native",
+      "bytes": 5292,
+      "sha256": "e6ed26453c4dc061292d26ebac885890f0869e17d9ac4035f7002a2f4f2ddb9b"
+    },
+    {
+      "old": "experimental/declarative/test/geometry.test.ts",
+      "new": "packages/geometry/test/geometry.test.ts",
+      "kind": "untracked-native",
+      "bytes": 4065,
+      "sha256": "432f4e6d59d1e60be07c80a8aac8d55cb0841610019d2a2b41e43e3de350faca"
+    },
+    {
+      "old": "experimental/declarative/test/painting.test.ts",
+      "new": "tests/integration/painting.test.ts",
+      "kind": "untracked-native",
+      "bytes": 7348,
+      "sha256": "80c97721db0d70d3f4667ae4963112d15eadeb336c7a69a566e523d0bcc25d7a"
+    },
+    {
+      "old": "experimental/declarative/test/pdf-regressions.test.ts",
+      "new": "tests/integration/pdf-regressions.test.ts",
+      "kind": "untracked-native",
+      "bytes": 5348,
+      "sha256": "b1738530f4c63b39ca1300c468d81261dba439a5c4181c70388b352b53a4e33c"
+    },
+    {
+      "old": "experimental/declarative/test/probes/css-budget.ts",
+      "new": "packages/svg/test/probes/css-budget.ts",
+      "kind": "untracked-native",
+      "bytes": 828,
+      "sha256": "df36ecd065bc690ece55b1c5c3c4771191a3e343562f356b2a71798fcbaee21d"
+    },
+    {
+      "old": "experimental/declarative/test/render.test.ts",
+      "new": "packages/core/test/render.test.ts",
+      "kind": "untracked-native",
+      "bytes": 9934,
+      "sha256": "188cbacaf483ba4866ca17628255baffaa1790b88a224deb2bc837d7f6667b39"
+    },
+    {
+      "old": "experimental/declarative/test/svg-audit.test.ts",
+      "new": "packages/svg/test/svg-audit.test.ts",
+      "kind": "untracked-native",
+      "bytes": 8888,
+      "sha256": "f39ce3cef4fc7687ee15d3bd2a54583a2891166e7a915bb69d6a6007be8b2f32"
+    },
+    {
+      "old": "experimental/declarative/test/svg.test.ts",
+      "new": "packages/svg/test/svg.test.ts",
+      "kind": "untracked-native",
+      "bytes": 7723,
+      "sha256": "ed3bfbf217fca0993f891d20d0c8348be9ae4bb6621f4dab56b7ddfadcec7f17"
+    },
+    {
+      "old": "experimental/declarative/test/types/fonts-template.ts",
+      "new": "tests/consumer/types/fonts-template.ts",
+      "kind": "untracked-native",
+      "bytes": 2011,
+      "sha256": "06ce6576c4ee470dccfb5f2f477f11dd47b485f5a835aea8fa17ace6cec1a0d4"
+    },
+    {
+      "old": "experimental/declarative/test/types/native-template.ts",
+      "new": "tests/consumer/types/native-template.ts",
+      "kind": "untracked-native",
+      "bytes": 3190,
+      "sha256": "c4321c58599ce11d4927fceff8aee5a3959dbc27bc3341c263bcb50446246887"
+    },
+    {
+      "old": "experimental/declarative/test/types/painting-template.tsx",
+      "new": "tests/consumer/types/painting-template.tsx",
+      "kind": "untracked-native",
+      "bytes": 2192,
+      "sha256": "9d334ee803d93dd3096118e79c505fda3438c8c82a3916e903a70fb27ce903cc"
+    },
+    {
+      "old": "experimental/declarative/test/types/svg-template.tsx",
+      "new": "tests/consumer/types/svg-template.tsx",
+      "kind": "untracked-native",
+      "bytes": 1623,
+      "sha256": "7cfb1c42612972be2aa0ffdfb2ce8aa9e9da90e89c6df0df0a78b0b8f8026388"
+    },
+    {
+      "old": "experimental/declarative/test/types/vdom-template.tsx",
+      "new": "tests/consumer/types/vdom-template.tsx",
+      "kind": "untracked-native",
+      "bytes": 3544,
+      "sha256": "ae201a93183e53f4e32817293cd811341ff0e0b3618560004b1933370bbdc84d"
+    },
+    {
+      "old": "experimental/declarative/test/vdom.test.ts",
+      "new": "packages/core/test/vdom.test.ts",
+      "kind": "untracked-native",
+      "bytes": 10037,
+      "sha256": "43a167833d11a9180aaa5754abba9e2b650d49f43023a0d773b81732ccec37d6"
+    },
+    {
+      "old": "experimental/declarative/tools/graph-check.ts",
+      "new": "tools/graph-check.ts",
+      "kind": "untracked-native",
+      "bytes": 1945,
+      "sha256": "19111b7783893ce1abe72e7c442c00bfb06d79e5a552c863b3af7ac8b581857d"
+    },
+    {
+      "old": "experimental/declarative/tools/packed-consumer.ts",
+      "new": "tools/packed-consumer.ts",
+      "kind": "untracked-native",
+      "bytes": 4145,
+      "sha256": "2e62652bd326eaad8113bdc8625787f1428d7aa597ebfbc35d647a6e9045257f"
+    },
+    {
+      "old": "experimental/declarative/tools/prepare-fixture.ts",
+      "new": "tools/prepare-fixture.ts",
+      "kind": "untracked-native",
+      "bytes": 3540,
+      "sha256": "4b94d18327255bd6573ebf679140500f834d476f97f20347ae9a6fdb2f999224"
+    },
+    {
+      "old": "experimental/declarative/tools/sizes.ts",
+      "new": "tools/sizes.ts",
+      "kind": "untracked-native",
+      "bytes": 4835,
+      "sha256": "286163552ca137374f1c3930f9893f1c2da27aaa4ed119848b721b743a39e35d"
+    },
+    {
+      "old": "experimental/declarative/tsconfig.build.json",
+      "new": "docs/evidence/baseline/poc-config/tsconfig.build.json",
+      "kind": "untracked-native",
+      "bytes": 398,
+      "sha256": "d835fcd4cabdad4298a7987d1edf7d5e15a2554aa07fd25ecad6d4eac0ab5012"
+    },
+    {
+      "old": "experimental/declarative/tsconfig.json",
+      "new": "docs/evidence/baseline/poc-config/tsconfig.json",
+      "kind": "untracked-native",
+      "bytes": 922,
+      "sha256": "bd60d9f6215b05fc56d70c8f68a896fa26005a90ae2ddfe113b095a5c1697a22"
+    },
+    {
+      "old": "experimental/declarative/types.ts",
+      "new": "packages/core/src/types.ts",
+      "kind": "untracked-native",
+      "bytes": 2433,
+      "sha256": "c62cbe1046178044969d043c9d6a2f35aa4bda241f0e9950b95c6d8bacb19513"
+    },
+    {
+      "old": "experimental/declarative/vdom/create.ts",
+      "new": "packages/core/src/vdom/create.ts",
+      "kind": "untracked-native",
+      "bytes": 2298,
+      "sha256": "df72956492efd22b19b4938d872ae14d33d88ad7b34279200a274370d498c1b6"
+    },
+    {
+      "old": "experimental/declarative/vdom/data.ts",
+      "new": "packages/core/src/vdom/data.ts",
+      "kind": "untracked-native",
+      "bytes": 3754,
+      "sha256": "003fc790a2cc5b278a421e88491930d8a40519d9af41e0854a7be189540c4eb4"
+    },
+    {
+      "old": "experimental/declarative/vdom/expand.ts",
+      "new": "packages/core/src/vdom/expand.ts",
+      "kind": "untracked-native",
+      "bytes": 960,
+      "sha256": "3ac2c69bb9df10b5855cab72717e0d3c674be06ab14b59f66a2f193f54d3d7c6"
+    },
+    {
+      "old": "experimental/declarative/vdom/index.ts",
+      "new": "packages/core/src/vdom/index.ts",
+      "kind": "untracked-native",
+      "bytes": 377,
+      "sha256": "48fc8cf619e0cf8e0924d5757ef8fcfc4bf1811f226161186f509b50382db6b0"
+    },
+    {
+      "old": "experimental/declarative/vdom/lower.ts",
+      "new": "packages/core/src/vdom/lower.ts",
+      "kind": "untracked-native",
+      "bytes": 3725,
+      "sha256": "5c551da25f9e115c945b3ce0737a645e77c436bd211394c2cdc67b8a7ddfaa01"
+    },
+    {
+      "old": "experimental/declarative/vdom/native.ts",
+      "new": "packages/core/src/vdom/native.ts",
+      "kind": "untracked-native",
+      "bytes": 7893,
+      "sha256": "167c7ff1e137be7e3d31fbc94ab347a5543d6be312c208d04a9d94e479efce8c"
+    },
+    {
+      "old": "experimental/declarative/vdom/ownership.ts",
+      "new": "packages/core/src/vdom/ownership.ts",
+      "kind": "untracked-native",
+      "bytes": 405,
+      "sha256": "526d93d54ea9297e506ba296b77bb54373a6004526ca53b40be6ef42fe006c84"
+    },
+    {
+      "old": "experimental/declarative/vdom/registry.ts",
+      "new": "packages/core/src/vdom/registry.ts",
+      "kind": "untracked-native",
+      "bytes": 2691,
+      "sha256": "0c4928aef58f948ae32e9a0d98114ea086fb0294db0d0b83af8d68e9b87bd469"
+    },
+    {
+      "old": "experimental/declarative/vdom/state.ts",
+      "new": "packages/core/src/vdom/state.ts",
+      "kind": "untracked-native",
+      "bytes": 862,
+      "sha256": "1668411cbf0ab1b3f4bd5e6cb08b4b745be85db026d9d4dc62f63db177638262"
+    },
+    {
+      "old": "experimental/declarative/vdom/types.ts",
+      "new": "packages/core/src/vdom/types.ts",
+      "kind": "untracked-native",
+      "bytes": 2783,
+      "sha256": "82c40e894166e6a75ee18264a2d1dd8998873ac4fd4c60043ecc84d3c505a698"
+    }
+  ],
+  "generated": [
+    {
+      "old": "lib/boxes/a4.js",
+      "new": "packages/legacy/lib/boxes/a4.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 121,
+      "sha256": "8b88dc2806f35cf6732487f279eb3762fab7c2cdaa8e32e07c506b452276128c"
+    },
+    {
+      "old": "lib/content/_render.js",
+      "new": "packages/legacy/lib/content/_render.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 445,
+      "sha256": "a9b685c724672ce99ea45da385dad482ba55bae307d42fb69446408e1150e47b"
+    },
+    {
+      "old": "lib/content/barcode/code39.js",
+      "new": "packages/legacy/lib/content/barcode/code39.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 2928,
+      "sha256": "94f485b0e7af1d81d445cf63471235523beada6b512812ec7f4aa69d7f8c4666"
+    },
+    {
+      "old": "lib/content/bind.js",
+      "new": "packages/legacy/lib/content/bind.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 804,
+      "sha256": "510644322a2bbfda39c2ec1223bb3ace4e1588e306ac7d4ac76b043cfe2f0600"
+    },
+    {
+      "old": "lib/content/block.js",
+      "new": "packages/legacy/lib/content/block.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 1536,
+      "sha256": "f5df427aab1074e99849067439675ba2d0df722af653dd77a3b025f47f915ba8"
+    },
+    {
+      "old": "lib/content/box.js",
+      "new": "packages/legacy/lib/content/box.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 1031,
+      "sha256": "4f20181ad0f5814af106eb1514b1288494b6ef2c292a50bbb51292c1ed102173"
+    },
+    {
+      "old": "lib/content/document.js",
+      "new": "packages/legacy/lib/content/document.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 1440,
+      "sha256": "2de5742cc977f16e5bf228407b19c0cb178e1e056763128098183160845b40ea"
+    },
+    {
+      "old": "lib/content/element.js",
+      "new": "packages/legacy/lib/content/element.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 990,
+      "sha256": "5b33986bb53d458c5d978833698c54f265e445f24ecf0888b14445963d65e397"
+    },
+    {
+      "old": "lib/content/image.js",
+      "new": "packages/legacy/lib/content/image.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 3088,
+      "sha256": "a5eb86554d70a2e637eab8f58480ba77ca7a2e3cb3ec52c8674a871dc68cb883"
+    },
+    {
+      "old": "lib/content/imageWithText.js",
+      "new": "packages/legacy/lib/content/imageWithText.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 1368,
+      "sha256": "38eeb86adcb082a2d60a07c5da51325dfdd6e05e7c11e445c23ee7ac4c50e9bb"
+    },
+    {
+      "old": "lib/content/inline.js",
+      "new": "packages/legacy/lib/content/inline.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 497,
+      "sha256": "b4d118d012ddefaea6bdf6541fa5d5794160421e8f5c1b791beb9ef988442155"
+    },
+    {
+      "old": "lib/content/page.js",
+      "new": "packages/legacy/lib/content/page.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 2547,
+      "sha256": "5b0c712f9f3a493a26a1b90e2635602376403f9a9a49e09a27c4931d3e3f1923"
+    },
+    {
+      "old": "lib/content/styles/Css.js",
+      "new": "packages/legacy/lib/content/styles/Css.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 1452,
+      "sha256": "72c406e9b6a5545b2cae39b008f3c33de63062f7dbb24f60cc1ce8a7addc9886"
+    },
+    {
+      "old": "lib/content/styles/border.js",
+      "new": "packages/legacy/lib/content/styles/border.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 527,
+      "sha256": "6a43989c1e09c36f0a39385106448d1201c46dd0154c682469d12965f3105213"
+    },
+    {
+      "old": "lib/content/styles/classRule.js",
+      "new": "packages/legacy/lib/content/styles/classRule.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 232,
+      "sha256": "7a5de45bb61c343a6f3523c12e8dc615d5564a30ea3b34a464fbda8577ccb85d"
+    },
+    {
+      "old": "lib/content/styles/cssParser.js",
+      "new": "packages/legacy/lib/content/styles/cssParser.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 644,
+      "sha256": "89cc2a9de87295d1b9ec52de582e96c3ab6fc6d157afce5bdaa661d346c2c918"
+    },
+    {
+      "old": "lib/content/svg/Circle.js",
+      "new": "packages/legacy/lib/content/svg/Circle.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 465,
+      "sha256": "18f54167f3e338292b2270652cca2abd70849668c61e2085d54d06ea5133a940"
+    },
+    {
+      "old": "lib/content/svg/Ellipse.js",
+      "new": "packages/legacy/lib/content/svg/Ellipse.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 496,
+      "sha256": "eb70487be516f4b4a064b8da6ff3f07dc40c3d62ebe86bdf364c427c50e62e93"
+    },
+    {
+      "old": "lib/content/svg/Group.js",
+      "new": "packages/legacy/lib/content/svg/Group.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 340,
+      "sha256": "247ba48791b7d67108b66fd2a216c83018139954c018f8ba15ab300d8a7c44b2"
+    },
+    {
+      "old": "lib/content/svg/Line.js",
+      "new": "packages/legacy/lib/content/svg/Line.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 491,
+      "sha256": "ee0003b45ba483aceffeb6383f42f6f6a460c2b7188a6a0549122032d11c9fac"
+    },
+    {
+      "old": "lib/content/svg/Path.js",
+      "new": "packages/legacy/lib/content/svg/Path.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 1264,
+      "sha256": "64e5f545e40ef9d5ce8aa6d5332d20667b9c46394e31590ad7f194cddd9cc013"
+    },
+    {
+      "old": "lib/content/svg/Polygon.js",
+      "new": "packages/legacy/lib/content/svg/Polygon.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 532,
+      "sha256": "f362cef80fe021bb6e711b9bdf892ce13bfd23899b2562f634cd9e0840619b2a"
+    },
+    {
+      "old": "lib/content/svg/Polyline.js",
+      "new": "packages/legacy/lib/content/svg/Polyline.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 536,
+      "sha256": "b610871887394d8bd72260a7c58c339901e7f60b55aa9904a7e89e32d8f4d09a"
+    },
+    {
+      "old": "lib/content/svg/Rect.js",
+      "new": "packages/legacy/lib/content/svg/Rect.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 497,
+      "sha256": "694ee2aeac12dd52dd2a467070999c985afcfe908ecae95060e70e401668ec67"
+    },
+    {
+      "old": "lib/content/svg/Style.js",
+      "new": "packages/legacy/lib/content/svg/Style.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 810,
+      "sha256": "d8d9ed64c260f8bcacc07a31f53dd0fdc60f1d0715b92516b4452f4ebf94a476"
+    },
+    {
+      "old": "lib/content/svg/Svg.js",
+      "new": "packages/legacy/lib/content/svg/Svg.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 4622,
+      "sha256": "212b70914a714e718a64d23d1a98965b181578b5e728a665172a9ec8658e3d9b"
+    },
+    {
+      "old": "lib/content/svg/SvgFromText.js",
+      "new": "packages/legacy/lib/content/svg/SvgFromText.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 545,
+      "sha256": "c3e3f6ddc377aa584a9a37c6fa9f6b010b86fef7b4b1b9fd98750e9e8886eb86"
+    },
+    {
+      "old": "lib/content/svg/_applyStyles.js",
+      "new": "packages/legacy/lib/content/svg/_applyStyles.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 1430,
+      "sha256": "294ea250f5f4dafb373ca3c74143812f6794698e2b1ab8c49ad0d4125f152869"
+    },
+    {
+      "old": "lib/content/svg/_renderOp.js",
+      "new": "packages/legacy/lib/content/svg/_renderOp.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 579,
+      "sha256": "653768bba5fcad4faf3391d9191752cb47447466ed2209e239a1f7cca8556684"
+    },
+    {
+      "old": "lib/content/svg/pathParser.js",
+      "new": "packages/legacy/lib/content/svg/pathParser.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 2170,
+      "sha256": "202935f8fe565303a5a001786c2b3dc299c66cdee4f9a4f44ab7ae2c6622fa54"
+    },
+    {
+      "old": "lib/content/svg/svgFactory.js",
+      "new": "packages/legacy/lib/content/svg/svgFactory.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 1790,
+      "sha256": "fd829a161a5025eff36c6b88944e4bda859cdba4c8099238d885cee5c1f6aa22"
+    },
+    {
+      "old": "lib/content/text.js",
+      "new": "packages/legacy/lib/content/text.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 1246,
+      "sha256": "1a028b1c758760c8443c58c7ca2eb5199b53c2a42c93f289314201c72bf98ff7"
+    },
+    {
+      "old": "lib/content/util/Lexer.js",
+      "new": "packages/legacy/lib/content/util/Lexer.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 4051,
+      "sha256": "ba088b7e712c0d875355cc052b9ce3a719a28300998a5c3600d79d1c816fe046"
+    },
+    {
+      "old": "lib/content/util/asStyle.js",
+      "new": "packages/legacy/lib/content/util/asStyle.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 840,
+      "sha256": "c0a0e124f076ca7cd1451e5bfcfdbf9bcce9e1af539eee2e2967a2d7986bb7ee"
+    },
+    {
+      "old": "lib/content/util/parseXml.js",
+      "new": "packages/legacy/lib/content/util/parseXml.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 4068,
+      "sha256": "7f626aa7214e0a339d6a2c9b0642ba3047c1c580f97ce0454303d7a710e9ba3f"
+    },
+    {
+      "old": "lib/content/util/replaceDiacritics.js",
+      "new": "packages/legacy/lib/content/util/replaceDiacritics.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 677,
+      "sha256": "b51490bac7c0ed04715190ae3378ac2a93a3f5994feeb662f27ed2003a553b7f"
+    },
+    {
+      "old": "lib/content/util/transform.js",
+      "new": "packages/legacy/lib/content/util/transform.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 2204,
+      "sha256": "5610c980dacbd2f439b02f52a98783adcca817d728dcf00cb09dad5a29cafd33"
+    },
+    {
+      "old": "lib/content/vector/Context2d.js",
+      "new": "packages/legacy/lib/content/vector/Context2d.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 17180,
+      "sha256": "4939c34a7e99095b106743e4ff499e2d012bc42fa1cbf2b63b1762eec4fab922"
+    },
+    {
+      "old": "lib/content/vector/a2c.js",
+      "new": "packages/legacy/lib/content/vector/a2c.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 4928,
+      "sha256": "e13fe3e00b9e5c27ee33bb8c243f8375aecddacbbcaaf518252072ac692ee48a"
+    },
+    {
+      "old": "lib/content/vector/parseColor.js",
+      "new": "packages/legacy/lib/content/vector/parseColor.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 819,
+      "sha256": "af88f2dd92af6c8e8dc6b9048154cad02051ddb8e8b3a7194366c0a5db94f622"
+    },
+    {
+      "old": "lib/content/vector/rect.js",
+      "new": "packages/legacy/lib/content/vector/rect.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 727,
+      "sha256": "bd84c5c628bbc2be5793e36e8fc05ec7e74fe6e8a9e186e83574250d8580734d"
+    },
+    {
+      "old": "lib/content/vector/solveArc.js",
+      "new": "packages/legacy/lib/content/vector/solveArc.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 3751,
+      "sha256": "a8c99b275d2ff8bc37c2fa0339151b84f7b9c6a22e05b2f3faf7f5b97a533e37"
+    },
+    {
+      "old": "lib/font/BaseFont.js",
+      "new": "packages/legacy/lib/font/BaseFont.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 1695,
+      "sha256": "e91ddc6afe8b5b615c54e96f46827ee1858a3e4ed1e85eef642f6892727ef47c"
+    },
+    {
+      "old": "lib/font/helvetica.js",
+      "new": "packages/legacy/lib/font/helvetica.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 5079,
+      "sha256": "466c741fed5a6853a109cf5a951fe22c414781cd8c3616dd10d4d5a9e350ddc3"
+    },
+    {
+      "old": "lib/image/jpeg.js",
+      "new": "packages/legacy/lib/image/jpeg.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 2975,
+      "sha256": "d4e3be110064de816b692bc885e3a98e456b724612c5918b9a0ff791ceb86813"
+    },
+    {
+      "old": "lib/image.js",
+      "new": "packages/legacy/lib/image.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 1675,
+      "sha256": "f4167a48c23fc524f820dc56dc3c5e00e9f82998cb744e6e825f9c3261c26765"
+    },
+    {
+      "old": "lib/index.js",
+      "new": "packages/legacy/lib/index.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 3279,
+      "sha256": "dd040a8ad28dcb6d2da47da3522e3083b306e4f32818821e0c56fbd4ef576806"
+    },
+    {
+      "old": "lib/ref.js",
+      "new": "packages/legacy/lib/ref.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 1196,
+      "sha256": "46722dc945059faa63e768339551084b9f3d05e1b8a067d18e7eac9a899305e9"
+    },
+    {
+      "old": "lib/stream.js",
+      "new": "packages/legacy/lib/stream.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 1367,
+      "sha256": "be2405dccf06d0945a536cebfb03e686384074be5b928165304f8f742941012c"
+    },
+    {
+      "old": "lib/units/mm.js",
+      "new": "packages/legacy/lib/units/mm.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 169,
+      "sha256": "b1c46565a7208c795a256f3bb7be4df7abcb6ac0dd6d75ae52cffb4e4e4a1b4f"
+    },
+    {
+      "old": "lib/util/isFunction.js",
+      "new": "packages/legacy/lib/util/isFunction.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 193,
+      "sha256": "ecd3c42ef3755369b92c44f3c9bfb717ca3171fabd6fe605fda4004db3c2672a"
+    },
+    {
+      "old": "lib/vdom/buildComponent.js",
+      "new": "packages/legacy/lib/vdom/buildComponent.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 440,
+      "sha256": "fcb2275e138efb47b0d965d1093556dbb056f37c0afdfead92e987af7e4a6d6f"
+    },
+    {
+      "old": "lib/vdom/buildProps.js",
+      "new": "packages/legacy/lib/vdom/buildProps.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 229,
+      "sha256": "9284144891c426add4d1b3dd6f51a755f058e426037f78110a376ba092e02b8d"
+    },
+    {
+      "old": "lib/vdom/isComponent.js",
+      "new": "packages/legacy/lib/vdom/isComponent.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 426,
+      "sha256": "ffdafdc9b53c1931b689d2cc61518801cfb8c23355462469af0db66b4bbb2baf"
+    },
+    {
+      "old": "lib/vdom/layouter.js",
+      "new": "packages/legacy/lib/vdom/layouter.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 11518,
+      "sha256": "7d880a756420309818b878ddfc1e49dd075c0b71cc37851393f6a19e4e3f173e"
+    },
+    {
+      "old": "lib/vdom/reduce.js",
+      "new": "packages/legacy/lib/vdom/reduce.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 1423,
+      "sha256": "1e6ebe014ee48e0bb0b88d43c14c45781ea4359c739c9654993ef1b451a275d0"
+    },
+    {
+      "old": "lib/vdom/renderer.js",
+      "new": "packages/legacy/lib/vdom/renderer.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 1967,
+      "sha256": "5bdbfc201c2e0d7ef33deb96efb48ff74583791e6c6be0ba64c04bab8db9c7da"
+    },
+    {
+      "old": "lib/writer.js",
+      "new": "packages/legacy/lib/writer.js",
+      "kind": "ignored-generated-legacy",
+      "bytes": 5203,
+      "sha256": "7cebe35876445498c141443d37db8b8ee95adcd949ff2026197b54b317e884d7"
+    }
+  ]
+}
