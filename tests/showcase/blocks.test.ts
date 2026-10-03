@@ -17,7 +17,7 @@ test("visible block/chart demo has actual sources, Node/browser bytes, error/hid
     assert.deepEqual(await pdf(page), blockExample("Hello portable PDF").bytes);
     await rendered(page, blockExample("Hello portable PDF").result.pageCount);
     await blockSource(page);
-    assert.match(await page.getByRole("status").innerText(), /3 source blocks; .*fragments.*Overflow: error/u);
+    assert.match(await page.getByRole("status").innerText(), /3 authored body blocks; .*fragments.*Overflow: error/u);
     await page.getByLabel("Block border-box height (0 = natural)").fill("48");
     await retained(page);
     await page
@@ -52,7 +52,7 @@ test("visible block/chart demo has actual sources, Node/browser bytes, error/hid
   }
 });
 async function blockSource(page: import("playwright").Page): Promise<void> {
-  const example = await readFile(new URL("../../apps/showcase/src/blocks.ts", import.meta.url), "utf8");
+  const example = await readFile(new URL("../../apps/showcase/src/blocks.tsx", import.meta.url), "utf8");
   const chart = await readFile(new URL("../../apps/showcase/src/chart.ts", import.meta.url), "utf8");
   assert.equal(
     await page.locator("#source").textContent(),

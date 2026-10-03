@@ -22,7 +22,11 @@ export function mountBlockProof(): void {
 export function containerProof() {
   return blockExample("Browser C proof", { ...blockDefaults, blockHeight: 48, hidden: true });
 }
-function mount(proof: ReturnType<typeof blockProof>, name: string, label: string): void {
+function mount(
+  proof: ReturnType<typeof blockProof> | ReturnType<typeof containerProof>,
+  name: string,
+  label: string,
+): void {
   const url = URL.createObjectURL(new Blob([proof.bytes], { type: "application/pdf" }));
   const link = document.createElement("a");
   link.href = url;

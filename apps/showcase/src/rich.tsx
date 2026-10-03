@@ -2,8 +2,7 @@
 import { render } from "@updf/core";
 import type { ParagraphDefinition } from "@updf/core/measurement";
 import { createContext, lower, useContext } from "@updf/core/vdom";
-import { createExtensions, measure, Paragraph, Span } from "@updf/layout";
-import { Document } from "@updf/layout/vdom";
+import { createExtensions, Document, Flow, measure, Paragraph, pageSize, Span } from "@updf/layout";
 import { badge, badgeAdapter } from "./inline-badge.js";
 
 const Theme = createContext({ accent: [0.75, 0.12, 0.08] as const, body: [0.08, 0.2, 0.65] as const });
@@ -55,11 +54,14 @@ export function richExample(title: string, controls: RichControls = richDefaults
   );
   const measurement = measure(content, { width: controls.width }, { extensions });
   const tree = (
-    <Document
-      extensions={extensions}
-      pageTemplate={{ width: controls.width + 80, height: 842, margins: { top: 40, right: 40, bottom: 40, left: 40 } }}
-    >
-      {content}
+    <Document>
+      <Flow
+        extensions={extensions}
+        pageSize={pageSize(controls.width + 80, 842)}
+        margins={{ top: 40, right: 40, bottom: 40, left: 40 }}
+      >
+        {content}
+      </Flow>
     </Document>
   );
   const bytes = render(lower(tree));

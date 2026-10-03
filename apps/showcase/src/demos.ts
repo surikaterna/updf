@@ -6,14 +6,13 @@ import paintingSource from "./painting.ts?raw";
 import type { RichControls } from "./rich.js";
 import richSource from "./rich.tsx?raw";
 import type { TableControls } from "./tables.js";
-import { templateDemo } from "./template.js";
 import templateSource from "./template.tsx?raw";
 import { textDemo } from "./text.js";
 import textSource from "./text.ts?raw";
 
 export const demos = {
   text: { source: textSource, render: textDemo },
-  template: { source: templateSource, render: templateDemo },
+  template: { source: templateSource },
   painting: { source: paintingSource, render: paintingDemo },
   rich: { source: richSource },
 };
@@ -46,6 +45,7 @@ export async function generate(
   mixed?: MixedControls,
 ): Promise<{ bytes: Uint8Array; source: string; summary?: string }> {
   if (title.length > 40) throw new Error("Title must be at most 40 characters");
+  if (id === "template") return templateResult(title);
   if (id === "mixed") return mixedResult(title, mixed);
   if (id === "blocks") return blockResult(title, blocks);
   if (id === "tables") {
@@ -64,7 +64,7 @@ export async function generate(
     return {
       bytes: result.bytes,
       source,
-      summary: `${result.result.pageCount} pages; ${result.result.consumed} source blocks consumed.`,
+      summary: `${result.result.pageCount} pages; ${result.authoredParagraphCount} authored paragraphs; ${result.result.placements.length} fragments.`,
     };
   }
   if (id === "rich") {
@@ -82,6 +82,10 @@ export async function generate(
   }
   return { bytes: demos[id].render(title), source: demos[id].source };
 }
+async function templateResult(title: string) {
+  const { templateDemo } = await import("./template.js");
+  return { bytes: templateDemo(title), source: templateSource };
+}
 async function mixedResult(title: string, controls?: MixedControls) {
   const { mixedExample, source } = await import("./optional-mixed.js");
   const result = mixedExample(title, controls);
@@ -93,10 +97,10 @@ async function mixedResult(title: string, controls?: MixedControls) {
 }
 async function blockResult(title: string, controls?: BlockControls) {
   const { blockExample, source } = await import("./optional-blocks.js");
-  const { bytes, result } = blockExample(title, controls);
+  const { bytes, result, authoredBodyBlockCount } = blockExample(title, controls);
   return {
     bytes,
     source,
-    summary: `${result.pageCount} pages; ${result.consumed} source blocks; ${result.placements.length} fragments. Overflow: ${controls?.hidden ? "hidden (not redaction)" : "error"}.`,
+    summary: `${result.pageCount} pages; ${authoredBodyBlockCount} authored body blocks; ${result.placements.length} fragments. Overflow: ${controls?.hidden ? "hidden (not redaction)" : "error"}.`,
   };
 }

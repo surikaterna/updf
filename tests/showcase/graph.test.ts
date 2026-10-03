@@ -28,7 +28,7 @@ test("production chunk graph keeps SVG and flow optional and excludes Node, Reac
   const entry = chunks.find((chunk) => chunk.isEntry && chunk.modules.some((name) => name.endsWith("/src/main.ts")));
   assert.ok(entry);
   const initial = closure(chunks, entry, false);
-  assert.ok(initial.some((name) => name.includes("/core/dist/vdom/")));
+  assert.ok(initial.some((name) => name.includes("/core/dist/")));
   assert.ok(!initial.some((name) => /\/packages\/(svg|geometry|layout|tables)\//.test(name)));
   assert.ok(!initial.some((name) => name.includes("/pdfjs-dist/")));
   const plasma = chunks.find(
@@ -66,13 +66,21 @@ function layoutClosures(chunks: readonly Chunk[], entry: Chunk): void {
       chunk.modules.some((name) => name.endsWith("/src/optional-flow.ts")),
   );
   assert.ok(flow);
-  assert.ok(closure(chunks, flow).some((name) => name.endsWith("/layout/dist/index.js")));
+  assert.ok(closure(chunks, flow).some((name) => name.endsWith("/layout/dist/mixed-layout.js")));
   assert.ok(!flow.modules.some((name) => /\/packages\/(svg|geometry)\//u.test(name)));
   assert.ok(!closure(chunks, flow).some((name) => /\/layout\/dist\/tables\//u.test(name)));
   tableClosure(chunks, entry);
   assert.ok(!closure(chunks, entry).some((name) => /\/layout\//u.test(name)));
   paragraphClosure(chunks, entry);
   mixedClosure(chunks, entry);
+  const template = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/template.tsx")));
+  assert.ok(template && entry.dynamicImports.includes(template.fileName));
+  assert.ok(closure(chunks, template).some((name) => name.endsWith("/layout/dist/mixed-layout.js")));
+  assert.ok(
+    !closure(chunks, template).some((name) =>
+      /\/packages\/(svg|geometry|tables)\/|\/layout\/dist\/tables\//u.test(name),
+    ),
+  );
   const blocks = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-blocks.ts")));
   assert.ok(blocks && entry.dynamicImports.includes(blocks.fileName));
   assert.ok(closure(chunks, blocks).some((name) => name.endsWith("/src/chart.ts")));

@@ -25,8 +25,8 @@ test("optional flow actual source/downloads, bounded mobile controls, page count
     await page.getByRole("button", { name: "Generate PDF" }).click();
     assert.deepEqual(await pdf(page), flowExample("Hello portable PDF").bytes);
     await rendered(page, flowExample("Hello portable PDF").result.pageCount);
-    await source(page, "flow.ts");
-    assert.match(await page.getByRole("status").innerText(), /3 pages; 6 source blocks consumed/);
+    await source(page, "flow.tsx");
+    assert.match(await page.getByRole("status").innerText(), /3 pages; 6 authored paragraphs; \d+ fragments/);
     await page.getByLabel("Paragraph count", { exact: true }).fill("2");
     await retained(page);
     await page.getByLabel("Page preset", { exact: true }).selectOption("letter");
@@ -45,7 +45,7 @@ test("optional flow actual source/downloads, bounded mobile controls, page count
     await page.getByLabel("Page preset", { exact: true }).selectOption("overflow");
     await page
       .getByRole("status")
-      .filter({ hasText: /LAYOUT_OVERSIZED at \/body\/0/ })
+      .filter({ hasText: /LAYOUT_OVERSIZED at \/document\/children\/body\/0/ })
       .waitFor();
     await retained(page);
     await page.getByLabel("Paragraph count", { exact: true }).focus();

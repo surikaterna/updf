@@ -23,15 +23,15 @@
           <form id="demo-form">
             <label for="example">Example</label>
             <select id="example" name="example">
-              <option value="text">Fixed-position text &amp; simple layout</option>
-              <option value="template">Immutable typed TSX components → lower → render</option>
+              <option value="text">Natively positioned text</option>
+              <option value="template">Typed reusable components with measured flow</option>
               <option value="rich">Rich text &amp; shared measurement</option>
               <option value="flow">Optional measured flow &amp; repeated page regions</option>
               <option value="mixed">Mixed fixed pages &amp; flow with final page counts</option>
               <option value="tables">Optional paged inventory table &amp; mixed prose</option>
               <option value="blocks">Optional generic blocks &amp; external chart</option>
-              <option value="painting">Native paths, paint, colors, clips &amp; transforms</option>
-              <option value="svg">Optional SVG subset (loaded on demand)</option>
+              <option value="painting">Native painting: paths, colors, clips &amp; transforms</option>
+              <option value="svg">Advanced: native SVG adapter (loaded on demand)</option>
             </select>
             <label for="title">PDF title</label>
             <input id="title" name="title" value="Hello portable PDF" maxlength="40" aria-describedby="title-help" />
@@ -99,7 +99,7 @@
             <button id="reset-demo" type="button">Reset</button>
             <p id="status" role="status" aria-live="polite" aria-atomic="true">Ready. Generate a PDF; nothing leaves this browser.</p>
           </form>
-          <div><h3>Executed TypeScript / TSX</h3><pre tabindex="0" aria-label="Example source"><code id="source"></code></pre></div>
+          <div><h3>Executed TypeScript / TSX</h3><p>Uppercase TSX names are imported or reusable components such as Document, Flow, Block and Paragraph. Lowercase names such as text and rect are native renderer intrinsics, used deliberately for fixed-position drawing. The mixed example includes its native fixed-page helper below the main source; chart and SVG adapters are advanced application examples, not built-in Chart or Svg APIs.</p><pre tabindex="0" aria-label="Example source"><code id="source"></code></pre></div>
         </div>
         <div id="output" hidden>
           <h3>Your PDF</h3>
@@ -110,7 +110,7 @@
       </section>
       <section id="limits" aria-labelledby="limits-heading">
         <h2 id="limits-heading">Core first. Optional means optional.</h2>
-        <p>The entry loads core and native VDOM, not React, Fontkit, Node APIs or SVG. The SVG adapter and geometry load in a separate chunk only when requested. Native paths need no geometry adapter.</p>
+        <p>The entry loads core, not React, Fontkit, Node APIs or SVG. Native VDOM, measured TSX templates and layout demos load on demand, as do the SVG adapter and geometry. Native paths need no geometry adapter.</p>
         <p>Fonts can use prepared resources through <code>@updf/core/fonts</code>; the optional <code>@updf/fontkit</code> adapter prepares trusted static TrueType bytes. This showcase does not load Fontkit or ship font assets.</p>
         <ul>
            <li>Core uses fixed point geometry and explicit pages. Optional layout supports measured blocks, padding/border/gap and error/hidden overflow, repeated regions and explicit-width atomic table rows, not general CSS layout or row/column spans.</li>

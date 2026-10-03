@@ -1,2 +1,5 @@
 export { mixedExample } from "./mixed.js";
-export { default as source } from "./mixed.ts?raw";
+
+import fixed from "./fixed-pages.tsx?raw";
+import mixed from "./mixed.tsx?raw";
+export const source = `${mixed}\n// Imported native fixed-position examples: fixed-pages.tsx\n${fixed}`;

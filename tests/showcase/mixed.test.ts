@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { mixedExample } from "../../apps/showcase/src/mixed.js";
 import { textDemo } from "../../apps/showcase/src/text.js";
-import { observeUrls, pdf, rendered, retained, screenshot, settledModule, site, source } from "./helpers.js";
+import { observeUrls, pdf, rendered, retained, screenshot, settledModule, site } from "./helpers.js";
 
 test("mixed showcase actual source, all-page extraction, themed controls, mobile labels and Blob cleanup", async () => {
   const app = await site();
@@ -16,7 +17,7 @@ test("mixed showcase actual source, all-page extraction, themed controls, mobile
     const expected = mixedExample("Hello portable PDF");
     assert.deepEqual(await pdf(page), expected.bytes);
     await rendered(page, expected.pageCount);
-    await source(page, "mixed.ts");
+    await mixedSource(page);
     const path = new URL("../../artifacts/showcase/updf-mixed.pdf", import.meta.url).pathname;
     execFileSync("qpdf", ["--check", path]);
     const extracted = execFileSync("pdftotext", [path, "-"], { encoding: "utf8" });
@@ -89,8 +90,16 @@ test("mixed optional-chunk failure and slow theme changes cannot install stale P
         footer: true,
       }).bytes,
     );
-    await source(delayed, "mixed.ts");
+    await mixedSource(delayed);
   } finally {
     await app.close();
   }
 });
+async function mixedSource(page: import("playwright").Page): Promise<void> {
+  const main = await readFile(new URL("../../apps/showcase/src/mixed.tsx", import.meta.url), "utf8");
+  const fixed = await readFile(new URL("../../apps/showcase/src/fixed-pages.tsx", import.meta.url), "utf8");
+  assert.equal(
+    await page.locator("#source").textContent(),
+    `${main}\n// Imported native fixed-position examples: fixed-pages.tsx\n${fixed}`,
+  );
+}
