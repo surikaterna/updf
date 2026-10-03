@@ -93,6 +93,11 @@ for custom bases, the **manual-only** workflow, retained licenses and required
 separate delivery authorization. Expected eventual URL: `https://surikaterna.github.io/updf/`;
 **not claimed live**. [Local evidence](docs/evidence/pages-showcase.md) awaits independent audit.
 
+The separate [Amiga-style plasma](apps/showcase/plasma.html) entry at `/updf/plasma.html`
+loads its SVG → PDF → PDF.js pipeline only on Play. It targets 25 fps with a bounded
+extra-frame buffer (default 10), not a guaranteed production or mobile frame rate.
+See [implementation and reproducible measurements](docs/evidence/plasma-showcase.md).
+
 ## Small typed PDF
 
 Complete source: [`apps/node/src/hello.ts`](apps/node/src/hello.ts).

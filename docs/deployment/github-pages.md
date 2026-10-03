@@ -46,6 +46,14 @@ the same environment, for example `SHOWCASE_BASE=/ npm run build:showcase` and
 paths are accepted. Tests intentionally require the project path `/updf/`.
 For local dev: `npm run dev -w @updf/showcase` after the native package build.
 
+The additional `/updf/plasma.html` entry is linked from the existing showcase.
+Its shell loads no core/SVG/PDF.js runtime before Play. It uses a separate persistent
+worker renderer and fixed 320×200 canvas backing pixels, unlike the existing
+multi-page high-DPI preview, which is unchanged. Both HTML entries and all worker,
+runtime and notice assets inherit the configured base. See
+[plasma evidence and measurements](../evidence/plasma-showcase.md); no deployment
+or guaranteed frame rate is claimed.
+
 `build:showcase` builds only core → geometry → SVG → site, with an independent
 site typecheck. It does not redefine root `build`, `test`, or legacy gates.
 `test:showcase` checks actual production assets and Chromium PDFs against Node,
