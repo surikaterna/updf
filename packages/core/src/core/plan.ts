@@ -1,6 +1,7 @@
 import type { PreparedFont, PreparedGlyph } from "../fonts/types.js";
+import type { PrivateFragment } from "../measurement/lines.js";
 import type { Matrix, PaintGroup, PathNode, ResolvedDrawing } from "../painting/types.js";
-import type { LineNode, RectangleNode, TextNode } from "../types.js";
+import type { LineNode, RectangleNode, RichTextNode, TextNode } from "../types.js";
 
 export interface MeasuredLine {
   readonly text: string;
@@ -12,6 +13,9 @@ export interface MeasuredLine {
 export interface MeasuredText extends TextNode {
   readonly lines: readonly MeasuredLine[];
   readonly preparedFont?: PreparedFont;
+}
+export interface MeasuredRichText extends RichTextNode {
+  readonly fragments: readonly PrivateFragment[];
 }
 
 export interface MeasuredPage {
@@ -31,4 +35,10 @@ export interface MeasuredPath extends PathNode {
 export interface MeasuredPaintGroup extends PaintGroup<MeasuredNode> {
   readonly matrix: Matrix;
 }
-export type MeasuredNode = MeasuredText | MeasuredRectangle | MeasuredLineNode | MeasuredPath | MeasuredPaintGroup;
+export type MeasuredNode =
+  | MeasuredText
+  | MeasuredRichText
+  | MeasuredRectangle
+  | MeasuredLineNode
+  | MeasuredPath
+  | MeasuredPaintGroup;

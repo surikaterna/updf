@@ -1,8 +1,13 @@
+import { scheduleArray } from "../core/data.js";
 import { fail } from "../core/error.js";
+import { checkLimit, codePoints } from "../core/policy.js";
+import { work } from "../measurement/ledger.js";
 import { matrix, multiply } from "../painting/affine.js";
-import { dataArray, keys } from "./data.js";
+import { enterProvider } from "./context.js";
+import { keys } from "./data.js";
 import { expand } from "./expand.js";
 import { isVNode } from "./ownership.js";
+import { beginExpansion } from "./progress.js";
 import type { Location, State, Walk } from "./state.js";
 import { Fragment, type NativeVNode } from "./types.js";
 
@@ -22,51 +27,89 @@ function group(node: NativeVNode, location: Location, path: string, depth: numbe
 }
 
 function textContent(value: unknown, path: string, depth: number, state: State): string {
-  if (depth > 128 || ++state.units > 10000) fail("LIMIT", path, "VDOM expansion budget exceeded");
-  if (value == null || typeof value === "boolean") return "";
+  const output: TextOutput = { tasks: [], chunks: [], points: 0, state };
+  const environment = state.environment;
+  const expansionCount = state.expansions.length;
+  try {
+    textStep(value, path, depth, output);
+    while (output.tasks.length) output.tasks.pop()?.();
+    return output.chunks.join("");
+  } finally {
+    state.environment = environment;
+    state.expansions.length = expansionCount;
+  }
+}
+interface TextOutput {
+  readonly tasks: (() => void)[];
+  readonly chunks: string[];
+  points: number;
+  readonly state: State;
+}
+function textStep(value: unknown, path: string, depth: number, output: TextOutput): void {
+  const { state, tasks } = output;
+  checkLimit(depth, state.budget.policy.depth, path, "VDOM depth");
+  work(state.budget, 1, path);
+  if (value == null || typeof value === "boolean") return;
   if (typeof value === "string") {
-    if (value.length > 4096) fail("LIMIT", path, "Text node too long");
-    return value;
+    output.points = checkLimit(
+      output.points + codePoints(value),
+      state.budget.policy.textCodePoints,
+      path,
+      "Text code points",
+    );
+    output.chunks.push(value);
+    return;
   }
   if (!value || typeof value !== "object") fail("TYPE", path, "Text children must resolve to strings, not numbers");
   if (state.active.has(value)) fail("VDOM_CYCLE", path, "Cyclic text children");
   state.active.add(value);
-  try {
-    return textContainer(value, path, depth, state);
-  } finally {
+  const expansionCount = state.expansions.length;
+  beginExpansion(value, state.expansions, state.environment, path);
+  const previous = state.environment;
+  tasks.push(() => {
     state.active.delete(value);
-  }
+    state.expansions.length = expansionCount;
+    state.environment = previous;
+  });
+  state.sourceNodes = checkLimit(state.sourceNodes + 1, state.budget.policy.nodes, path, "VDOM source nodes");
+  textContainer(value, path, depth, output);
 }
 
-function textContainer(value: object, path: string, depth: number, state: State): string {
+function textContainer(value: object, path: string, depth: number, output: TextOutput): void {
+  const { state, tasks } = output;
   if (Array.isArray(value)) {
-    dataArray(value, path);
-    let content = "";
-    for (let i = 0; i < value.length; i++) {
-      const next = textContent(value[i], `${path}/${i}`, depth + 1, state);
-      if (content.length + next.length > 4096) fail("LIMIT", path, "Text node too long");
-      content += next;
-    }
-    return content;
+    scheduleArray(value, path, tasks, (item, i) => textStep(item, `${path}/${i}`, depth + 1, output));
+    return;
   }
   if (!isVNode(value)) fail("TYPE", path, "Expected a library fragment or component resolving to text");
-  if (value.kind !== "native") return textContent(expand(value, state, path), `${path}/expanded`, depth + 1, state);
+  if (value.kind === "provider") {
+    const { children } = enterProvider(value, state);
+    tasks.push(() => textStep(children, `${path}/provider`, depth + 1, output));
+    return;
+  }
+  if (value.kind !== "native") {
+    const child = expand(value, state, path);
+    tasks.push(() => textStep(child, `${path}/expanded`, depth + 1, output));
+    return;
+  }
   if (value.tag !== Fragment) fail("TYPE", path, "Rich text and drawing children inside text are unsupported");
   keys(value.props, ["children"], `${path}/props`);
-  return textContent(value.props.children, `${path}/props/children`, depth + 1, state);
+  tasks.push(() => textStep(value.props.children, `${path}/props/children`, depth + 1, output));
 }
 
 function drawing(node: NativeVNode, location: Location, path: string, depth: number, state: State): void {
   if (location.mode !== "draw" || !location.page) fail("VDOM_HIERARCHY", path, "Drawing nodes belong inside a page");
   const boxKeys = ["x", "y", "width", "height"];
   const allowed =
-    node.tag === "path"
-      ? ["commands", "paint", "transform"]
-      : node.tag === "line"
-        ? ["x", "y", "x2", "y2", "paint", "transform"]
-        : node.tag === "text"
-          ? [...boxKeys, "text", "children", "fontSize", "lineHeight", "align", "font"]
-          : [...boxKeys, "paint", "transform"];
+    node.tag === "richText"
+      ? [...boxKeys, "paragraphs"]
+      : node.tag === "path"
+        ? ["commands", "paint", "transform"]
+        : node.tag === "line"
+          ? ["x", "y", "x2", "y2", "paint", "transform"]
+          : node.tag === "text"
+            ? [...boxKeys, "text", "children", "fontSize", "lineHeight", "align", "font"]
+            : [...boxKeys, "paint", "transform"];
   keys(node.props, allowed, `${path}/props`);
   const props = { ...node.props };
   if (node.tag === "text") {
@@ -81,6 +124,8 @@ function drawing(node: NativeVNode, location: Location, path: string, depth: num
   const target = location.target ?? location.page.children;
   const base = location.astPath ?? `/pages/${state.pages.indexOf(location.page)}`;
   state.origins.set(`${base}/children/${target.length}`, `${path}/props`);
+  reserveNode(state, path);
+  reserveContent(props, node.tag, state, path);
   target.push({ type: node.tag, ...props });
   if (node.tag === "text" && !("text" in node.props)) {
     state.origins.set(`${base}/children/${target.length - 1}/text`, `${path}/props/children`);
@@ -118,6 +163,7 @@ function paintingGroup(
   const base = location.astPath ?? `/pages/${state.pages.indexOf(location.page)}`;
   const astPath = `${base}/children/${target.length}`;
   state.origins.set(astPath, `${path}/props`);
+  reserveNode(state, path);
   target.push({ type: "paintGroup", ...props, children });
   walk(
     node.props.children,
@@ -158,8 +204,44 @@ function document(node: NativeVNode, location: Location, path: string, depth: nu
 function page(node: NativeVNode, location: Location, path: string, depth: number, state: State, walk: Walk): void {
   if (location.mode !== "pages") fail("VDOM_HIERARCHY", path, "Pages must be direct document children after expansion");
   keys(node.props, ["width", "height", "children"], `${path}/props`);
+  checkLimit(state.pages.length + 1, state.budget.policy.pages, path, "Pages");
   const output = { width: node.props.width, height: node.props.height, children: [] };
   state.origins.set(`/pages/${state.pages.length}`, `${path}/props`);
   state.pages.push(output);
   walk(node.props.children, { mode: "draw", x: 0, y: 0, page: output }, `${path}/props/children`, depth + 1);
+}
+function reserveNode(state: State, path: string): void {
+  state.generatedNodes = checkLimit(state.generatedNodes + 1, state.budget.policy.nodes, path, "Generated nodes");
+}
+function reserveContent(props: Record<string, unknown>, tag: NativeVNode["tag"], state: State, path: string): void {
+  let points = typeof props.text === "string" ? codePoints(props.text) : 0;
+  if (tag === "richText" && Array.isArray(props.paragraphs)) {
+    for (const paragraph of props.paragraphs) points += paragraphPoints(paragraph);
+  }
+  state.generatedText = checkLimit(
+    state.generatedText + points,
+    state.budget.policy.textCodePoints,
+    path,
+    "Generated text code points",
+  );
+  const commands =
+    tag === "path" && Array.isArray(props.commands)
+      ? props.commands.length
+      : tag === "rect"
+        ? 5
+        : tag === "line"
+          ? 2
+          : 0;
+  state.generatedCommands = checkLimit(
+    state.generatedCommands + commands,
+    state.budget.policy.pathCommands,
+    path,
+    "Generated path commands",
+  );
+}
+function paragraphPoints(paragraph: unknown): number {
+  if (!paragraph || typeof paragraph !== "object" || !("runs" in paragraph) || !Array.isArray(paragraph.runs)) return 0;
+  let points = 0;
+  for (const run of paragraph.runs) if (run && typeof run.text === "string") points += codePoints(run.text);
+  return points;
 }

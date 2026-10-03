@@ -1,5 +1,5 @@
 import { fail } from "../core/error.js";
-import { finite, number, record } from "../core/schema.js";
+import { finite, number, validateDataObject as record } from "../core/schema.js";
 import { matrix } from "./affine.js";
 import { commands } from "./commands.js";
 import { paint } from "./style.js";

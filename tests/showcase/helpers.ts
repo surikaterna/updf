@@ -74,7 +74,7 @@ export async function rendered(page: Page, count = 1): Promise<number[]> {
       let white = 0;
       for (let i = 0; i < data.length; i += 4) {
         if ((data[i + 3] ?? 0) < 200) continue;
-        if ((data[i] ?? 255) < 100 && (data[i + 1] ?? 255) < 100 && (data[i + 2] ?? 255) < 100) dark += 1;
+        if (Math.min(data[i] ?? 255, data[i + 1] ?? 255, data[i + 2] ?? 255) < 200) dark += 1;
         if ((data[i] ?? 0) > 245 && (data[i + 1] ?? 0) > 245 && (data[i + 2] ?? 0) > 245) white += 1;
       }
       return { dark, white, total: data.length / 4 };
@@ -90,6 +90,19 @@ export async function rendered(page: Page, count = 1): Promise<number[]> {
 export async function source(page: Page, name: string): Promise<void> {
   const expected = await readFile(new URL(`../../apps/showcase/src/${name}`, import.meta.url), "utf8");
   assert.equal(await page.locator("#source").textContent(), expected);
+}
+
+export async function retained(page: Page): Promise<void> {
+  assert.equal(await page.locator("#output").isVisible(), true);
+  assert.equal(await page.evaluate(() => Reflect.get(window, "activePdfUrls").size), 1);
+  assert.ok((await page.locator("#preview canvas").count()) > 0);
+  assert.equal(await page.locator("#open").getAttribute("href"), await page.locator("#download").getAttribute("href"));
+}
+
+export async function settledModule(page: Page, request: Promise<import("playwright").Request>): Promise<void> {
+  await page.evaluate(async (url) => {
+    await import(url);
+  }, (await request).url());
 }
 
 export async function observeUrls(page: Page): Promise<void> {

@@ -1,17 +1,16 @@
-import { fail, limits } from "./error.js";
+import { checkLimit } from "./policy.js";
 
 export type Chunk = string | Uint8Array;
 export type PdfObject = readonly Chunk[];
 export const chunkLength = (chunk: Chunk): number => (typeof chunk === "string" ? chunk.length : chunk.byteLength);
 
-export function assemble(objects: readonly PdfObject[]): Uint8Array<ArrayBuffer> {
+export function assemble(objects: readonly PdfObject[], maximum = Number.MAX_SAFE_INTEGER): Uint8Array<ArrayBuffer> {
   const header = "%PDF-1.4\n%\xe2\xe3\xcf\xd3\n";
   const chunks: Chunk[] = [header];
   const offsets = [0];
   let length = header.length;
   const append = (chunk: Chunk): void => {
-    length += chunkLength(chunk);
-    if (length > limits.bytes) fail("LIMIT", "", "PDF output exceeds 10 MiB");
+    length = checkLimit(length + chunkLength(chunk), Math.min(maximum, 0xffffffff), "", "PDF output bytes");
     chunks.push(chunk);
   };
   objects.forEach((parts, i) => {

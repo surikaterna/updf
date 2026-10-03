@@ -10,15 +10,18 @@ CodeMirror, editor or React dependency in the native engine.
 
 This checkout contains private, **unreleased** native packages (`2.0.0-poc.0`)
 and the compatibility-preserving legacy implementation (`0.4.15`). Workspace
-migration and README (#34/#35) were independently audited locally, **not released**
-or published. The new Pages showcase is implemented, **not independently verified**.
+migration and README (#34/#35) were independently audited and merged via
+[PR #36](https://github.com/surikaterna/updf/pull/36) (`ac60f80`), **not released**
+or published. The Pages showcase is an **independently audited local artifact**,
+not deployed. #26–#28 remain OPEN, with uncommitted/unmerged local changes.
 The prior painting/SVG proof was independently verified before
 migration; its [dated historical evidence](docs/evidence/native-poc.md) is not
 verification of the new package structure.
 
 | Workspace | Responsibility / entry points |
 | --- | --- |
-| `@updf/core` | Zero runtime dependencies: `.`, `/fonts`, `/painting`, `/vdom`, `/jsx-runtime`, `/jsx-dev-runtime` |
+| `@updf/core` | Zero runtime dependencies: `.`, `/measurement`, `/fonts`, `/painting`, `/vdom`, `/jsx-runtime`, `/jsx-dev-runtime` |
+| `@updf/layout` | Optional bounded flow/templates, `/vdom` `Flow.Document`, `/tables` paged tables and `/tables/vdom` `Tables.Document` |
 | `@updf/geometry` | Optional strict path/color/shape helpers |
 | `@updf/svg` | Optional strict SVG subset; `/tree` native VDOM adapter |
 | `@updf/fontkit` | Optional font preparation; requires optional peer `fontkit@^2.0.4` when imported |
@@ -49,7 +52,7 @@ npm run check:graphs
 npm run check:licenses
 ```
 
-`typecheck` builds in explicit core → geometry/Fontkit → SVG → examples order,
+`typecheck` builds in explicit core → layout/geometry/Fontkit → SVG → examples order,
 then compiles repository tooling/tests. Legacy compilation uses its scoped old
 toolchain. Native declarations use ES2022 only, no ambient DOM/Node/React or TS
 path aliases. Clean tarball consumers check NodeNext and bundler resolution.
@@ -76,7 +79,8 @@ vulnerable tooling and is nonzero. No legacy modernization is included here.
 ## Browser showcase / GitHub Pages
 
 The private [showcase](apps/showcase) runs native text/layout, reusable TSX,
-painting and optional on-demand SVG demos. It generates downloadable PDFs locally,
+rich text/shared measurement, painting and optional on-demand flow/tables/SVG demos.
+It generates downloadable PDFs locally,
 with automatic, multi-page PDF.js canvas previews and a mobile open/download fallback.
 PDF.js and its worker are lazy, locally bundled assets; SVG remains optional.
 No Fontkit, React, arbitrary source evaluation
@@ -91,7 +95,9 @@ npm run preview -w @updf/showcase
 Open `http://127.0.0.1:4173/updf/`. See [Pages setup and activation](docs/deployment/github-pages.md)
 for custom bases, the **manual-only** workflow, retained licenses and required
 separate delivery authorization. Expected eventual URL: `https://surikaterna.github.io/updf/`;
-**not claimed live**. [Local evidence](docs/evidence/pages-showcase.md) awaits independent audit.
+**not claimed live**; the supplied GitHub Pages API check returned 404 (not active).
+See the [dated final handoff](docs/evidence/measured-flow-handoff.md) for independent
+audit outcomes; [original local evidence](docs/evidence/pages-showcase.md) is preserved as history.
 
 The separate [Amiga-style plasma](apps/showcase/plasma.html) entry at `/updf/plasma.html`
 loads its SVG → PDF → PDF.js pipeline only on Play. It targets 25 fps with a bounded
@@ -204,8 +210,47 @@ loopback GET `/cmr.pdf` on port 3001, not arbitrary request-body rendering.
 
 ## Current limits—not promises
 
-- Explicit fixed point geometry and explicit pages. No automatic pagination,
-  general tables/flow layout, raster images, shaping, bidi or full SVG.
+Run the bounded mixed prose/table example (after `npm run build`) independently
+of the site; this uses its actual imported source, not a README-only table engine:
+
+```sh
+node --import tsx --input-type=module -e "import {tableExample} from './apps/showcase/src/tables.ts'; const {bytes,result}=tableExample('Inventory'); console.log(bytes.length,result.pageCount,result.consumedBodyRowCount);"
+```
+
+See [standalone data and native TSX](packages/layout/README.md#optional-paged-tables-28)
+for the typed table model. Layout returns an ordinary frozen core document;
+serialization is always an explicit `render(result.document, options)`.
+
+[Unified Paragraph/Span authoring (D)](docs/inline.md) is implemented locally for
+independent audit, **not verified**. `@updf/layout` exports meaningful readonly
+content unions, `paragraph`/`span`, imported `Paragraph`/`Span`/`Block` components
+and `measure(content, constraints, options)`. The same content uses core's existing
+JSX runtime and native renderer; public output is frozen portable size/line/ink/
+baseline/source-path data. The [actual TSX showcase](apps/showcase/src/rich.tsx)
+uses a context theme and a real native inline badge. SVG remains an optional
+application-owned adapter. No final PageContext, Image or new tables package.
+
+The following #26 low-level contract is transitional and deprecated for new
+authoring in this private/unreleased architecture. Its final public replacement
+is G, not a permanent facade:
+
+[#26 rich text and measurement](docs/measurement.md) is implemented locally,
+independently verified per the #27 assignment, not released. The separate `richText` AST/native TSX
+variant supports paragraph runs with actual font/size/RGB styles. Public
+`@updf/core/measurement` and operation-scoped component measurement share rendering
+truth; fixed text wrapping/baselines and both CMR PDF digests remain unchanged.
+
+- Optional [#27 bounded flow](packages/layout/README.md) is implemented locally,
+  independently verified per #28 assignment, not released. Explicit templates reserve repeated header/footer
+  regions and flow complete measured paragraph lines into fixed core pages.
+  Render explicitly; data and native `Flow.Document` TSX share one paginator.
+- Optional [#28 paged tables](packages/layout/README.md#optional-paged-tables-28) is
+  independently verified including spatial R1, not released or deployed. Import `layoutTable`/`layoutTableFlow`
+  from `@updf/layout/tables`; native `Tables.Document` lives in `/tables/vdom`.
+  Explicit-width atomic rows, repeated table headers and mixed prose reuse #27's
+  paginator and #26's measurement. [Executed inventory example](apps/showcase/src/tables.ts).
+- Core retains fixed point geometry and explicit pages. No general CSS layout,
+  raster images, shaping, bidi or full SVG.
 - Built-in Helvetica accepts printable ASCII and LF only. Selected prepared
   fonts support the documented simple LTR Latin/Cyrillic profile; missing glyphs
   fail rather than fallback. Static single-face glyf TrueType only, full embedding.
@@ -221,29 +266,32 @@ loopback GET `/cmr.pdf` on port 3001, not arbitrary request-body rendering.
 
 All issue links below are real repository issues; planned work is not claimed as
 released functionality. Original local issue bodies/index are preserved in
-[docs/roadmap](docs/roadmap/README.md).
+[docs/roadmap](docs/roadmap/README.md). See the [current status index](docs/roadmap/current.md);
+the original planning records are preserved rather than rewritten as delivery evidence.
 
 | Issue | Status in this transition |
 | --- | --- |
 | [#25 Configurable resource budgets](https://github.com/surikaterna/updf/issues/25) | Planned; current hard caps remain |
-| [#26 Rich text and measurement contract](https://github.com/surikaterna/updf/issues/26) | Planned |
-| [#27 Flow layout/page templates](https://github.com/surikaterna/updf/issues/27) | Planned |
-| [#28 Paged tables](https://github.com/surikaterna/updf/issues/28) | Planned; CMR grids do not complete this |
+| [#26 Rich text and measurement contract](https://github.com/surikaterna/updf/issues/26) | Independently verified per assignment; not released |
+| [#27 Flow layout/page templates](https://github.com/surikaterna/updf/issues/27) | Independently verified including R1 per assignment; not released |
+| [#28 Paged tables](https://github.com/surikaterna/updf/issues/28) | Independently verified including spatial R1; not released or deployed |
 | [#29 Markdown lists](https://github.com/surikaterna/updf/issues/29) | Planned |
 | [#30 Code39](https://github.com/surikaterna/updf/issues/30) | Planned for native packages; legacy capability is separate |
 | [#31 QR codes](https://github.com/surikaterna/updf/issues/31) | Planned |
 | [#32 Bundle-cost regression gates](https://github.com/surikaterna/updf/issues/32) | Planned; measurements/graph checks are not completion |
 | [#33 Raster images](https://github.com/surikaterna/updf/issues/33) | Planned |
-| [#34 Workspace restructuring](https://github.com/surikaterna/updf/issues/34) | Locally audited; not released |
-| [#35 README/examples/roadmap](https://github.com/surikaterna/updf/issues/35) | Locally audited; not released |
+| [#34 Workspace restructuring](https://github.com/surikaterna/updf/issues/34) | Merged via PR #36 (`ac60f80`); not released |
+| [#35 README/examples/roadmap](https://github.com/surikaterna/updf/issues/35) | Merged via PR #36 (`ac60f80`); not released |
 
 ## Licensing and delivery
 
 All workspaces are private; no npm publishing or deployment is authorized.
 The user confirmed the project MIT attribution: **Copyright (c) 2026 Surikat AB**.
-The full [project license](LICENSE) ships in all five production package tarballs
+The full [project license](LICENSE) ships in all six production package tarballs
 and the showcase's `notices/LICENSE`; the earlier missing-notice blocker is resolved.
-See [dated resolution evidence](docs/evidence/project-license.md). Commit/push is
-authorized for a separate delivery step after independent audit, not performed here.
+See [dated resolution evidence](docs/evidence/project-license.md). This pull request
+is review-only: it does not authorize merge, npm publishing, deployment, or issue
+closure. Issue states remain unchanged pending review and the remaining public API
+cleanup.
 Fontello MIT notices remain in geometry/legacy tarballs and the showcase, and
 Liberation Sans 2.1.5 OFL/provenance stays with test assets, never production tarballs.

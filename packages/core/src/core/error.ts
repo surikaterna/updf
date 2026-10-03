@@ -15,11 +15,3 @@ export class DocumentError extends Error {
 export function fail(code: DiagnosticCode, path: string, message: string): never {
   throw new DocumentError(code, path, message);
 }
-
-export const limits = Object.freeze({
-  pages: 20,
-  nodes: 10000,
-  text: 4096,
-  totalText: 100000,
-  bytes: 10 * 1024 * 1024,
-});

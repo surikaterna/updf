@@ -4,7 +4,13 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
-export const coreTypes = ["native-template.ts", "vdom-template.tsx", "fonts-template.ts", "runtime-template.ts"];
+export const coreTypes = [
+  "native-template.ts",
+  "vdom-template.tsx",
+  "fonts-template.ts",
+  "runtime-template.ts",
+  "measurement-template.tsx",
+];
 export const allTypes = [...coreTypes, "painting-template.tsx", "svg-template.tsx"];
 
 export async function typeConsumer(

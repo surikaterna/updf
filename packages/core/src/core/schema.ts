@@ -1,7 +1,7 @@
 import { fail } from "./error.js";
 
 const pointer = (key: PropertyKey): string => String(key).replaceAll("~", "~0").replaceAll("/", "~1");
-export function record(
+export function validateDataObject(
   value: unknown,
   keys: readonly string[],
   path: string,

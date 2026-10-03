@@ -1,5 +1,5 @@
 import { fail } from "../core/error.js";
-import { array, finite, number, record } from "../core/schema.js";
+import { array, finite, number, validateDataObject as record } from "../core/schema.js";
 import type { ResolvedPaint, RGB } from "./types.js";
 
 const black: RGB = Object.freeze([0, 0, 0]);
@@ -21,7 +21,7 @@ function choice<T extends string>(value: unknown, values: readonly T[], fallback
 }
 function dash(value: unknown, path: string): readonly number[] {
   if (value === undefined) return Object.freeze([]);
-  array(value, 128, path);
+  array(value, Number.MAX_SAFE_INTEGER, path);
   const result = value.map((item, i) => number(item, `${path}/${i}`));
   if (result.length && result.every((item) => item === 0)) fail("PAINT", path, "Dash cannot be all zero");
   return Object.freeze(result.length % 2 ? [...result, ...result] : result);

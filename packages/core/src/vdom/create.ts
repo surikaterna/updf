@@ -1,8 +1,14 @@
 import { fail } from "../core/error.js";
+import { ledger } from "../measurement/ledger.js";
+import { validateParagraphs } from "../measurement/validate.js";
+import { providerNode } from "./context.js";
 import { dataRecord, snapshot } from "./data.js";
 import { ownNode } from "./ownership.js";
+import { ownInvocation } from "./progress.js";
+import { recipeNode } from "./recipes.js";
 import {
   type Component,
+  type ComponentContext,
   Fragment,
   type Key,
   type NativeProps,
@@ -16,6 +22,7 @@ export const nativeTags: readonly string[] = Object.freeze([
   "page",
   "group",
   "text",
+  "richText",
   "rect",
   "line",
   "path",
@@ -36,14 +43,25 @@ export function createNode<P extends object>(
   }
   dataRecord(props, "/props");
   if ("key" in props) fail("KEY", "/props/key", "Key is constructor metadata, not a data prop");
-  const owned = snapshot(props, "/props");
+  if (typeof type === "function") {
+    const provider = providerNode(type, props, key);
+    if (provider) return provider;
+    const recipe = recipeNode(type, props, key);
+    if (recipe) return recipe;
+  }
+  if (type === "richText") validateParagraphs(props.paragraphs, ledger(), "/props/paragraphs");
+  const owned = snapshot<P>(props, "/props");
   const metadata = key === undefined ? {} : { key };
   if (type === Fragment) {
     dataRecord(owned, "/props");
     return ownNode({ kind: "native", tag: Fragment, props: owned, ...metadata });
   }
   if (isComponent(type)) {
-    return ownNode({ kind: "component", invoke: (context) => type(owned, context), ...metadata });
+    return ownInvocation(
+      ownNode({ kind: "component", invoke: (context) => type(owned, context), ...metadata }),
+      type,
+      owned,
+    );
   }
   if (typeof type !== "string" || !nativeTags.includes(type)) fail("TYPE", "/type", "Unsupported native VDOM type");
   dataRecord(owned, "/props");
@@ -52,6 +70,11 @@ export function createNode<P extends object>(
 
 export function h<Tag extends NativeTag>(type: Tag, props: NativeProps[Tag], key?: Key): VNode;
 export function h(type: typeof Fragment, props: { readonly children?: VDOMChild }, key?: Key): VNode;
+export function h<P extends object>(
+  type: (props: Readonly<P>, context: ComponentContext) => VDOMChild,
+  props: P,
+  key?: Key,
+): VNode;
 export function h<P extends object>(type: Component<P>, props: P, key?: Key): VNode;
 export function h<P extends object>(type: NativeTag | typeof Fragment | Component<P>, props: P, key?: Key): VNode {
   return createNode(type, props, key);

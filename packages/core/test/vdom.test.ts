@@ -137,7 +137,11 @@ test("text children concatenate strings only, with explicit empty text and no ri
   rejects(() => lower(tree(h(Rich, {}))), "TYPE");
   const Missing: Component<object> = () => jsx("text", textProps);
   rejects(() => lower(tree(h(Missing, {}))), "TYPE");
-  rejects(() => lower(tree(h("text", { ...textProps, children: ["x".repeat(4096), "x"] }))), "LIMIT");
+  rejects(
+    () =>
+      lower(tree(h("text", { ...textProps, children: ["x".repeat(4096), "x"] })), { limits: { textCodePoints: 4096 } }),
+    "LIMIT",
+  );
 });
 
 test("post-expansion hierarchy and final geometry diagnostics map to VDOM paths", () => {
@@ -173,7 +177,21 @@ test("registry installation is local and identity-based; no native override or d
   const other = definePrimitive<BadgeProps>("Badge", isBadge, () => rect());
   rejects(() => lower(input, { registry: [other.definition] }), "VDOM_REGISTRY");
   rejects(() => definePrimitive("Text", isBadge, () => rect()), "VDOM_REGISTRY");
-  rejects(() => Badge.definition.expand({ label: 42 }, { resources: [] }), "TYPE");
+  rejects(
+    () =>
+      Badge.definition.expand(
+        { label: 42 },
+        {
+          resources: [],
+          measurement: {
+            measureText: () => {
+              throw new Error("Invalid props must reject before measurement");
+            },
+          },
+        },
+      ),
+    "TYPE",
+  );
 });
 
 test("active-path cycles reject arrays/nodes but reused DAGs and interleaved calls are safe", async () => {
@@ -194,21 +212,21 @@ test("active-path cycles reject arrays/nodes but reused DAGs and interleaved cal
   assert.equal(outputs[0]?.pages[0]?.children.length, 2);
 });
 
-test("depth and visited-expansion budgets are checked before further component invocation", () => {
+test("nonprogressing expansion rejects without a mandatory depth cap; optional source nodes stop invocation", () => {
   let calls = 0;
   const Recursive: Component<object> = () => {
     calls++;
     return h(Recursive, {});
   };
-  rejects(() => lower(tree(h(Recursive, {}))), "LIMIT");
+  rejects(() => lower(tree(h(Recursive, {}))), "VDOM_CYCLE");
   assert.ok(calls > 0 && calls < 128);
   calls = 0;
   const Last: Component<object> = () => {
     calls++;
     return rect();
   };
-  const input = tree([...Array<VDOMChild>(9997).fill(null), h(Last, {})]);
-  rejects(() => lower(input), "LIMIT");
+  const input = tree([...Array<VDOMChild>(9997).fill(rect()), h(Last, {})]);
+  rejects(() => lower(input, { profile: "service" }), "LIMIT");
   assert.equal(calls, 0);
   const Throwing: Component<object> = () => {
     throw new Error("trusted failure");

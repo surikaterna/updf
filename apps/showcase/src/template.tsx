@@ -1,33 +1,29 @@
 /** @jsxImportSource @updf/core */
 import { render } from "@updf/core";
 import { type Component, lower } from "@updf/core/vdom";
+import { Block, Document, Flow, Paragraph, pageSize } from "@updf/layout";
 
 const Card: Component<{ readonly title: string }> = ({ title }) => (
-  <group x={0} y={0}>
-    <rect x={0} y={0} width={350} height={60} paint={{ fill: [0.9, 0.96, 1] }} />
-    <text x={12} y={18} width={326} height={28} fontSize={16} lineHeight={20} align="left">
+  <Block style={{ background: [0.9, 0.96, 1], padding: { top: 18, right: 12, bottom: 22, left: 12 } }}>
+    <Paragraph defaultStyle={{ fontSize: 16 }} lineHeight={20}>
       {title}
-    </text>
-  </group>
+    </Paragraph>
+  </Block>
 );
 
 export function templateDemo(title: string): Uint8Array {
   const tree = (
-    <document version={1}>
-      <page width={420} height={300}>
-        <group x={35} y={35}>
+    <Document>
+      <Flow pageSize={pageSize(420, 300)} margins={{ top: 35, right: 35, bottom: 35, left: 35 }}>
+        <Block style={{ gap: 25 }}>
           <Card title={title} />
-        </group>
-        <group x={35} y={120}>
           <Card title="Same typed component, reused" />
-        </group>
-      </page>
-      <page width={420} height={300}>
-        <group x={35} y={35}>
-          <Card title="Explicit second page" />
-        </group>
-      </page>
-    </document>
+        </Block>
+      </Flow>
+      <Flow pageSize={pageSize(420, 300)} margins={{ top: 35, right: 35, bottom: 35, left: 35 }}>
+        <Card title="Explicit second page" />
+      </Flow>
+    </Document>
   );
   return render(lower(tree));
 }

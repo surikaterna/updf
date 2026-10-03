@@ -1,3 +1,5 @@
+import type { OperationOptions } from "../core/policy.js";
+
 export type FontBounds = readonly [number, number, number, number];
 export interface PreparedGlyph {
   readonly codePoint: number;
@@ -38,6 +40,4 @@ export interface PreparedFont {
   readonly metadata: FontMetadata;
 }
 export type FontResources = Readonly<Record<string, PreparedFont>>;
-export interface RenderOptions {
-  readonly resources?: FontResources;
-}
+export type RenderOptions = OperationOptions;

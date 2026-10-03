@@ -1,0 +1,61 @@
+{
+  "cwd": "/home/sprawl/projects/updf/trees/measured-flow-tables",
+  "branch": "feature/measured-flow-tables",
+  "head": "ac60f80675a2042f2f6043bae51b541b85e7251f",
+  "baselinePaths": 517,
+  "unchanged": 515,
+  "changed": [
+    "packages/layout/src/content-measure.ts",
+    "packages/layout/src/content-paragraph.ts"
+  ],
+  "added": [
+    "docs/evidence/architecture-inline-audit-r1-baseline.json",
+    "docs/evidence/architecture-inline-audit-r1.md",
+    "packages/layout/test/d-audit-r1.test.ts",
+    "tests/integration/inline-audit-r1.test.ts"
+  ],
+  "missing": [],
+  "protectedPaths": 131,
+  "protectedChanged": [],
+  "historicalPaths": 39,
+  "historicalChanged": [],
+  "kernelPaths": 76,
+  "kernelChanged": [],
+  "staged": "",
+  "trackedModified": 60,
+  "untracked": 179,
+  "files": [
+    {
+      "path": "docs/evidence/architecture-inline-audit-r1-baseline.json",
+      "bytes": 87211,
+      "sha256": "8593ff002fa0e9866f37fe34523d1171e5fecaf261fcc359ff774a2222ae2e50"
+    },
+    {
+      "path": "docs/evidence/architecture-inline-audit-r1.md",
+      "bytes": 8468,
+      "sha256": "87db4772c5b830eb84fceb674170abf84a1d7cd0727e9487689195d37f083087"
+    },
+    {
+      "path": "packages/layout/src/content-measure.ts",
+      "bytes": 5964,
+      "sha256": "e6b457a272d8ccbc9c0d915c41661a5ac59878030440aac132d82a9463cf5f1f",
+      "priorSha256": "f2a1df4edcb592d6b59afbb36603ff6a45deacd4002682f88b5a0a16a11e7fae"
+    },
+    {
+      "path": "packages/layout/src/content-paragraph.ts",
+      "bytes": 7097,
+      "sha256": "bc657abfcf1427d1ae4a34dccbf423b324a2bbf401be018a0a02a7135070a5ec",
+      "priorSha256": "fb32b53e1d0c6df12c96c5cf0d73c0ad776b3ba3b0efd433bec4b6acb6cbf887"
+    },
+    {
+      "path": "packages/layout/test/d-audit-r1.test.ts",
+      "bytes": 9560,
+      "sha256": "e65a8d0379de8b9ae90893a1f7717ebdf4ded6aed14b83cd5fe1229bfbfa10c2"
+    },
+    {
+      "path": "tests/integration/inline-audit-r1.test.ts",
+      "bytes": 6070,
+      "sha256": "708917b3a641da6c818390ff155c29f0da434eb1c09f32f80ab33df50559b075"
+    }
+  ]
+}

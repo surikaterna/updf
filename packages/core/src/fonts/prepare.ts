@@ -1,4 +1,5 @@
 import { fail } from "../core/error.js";
+import { type OperationOptions, policy } from "../core/policy.js";
 import { array, bounds, byteLength, fontLimits, numeric, record } from "./checks.js";
 import {
   type FontDescriptor,
@@ -59,7 +60,8 @@ function glyphs(value: unknown, glyphCount: number, fontBox: FontDescriptor["bou
 }
 
 /** Validates prepared data, not the TTF program or metric/program correspondence. */
-export function createPreparedFont(input: unknown): PreparedFont {
+export function createPreparedFont(input: unknown, options: OperationOptions = {}): PreparedFont {
+  const limits = policy(options);
   record(input, "/font", [
     "version",
     "format",
@@ -78,7 +80,7 @@ export function createPreparedFont(input: unknown): PreparedFont {
     input.embeddingRights !== "preview-print"
   )
     fail("FONT_DATA", "/font/embeddingRights", "Embedding is restricted or unsupported");
-  const size = byteLength(input.bytes, "/font/bytes");
+  const size = byteLength(input.bytes, "/font/bytes", limits.fontBytes);
   const unitsPerEm = numeric(input.unitsPerEm, "/font/unitsPerEm", 16, 16384);
   const glyphCount = numeric(input.glyphCount, "/font/glyphCount", 2, 65535);
   const desc = descriptor(input.descriptor);

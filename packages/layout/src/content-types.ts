@@ -1,0 +1,126 @@
+import type { NodeDefinition, RenderOptions, RGB, TextAlign } from "@updf/core";
+import type { ContentHandle } from "@updf/core/internal";
+import type { InkBounds, TextStyle } from "@updf/core/measurement";
+import type { ComponentContext, VDOMChild, VNode } from "@updf/core/vdom";
+import type { BlockInput, ContainerBlock } from "./container-types.js";
+import type { Extensions, ReadonlyProps, ScopedContent } from "./extension-types.js";
+import type { FlowBlock } from "./types.js";
+
+export type InlineContent = string | SpanContent | InlineVisual | VNode | readonly InlineContent[] | null | boolean;
+export type ImplicitInlineContent = InlineContent | number | readonly ImplicitInlineContent[];
+export type BlockContent =
+  | ScopedContent
+  | ParagraphContent
+  | ContainerBlock
+  | FlowBlock
+  | VNode
+  | readonly BlockContent[]
+  | null
+  | boolean;
+export type Content = BlockContent;
+export interface ParagraphProps {
+  readonly children?: InlineContent;
+  readonly defaultStyle?: Partial<TextStyle>;
+  readonly lineHeight?: number;
+  readonly align?: TextAlign;
+  readonly whiteSpace?: "preserve" | "collapse";
+  readonly breakLongWords?: "error" | "codePoint";
+  readonly keepTogether?: boolean;
+}
+export interface SpanProps {
+  readonly children?: InlineContent;
+  readonly style?: Partial<TextStyle>;
+}
+export interface ParagraphContent extends ContentHandle {
+  readonly type: "contentParagraph";
+  readonly props: ParagraphProps;
+}
+export interface SpanContent extends ContentHandle {
+  readonly type: "contentSpan";
+  readonly props: SpanProps;
+}
+export interface InlineVisual extends ContentHandle {
+  readonly type: "inlineVisual";
+  readonly props: unknown;
+}
+// Child grammars are already readonly; keep them opaque rather than recursively
+// expanding core DeepReadonly through both content and VNode unions.
+export type InlineComponent<P extends object = SpanProps> = (
+  props: Readonly<P>,
+  context: ComponentContext,
+) => VDOMChild;
+export type BlockComponent<P extends object = ParagraphProps> = (
+  props: Readonly<P>,
+  context: ComponentContext,
+) => VDOMChild;
+export interface ContentBlockProps extends Omit<BlockInput, "children"> {
+  readonly children: BlockContent;
+}
+declare const inlineAdapter: unique symbol;
+export interface InlineAdapterIdentity {
+  readonly name: string;
+  readonly [inlineAdapter]: true;
+}
+export interface InlineAdapter<P> extends InlineAdapterIdentity {
+  readonly propsType?: (props: P) => P;
+}
+export interface InlineMeasureContext {
+  readonly width: number;
+  readonly style: TextStyle;
+  readonly measureNative: (
+    nodes: readonly NodeDefinition[],
+    size: { readonly width: number; readonly height: number },
+  ) => InkBounds;
+}
+export interface InlineMeasurement {
+  readonly advance: number;
+  readonly ascent: number;
+  readonly descent: number;
+  /** Coordinates relative to the baseline, y positive downwards. */
+  readonly inkBounds: InkBounds;
+  /** Native geometry at box top-left; box height is ascent + descent. */
+  readonly nodes: readonly NodeDefinition[];
+}
+export interface InlineAdapterDefinition<P> {
+  readonly name: string;
+  readonly validate: (input: unknown) => P;
+  readonly measure: (props: ReadonlyProps<P>, context: InlineMeasureContext) => InlineMeasurement;
+}
+export interface ContentConstraints {
+  readonly width: number;
+  readonly height?: number;
+}
+export interface ContentOptions extends RenderOptions {
+  readonly extensions?: Extensions;
+}
+export interface ContentTextFragment {
+  readonly role: "text";
+  readonly text: string;
+  readonly style: TextStyle;
+  readonly x: number;
+  readonly advance: number;
+  readonly inkBounds: InkBounds;
+  readonly source: { readonly path: string; readonly start: number; readonly end: number };
+}
+export interface ContentVisualFragment {
+  readonly role: "visual";
+  readonly x: number;
+  readonly advance: number;
+  readonly inkBounds: InkBounds;
+  readonly source: { readonly path: string };
+}
+export interface ContentLine {
+  readonly top: number;
+  readonly height: number;
+  readonly baseline: number;
+  readonly advance: number;
+  readonly inkBounds: InkBounds;
+  readonly fragments: readonly (ContentTextFragment | ContentVisualFragment)[];
+  readonly breakReason: "soft" | "hard" | "paragraphEnd";
+}
+export interface ContentMeasurement {
+  readonly size: { readonly width: number; readonly height: number };
+  readonly lines: readonly ContentLine[];
+  readonly inkBounds: InkBounds;
+}
+export type ContentColor = RGB;

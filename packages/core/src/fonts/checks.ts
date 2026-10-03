@@ -2,10 +2,7 @@ import { fail } from "../core/error.js";
 import type { FontBounds } from "./types.js";
 
 export const fontLimits = Object.freeze({
-  count: 8,
-  bytes: 4 * 1024 * 1024,
-  totalBytes: 8 * 1024 * 1024,
-  mappings: 65535,
+  mappings: 0x110000 - 0x800,
 });
 export const pointer = (key: PropertyKey): string => String(key).replaceAll("~", "~0").replaceAll("/", "~1");
 
@@ -70,7 +67,7 @@ export function bounds(value: unknown, path: string): FontBounds {
   return Object.freeze(result);
 }
 
-export function byteLength(bytes: unknown, path: string): number {
+export function byteLength(bytes: unknown, path: string, maximum = Number.MAX_SAFE_INTEGER): number {
   if (!(bytes instanceof Uint8Array) || Object.getPrototypeOf(bytes) !== Uint8Array.prototype)
     fail("FONT_DATA", path, "Expected ordinary Uint8Array bytes");
   // Read intrinsic backing state, never a caller-shadowed getter/method/species.
@@ -78,6 +75,6 @@ export function byteLength(bytes: unknown, path: string): number {
   const buffer: unknown = Reflect.get(Uint8Array.prototype, "buffer", bytes);
   if (!(buffer instanceof ArrayBuffer) || typeof size !== "number" || size < 1)
     fail("FONT_DATA", path, "Expected nonempty non-shared byte storage");
-  if (size > fontLimits.bytes) fail("LIMIT", path, "Font program exceeds 4 MiB");
+  if (size > maximum) fail("LIMIT", path, "Font program byte limit exceeded");
   return size;
 }

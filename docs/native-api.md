@@ -7,6 +7,12 @@ audit-status wording are not current instructions. Use root `readme.md` commands
 
 ## Core contracts
 
+- `@updf/core/measurement`: public readonly plain/rich measurement. Separate
+  `RichTextNode`/native `<richText>` paragraph data supports font/size/RGB runs.
+  Trusted components use operation-bound `context.measurement.measureText`.
+  See [full semantics, caps and lifetime contract](measurement.md). Local #26
+   delivery was independently verified per the #27 assignment; not released.
+
 - `@updf/core`: `render(DocumentDefinition, options?)` and
   `renderUnknown(unknown, options?)` synchronously return binary Uint8Array bytes.
   Both validate the full schema before rendering; no caller mutation or implicit
@@ -37,6 +43,33 @@ audit-status wording are not current instructions. Use root `readme.md` commands
 
 ## Optional packages
 
+`@updf/layout` implements bounded measured flow (#27, independently verified per
+the #28 assignment, not released). `layoutFlow`/`layoutFlowUnknown` take an
+explicit page template and ordered paragraph/spacer/pageBreak/fixed blocks. They
+return frozen fixed core documents and source placements; serialize explicitly
+with `render(result.document, options)`. `/vdom` provides the ordinary
+`Flow.Document` component using the same object definition, resources and private
+paginator. No second JSX runtime or arbitrary intrinsic flow grammar. Header/footer
+are repeated local fixed regions; paragraphs split at internally measured complete
+lines. See [full contract](../packages/layout/README.md) and [evidence](evidence/flow.md).
+Root excludes tables; no general CSS layout, nested flow or page callbacks are included.
+Derived flow capacities use the approved private inverse-translation/32-local-ULP
+conditioning policy, not a widened measurement tolerance. Actual materialized
+endpoints/region separation must fit; ill-conditioned templates reject even when
+empty. See the layout README numerical contract for exact rounding-cell semantics.
+
+`@updf/layout/tables` adds #28 explicit-width, atomic-row paged tables and mixed
+prose/table flow through that same private paginator. `layoutTable`/`layoutTableUnknown`
+accept `{ pageTemplate, table }`; `layoutTableFlow`/`layoutTableFlowUnknown` accept
+readonly mixed `body`. `/tables/vdom` supplies ordinary `Tables.Document`, not a new
+JSX grammar. One paragraph per cell, inherited actual font/size/RGB settings, scalar
+padding, optional positive row minimum, solid backgrounds and a uniform inset grid.
+Reports include stable table/row/page placements, consumed body rows and repeated
+header count. Rows never split; impossible row/header pairs fail before copying.
+See [complete model/geometry/accounting](../packages/layout/README.md#optional-paged-tables-28)
+and [local evidence](evidence/tables.md). Locally implemented, not independently
+verified or released. Core/root layout closures exclude table implementations.
+
 `@updf/geometry` provides strict full-consuming SVG path grammar, arc/shape/color
 helpers. `@updf/svg` supports the documented bounded svg/g/path/basic-shapes,
 simple class CSS and transforms/viewports subset; `/tree` adapts to native VDOM.
@@ -53,11 +86,28 @@ Node resolves its public Node module entry. Optional cost is measured separately
 
 ## Current safety policy
 
-20 pages, 10,000 document nodes, depth 128, 4,096 characters/text node,
-100,000 total text characters, 10 MiB output. Prepared font caps: 8 ids,
-4 MiB/program, 8 MiB aggregate, 65,535 mappings/font. Paths: 4,096 commands/node,
-100,000/document. SVG: 1 MiB source, depth 64, 10,000 elements/emitted nodes,
-64 attrs/element, 1,000 class selectors, 128 transforms/list. These caps are
-implementation safety policy, not PDF-format limits; configurable budgets are #25.
+Default core operations use `profile: "trusted"`, without arbitrary workload caps.
+`profile: "service"` selects frozen `SERVICE_LIMITS`; optional `limits` override
+nonnegative safe-integer depth/node/page/scalar-text/path/font-byte/output budgets.
+Render, lower, measurement and optional flow/tables use the same explicit policy.
+Resource maps are operation-owned; aliases charge font programs once. Geometry,
+font profiles, cycles/progress, safe counters and PDF representation always validate.
+No image-byte budget, public work counter or CPU sandbox is promised.
 
-No image/layout/editor functionality or legacy modernization was added by migration.
+`createContext`/`useContext` in `/vdom` provide deeply readonly snapshots and scoped
+providers, not async/state/effect/page hooks. Transitional measurement contexts close
+on success/failure. Optional SVG/geometry/Fontkit retain separate bounded parser
+policies. See the [dated foundation/blueprint](architecture/composable-layout.md)
+for units, all removed/residual ceilings, context lifetime and deferred C–G APIs.
+
+Migration added no image/layout/editor functionality or legacy modernization.
+Optional bounded flow was added subsequently by #27, without changing fixed CMR.
+
+## Subsequent Slice E authoring (implemented, not independently verified)
+
+The current `@updf/layout` Document/Page/Flow components, readonly data constructors,
+PageSize presets/custom point sizes, sealed final PageContext/FragmentContext and
+reserved deferred decorations are documented in [documents.md](documents.md).
+The older foundation statements above describe that dated delivery. Core's fixed
+document/page grammar and bytes remain unchanged. F separate tables, G and #33
+images are not claimed complete; no release, issue closure or deployment occurred.

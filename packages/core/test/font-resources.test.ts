@@ -87,16 +87,23 @@ test("font data descriptors/prototypes and malformed resources never invoke call
   assert.equal(calls, 0);
 });
 
-test("individual/aggregate/count budgets, backing-byte safety, and 10MiB PDF cap", async () => {
+test("optional unique font bytes/output caps, uncapped aliases and backing-byte safety", async () => {
   const input = await fontInput();
-  rejects(() => createPreparedFont({ ...input, bytes: new Uint8Array(4 * 1024 * 1024 + 1) }), "LIMIT");
+  rejects(
+    () =>
+      createPreparedFont(
+        { ...input, bytes: new Uint8Array(4 * 1024 * 1024 + 1) },
+        { limits: { fontBytes: 4 * 1024 * 1024 } },
+      ),
+    "LIMIT",
+  );
   rejects(() => createPreparedFont({ ...input, bytes: new Uint8Array(0) }), "FONT_DATA");
   rejects(() => createPreparedFont({ ...input, bytes: new Uint8Array(new SharedArrayBuffer(10)) }), "FONT_DATA");
   const font = await fixtureFont();
   const nine = Object.fromEntries(Array.from({ length: 9 }, (_, i) => [`Font${i}`, font]));
-  rejects(() => render(fontDocument([]), { resources: nine }), "LIMIT");
+  assert.ok(render(fontDocument([]), { resources: nine }).length);
   const large = createPreparedFont({ ...input, bytes: new Uint8Array(4 * 1024 * 1024) });
-  rejects(() => render(fontDocument([]), { resources: { A: large, B: large, C: large } }), "LIMIT");
+  assert.ok(render(fontDocument([]), { profile: "service", resources: { A: large, B: large, C: large } }).length);
   const other = createPreparedFont({ ...input, bytes: new Uint8Array(4 * 1024 * 1024) });
   const children = Array.from({ length: 5 }, (_, i) =>
     fontText("A\n".repeat(2048), {
@@ -105,7 +112,7 @@ test("individual/aggregate/count budgets, backing-byte safety, and 10MiB PDF cap
       lineHeight: Number.MIN_VALUE,
     }),
   );
-  rejects(() => render(fontDocument(children), { resources: { A: large, B: other } }), "LIMIT");
+  rejects(() => render(fontDocument(children), { profile: "service", resources: { A: large, B: other } }), "LIMIT");
   let calls = 0;
   const bytes = new Uint8Array(10);
   Object.defineProperty(bytes, "byteLength", {

@@ -1,9 +1,9 @@
 import { fail } from "../core/error.js";
-import { array, finite, record } from "../core/schema.js";
+import { array, finite, validateDataObject as record } from "../core/schema.js";
 import type { PathCommand } from "./types.js";
 
 export function commands(value: unknown, path: string): readonly PathCommand[] {
-  array(value, 4096, path);
+  array(value, Number.MAX_SAFE_INTEGER, path);
   let started = false;
   return Object.freeze(
     value.map((item, i): PathCommand => {

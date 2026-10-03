@@ -4,6 +4,8 @@
   "files": {
     "includes": [
       "packages/core/**",
+      "packages/layout/**",
+      "packages/tables/**",
       "packages/geometry/**",
       "packages/svg/**",
       "packages/fontkit/**",
@@ -65,6 +67,10 @@
         "apps/browser-react/vite.core.config.ts",
         "apps/browser-react/vite.vdom.config.ts",
         "apps/browser-react/vite.fonts.config.ts",
+        "apps/browser-react/vite.measurement.config.ts",
+        "apps/browser-react/vite.flow.config.ts",
+        "apps/browser-react/vite.tables.config.ts",
+        "apps/browser-react/vite.composable-tables.config.ts",
         "apps/browser-react/vite.geometry.config.ts",
         "apps/browser-react/vite.svg.config.ts",
         "apps/browser-react/vite.fontkit.config.ts",

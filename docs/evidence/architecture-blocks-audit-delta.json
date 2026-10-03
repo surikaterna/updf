@@ -1,0 +1,179 @@
+{
+  "cwd": "/home/sprawl/projects/updf/trees/measured-flow-tables",
+  "branch": "feature/measured-flow-tables",
+  "head": "ac60f80675a2042f2f6043bae51b541b85e7251f",
+  "baselinePaths": 480,
+  "unchanged": 465,
+  "changed": [
+    "docs/architecture/composable-layout.md",
+    "docs/blocks.md",
+    "docs/evidence/architecture-blocks.md",
+    "packages/layout/src/block-compiler.ts",
+    "packages/layout/src/blocks.ts",
+    "packages/layout/src/budget.ts",
+    "packages/layout/src/container-paint.ts",
+    "packages/layout/src/container-producer.ts",
+    "packages/layout/src/decorated-producer.ts",
+    "packages/layout/src/extension-producer.ts",
+    "packages/layout/src/paginator.ts",
+    "packages/layout/src/paragraph-producer.ts",
+    "packages/layout/src/protocol.ts",
+    "packages/layout/src/stack.ts",
+    "scripts/boundaries.ts"
+  ],
+  "added": [
+    "docs/evidence/architecture-blocks-audit-baseline.json",
+    "docs/evidence/architecture-blocks-audit.md",
+    "packages/layout/src/adapter-call.ts",
+    "packages/layout/src/container-budget.ts",
+    "packages/layout/src/container-reservation.ts",
+    "packages/layout/src/fragment-state.ts",
+    "packages/layout/src/leaf-cache.ts",
+    "packages/layout/test/c-audit.test.ts",
+    "tests/integration/block-background.test.ts"
+  ],
+  "missing": [],
+  "protectedPaths": 131,
+  "protectedChanged": [],
+  "numericChanged": [],
+  "staged": "",
+  "trackedModified": 60,
+  "untracked": 147,
+  "files": [
+    {
+      "path": "docs/architecture/composable-layout.md",
+      "bytes": 15577,
+      "sha256": "8f927e30ab0541a0a7cd8e5e82ae5c8596e431db3d7acf2a3e7e7e7e86299542",
+      "priorSha256": "256c0c13af66e8b7bd539739543306b1385c89f9bb34acbe85fb82143524c2f6"
+    },
+    {
+      "path": "docs/blocks.md",
+      "bytes": 10250,
+      "sha256": "1846f1392ef86ad786c1520cdd603a8ae430a04305113fa4691c9e30da89ce4b",
+      "priorSha256": "a0553150c169d77bc47f245426e0c8ff473b7f3e4079d2b640f7ef93e7d2d68b"
+    },
+    {
+      "path": "docs/evidence/architecture-blocks-audit-baseline.json",
+      "bytes": 85719,
+      "sha256": "1c3b0003a79a261029860fa01f3dd55a540cf05b7429e2ce04782d7834a99f35"
+    },
+    {
+      "path": "docs/evidence/architecture-blocks-audit.md",
+      "bytes": 11006,
+      "sha256": "f850c00b3e38ce1384b4ce7cff237aca52ac9d8a160de2163553fcd7f15a954c"
+    },
+    {
+      "path": "docs/evidence/architecture-blocks.md",
+      "bytes": 26308,
+      "sha256": "f02e0228bf1a89ddd85713f55c520afc35c746f6c699580cc9d7bb82645f8715",
+      "priorSha256": "acab9175ab54ea8d748ae23f2bed50138f042e7e371d765f545e83a09d5c78c2"
+    },
+    {
+      "path": "packages/layout/src/adapter-call.ts",
+      "bytes": 740,
+      "sha256": "3bba6e090e88f8ee876ca4e4b98502545e42f4698ef17e3fe9269084c66fbd95"
+    },
+    {
+      "path": "packages/layout/src/block-compiler.ts",
+      "bytes": 4296,
+      "sha256": "a419fa7f49d15afec92a2b8e379360b08ef36f8e9c7504526f020f4462a7159e",
+      "priorSha256": "57969c5baa8b66c90407fa7d80c9fffa0d69c46c9632308ee00568e2effd3d0d"
+    },
+    {
+      "path": "packages/layout/src/blocks.ts",
+      "bytes": 5703,
+      "sha256": "9637d76a315e02f8ce4b4744a0a99af60429518722cfb9e671a1310e25378f32",
+      "priorSha256": "8a004725d808d1a0db7d7ca3ba5226f20d1e83c49a6a676d2049928d0019edb9"
+    },
+    {
+      "path": "packages/layout/src/budget.ts",
+      "bytes": 3250,
+      "sha256": "93401c503b21da8ff5e05a315a400a80163dfcdd321e0a3f05fdf58e62a1c5c1",
+      "priorSha256": "c9e82bf5a1bd05b04bd724144a8d9844401b5d4e64285f2ed3f4f74f6bf399b9"
+    },
+    {
+      "path": "packages/layout/src/container-budget.ts",
+      "bytes": 511,
+      "sha256": "aa99310db4a58d45b17b7bd9fc439020c10dc9ad85c8ff9623a94dc7b021befe"
+    },
+    {
+      "path": "packages/layout/src/container-paint.ts",
+      "bytes": 3022,
+      "sha256": "05b06a018616bbb3af979fc0d322557b9f1d6be9ad5da67ada635e314bd76c0c",
+      "priorSha256": "d812dacb48ff740e48e6a03de60c1ffa86b6739f42e49af69f4532e0039436ce"
+    },
+    {
+      "path": "packages/layout/src/container-producer.ts",
+      "bytes": 4810,
+      "sha256": "3984f937eda00e74f7c324296394fb5f2121f98ee7d35bd64d0bd37cc9fa9ce3",
+      "priorSha256": "a3e1823917feaa0c624bd2663495f744db3704f39f508f30a1da09d0540b28b8"
+    },
+    {
+      "path": "packages/layout/src/container-reservation.ts",
+      "bytes": 1820,
+      "sha256": "672427dec6fddf3533fa142f49fdac0e30886d9116d4d493a429180779844be3"
+    },
+    {
+      "path": "packages/layout/src/decorated-producer.ts",
+      "bytes": 5929,
+      "sha256": "a9866c2399db0d1d987318f85da8fd670626755ab12f50e623c459be375cad7c",
+      "priorSha256": "b9fcd127f96c005ebd68eddcf80b7c34e1bcf342f05e27449e7f4f9e0e94145a"
+    },
+    {
+      "path": "packages/layout/src/extension-producer.ts",
+      "bytes": 6489,
+      "sha256": "e931f73759b79ec698d3baf40f03ea83a9963c682f87279addcb35eff6ff5786",
+      "priorSha256": "2c565c7a605c0e2a2f6e3b93725a6040c9ffde691938fdb4be8015e16ceae7dd"
+    },
+    {
+      "path": "packages/layout/src/fragment-state.ts",
+      "bytes": 764,
+      "sha256": "df8ab18b0cefa0abb88e79ca4980c910866be53d3985afe70e2323cc7744d2d3"
+    },
+    {
+      "path": "packages/layout/src/leaf-cache.ts",
+      "bytes": 577,
+      "sha256": "57d9c8898a8262a593ea76e0310d0a8c042672142f17aee09bcd65b9b79ef73b"
+    },
+    {
+      "path": "packages/layout/src/paginator.ts",
+      "bytes": 7735,
+      "sha256": "04e8001162db272599c1f0b526fd5c3e77a37b81159f0b503700a5c2a8f4b4f5",
+      "priorSha256": "e7816863e2d1401f4546142b3978f033a58451552358ef8ea258b9d3c6b5aefd"
+    },
+    {
+      "path": "packages/layout/src/paragraph-producer.ts",
+      "bytes": 2659,
+      "sha256": "fbfa670730af52f4483964aae365aa22650c73dcf53e82d43507247d777a842c",
+      "priorSha256": "1dafe83720cf5af8db11decf99e60f18fc031f03b70325ab995615a0103a3935"
+    },
+    {
+      "path": "packages/layout/src/protocol.ts",
+      "bytes": 2064,
+      "sha256": "61c649b4bb11353bc814b8e08e08b319d6e0bfa9a4f6a50caca25b32554bf8ab",
+      "priorSha256": "d4dca5942a6ba2e0eee926c91664eece6056b214703d4f78160faa09871b3d42"
+    },
+    {
+      "path": "packages/layout/src/stack.ts",
+      "bytes": 5485,
+      "sha256": "80bd578f7af7d36ba9a35e08c342789ba6f32913fa7884f705aafe4ab029512c",
+      "priorSha256": "d51a1f73f9463d2b67ee1cc1eeec850ddf34671febbc704ee06e66cd86d1472a"
+    },
+    {
+      "path": "packages/layout/test/c-audit.test.ts",
+      "bytes": 12724,
+      "sha256": "184e6102eed86985305d89de0a8114a6659bdfed93458bda650a35fbcfa76c57"
+    },
+    {
+      "path": "scripts/boundaries.ts",
+      "bytes": 5256,
+      "sha256": "8362f2d227b13dcf101fb2ca393bb004623c724f3449890788df0887383b9d64",
+      "priorSha256": "5d5184b3a40f154c8436dfb0e9e10e2beba77a9f2ce80c654e793b629eabe2e7"
+    },
+    {
+      "path": "tests/integration/block-background.test.ts",
+      "bytes": 2859,
+      "sha256": "77be5d5cf3140821e3b57c937215b730575aa35b3b9c9a09ed4c967755eb5184"
+    }
+  ]
+}
