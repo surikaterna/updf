@@ -1,8 +1,10 @@
 import { fail } from "../core/error.js";
+import { finite, number } from "../core/schema.js";
 import type { ResolvedFonts } from "../fonts/resources.js";
 import type { PreparedFont, PreparedGlyph } from "../fonts/types.js";
 import { exceeds, MetricSum, sum } from "./arithmetic.js";
 import { type WorkLedger, work } from "./ledger.js";
+import type { LineEnvelope } from "./line-height.js";
 import { ink, richMetrics, union } from "./metrics.js";
 import type { ParagraphDefinition, TextFragmentMeasurement, TextLineMeasurement } from "./types.js";
 import { effectiveStyle } from "./validate.js";
@@ -81,6 +83,20 @@ function envelope(
     fail("FONT_INK", `${path}/lineHeight`, "Ink exceeds rich line height");
   return [ascent, descent];
 }
+function lineHeight(
+  wrapped: WrappedLine,
+  paragraph: ParagraphDefinition,
+  autoHeight: boolean,
+  ascent: number,
+  descent: number,
+): number {
+  if (!autoHeight) return paragraph.lineHeight;
+  const fontHeight = wrapped.atoms.reduce(
+    (height, atom) => Math.max(height, atom.style.fontSize),
+    paragraph.lineHeight,
+  );
+  return Math.max(fontHeight, sum([ascent, descent]));
+}
 export function line(
   wrapped: WrappedLine,
   paragraph: ParagraphDefinition,
@@ -91,23 +107,25 @@ export function line(
   budget: WorkLedger,
   path: string,
   autoHeight = false,
+  layout?: LineEnvelope,
 ): RichLine {
   const grouped = groups(wrapped.atoms, budget, path);
   const total = advance(wrapped.atoms);
   const spare = width - total;
   const x = paragraph.align === "center" ? spare / 2 : paragraph.align === "right" ? spare : 0;
   const offset = new MetricSum();
-  const [ascent, descent] = envelope(wrapped, paragraph, fonts, path, autoHeight);
-  const fontHeight = wrapped.atoms.reduce(
-    (height, atom) => Math.max(height, atom.style.fontSize),
-    paragraph.lineHeight,
-  );
-  const height = autoHeight ? Math.max(fontHeight, sum([ascent, descent])) : paragraph.lineHeight;
-  const baseline = top + ascent + (height - sum([ascent, descent])) / 2;
+  const [ascent, descent] = layout
+    ? [layout.above, layout.below]
+    : envelope(wrapped, paragraph, fonts, path, autoHeight);
+  const height = layout ? layout.height : lineHeight(wrapped, paragraph, autoHeight, ascent, descent);
+  const baseline = layout ? top + ascent : top + ascent + (height - sum([ascent, descent])) / 2;
+  if (layout) validateLineGeometry(top, height, baseline, path);
   const fragments = grouped.map((atoms) => {
     const result = fragment(atoms, x + offset.value, baseline);
     offset.add(result.advance);
     const bounds = result.inkBounds;
+    if (layout && !bounds.empty)
+      for (const edge of [bounds.left, bounds.right, bounds.top, bounds.bottom]) finite(edge, path);
     const leftScale = paragraph.align === "left" ? Math.max(result.x, result.advance, result.style.fontSize) : width;
     if (!bounds.empty && (exceeds(-bounds.left, 0, leftScale) || exceeds(bounds.right, width)))
       fail("FONT_INK", atoms[0]?.path ?? path, "Rich glyph ink exceeds width; adjust alignment/box");
@@ -126,4 +144,11 @@ export function line(
       breakReason: wrapped.breakReason,
     }),
   };
+}
+function validateLineGeometry(top: number, height: number, baseline: number, path: string): void {
+  number(top, path);
+  number(height, path, true);
+  finite(baseline, path);
+  const bottom = finite(top + height, path);
+  if (bottom <= top) fail("GEOMETRY", path, "Line height cannot advance the line position");
 }

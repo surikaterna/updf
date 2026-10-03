@@ -2,6 +2,7 @@ import { fail } from "../core/error.js";
 import type { ResolvedFonts } from "../fonts/resources.js";
 import { MetricSum, sum } from "./arithmetic.js";
 import type { WorkLedger } from "./ledger.js";
+import { type InlineLineHeights, inlineEnvelope, validateLineHeight } from "./line-height.js";
 import { line } from "./lines.js";
 import { type RunMetrics, richMetrics } from "./metrics.js";
 import type { ParagraphDefinition, TextLineMeasurement } from "./types.js";
@@ -25,11 +26,16 @@ export function measureInline(
   paragraph: ParagraphDefinition,
   visuals: () => readonly InlineMetric[],
   width: number,
-  autoHeight: boolean,
+  autoHeight: boolean | InlineLineHeights,
   fonts: ResolvedFonts,
   budget: WorkLedger,
   path: string,
 ): readonly InlineLine[] {
+  if (typeof autoHeight !== "boolean") {
+    validateLineHeight(autoHeight.strut, `${path}/lineHeight`);
+    for (const [index, value] of (autoHeight.runs ?? []).entries())
+      validateLineHeight(value, `${path}/runs/${index}/lineHeight`);
+  }
   const validation = autoHeight
     ? {
         ...paragraph,
@@ -44,7 +50,20 @@ export function measureInline(
   const result: InlineLine[] = [];
   const height = new MetricSum();
   for (const wrapped of wrap(input, width, paragraph, budget, path)) {
-    const measured = line(wrapped, paragraph, 0, height.value, width, fonts, budget, path, autoHeight).publicLine;
+    const layout =
+      typeof autoHeight === "boolean" ? undefined : inlineEnvelope(wrapped, paragraph, autoHeight, fonts, path);
+    const measured = line(
+      wrapped,
+      paragraph,
+      0,
+      height.value,
+      width,
+      fonts,
+      budget,
+      path,
+      !!autoHeight,
+      layout,
+    ).publicLine;
     height.add(measured.height);
     result.push(nativeLine(measured, width, fonts, path));
   }

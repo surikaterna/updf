@@ -2,6 +2,7 @@ import type { ResolvedFonts } from "../fonts/resources.js";
 import type { RenderOptions } from "../fonts/types.js";
 import { type InlineLine, type InlineMetric, measureInline } from "../measurement/inline.js";
 import { ledger, type WorkLedger } from "../measurement/ledger.js";
+import type { InlineLineHeights } from "../measurement/line-height.js";
 import { measureInput } from "../measurement/measure.js";
 import type {
   InkBounds,
@@ -50,7 +51,7 @@ export interface LayoutOperation {
     paragraph: ParagraphDefinition,
     visuals: () => readonly InlineMetric[],
     width: number,
-    autoHeight: boolean,
+    autoHeight: boolean | InlineLineHeights,
     path: string,
   ) => readonly InlineLine[];
   readonly nativeInk: (nodes: readonly NodeDefinition[]) => InkBounds;
@@ -126,7 +127,7 @@ function contentMethods(state: State, fonts: ResolvedFonts, budget: WorkLedger, 
       paragraph: ParagraphDefinition,
       visuals: () => readonly InlineMetric[],
       width: number,
-      autoHeight: boolean,
+      autoHeight: boolean | InlineLineHeights,
       path: string,
     ) {
       check();

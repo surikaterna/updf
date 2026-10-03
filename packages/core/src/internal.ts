@@ -12,6 +12,8 @@ export { isPreparedFont } from "./fonts/prepare.js";
 export { scalar } from "./fonts/profile.js";
 export { exceeds, MetricSum, sum } from "./measurement/arithmetic.js";
 export type { InlineLine, InlineMetric } from "./measurement/inline.js";
+export { paintInlineText } from "./measurement/inline-paint.js";
+export type { InlineLineHeights, LineHeight } from "./measurement/line-height.js";
 export type { RunMetrics } from "./measurement/metrics.js";
 export { matrix } from "./painting/affine.js";
 export { commands } from "./painting/commands.js";
