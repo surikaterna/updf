@@ -18,7 +18,7 @@ export interface CellProps {
 }
 export interface RowProps {
   readonly children?: BlockContent;
-  readonly atomic?: true;
+  readonly keepTogether?: true;
   readonly minHeight?: number;
 }
 export interface SectionProps {
@@ -28,7 +28,7 @@ export interface SectionProps {
 }
 export interface TableRow {
   readonly cells: readonly CellProps[];
-  readonly atomic?: true;
+  readonly keepTogether?: true;
   readonly minHeight?: number;
   readonly key?: string | number;
 }

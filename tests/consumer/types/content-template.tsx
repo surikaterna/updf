@@ -4,12 +4,16 @@ import { lower } from "@updf/core/vdom";
 import {
   Block,
   createExtensions,
+  Document,
   defineBlockAdapter,
   defineInlineAdapter,
+  document,
   extension,
+  Flow,
+  flow,
   type InlineContent,
   inline,
-  layoutFlow,
+  layout,
   type MeasuredContent,
   measure,
   Paragraph,
@@ -17,7 +21,6 @@ import {
   Span,
   span,
 } from "@updf/layout";
-import { Document } from "@updf/layout/vdom";
 
 const adapter = defineInlineAdapter<{ height: number }>({
   name: "consumer.visual",
@@ -46,11 +49,14 @@ const content = (
 const measured = measure(content, { width: 200 }, { extensions });
 const result = render(
   lower(
-    <Document
-      extensions={extensions}
-      pageTemplate={{ width: 220, height: 100, margins: { top: 10, right: 10, bottom: 10, left: 10 } }}
-    >
-      {content}
+    <Document>
+      <Flow
+        extensions={extensions}
+        pageSize={{ width: 220, height: 100 }}
+        margins={{ top: 10, right: 10, bottom: 10, left: 10 }}
+      >
+        {content}
+      </Flow>
     </Document>,
   ),
 );
@@ -78,13 +84,15 @@ const owner = defineBlockAdapter({
     };
   },
 });
-const ownedResult = layoutFlow(
-  {
-    pageTemplate: { width: 100, height: 40, margins: { top: 0, right: 0, bottom: 0, left: 0 } },
-    body: [extension(owner, {})],
-  },
-  {},
-  createExtensions([owner]),
+const ownedResult = layout(
+  document({
+    children: flow({
+      pageSize: { width: 100, height: 40 },
+      margins: { top: 0, right: 0, bottom: 0, left: 0 },
+      children: [extension(owner, {})],
+      extensions: createExtensions([owner]),
+    }),
+  }),
 );
 if (!render(ownedResult.document).length) throw new Error("operation-bound content measurement");
 // @ts-expect-error Numeric children are not coerced.

@@ -65,7 +65,7 @@ for (const build of builds) {
   }
   if (build === "dist-tables")
     assert.ok(
-      modules.some((id) => /\/layout\/dist\/tables\/paint\.js$/u.test(id)),
+      modules.some((id) => /\/tables\/dist\/adapter\.js$/u.test(id)),
       "Tables positive control missing",
     );
   if (build === "dist-flow")
@@ -75,8 +75,8 @@ for (const build of builds) {
     );
   if (build === "dist-tables")
     assert.ok(
-      !modules.some((id) => /\/vdom\/(lower|native)\.js$|\/layout\/dist\/vdom\.js$/u.test(id)),
-      "Native document lowering leaked into a layout content entry",
+      !modules.some((id) => /\/layout\/dist\/tables\//u.test(id)),
+      "Transitional tables leaked into native table entry",
     );
   if (optional)
     assert.ok(

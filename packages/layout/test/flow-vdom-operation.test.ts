@@ -11,8 +11,8 @@ import {
   type MeasureContext,
   Paragraph,
   paragraph,
-} from "@updf/layout";
-import { Document, Flow } from "@updf/layout/vdom";
+} from "../../../tests/fixtures/transitional-layout.js";
+import { Document, Flow } from "../src/transitional-vdom.js";
 import { flow } from "./fixtures.js";
 
 const pageTemplate = flow().pageTemplate;

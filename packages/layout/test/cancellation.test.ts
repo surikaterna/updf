@@ -3,8 +3,12 @@ import test from "node:test";
 import { type DocumentDefinition, DocumentError, render, renderUnknown } from "@updf/core";
 import { measureText } from "@updf/core/measurement";
 import { h, lower } from "@updf/core/vdom";
-import { type FlowDocumentDefinition, layoutFlow, layoutFlowUnknown } from "@updf/layout";
-import { Flow } from "@updf/layout/vdom";
+import {
+  LegacyFlow as Flow,
+  type FlowDocumentDefinition,
+  layoutFlow,
+  layoutFlowUnknown,
+} from "../../../tests/fixtures/transitional-layout.js";
 import { bits, value } from "../src/binary64.js";
 import { fixed, flow, paragraph } from "./fixtures.js";
 

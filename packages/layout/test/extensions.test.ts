@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { DocumentError, render } from "@updf/core";
+import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
 import {
   type BlockFragment,
   createExtensions,
@@ -11,8 +12,7 @@ import {
   layoutFlowUnknown,
   type MeasureContext,
   type MeasuredBlock,
-} from "@updf/layout";
-import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
+} from "../../../tests/fixtures/transitional-layout.js";
 import { flow } from "./fixtures.js";
 
 function measured(fragment: MeasuredBlock["fragment"], extent = 1): MeasuredBlock {

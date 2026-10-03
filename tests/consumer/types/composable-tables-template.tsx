@@ -9,7 +9,7 @@ const extensions = createExtensions([tableExtension]);
 const data = {
   columns,
   head: { repeat: true, rows: [{ cells: [{ children: "Description" }, { children: "Count" }] }] },
-  body: [{ atomic: true, cells: [{ children: "Item" }, { children: 1 }] }],
+  body: [{ keepTogether: true, cells: [{ children: "Item" }, { children: 1 }] }],
   foot: { rows: [{ cells: [{ children: "Totals" }, { children: 1 }] }] },
 } as const satisfies TableInput;
 const content = (
@@ -27,7 +27,7 @@ const content = (
           </Table.Row>
         </Table.Head>
         <Table.Body>
-          <Table.Row atomic>
+          <Table.Row keepTogether>
             <Table.Cell>
               <Paragraph>Item</Paragraph>
             </Table.Cell>
@@ -51,8 +51,15 @@ if (result.pageCount < 0) {
   // @ts-expect-error Columns require numeric explicit widths, not CSS strings.
   table({ columns: [{ width: "50%" }], body: [] });
   // @ts-expect-error Rows cannot opt into unsupported splitting.
-  const split = <Table.Row atomic={false} />;
+  const split = <Table.Row keepTogether={false} />;
   void split;
+  // @ts-expect-error Obsolete atomic is not a JSX alias.
+  const obsolete = <Table.Row atomic />;
+  void obsolete;
+  // @ts-expect-error Obsolete atomic is not a data alias.
+  table({ columns, body: [{ atomic: true, cells: [{}, {}] }] });
+  // @ts-expect-error Data rows cannot opt into unsupported splitting.
+  table({ columns, body: [{ keepTogether: false, cells: [{}, {}] }] });
   // @ts-expect-error Data rows are deeply readonly.
   data.body[0].cells.push({ children: "mutation" });
 }

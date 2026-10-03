@@ -23,6 +23,7 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/natural-paint.ts",
     "layout/src/inline-adapters.ts",
     "layout/src/vdom.ts",
+    "layout/src/transitional-vdom.ts",
     "layout/src/document-data.ts",
     "layout/src/document-types.ts",
     "layout/src/document-props.ts",

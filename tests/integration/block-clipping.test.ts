@@ -3,8 +3,8 @@ import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
 import { type DocumentDefinition, render } from "@updf/core";
-import { block, type FlowBlock, layoutFlow } from "@updf/layout";
 import { flow, paragraph } from "../../packages/layout/test/fixtures.js";
+import { block, type FlowBlock, layoutFlow } from "../fixtures/transitional-layout.js";
 
 const padding = { top: 4, right: 4, bottom: 4, left: 4 };
 function definition(nested = false): DocumentDefinition {

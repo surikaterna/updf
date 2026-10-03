@@ -1,6 +1,6 @@
 # Native API in the private workspace checkout
 
-Status: unreleased `2.0.0-poc.0`; migration implemented, independent audit pending.
+Status: private/unreleased `2.0.0-poc.0`. This page describes the current contract.
 The [original detailed proof README](evidence/native-poc-readme.md) is retained
 as historical contract/evidence context. Its old package names, command paths and
 audit-status wording are not current instructions. Use root `readme.md` commands.
@@ -43,32 +43,23 @@ audit-status wording are not current instructions. Use root `readme.md` commands
 
 ## Optional packages
 
-`@updf/layout` implements bounded measured flow (#27, independently verified per
-the #28 assignment, not released). `layoutFlow`/`layoutFlowUnknown` take an
-explicit page template and ordered paragraph/spacer/pageBreak/fixed blocks. They
-return frozen fixed core documents and source placements; serialize explicitly
-with `render(result.document, options)`. `/vdom` provides the ordinary
-`Flow.Document` component using the same object definition, resources and private
-paginator. No second JSX runtime or arbitrary intrinsic flow grammar. Header/footer
-are repeated local fixed regions; paragraphs split at internally measured complete
-lines. See [full contract](../packages/layout/README.md) and [evidence](evidence/flow.md).
-Root excludes tables; no general CSS layout, nested flow or page callbacks are included.
+`@updf/layout` exports native Document/Page/Flow/Block/Paragraph/Span, readonly
+data constructors, layout/measure, contexts, decorations and adapters. `layout`
+returns frozen fixed core documents and source placements; serialize explicitly
+with `render(result.document, options)`. Core owns the sole JSX runtime and renderer.
+Reserved final regions use sealed PageContext/FragmentContext. Paragraphs split at
+complete measured lines. See [full contract](../packages/layout/README.md) and
+[documents](documents.md). Root excludes tables and no general CSS engine is included.
 Derived flow capacities use the approved private inverse-translation/32-local-ULP
 conditioning policy, not a widened measurement tolerance. Actual materialized
 endpoints/region separation must fit; ill-conditioned templates reject even when
 empty. See the layout README numerical contract for exact rounding-cell semantics.
 
-`@updf/layout/tables` adds #28 explicit-width, atomic-row paged tables and mixed
-prose/table flow through that same private paginator. `layoutTable`/`layoutTableUnknown`
-accept `{ pageTemplate, table }`; `layoutTableFlow`/`layoutTableFlowUnknown` accept
-readonly mixed `body`. `/tables/vdom` supplies ordinary `Tables.Document`, not a new
-JSX grammar. One paragraph per cell, inherited actual font/size/RGB settings, scalar
-padding, optional positive row minimum, solid backgrounds and a uniform inset grid.
-Reports include stable table/row/page placements, consumed body rows and repeated
-header count. Rows never split; impossible row/header pairs fail before copying.
-See [complete model/geometry/accounting](../packages/layout/README.md#optional-paged-tables-28)
-and [local evidence](evidence/tables.md). Locally implemented, not independently
-verified or released. Core/root layout closures exclude table implementations.
+`@updf/tables` provides Table/table and head/body/foot/row/cell parts inside native
+Flow, with an explicitly installed tableExtension. Cells use native block/inline
+content. Rows never split; impossible row/header pairs fail before copying. See
+[tables](tables.md). Core/root layout closures exclude table implementations.
+Transitional exports are removed; see [migration](authoring-migration.md).
 
 `@updf/geometry` provides strict full-consuming SVG path grammar, arc/shape/color
 helpers. `@updf/svg` supports the documented bounded svg/g/path/basic-shapes,
@@ -103,11 +94,10 @@ for units, all removed/residual ceilings, context lifetime and deferred C–G AP
 Migration added no image/layout/editor functionality or legacy modernization.
 Optional bounded flow was added subsequently by #27, without changing fixed CMR.
 
-## Subsequent Slice E authoring (implemented, not independently verified)
+## Document authoring
 
 The current `@updf/layout` Document/Page/Flow components, readonly data constructors,
 PageSize presets/custom point sizes, sealed final PageContext/FragmentContext and
 reserved deferred decorations are documented in [documents.md](documents.md).
-The older foundation statements above describe that dated delivery. Core's fixed
-document/page grammar and bytes remain unchanged. F separate tables, G and #33
-images are not claimed complete; no release, issue closure or deployment occurred.
+Core's fixed document/page grammar and bytes remain unchanged. No Image API,
+release, issue closure or deployment is implied.

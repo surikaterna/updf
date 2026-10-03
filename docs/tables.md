@@ -44,8 +44,11 @@ the exact Node/browser bytes; source display is the actual raw JSX module.
 
 Images/#33, nested tables, row splitting, spans, CSS, weighted/auto/percentage
 columns, formula evaluation and global plugin installation are not implemented.
-Unsupported fields and `atomic={false}` diagnose explicitly. Legacy layout tables
-remain **transitional, unreleased migration controls only** until G removes them.
+Rows use `keepTogether?: true`: omission stays atomic, `false` rejects unsupported
+splitting, and the obsolete `atomic` field rejects at compile time and runtime.
+Rows fit intact, move to a fresh page, or fail `LAYOUT_OVERSIZED`, even under hidden
+cell overflow. Unsupported fields diagnose explicitly. Legacy layout tables
+are removed from public exports without a facade; see [migration](authoring-migration.md).
 
 See [F evidence](evidence/architecture-tables.md) for actual delivery scope, checks,
 preservation manifests, known legacy/audit failures and independent-audit status.

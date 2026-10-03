@@ -1,6 +1,6 @@
 import { render } from "@updf/core";
-import { createExtensions, layoutFlow, paragraph } from "@updf/layout";
 import { table, tableExtension } from "@updf/tables";
+import { createExtensions, layoutFlow, paragraph } from "./transitional-layout.js";
 
 export function composableInventory(title: string) {
   const defaults = {

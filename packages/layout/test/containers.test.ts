@@ -11,7 +11,7 @@ import {
   type FlowBlock,
   layoutFlow,
   layoutFlowUnknown,
-} from "@updf/layout";
+} from "../../../tests/fixtures/transitional-layout.js";
 import { flow, paragraph } from "./fixtures.js";
 
 const inset = (n: number) => ({ top: n, right: n, bottom: n, left: n });
@@ -107,6 +107,9 @@ test("natural auto height fragments complete children/lines and clones padding/b
 test("keepTogether moves once or errors independently from error/hidden overflow", () => {
   for (const overflow of ["error", "hidden"] as const) {
     const item = block({ children: [text("A\nB")], keepTogether: true, style: { overflow } });
+    const exact = layoutFlow(flow([{ type: "spacer", height: 20 }, item]));
+    assert.equal(exact.pageCount, 1);
+    assert.equal(exact.placements[1]?.box.height, 20);
     const result = layoutFlow(flow([{ type: "spacer", height: 30 }, item]));
     assert.equal(result.placements[1]?.pageIndex, 1);
     rejects(

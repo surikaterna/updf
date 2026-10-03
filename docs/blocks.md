@@ -1,29 +1,23 @@
 # Generic blocks and static fragment decorations (C)
 
-Current D authoring can place `paragraph`/`span` data in these containers and use
-imported `Block`/`Paragraph`/`Span` through the core-owned semantic normalization
-bridge. `@updf/layout/vdom` `Document` accepts those children and owned local
-extension scopes. See [inline.md](inline.md). C is independently verified per the
-D assignment; D is implemented for audit, not verified. The historical C contract
-and status below are retained rather than rewritten. Its paginator/numeric kernel
-is unchanged, and E/F/G/Image remain outside D.
-
-Implemented locally, awaiting independent C audit. D–G, final PageContext,
-deferred page recipes, images and table-cell block content are not implemented.
-This contract uses the existing native renderer and the single layout paginator.
+Current private/unreleased contract. `paragraph`/`span` data and imported
+`Block`/`Paragraph`/`Span` use the core-owned normalization bridge. Native
+`Document` contains `Page`/`Flow` sections; Flow accepts block children and local
+extension scopes. See [inline](inline.md), [documents](documents.md) and
+[tables](tables.md). The native renderer, paginator and numeric kernel are unchanged.
+Historical C delivery/audit records remain under `docs/evidence`.
 
 ## Public data entry
 
 ```ts
-import { block, createExtensions, layoutFlow } from "@updf/layout";
+import { block, createExtensions, document, flow, layout } from "@updf/layout";
 import { chart, chartAdapter } from "../apps/showcase/src/chart.js";
 
-const result = layoutFlow({
-  pageTemplate: {
-    width: 240, height: 160,
-    margins: { top: 10, right: 10, bottom: 10, left: 10 },
-  },
-  body: [block({
+const result = layout(document({ children: flow({
+  pageSize: { width: 240, height: 160 },
+  margins: { top: 10, right: 10, bottom: 10, left: 10 },
+  extensions: createExtensions([chartAdapter]),
+  children: [block({
     children: [chart({ height: 80, values: [0.2, 0.6, 0.9] })],
     style: {
       height: 48, overflow: "hidden",
@@ -31,25 +25,24 @@ const result = layoutFlow({
       border: { width: 2, color: [0, 0.6, 0] },
     },
   })],
-}, {}, createExtensions([chartAdapter]));
+}) }));
 ```
 
 The chart is example source, not a layout package export or native primitive.
 `block` copies/freezes data without freezing callers, preserving owned extension
 descriptors, decoration plans and prepared-font identities. VNodes are not block
 or adapter data. Ordinary raw `{type: "block", ...}` records are also normalized
-by `layoutFlowUnknown`; owned adapter/plan capabilities cannot be forged by JSON.
+by native `layout`; owned adapter/plan capabilities cannot be forged by JSON.
 
-Children are readonly `FlowBlock[]`: current paragraph/fixed/spacer/break,
-extensions and nested containers. Old paragraph wrapping/math remains unchanged.
+Children are readonly block content: native paragraphs, extensions and nested
+containers. Paragraph wrapping/math remains unchanged.
 The compiler handles block normalization; the paginator never switches on
 paragraph/table/container kinds. Internal heap continuations support deeply nested
 container selection and painting without depending on the JS call stack.
 
-Plain data blocks work through the existing ordinary `Flow.Document` component.
-Installing extension sets or transporting decoration capabilities through that
-transitional JSX boundary is not implemented; use the native data entry above.
-This is not a new JSX intrinsic grammar or the later semantic Paragraph API.
+Data blocks and ordinary `<Block>` components work as children of native `<Flow>`
+inside `<Document>`. Install adapters with `Flow.extensions`. No extra JSX runtime
+or intrinsic grammar is introduced.
 
 ## Sizing and overflow
 
@@ -107,6 +100,18 @@ contain generic advance controls, including intentional leading/trailing blanks.
 Closed/kept blocks reject page-advance controls rather than pretending a break
 can both remain atomic and create a continuation page.
 
+Paragraphs use the same `keepTogether` spelling: `true` keeps all measured lines
+together; omission or `false` permits complete-line fragmentation. Table rows stay
+together even when the property is omitted and reject `false` (row splitting is
+unsupported). Adapter `fragmentation: "atomic"` remains capability terminology,
+not an authoring prop. JSX Fragment only groups syntax; it does not create a layout
+box or keep its children together. Use an actual `<Block keepTogether>` to group a
+headline with a visual. Hidden overflow never grants an atomic oversize fallback.
+The showcase SVG headline and graphic now share a kept Block in `src/svg.ts`;
+the chart headline/visual pair in `src/blocks.tsx` is also a kept Block, independent
+of the surrounding container's whole-block toggle. Source display reads these
+actual modules rather than a separate illustrative snippet.
+
 Decoration break policy is **clone per fragment**: background, all four border
 sides and all padding sides are applied to every container fragment. Additional
 clone reservations can increase aggregate fragmented height beyond its natural
@@ -141,10 +146,9 @@ can mutate shared results. Provisional trials do not amplify emitted-node/text
 budgets. Content must advance strict offset/extent even when its height is zero;
 decoration output alone cannot excuse nonprogress.
 
-Existing PageTemplate repeated regions and table header/row geometry retain their
-existing paths. Block decorations are not final-page header/footer recipes. The
-opaque ownership boundary is available for later E integration, but no deferred
-callback/PageContext/FragmentContext API or mutable global current page exists now.
+Static decorations are distinct from reserved deferred `Block.Header`/`Block.Footer`
+recipes. PageContext/FragmentContext are sealed during finalization; see
+[documents](documents.md). There is no mutable global current page.
 
 ## Extension trust and policy
 
@@ -181,5 +185,5 @@ and spans are preserved without prefixing them again. Arbitrary thrown objects'
 message/toString/getters are not read. Measurement callbacks still close in `finally`.
 
 For actual code, browser/demo controls and audited-scope evidence, see
-[architecture-blocks.md](evidence/architecture-blocks.md). Independent audit of C
-must precede D; passing these implementation gates is not independent verification.
+[architecture-blocks.md](evidence/architecture-blocks.md). Passing implementation
+gates is not independent verification.

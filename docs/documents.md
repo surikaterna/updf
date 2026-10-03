@@ -1,8 +1,8 @@
 # Mixed documents and final decorations (Slice E)
 
-This private, unreleased slice is implemented for independent audit, **not
-verified**. A–D are independently verified per the assignment. F (the separate
-tables package) and G remain separate work; there is no Image or #33 delivery.
+This is the current private, unreleased document contract. Tables are provided by
+the separate `@updf/tables` package. Dated delivery and audit records are retained
+under `docs/evidence`; they are not current API instructions. There is no Image API.
 
 ## One authoring/runtime path
 
@@ -46,8 +46,9 @@ Fixed pages do not produce flow placements. Placement `pageIndex` is zero-based
 in the **whole document**, and source paths identify the originating section.
 
 Core's lowercase `document`/`page` primitives remain the fixed-position API.
-For compatibility, `Flow.Document` and the previous `@updf/layout/vdom` Document
-with `pageTemplate` remain available; new code should use the coherent root API.
+The transitional `Flow.Document`, `layoutFlow`/`layoutFlowUnknown`, and
+`@updf/layout/vdom`, `/tables`, `/tables/vdom` exports are removed, without a facade.
+Use the root API; see [migration](authoring-migration.md).
 No extra `renderDocument` API, React runtime, parser, global plugin or public
 serializer plan is introduced.
 

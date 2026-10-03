@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, type NodeDefinition } from "@updf/core";
 import { h } from "@updf/core/vdom";
+import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
 import {
   block,
   createDecorationPlan,
@@ -10,8 +11,7 @@ import {
   extension,
   layoutFlow,
   type MeasureContext,
-} from "@updf/layout";
-import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
+} from "../../../tests/fixtures/transitional-layout.js";
 import { flow } from "./fixtures.js";
 
 function rejects(run: () => unknown, code: string): void {

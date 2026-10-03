@@ -9,7 +9,7 @@ export default defineConfig({
     outDir: "dist-tables",
     minify: "esbuild",
     lib: {
-      entry: fileURLToPath(new URL("../../packages/layout/dist/tables/index.js", import.meta.url)),
+      entry: fileURLToPath(new URL("../../packages/tables/dist/index.js", import.meta.url)),
       formats: ["es"],
       fileName: () => "tables.mjs",
     },

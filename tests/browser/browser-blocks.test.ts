@@ -9,7 +9,10 @@ test("public external chart adapter has exact Node/Chromium fragment, placement 
     configFile: new URL("../../apps/browser-fonts/vite.config.ts", import.meta.url).pathname,
     preview: { host: "127.0.0.1", port: 0 },
   });
-  const browser = await chromium.launch({ executablePath: "/usr/bin/chromium", args: ["--no-sandbox"] });
+  const browser = await chromium.launch({
+    executablePath: process.env.BROWSER_CHROMIUM ?? "/usr/bin/chromium",
+    args: ["--no-sandbox"],
+  });
   try {
     const page = await browser.newPage();
     const url = server.resolvedUrls?.local[0];

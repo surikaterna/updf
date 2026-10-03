@@ -3,8 +3,8 @@ import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
 import { render } from "@updf/core";
-import { block, layoutFlow } from "@updf/layout";
 import { flow } from "../../packages/layout/test/fixtures.js";
+import { block, layoutFlow } from "../fixtures/transitional-layout.js";
 
 const child = {
   type: "fixed" as const,

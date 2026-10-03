@@ -1,7 +1,7 @@
 import { type BlockContent, type BlockPart, defineBlockPart, type MeasureContext } from "@updf/layout";
 import { error, number, record } from "./checks.js";
 import type { CellProps, RowProps, SectionProps, TableInput, TableProps, TableRow, TableSection } from "./types.js";
-import { atomic, cell, row } from "./validate.js";
+import { cell, row, rowOptions } from "./validate.js";
 
 export const Head = defineBlockPart<SectionProps>("table.head");
 export const Body = defineBlockPart<{ readonly children?: BlockContent }>("table.body");
@@ -49,8 +49,8 @@ export function fromParts(input: TableProps, context: MeasureContext): TableInpu
 }
 function rows(section: BlockPart, columns: number, context: MeasureContext): readonly TableRow[] {
   return context.readParts(section.content, [Row]).map((part) => {
-    record(part.props, ["atomic", "minHeight"], part.sourcePath);
-    atomic(part.props, part.sourcePath);
+    record(part.props, ["keepTogether", "minHeight"], part.sourcePath);
+    rowOptions(part.props, part.sourcePath);
     const cells = context.readParts(part.content, section.part === Head ? [Cell, HeaderCell] : [Cell]);
     const result = {
       ...part.props,

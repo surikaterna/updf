@@ -21,7 +21,7 @@ verification of the new package structure.
 | Workspace | Responsibility / entry points |
 | --- | --- |
 | `@updf/core` | Zero runtime dependencies: `.`, `/measurement`, `/fonts`, `/painting`, `/vdom`, `/jsx-runtime`, `/jsx-dev-runtime` |
-| `@updf/layout` | Optional bounded flow/templates, `/vdom` `Flow.Document`, `/tables` paged tables and `/tables/vdom` `Tables.Document` |
+| `@updf/layout` | Native Document/Page/Flow/Block/Paragraph/Span, data constructors, layout/measure, contexts, decorations and adapters |
 | `@updf/geometry` | Optional strict path/color/shape helpers |
 | `@updf/svg` | Optional strict SVG subset; `/tree` native VDOM adapter |
 | `@updf/fontkit` | Optional font preparation; requires optional peer `fontkit@^2.0.4` when imported |
@@ -214,25 +214,26 @@ Run the bounded mixed prose/table example (after `npm run build`) independently
 of the site; this uses its actual imported source, not a README-only table engine:
 
 ```sh
-node --import tsx --input-type=module -e "import {tableExample} from './apps/showcase/src/tables.ts'; const {bytes,result}=tableExample('Inventory'); console.log(bytes.length,result.pageCount,result.consumedBodyRowCount);"
+node --import tsx --input-type=module -e "import {tableExample} from './apps/showcase/src/tables.tsx'; const {bytes,result}=tableExample('Inventory'); console.log(bytes.length,result.pageCount,result.placements);"
 ```
 
-See [standalone data and native TSX](packages/layout/README.md#optional-paged-tables-28)
+See [native table data and TSX](packages/tables/README.md)
 for the typed table model. Layout returns an ordinary frozen core document;
 serialization is always an explicit `render(result.document, options)`.
 
-[Unified Paragraph/Span authoring (D)](docs/inline.md) is implemented locally for
-independent audit, **not verified**. `@updf/layout` exports meaningful readonly
+[Unified Paragraph/Span authoring](docs/inline.md) is private/unreleased.
+`@updf/layout` exports meaningful readonly
 content unions, `paragraph`/`span`, imported `Paragraph`/`Span`/`Block` components
 and `measure(content, constraints, options)`. The same content uses core's existing
 JSX runtime and native renderer; public output is frozen portable size/line/ink/
 baseline/source-path data. The [actual TSX showcase](apps/showcase/src/rich.tsx)
 uses a context theme and a real native inline badge. SVG remains an optional
-application-owned adapter. No final PageContext, Image or new tables package.
+application-owned adapter. Final contexts are documented in [documents](docs/documents.md)
+and native tables in [tables](docs/tables.md). No Image API is provided.
 
 The following #26 low-level contract is transitional and deprecated for new
-authoring in this private/unreleased architecture. Its final public replacement
-is G, not a permanent facade:
+authoring in this private/unreleased architecture. Renderer representations remain
+available for supported adapter contracts, not as a compatibility authoring facade:
 
 [#26 rich text and measurement](docs/measurement.md) is implemented locally,
 independently verified per the #27 assignment, not released. The separate `richText` AST/native TSX
@@ -243,12 +244,15 @@ truth; fixed text wrapping/baselines and both CMR PDF digests remain unchanged.
 - Optional [#27 bounded flow](packages/layout/README.md) is implemented locally,
   independently verified per #28 assignment, not released. Explicit templates reserve repeated header/footer
   regions and flow complete measured paragraph lines into fixed core pages.
-  Render explicitly; data and native `Flow.Document` TSX share one paginator.
-- Optional [#28 paged tables](packages/layout/README.md#optional-paged-tables-28) is
-  independently verified including spatial R1, not released or deployed. Import `layoutTable`/`layoutTableFlow`
-  from `@updf/layout/tables`; native `Tables.Document` lives in `/tables/vdom`.
+  Render explicitly; native data and Document/Flow TSX share one paginator.
+- Optional [paged tables](packages/tables/README.md) are private/unreleased.
+  Import `Table`/`table` and `tableExtension` from `@updf/tables` and install the
+  adapter in the containing native Flow's local extension scope.
   Explicit-width atomic rows, repeated table headers and mixed prose reuse #27's
-  paginator and #26's measurement. [Executed inventory example](apps/showcase/src/tables.ts).
+  paginator and native measurement. [Executed inventory example](apps/showcase/src/tables.tsx).
+  [Migration](docs/authoring-migration.md) lists the removed transitional exports;
+  no compatibility facade is provided. Theme is explicitly applied through context,
+  not an implicit CSS cascade.
 - Core retains fixed point geometry and explicit pages. No general CSS layout,
   raster images, shaping, bidi or full SVG.
 - Built-in Helvetica accepts printable ASCII and LF only. Selected prepared

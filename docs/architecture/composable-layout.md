@@ -1,6 +1,14 @@
 # Composable layout: approved blueprint and bounded foundation
 
-## Current E delivery — 2026-10-03
+## Current contract
+
+Use the native [document](../documents.md), [content](../inline.md),
+[block](../blocks.md) and [table](../tables.md) APIs. The transitional public
+surfaces are removed as described in [migration](../authoring-migration.md).
+The dated blueprint/delivery notes below are historical, not current audit status
+or API instructions. Historical audit records under `docs/evidence` are unchanged.
+
+## Historical E delivery — 2026-10-03
 
 The caller reports A/B/C/D independently verified, including D's 294 native tests,
 17 site tests, 11 browser builds, eight browser tests and six packed closures.
@@ -12,7 +20,7 @@ captured; earlier status/evidence records below remain historical and unchanged.
 F separate tables, G and #33 images are not part of this slice. No delegation, Git
 delivery, tracker or deployment/settings mutation was authorized or performed.
 
-## Current D delivery — 2026-10-03
+## Historical D delivery — 2026-10-03
 
 The caller reports A/B/C independently verified and authorizes D only. D's unified
 Paragraph/Span data+TSX authoring, atomic inline adapters and public content
@@ -22,7 +30,7 @@ There is no E final page context/deferred recipe API, F new tables package or Im
 The historical C/B status/evidence below is retained verbatim, not the current
 prerequisite status. No delegation, Git delivery, tracker or deployment mutation.
 
-## Current C delivery — 2026-10-03
+## Historical C delivery — 2026-10-03
 
 Independent audit requested changes C-F1–C-F5 despite the prior passing gates.
 Their remediation is **implemented, awaiting independent re-audit, not verified**.

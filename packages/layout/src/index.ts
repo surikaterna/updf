@@ -1,9 +1,3 @@
-import type { RenderOptions } from "@updf/core";
-import { createDrawingLayoutOperation } from "@updf/core/internal-drawing";
-import type { Extensions } from "./extension-types.js";
-import { layout } from "./layout.js";
-import type { FlowDocumentDefinition, FlowResult } from "./types.js";
-
 export { blockComponent, defineBlockPart } from "./author-parts.js";
 export { block } from "./container-data.js";
 export type { BlockInput, BlockStyle, ContainerBlock, Insets } from "./container-types.js";
@@ -90,19 +84,3 @@ export type {
   SpacerBlock,
 } from "./types.js";
 export { Flow, MixedDocument as Document, Page } from "./vdom.js";
-
-export function layoutFlow(
-  input: FlowDocumentDefinition,
-  options: RenderOptions = {},
-  extensions?: Extensions,
-): FlowResult {
-  return layoutFlowUnknown(input, options, extensions);
-}
-export function layoutFlowUnknown(input: unknown, options: RenderOptions = {}, extensions?: Extensions): FlowResult {
-  const operation = createDrawingLayoutOperation(options);
-  try {
-    return layout(input, operation, extensions);
-  } finally {
-    operation.close();
-  }
-}

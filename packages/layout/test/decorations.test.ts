@@ -9,7 +9,7 @@ import {
   extension,
   layoutFlow,
   layoutFlowUnknown,
-} from "@updf/layout";
+} from "../../../tests/fixtures/transitional-layout.js";
 import { flow, paragraph } from "./fixtures.js";
 
 function rejects(run: () => unknown, code: string): void {

@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, render } from "@updf/core";
 import { createContext, h, useContext } from "@updf/core/vdom";
+import { Table, table, tableExtension } from "@updf/tables";
+import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
 import {
   createExtensions,
   Document,
@@ -15,9 +17,7 @@ import {
   Paragraph,
   paragraph,
   span,
-} from "@updf/layout";
-import { Table, table, tableExtension } from "@updf/tables";
-import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
+} from "../../../tests/fixtures/transitional-layout.js";
 
 const columns = [{ width: 90 }, { width: 90 }] as const;
 const pageTemplate = { width: 200, height: 100, margins: { top: 5, right: 5, bottom: 5, left: 5 } };

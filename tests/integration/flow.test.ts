@@ -4,9 +4,8 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
 import { render } from "@updf/core";
 import { h, lower } from "@updf/core/vdom";
-import { layoutFlow } from "@updf/layout";
-import { Flow } from "@updf/layout/vdom";
 import { fixed, flow, paragraph } from "../../packages/layout/test/fixtures.js";
+import { LegacyFlow as Flow, layoutFlow } from "../fixtures/transitional-layout.js";
 
 test("multi-page flow qpdf, extraction order, contained raster boxes and identical repeated regions", async () => {
   const result = layoutFlow(

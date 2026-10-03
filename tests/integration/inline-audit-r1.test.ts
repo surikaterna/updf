@@ -4,7 +4,15 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
 import { render } from "@updf/core";
 import type { ParagraphDefinition } from "@updf/core/measurement";
-import { block, type Content, createDecorationPlan, layoutFlow, measure, paragraph, span } from "@updf/layout";
+import {
+  block,
+  type Content,
+  createDecorationPlan,
+  layoutFlow,
+  measure,
+  paragraph,
+  span,
+} from "../fixtures/transitional-layout.js";
 
 const directory = new URL("../../artifacts/inline-audit-r1/", import.meta.url);
 function laidOut(content: Content) {

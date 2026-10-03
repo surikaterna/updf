@@ -1,10 +1,9 @@
 # Unified content authoring and measurement (D)
 
-Private/unreleased; **implemented for independent audit, not verified**. A/B/C are
-independently verified per the caller's D assignment. Their historical evidence is
-retained verbatim. This slice adds authoring, not final page/fragment contexts,
-deferred footer recipes, images, a new tables package, table-cell block normalization,
-shaping, bidi or CSS.
+Current private/unreleased content contract. Historical delivery/audit records are
+retained under `docs/evidence`. See [documents](documents.md) for final contexts and
+deferred decorations and [tables](tables.md) for table-cell content. No shaping,
+bidi, images or CSS engine is implied.
 
 ## One content model, one JSX runtime
 
@@ -12,8 +11,7 @@ shaping, bidi or CSS.
 /** @jsxImportSource @updf/core */
 import { render } from '@updf/core';
 import { lower } from '@updf/core/vdom';
-import { Block, measure, Paragraph, Span } from '@updf/layout';
-import { Document } from '@updf/layout/vdom';
+import { Block, Document, Flow, measure, Paragraph, Span } from '@updf/layout';
 
 const content = <Block style={{ padding: { top: 4, right: 4, bottom: 4, left: 4 } }}>
   <Paragraph defaultStyle={{ fontSize: 10 }}>
@@ -21,16 +19,15 @@ const content = <Block style={{ padding: { top: 4, right: 4, bottom: 4, left: 4 
   </Paragraph>
 </Block>;
 const measured = measure(content, { width: 180 });
-const bytes = render(lower(<Document pageTemplate={{ width: 200, height: 100,
-  margins: { top: 10, right: 10, bottom: 10, left: 10 } }}>{content}</Document>));
+const bytes = render(lower(<Document><Flow pageSize={{ width: 200, height: 100 }}
+  margins={{ top: 10, right: 10, bottom: 10, left: 10 }}>{content}</Flow></Document>));
 ```
 
 Data authoring is equivalent: `paragraph({ children: ['Author text ',
 span({ style: { color: [1, 0, 0] }, children: 'with nested styles' })] })`, optionally
-inside the existing `block({ children: [...] })`. `layoutFlow` accepts these data
-paragraphs in its body. Use imported `Paragraph`, `Span`, `Block` from the root (also
-re-exported by `/vdom`); use `/vdom` `Document` for a semantic JSX body. Root imports
-do not load native document lowering, tables, SVG, Fontkit, React or Node code.
+inside `block({ children: [...] })`. `layout(document({ children: flow({ pageSize,
+margins, children }) }))` accepts the same data content. Import components and
+constructors from the root. Root imports do not load tables, SVG, Fontkit, React or Node code.
 The small core-owned recipe/context normalization bridge is intentionally present.
 
 `InlineContent` and `BlockContent` are distinct readonly unions, not a record with
@@ -56,7 +53,7 @@ layout into core. Normalization expands ordinary wrappers under the same operati
 provider environment and B progress frames. Providers and sibling environments are
 restored in finally; returned thenables are not assimilated. Retained measurement
 callbacks close on success **and normalization failure**. No public callback-injection
-or global name registry is introduced; no PageContext hook is available.
+or global name registry is introduced. Final PageContext is described in [documents](documents.md).
 
 ## Paragraph styles and measurement
 
@@ -108,7 +105,7 @@ genuine glyph overflow is never converted into clipping.
 
 The existing mixed table entry obtains authored prose through the same compiler;
 its standalone operation closes newly possible wrapper contexts too. Table cells,
-row protocols, new table components/package and implicit cell paragraphs remain F.
+row protocols and implicit cell paragraphs are documented in [tables](tables.md).
 
 Pass the same resource bindings to measurement/lower/layout and render. Built-in
 Helvetica is printable ASCII plus LF. Prepared fonts use the existing simple LTR
@@ -118,11 +115,11 @@ checked **before** inline callbacks execute. Trusted defaults and optional servi
 budgets remain B's policy, not an executable-code sandbox.
 
 The unreleased `@updf/core/measurement` plain/rich inputs, native `richText`, old
-Flow paragraph records and component `measurement.measureText` remain transitional
-low-level implementation paths through G. They are **deprecated for new authoring**,
+Flow paragraph records and component `measurement.measureText` remain low-level
+renderer/adapter paths. They are **not recommended for new authoring**,
 not a permanent compatibility facade or a recommendation to serialize rich-run
-arrays in UI code. G is the final public replacement/removal tranche; this slice
-does not prematurely remove internally used native primitives or proof fixtures.
+arrays in UI code. The [migration](authoring-migration.md) removes transitional
+public layout roots without removing renderer primitives or internal proof coverage.
 
 ## Local inline adapters
 
@@ -147,8 +144,8 @@ const metrics = measure(content, { width: 180 }, { extensions });
 props without freezing callers. The same owned `createExtensions` scope accepts
 block and inline adapters, validates duplicate names/identities and is local to an
 operation. An inline descriptor cannot be serialized/forged or used as a block.
-The existing `defineBlockAdapter` remains the default block visual path; this
-temporary parallel role API avoids breaking C and will unify in G.
+`defineBlockAdapter` remains the block visual path; `defineInlineAdapter` owns
+atomic inline visual measurement. Both use the same operation-local extension scope.
 
 Advance must be positive; ascent/descent nonnegative with positive total height.
 Nodes are native geometry at box top-left; declared ink coordinates are relative

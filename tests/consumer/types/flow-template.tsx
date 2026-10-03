@@ -4,26 +4,27 @@ import * as Core from "@updf/core";
 import { render } from "@updf/core";
 import { lower } from "@updf/core/vdom";
 import * as Layout from "@updf/layout";
-import { type FlowDocumentDefinition, layoutFlow, layoutFlowUnknown } from "@updf/layout";
-import { Flow } from "@updf/layout/vdom";
+import { Document, document, Flow, flow, layout, paragraph } from "@updf/layout";
 
-const definition: FlowDocumentDefinition = {
-  pageTemplate: { width: 200, height: 100, margins: { top: 10, right: 10, bottom: 10, left: 10 } },
-  body: [
-    {
-      type: "paragraph",
-      paragraph: {
-        defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
-        runs: [{ text: "Portable flow\ncomplete lines" }],
-        lineHeight: 12,
-        align: "left",
-        whiteSpace: "preserve",
-        breakLongWords: "error",
-      },
-    },
-  ],
-};
-const result = layoutFlow(definition);
+const margins = { top: 10, right: 10, bottom: 10, left: 10 };
+const pageSize = { width: 200, height: 100 };
+const content = paragraph({
+  children: "Portable flow\ncomplete lines",
+  defaultStyle: { fontSize: 10 },
+  lineHeight: 12,
+});
+const result = layout(document({ children: flow({ pageSize, margins, children: content }) }));
+const bytes = render(
+  lower(
+    <Document>
+      <Flow pageSize={pageSize} margins={margins}>
+        {content}
+      </Flow>
+    </Document>,
+  ),
+);
+const expected = render(result.document);
+if (bytes.length !== expected.length || bytes.some((byte, i) => byte !== expected[i])) throw new Error("flow parity");
 const adapter = Layout.defineBlockAdapter<{ readonly heights: readonly number[] }>({
   name: "consumer.chart",
   validate(input) {
@@ -53,16 +54,23 @@ const adapter = Layout.defineBlockAdapter<{ readonly heights: readonly number[] 
   },
 });
 const extensions = Layout.createExtensions([adapter]);
-const custom = layoutFlow(
-  { ...definition, body: [definition.body[0]!, Layout.extension(adapter, { heights: [10] }), definition.body[0]!] },
-  {},
-  extensions,
+const custom = layout(
+  document({
+    children: flow({
+      pageSize,
+      margins,
+      extensions,
+      children: [content, Layout.extension(adapter, { heights: [10] }), content],
+    }),
+  }),
 );
-if (custom.consumed !== 3 || !render(custom.document).length) throw new Error("public external adapter");
+if (new Set(custom.placements.map((placement) => placement.sourceIndex)).size !== 3 || !render(custom.document).length)
+  throw new Error("public external adapter");
 const plan = Layout.createDecorationPlan([{ edge: "before", repeat: "first", height: 2, nodes: [] }]);
 const stacked = Layout.block({
   children: [Layout.extension(adapter, { heights: [10] })],
   decorations: plan,
+  keepTogether: true,
   style: {
     width: 170,
     maxWidth: 180,
@@ -72,52 +80,55 @@ const stacked = Layout.block({
     gap: 1,
     overflow: "hidden",
   },
-  keepTogether: true,
 });
-if (!render(layoutFlow({ ...definition, body: [stacked] }, {}, extensions).document).length)
+if (!render(layout(document({ children: flow({ pageSize, margins, extensions, children: stacked }) })).document).length)
   throw new Error("stacked public block");
-const plainStack = { ...definition, body: [Layout.block({ children: definition.body, style: { minHeight: 40 } })] };
-const plainStackBytes = render(layoutFlow(plainStack).document);
-const plainStackJSX = render(lower(<Flow.Document {...plainStack} />));
-if (
-  plainStackBytes.some((byte, index) => byte !== plainStackJSX[index]) ||
-  plainStackBytes.length !== plainStackJSX.length
-)
-  throw new Error("transitional block TSX");
-const bytes = render(lower(<Flow.Document {...definition} />));
-const expected = render(result.document);
-if (bytes.length !== expected.length || bytes.some((byte, i) => byte !== expected[i])) throw new Error("flow parity");
-if (layoutFlowUnknown(definition).pageCount !== 1) throw new Error("unknown flow");
+const plainStack = Layout.block({ children: [content], style: { minHeight: 40 } });
+const stackData = layout(document({ children: flow({ pageSize, margins, children: plainStack }) }));
+const stackJSX = render(
+  lower(
+    <Document>
+      <Flow pageSize={pageSize} margins={margins}>
+        {plainStack}
+      </Flow>
+    </Document>,
+  ),
+);
+const stackBytes = render(stackData.document);
+if (stackBytes.length !== stackJSX.length || stackBytes.some((byte, i) => byte !== stackJSX[i]))
+  throw new Error("native block TSX parity");
+if (result.pageCount !== 1) throw new Error("native flow page count");
 for (const keepTogether of [false, true]) {
-  const fractional: FlowDocumentDefinition = {
-    pageTemplate: { width: 760.03, height: 730.9, margins: { top: 700, right: 0, bottom: 0, left: 700 } },
-    body: [
-      {
-        type: "paragraph",
-        keepTogether,
-        paragraph: {
-          defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
-          runs: [{ text: "AAAAAAAAA\nAAAAAAAAA\nAAAAAAAAA" }],
+  const fractional = (
+    <Document>
+      <Flow pageSize={{ width: 760.03, height: 730.9 }} margins={{ top: 700, right: 0, bottom: 0, left: 700 }}>
+        {paragraph({
+          children: "AAAAAAAAA\nAAAAAAAAA\nAAAAAAAAA",
+          defaultStyle: { fontSize: 10 },
           lineHeight: 10.3,
-          align: "left",
-          whiteSpace: "preserve",
-          breakLongWords: "error",
-        },
-      },
-    ],
-  };
-  const native = layoutFlowUnknown(fractional);
+          keepTogether,
+        })}
+      </Flow>
+    </Document>
+  );
+  const native = layout(fractional);
   if (native.pageCount !== 1) throw new Error("fractional pagination");
-  const actual = render(lower(<Flow.Document {...fractional} />));
+  const actual = render(lower(fractional));
   const expected = render(native.document);
   if (actual.length !== expected.length || actual.some((byte, i) => byte !== expected[i]))
     throw new Error("fractional TSX");
 }
 if (!bytes.length) {
-  // @ts-expect-error Owned decoration entries are deeply immutable.
-  plan.entries[0]!.nodes.push({ type: "rect", x: 0, y: 0, width: 1, height: 1 });
+  // @ts-expect-error Transitional flow roots are retired.
+  void Layout.layoutFlow;
+  // @ts-expect-error Unknown transitional flow root is retired.
+  void Layout.layoutFlowUnknown;
+  // @ts-expect-error Native Flow has regions, not a transitional Document.
+  void Flow.Document;
   // @ts-expect-error Visible/auto/scroll overflow is not implemented.
   Layout.block({ children: [], style: { overflow: "scroll" } });
+  // @ts-expect-error Owned decoration entries are deeply immutable.
+  plan.entries[0]!.nodes.push({ type: "rect", x: 0, y: 0, width: 1, height: 1 });
   // @ts-expect-error Serialized objects are not owned decoration capabilities.
   Layout.block({ children: [], decorations: { entries: [] } });
   // @ts-expect-error Public adapters require owned identity, not an arbitrary kind object.
@@ -130,27 +141,37 @@ if (!bytes.length) {
     fragment: async () => ({ status: "defer" }),
   };
   void asyncBlock;
-  // @ts-expect-error Derived-axis certificates are private, not user-supplied plans.
+  // @ts-expect-error Derived-axis certificates remain private.
   const certificate: Layout.DerivedAxis = { start: 0, end: 100, nominalExtent: 100, capacity: 1000 };
   void certificate;
-  // @ts-expect-error Results and the fixed document are immutable.
+  // @ts-expect-error Results and fixed output are immutable.
   result.document.pages.push({ width: 1, height: 1, children: [] });
-  // @ts-expect-error Fixed blocks require an explicit positive height (also runtime validated).
-  const missing: FlowDocumentDefinition = { ...definition, body: [{ type: "fixed", children: [] }] };
-  void missing;
-  // @ts-expect-error Flow is an ordinary component, not a second intrinsic grammar.
+  // @ts-expect-error Native Document no longer accepts a transitional template.
+  const oldDocument = <Document pageTemplate={{ ...pageSize, margins }} />;
+  void oldDocument;
+  // @ts-expect-error Flow is an ordinary component, not an intrinsic grammar.
   const intrinsic = <flowDocument />;
   void intrinsic;
-  layoutFlow({
-    ...definition,
-    // @ts-expect-error Native fixed children cannot be JSX nodes.
-    body: [{ type: "fixed", height: 10, children: [<rect x={0} y={0} width={1} height={1} />] }],
-  });
-  // @ts-expect-error No future tables are exported by the flow root.
+  const invalidFixed: Layout.FixedBlock = {
+    type: "fixed",
+    height: 10,
+    // @ts-expect-error Native fixed block data cannot be a JSX node array.
+    children: [<rect x={0} y={0} width={1} height={1} />],
+  };
+  void invalidFixed;
+  // @ts-expect-error Tables remain outside the layout root.
   void Layout.layoutTable;
   // @ts-expect-error Core remains independent of layout.
   void Core.layoutFlow;
-  // @ts-expect-error A DOM tag is not native JSX.
+  // @ts-expect-error DOM tags are not native JSX.
   const html = <div />;
   void html;
 }
+
+// @ts-expect-error Obsolete public subpath is not exported.
+import type { TableDefinition as OldTable } from "@updf/layout/tables";
+// @ts-expect-error Obsolete public subpath is not exported.
+import type { Tables as OldTables } from "@updf/layout/tables/vdom";
+// @ts-expect-error Obsolete public subpath is not exported.
+import type { Document as OldDocument } from "@updf/layout/vdom";
+export type Rejected = OldDocument | OldTable | OldTables;

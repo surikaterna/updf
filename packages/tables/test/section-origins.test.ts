@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError } from "@updf/core";
 import { h } from "@updf/core/vdom";
-import { createExtensions, Document, Flow, layout, layoutFlow } from "@updf/layout";
 import { type CellProps, Table, table, tableExtension } from "@updf/tables";
+import { createExtensions, Document, Flow, layout, layoutFlow } from "../../../tests/fixtures/transitional-layout.js";
 
 const columns = [{ width: 180 }] as const;
 const pageTemplate = { width: 200, height: 160, margins: { top: 5, right: 5, bottom: 5, left: 5 } };

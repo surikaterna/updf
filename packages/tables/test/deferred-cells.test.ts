@@ -4,6 +4,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import test from "node:test";
 import { DocumentError, render } from "@updf/core";
 import { createContext, h, lower, useContext } from "@updf/core/vdom";
+import { table, tableExtension } from "@updf/tables";
 import {
   Block,
   createExtensions,
@@ -17,8 +18,7 @@ import {
   Page,
   PageContext,
   Paragraph,
-} from "@updf/layout";
-import { table, tableExtension } from "@updf/tables";
+} from "../../../tests/fixtures/transitional-layout.js";
 
 const extensions = createExtensions([tableExtension]);
 const columns = [{ width: 180 }] as const;

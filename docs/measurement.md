@@ -1,6 +1,7 @@
 # Rich text and public measurement — #26
 
-Status: local **implementation awaiting independent audit**, private/unreleased.
+Status: current private/unreleased measurement contract. Dated delivery and audit
+records are preserved under `docs/evidence`; use native layout `measure` for authoring.
 No flow, page templates or tables (#27/#28) are included. Issue #26 remains OPEN;
 this document is not a tracker transition, release or deployment claim.
 

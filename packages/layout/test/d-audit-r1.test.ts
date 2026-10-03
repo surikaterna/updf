@@ -13,8 +13,8 @@ import {
   Paragraph,
   paragraph,
   span,
-} from "@updf/layout";
-import { Document } from "@updf/layout/vdom";
+} from "../../../tests/fixtures/transitional-layout.js";
+import { Document } from "../src/transitional-vdom.js";
 
 const template = (height: number) => ({ width: 100, height, margins: { top: 0, right: 0, bottom: 0, left: 0 } });
 const near = (actual: number, expected: number) =>

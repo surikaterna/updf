@@ -43,14 +43,15 @@ export function cell(value: unknown, path: string): asserts value is CellProps {
     error(`${path}/children`, "Numeric cell text must be finite");
 }
 export function row(value: unknown, path: string, columns: number): asserts value is TableRow {
-  record(value, ["cells", "atomic", "minHeight", "key"], path);
-  atomic(value, path);
+  record(value, ["cells", "keepTogether", "minHeight", "key"], path);
+  rowOptions(value, path);
   array(value.cells, `${path}/cells`);
   if (value.cells.length !== columns) error(`${path}/cells`, "Cell count must match column count");
   for (let i = 0; i < value.cells.length; i++) cell(value.cells[i], `${path}/cells/${i}`);
 }
-export function atomic(value: Record<string, unknown>, path: string): void {
-  if ("atomic" in value && value.atomic !== true) error(`${path}/atomic`, "Rows are atomic; splitting is unsupported");
+export function rowOptions(value: Record<string, unknown>, path: string): void {
+  if ("keepTogether" in value && value.keepTogether !== true)
+    error(`${path}/keepTogether`, "Rows stay together; splitting is unsupported");
   if ("minHeight" in value) number(value.minHeight, `${path}/minHeight`);
   if ("key" in value && typeof value.key !== "string" && typeof value.key !== "number")
     error(`${path}/key`, "Expected source key");

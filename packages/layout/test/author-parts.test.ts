@@ -14,7 +14,7 @@ import {
   layoutFlow,
   type MeasureContext,
   type MeasuredBlock,
-} from "@updf/layout";
+} from "../../../tests/fixtures/transitional-layout.js";
 import { flow } from "./fixtures.js";
 
 const empty = (): MeasuredBlock => ({

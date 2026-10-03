@@ -81,7 +81,7 @@ function inventoryRows(controls: TableControls, visual?: TableVisual) {
   return items.map((item) => (
     <Table.Row
       key={item.id}
-      atomic
+      keepTogether
       minHeight={controls.preset === "overflow" && item.number === 1 ? 240 : (controls.minHeight ?? 0)}
     >
       <Table.Cell>

@@ -27,7 +27,7 @@ const content = <Document><Flow
       <Table.HeaderCell>Description</Table.HeaderCell>
       <Table.HeaderCell>Count</Table.HeaderCell>
     </Table.Row></Table.Head>
-    <Table.Body><Table.Row atomic>
+    <Table.Body><Table.Row keepTogether>
       <Table.Cell><Paragraph>First paragraph</Paragraph>
         <Paragraph>Second paragraph</Paragraph></Table.Cell>
       <Table.Cell>{3}</Table.Cell>
@@ -49,7 +49,7 @@ const content = table({
   head: { repeat: true, rows: [{ cells: [
     { children: "Description" }, { children: "Count" },
   ] }] },
-  body: [{ key: "item-1", atomic: true, cells: [
+  body: [{ key: "item-1", keepTogether: true, cells: [
     { children: "Item 1" }, { children: 3 },
   ] }],
   foot: { rows: [{ cells: [{ children: "Totals" }, { children: 3 }] }] },
@@ -75,7 +75,11 @@ reservations, or explicit row minHeight. Grid has uniform width/RGB, contained o
 ink and shared interior edges, painted after content. No glyph-overhang tolerance
 or numerical policy is relaxed.
 
-Rows are atomic by default; `atomic={false}` fails. Head defaults first, Foot last;
+Rows stay together by default; `keepTogether={true}` is explicit and omission has
+the same behavior. `keepTogether={false}` rejects unsupported splitting. The old
+`atomic` field is rejected, not aliased. A row moves intact to a fresh page or fails
+`LAYOUT_OVERSIZED`; cell `overflow: "hidden"` never permits an oversized row to fit.
+Head defaults first, Foot last;
 `repeat` means every table fragment. Multiple section rows are reserved as a unit.
 Without height they measure early; with positive explicit section `height`, JSX
 content is deferred to sealed final PageContext/FragmentContext using the public
@@ -87,7 +91,6 @@ Ordinary `layout()` results expose generic placement source ranges and body keys
 Repeated head/foot rows do not count as body progress; an empty table has source
 range 0..0 even though its zero-height protocol occurrence advances once.
 
-Legacy `@updf/layout/tables`, `/tables/vdom` and layoutTable/layoutTableFlow remain
-unreleased migration controls only. G removes them; this package does not make
-those paths a permanent facade. See `docs/evidence/architecture-tables.md` in the
-workspace for delivery evidence and independent-audit status.
+The transitional `@updf/layout/tables`, `/tables/vdom` and layoutTable/layoutTableFlow are removed.
+There is no permanent facade. See [migration](../../docs/authoring-migration.md)
+and the preserved dated records in `docs/evidence/architecture-tables.md`.

@@ -110,7 +110,10 @@ const cases: readonly { name: string; source: string; w: number; h: number; plac
 ];
 
 test("native Chromium SVG versus PDF Poppler raster: bounded bbox/edge-band/interior tolerance", async () => {
-  const browser = await chromium.launch({ executablePath: "/usr/bin/chromium", args: ["--no-sandbox"] });
+  const browser = await chromium.launch({
+    executablePath: process.env.BROWSER_CHROMIUM ?? "/usr/bin/chromium",
+    args: ["--no-sandbox"],
+  });
   const artifacts = new URL("../../artifacts/", import.meta.url);
   await mkdir(artifacts, { recursive: true });
   const reports = [];

@@ -43,10 +43,12 @@ function blockDocument(title: string, controls: BlockControls) {
               Static block header
             </Paragraph>
           </Block.Header>
-          <Paragraph defaultStyle={{ fontSize: 10 }} lineHeight={12}>
-            Headline and chart
-          </Paragraph>
-          <Chart height={controls.chartHeight} values={[0.2, 0.6, 0.9]} />
+          <Block keepTogether style={{ gap: 4 }}>
+            <Paragraph defaultStyle={{ fontSize: 10 }} lineHeight={12}>
+              Headline and chart
+            </Paragraph>
+            <Chart height={controls.chartHeight} values={[0.2, 0.6, 0.9]} />
+          </Block>
           <Paragraph defaultStyle={{ fontSize: 10 }} lineHeight={12}>
             Clipped text is still extractable.
           </Paragraph>

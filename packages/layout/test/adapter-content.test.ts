@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, render } from "@updf/core";
+import { chart, chartAdapter } from "../../../tests/fixtures/chart.js";
+import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
 import {
   type BlockContent,
   block,
@@ -12,9 +14,7 @@ import {
   type MeasuredContent,
   measure,
   paragraph,
-} from "@updf/layout";
-import { chart, chartAdapter } from "../../../tests/fixtures/chart.js";
-import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
+} from "../../../tests/fixtures/transitional-layout.js";
 import { flow } from "./fixtures.js";
 
 function rejects(callback: () => unknown, code: string): void {

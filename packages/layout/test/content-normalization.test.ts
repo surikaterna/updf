@@ -3,7 +3,7 @@ import test from "node:test";
 import { DocumentError } from "@updf/core";
 import { type ComponentContext, h } from "@updf/core/vdom";
 import { Block, block, measure, Paragraph, paragraph, Span, span } from "@updf/layout";
-import { layoutTableFlow } from "@updf/layout/tables";
+import { layoutTableFlow } from "../src/tables/index.js";
 
 function reject(callback: () => unknown, code: string, path?: RegExp): void {
   assert.throws(
