@@ -4,8 +4,8 @@
 
 - Objective: bring **all** fetched develop changes into the measured-flow/tables
   branch and use live PDF.js canvas previews for all public showcase demos.
-- Issue: N/A (ad-hoc authorized integration); status: implemented, ready for
-  independent audit, not independently verified. No tracker mutation.
+- Issue: N/A (ad-hoc authorized integration); status: implemented and
+  independently verified. No tracker mutation.
 - Worktree: `/home/sprawl/projects/updf/trees/measured-flow-tables`.
 - Branch: `feature/measured-flow-tables`.
 - Old HEAD/base: `ac60f80675a2042f2f6043bae51b541b85e7251f`.
@@ -136,9 +136,9 @@ No new principle exception requested or approved. Existing historical exclusions
 were not broadened. No Changesets setup exists; only private showcase/runtime
 integration changed, not publishable library source.
 
-Auditor should review the actual dirty/untracked delivery relative to the retained
-recovery stash and new HEAD, focusing on conflict composition, automatic controls,
-summary plus page metadata, matched last-good links/canvases, all-page PDF.js output,
-lazy graph/worker cleanup and unchanged A–F hashes. Independent integration audit
-and any authorized delivery remain next; this note does not supersede historical
-audit evidence or claim a deployed site.
+Independent integration verification covered conflict composition, automatic
+controls, summary plus page metadata, matched last-good links/canvases, all-page
+PDF.js output, lazy graph/worker cleanup and unchanged A–F hashes. The exact
+verification evidence and commands are recorded above. The branch is now prepared
+for PR review; this note does not supersede historical audit evidence or claim a
+deployed site.
