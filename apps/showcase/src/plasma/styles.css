@@ -1,0 +1,55 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color: #e8e8ff;
+  background: #111122;
+  color-scheme: dark;
+}
+body {
+  margin: 0;
+}
+main {
+  max-width: 56rem;
+  margin: auto;
+  padding: 1.25rem;
+}
+a {
+  color: #9ff;
+}
+h1 {
+  color: #ff9ce9;
+}
+#screen {
+  width: min(100%, 640px);
+  aspect-ratio: 8 / 5;
+  background: #000;
+  border: 1px solid #778;
+}
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+button,
+input {
+  font: inherit;
+  padding: 0.5rem;
+}
+input {
+  width: 4rem;
+}
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+:focus-visible {
+  outline: 3px solid #ff9ce9;
+  outline-offset: 3px;
+}

@@ -50,5 +50,14 @@ export default defineConfig({
   root: fileURLToPath(new URL(".", import.meta.url)),
   base,
   plugins: [deliveryEvidence()],
-  build: { outDir: "dist", emptyOutDir: true },
+  build: {
+    outDir: "dist",
+    emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        index: fileURLToPath(new URL("index.html", import.meta.url)),
+        plasma: fileURLToPath(new URL("plasma.html", import.meta.url)),
+      },
+    },
+  },
 });
