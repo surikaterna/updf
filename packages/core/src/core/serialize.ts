@@ -3,13 +3,13 @@ import { fontObjects } from "../fonts/pdf.js";
 import { collectAlpha } from "../painting/alpha.js";
 import { assemble, chunkLength, type PdfObject, stream } from "./bytes.js";
 import { commands } from "./content.js";
-import { fail, limits } from "./error.js";
 import { decimal as n, name, value } from "./pdf-values.js";
 import type { MeasuredPage } from "./plan.js";
+import { checkLimit, type Policy, policy } from "./policy.js";
 
-function objects(pages: readonly MeasuredPage[]): PdfObject[] {
+function objects(pages: readonly MeasuredPage[], limits: Policy): PdfObject[] {
   const result: PdfObject[] = [];
-  const budget = { length: 0 };
+  const budget = { length: 0, maximum: limits.outputBytes };
   const fonts = collectFonts(pages);
   const alphas = collectAlpha(pages);
   const fontBase = 4 + pages.length * 2;
@@ -32,20 +32,19 @@ function objects(pages: readonly MeasuredPage[]): PdfObject[] {
   });
   fonts.forEach((font, i) => {
     // Reserve program bytes before the defensive serializer copy allocation.
-    if (budget.length + font.font.metadata.byteLength > limits.bytes)
-      fail("LIMIT", "", "PDF font output exceeds 10 MiB");
+    checkLimit(budget.length + font.font.metadata.byteLength, budget.maximum, "", "PDF font output bytes");
     const parts = fontObjects(font, fontBase + i * 6);
     budget.length += parts.reduce(
       (sum, object) => sum + object.reduce((size, chunk) => size + chunkLength(chunk), 0),
       0,
     );
-    if (budget.length > limits.bytes) fail("LIMIT", "", "PDF output exceeds 10 MiB");
+    checkLimit(budget.length, budget.maximum, "", "PDF output bytes");
     result.push(...parts);
   });
   for (const alpha of alphas) result.push([`<< /Type /ExtGState /ca ${n(alpha.fill)} /CA ${n(alpha.stroke)} >>`]);
   return result;
 }
 
-export function serialize(pages: readonly MeasuredPage[]): Uint8Array<ArrayBuffer> {
-  return assemble(objects(pages));
+export function serialize(pages: readonly MeasuredPage[], limits: Policy = policy()): Uint8Array<ArrayBuffer> {
+  return assemble(objects(pages, limits), limits.outputBytes);
 }

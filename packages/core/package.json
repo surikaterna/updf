@@ -17,6 +17,10 @@
       "types": "./dist/fonts/index.d.ts",
       "import": "./dist/fonts/index.js"
     },
+    "./measurement": {
+      "types": "./dist/measurement/index.d.ts",
+      "import": "./dist/measurement/index.js"
+    },
     "./painting": {
       "types": "./dist/painting/index.d.ts",
       "import": "./dist/painting/index.js"
@@ -36,6 +40,10 @@
     "./internal": {
       "types": "./dist/internal.d.ts",
       "import": "./dist/internal.js"
+    },
+    "./internal-drawing": {
+      "types": "./dist/internal-drawing.d.ts",
+      "import": "./dist/internal-drawing.js"
     }
   },
   "scripts": {

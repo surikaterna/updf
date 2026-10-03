@@ -25,12 +25,76 @@
             <select id="example" name="example">
               <option value="text">Fixed-position text &amp; simple layout</option>
               <option value="template">Immutable typed TSX components → lower → render</option>
+              <option value="rich">Rich text &amp; shared measurement</option>
+              <option value="flow">Optional measured flow &amp; repeated page regions</option>
+              <option value="mixed">Mixed fixed pages &amp; flow with final page counts</option>
+              <option value="tables">Optional paged inventory table &amp; mixed prose</option>
+              <option value="blocks">Optional generic blocks &amp; external chart</option>
               <option value="painting">Native paths, paint, colors, clips &amp; transforms</option>
               <option value="svg">Optional SVG subset (loaded on demand)</option>
             </select>
             <label for="title">PDF title</label>
             <input id="title" name="title" value="Hello portable PDF" maxlength="40" aria-describedby="title-help" />
             <p id="title-help">Helvetica accepts printable ASCII only. Unsupported characters produce readable engine diagnostics, not silent replacement.</p>
+            <fieldset id="rich-controls" hidden>
+              <legend>Bounded rich text controls (PDF points)</legend>
+              <label for="rich-width">Width</label>
+              <input id="rich-width" name="richWidth" type="number" min="20" max="500" step="1" value="280" required />
+              <label for="rich-font-size">Font size</label>
+              <input id="rich-font-size" name="richFontSize" type="number" min="8" max="32" step="1" value="14" required />
+              <label for="rich-align">Alignment</label>
+              <select id="rich-align" name="align"><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select>
+              <label for="rich-whitespace">Whitespace</label>
+              <select id="rich-whitespace" name="whiteSpace"><option value="preserve">Preserve spaces</option><option value="collapse">Collapse spaces</option></select>
+              <label for="rich-break">Long words</label>
+              <select id="rich-break" name="breakLongWords"><option value="error">Reject overflow</option><option value="codePoint">Split Unicode scalars</option></select>
+            </fieldset>
+            <fieldset id="flow-controls" hidden>
+              <legend>Bounded flow controls</legend>
+              <label for="flow-count">Paragraph count</label>
+              <input id="flow-count" name="flowCount" type="number" min="1" max="21" step="1" value="6" required />
+              <label for="flow-preset">Page preset</label>
+              <select id="flow-preset" name="flowPreset"><option value="compact">Compact</option><option value="letter">Letter</option><option value="overflow">Intentional oversized paragraph</option></select>
+              <label for="flow-regions"><input id="flow-regions" name="flowRegions" type="checkbox" checked /> Repeat header and footer</label>
+              <label for="flow-keep"><input id="flow-keep" name="flowKeepTogether" type="checkbox" /> Keep each paragraph together</label>
+            </fieldset>
+            <fieldset id="mixed-controls" hidden>
+              <legend>Mixed document: fixed cover → flow → fixed appendix</legend>
+              <label for="mixed-count">Mixed paragraph count</label>
+              <input id="mixed-count" name="mixedCount" type="number" min="1" max="40" step="1" value="12" required />
+              <label for="mixed-preset">Page size (PDF points)</label>
+              <select id="mixed-preset" name="mixedPreset"><option value="A5">A5</option><option value="A4">A4</option><option value="Letter">Letter</option><option value="Legal">Legal</option></select>
+              <label for="mixed-orientation">Orientation</label>
+              <select id="mixed-orientation" name="mixedOrientation"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select>
+              <label for="mixed-theme">Captured provider theme</label>
+              <select id="mixed-theme" name="mixedTheme"><option value="ocean">Ocean</option><option value="amber">Amber</option></select>
+              <label for="mixed-header"><input id="mixed-header" name="mixedHeader" type="checkbox" checked /> Reserved flow header</label>
+              <label for="mixed-footer"><input id="mixed-footer" name="mixedFooter" type="checkbox" checked /> Final Page N/total footer on every page</label>
+              <p>Footer components run once per page after all sections paginate. Changing controls invalidates the previous PDF; preview and download share the same bytes.</p>
+            </fieldset>
+            <fieldset id="table-controls" hidden>
+              <legend>Bounded table controls</legend>
+              <label for="table-count">Body row count</label>
+              <input id="table-count" name="tableCount" type="number" min="1" max="40" step="1" value="12" required />
+              <label for="table-preset">Table width preset</label>
+              <select id="table-preset" name="tablePreset"><option value="compact">Compact</option><option value="wide">Wide</option><option value="overflow">Intentional oversized row</option></select>
+              <label for="table-repeat"><input id="table-repeat" name="tableRepeatHeader" type="checkbox" checked /> Repeat table header</label>
+              <label for="table-wrapped"><input id="table-wrapped" name="tableWrapped" type="checkbox" checked /> Wrapped descriptions</label>
+              <label for="table-cell-preset">Cell content preset</label>
+              <select id="table-cell-preset" name="tableCellPreset"><option value="text">Multiple paragraphs</option><option value="chart">Paragraphs and chart</option><option value="svg">Paragraphs, native SVG and inline badge</option></select>
+              <label for="table-min-height">Minimum row height (points)</label>
+              <input id="table-min-height" name="tableMinHeight" type="number" min="0" max="100" value="0" />
+            </fieldset>
+            <fieldset id="block-controls" hidden>
+              <legend>Bounded block &amp; external chart controls (PDF points)</legend>
+              <label for="chart-height">Chart natural height</label>
+              <input id="chart-height" name="chartHeight" type="number" min="40" max="180" step="1" value="80" required />
+              <label for="block-height">Block border-box height (0 = natural)</label>
+              <input id="block-height" name="blockHeight" type="number" min="0" max="220" step="1" value="0" required />
+              <label for="block-keep"><input id="block-keep" name="blockKeepTogether" type="checkbox" /> Keep whole block together</label>
+              <label for="block-hidden"><input id="block-hidden" name="blockHidden" type="checkbox" /> Clip constrained overflow (hidden)</label>
+              <p>Unchecked overflow errors; hidden uses a native padding-edge clip without continuation pages. Borders remain outside the clip. Clipping is not redaction: hidden PDF text can still be extracted.</p>
+            </fieldset>
             <button id="generate" type="submit">Generate PDF</button>
             <button id="reset-demo" type="button">Reset</button>
             <p id="status" role="status" aria-live="polite" aria-atomic="true">Ready. Generate a PDF; nothing leaves this browser.</p>
@@ -49,7 +113,7 @@
         <p>The entry loads core and native VDOM, not React, Fontkit, Node APIs or SVG. The SVG adapter and geometry load in a separate chunk only when requested. Native paths need no geometry adapter.</p>
         <p>Fonts can use prepared resources through <code>@updf/core/fonts</code>; the optional <code>@updf/fontkit</code> adapter prepares trusted static TrueType bytes. This showcase does not load Fontkit or ship font assets.</p>
         <ul>
-          <li>Fixed point geometry and explicit pages, not automatic flow, pagination or general tables.</li>
+           <li>Core uses fixed point geometry and explicit pages. Optional layout supports measured blocks, padding/border/gap and error/hidden overflow, repeated regions and explicit-width atomic table rows, not general CSS layout or row/column spans.</li>
           <li>Built-in Helvetica: printable ASCII and LF. No shaping, bidi, raster images or full SVG.</li>
           <li>Prepared fonts support a documented simple LTR Latin/Cyrillic profile, not general typography.</li>
           <li>Runtime validation and current resource caps still apply. Trusted components are not a sandbox.</li>
@@ -61,21 +125,21 @@
         <h2 id="roadmap-heading">Roadmap, not promises</h2>
         <ul>
           <li><a href="https://github.com/surikaterna/updf/issues/25">#25 Configurable budgets</a></li>
-          <li><a href="https://github.com/surikaterna/updf/issues/26">#26 Rich text and measurement</a></li>
-          <li><a href="https://github.com/surikaterna/updf/issues/27">#27 Flow and page templates</a></li>
-          <li><a href="https://github.com/surikaterna/updf/issues/28">#28 Paged tables</a></li>
+           <li><a href="https://github.com/surikaterna/updf/issues/26">#26 Rich text and measurement</a> · independently verified per assignment, not released</li>
+          <li><a href="https://github.com/surikaterna/updf/issues/27">#27 Flow and page templates</a> · independently verified per assignment, not released</li>
+           <li><a href="https://github.com/surikaterna/updf/issues/28">#28 Paged tables</a> · independently verified including spatial R1, not released or deployed</li>
           <li><a href="https://github.com/surikaterna/updf/issues/29">#29 Markdown lists</a></li>
           <li><a href="https://github.com/surikaterna/updf/issues/30">#30 Native Code39</a></li>
           <li><a href="https://github.com/surikaterna/updf/issues/31">#31 QR codes</a></li>
           <li><a href="https://github.com/surikaterna/updf/issues/32">#32 Bundle-cost regression budgets</a> (graph checks and measurements are not completion)</li>
           <li><a href="https://github.com/surikaterna/updf/issues/33">#33 Raster images</a></li>
-          <li><a href="https://github.com/surikaterna/updf/issues/34">#34 Workspace restructuring</a> · locally audited, not released</li>
-          <li><a href="https://github.com/surikaterna/updf/issues/35">#35 README, examples and roadmap</a> · locally audited, not released</li>
+           <li><a href="https://github.com/surikaterna/updf/issues/34">#34 Workspace restructuring</a> · merged via PR #36 (ac60f80), not released</li>
+           <li><a href="https://github.com/surikaterna/updf/issues/35">#35 README, examples and roadmap</a> · merged via PR #36 (ac60f80), not released</li>
         </ul>
       </section>
     </main>
     <footer>
-      <p>Local implementation; this showcase awaits independent audit. No release or live deployment is claimed.</p>
+       <p>Prior #26–#28 demos were audited locally and remain OPEN and unmerged. The new C block demo is implemented, awaiting independent audit. No release or live deployment is claimed.</p>
       <p>UPDF is MIT licensed. Copyright (c) 2026 Surikat AB. <a data-local="notices/LICENSE" href="./notices/LICENSE">Project MIT license</a>. Project attribution is confirmed; deployment still requires separate authorization.</p>
       <p>Optional geometry incorporates Fontello svgpath code. <a data-local="notices/LICENSE.svgpath" href="./notices/LICENSE.svgpath">Fontello MIT notice</a> · <a data-local="notices/REUSE.md" href="./notices/REUSE.md">Reuse provenance</a></p>
       <p>Canvas preview uses PDF.js (Apache-2.0). <a data-local="notices/LICENSE.pdfjs" href="./notices/LICENSE.pdfjs">PDF.js license</a></p>

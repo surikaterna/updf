@@ -1,0 +1,35 @@
+{
+  "name": "@updf/layout",
+  "version": "2.0.0-poc.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./tables": {
+      "types": "./dist/tables/index.d.ts",
+      "import": "./dist/tables/index.js"
+    },
+    "./tables/vdom": {
+      "types": "./dist/tables/vdom.d.ts",
+      "import": "./dist/tables/vdom.js"
+    },
+    "./vdom": {
+      "types": "./dist/vdom.d.ts",
+      "import": "./dist/vdom.js"
+    }
+  },
+  "dependencies": {
+    "@updf/core": "2.0.0-poc.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
+}

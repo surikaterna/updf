@@ -10,6 +10,7 @@ const core = [
   ...(await readdir(new URL("core/", coreRoot))).map((file) => `core/${file}`),
   ...(await readdir(new URL("fonts/", coreRoot))).map((file) => `fonts/${file}`),
   ...(await readdir(new URL("painting/", coreRoot))).map((file) => `painting/${file}`),
+  ...(await readdir(new URL("measurement/", coreRoot))).map((file) => `measurement/${file}`),
 ];
 const source = await Promise.all(core.map((file) => readFile(new URL(file, coreRoot))));
 const emitted = await Promise.all(
@@ -27,6 +28,25 @@ const vdomSource = [
 const vdomBytes = await Promise.all(vdomSource.map((file) => readFile(new URL(file, coreRoot))));
 const vdomBundle = await readFile(new URL("apps/browser-react/dist-vdom/vdom.mjs", root));
 const fontsBundle = await readFile(new URL("apps/browser-react/dist-fonts/fonts.mjs", root));
+const measurementBundle = await readFile(new URL("apps/browser-react/dist-measurement/measurement.mjs", root));
+const flowBundle = await readFile(new URL("apps/browser-react/dist-flow/flow.mjs", root));
+const tablesBundle = await readFile(new URL("apps/browser-react/dist-tables/tables.mjs", root));
+const composableTablesBundle = await readFile(new URL("apps/browser-react/dist-composable-tables/tables.mjs", root));
+const composableTablesSources = await Promise.all(
+  (await readdir(new URL("packages/tables/src/", root))).map((file) =>
+    readFile(new URL(`packages/tables/src/${file}`, root)),
+  ),
+);
+const tableFiles = (await readdir(new URL("packages/layout/src/tables/", root))).filter((file) => file.endsWith(".ts"));
+const tableSource = await Promise.all(
+  tableFiles.map((file) => readFile(new URL(`packages/layout/src/tables/${file}`, root))),
+);
+const tableJavaScript = await Promise.all(
+  tableFiles.map((file) => readFile(new URL(`packages/layout/dist/tables/${file.replace(/\.ts$/u, ".js")}`, root))),
+);
+const tableDeclarations = await Promise.all(
+  tableFiles.map((file) => readFile(new URL(`packages/layout/dist/tables/${file.replace(/\.ts$/u, ".d.ts")}`, root))),
+);
 const fontkitBundle = await readFile(new URL("apps/browser-react/dist-fontkit/fontkit.mjs", root));
 const adapterSource = await Promise.all(
   (await readdir(new URL("packages/fontkit/src/", root))).map((file) =>
@@ -78,6 +98,18 @@ const report = {
   preparedMetadataGzipBytes: gzipSync(fontMetadata).length,
   fontProofPdfBytes: fontPdf.length,
   fontsBundleBytes: fontsBundle.length,
+  measurementBundleBytes: measurementBundle.length,
+  measurementBundleGzipBytes: gzipSync(measurementBundle).length,
+  flowBundleBytes: flowBundle.length,
+  flowBundleGzipBytes: gzipSync(flowBundle).length,
+  tablesBundleBytes: tablesBundle.length,
+  composableTablesBundleBytes: composableTablesBundle.length,
+  composableTablesBundleGzipBytes: gzipSync(composableTablesBundle).length,
+  composableTablesSourceBytes: composableTablesSources.reduce((sum, bytes) => sum + bytes.length, 0),
+  tablesBundleGzipBytes: gzipSync(tablesBundle).length,
+  tablesSourceBytes: tableSource.reduce((sum, bytes) => sum + bytes.length, 0),
+  tablesEmittedJavaScriptBytes: tableJavaScript.reduce((sum, bytes) => sum + bytes.length, 0),
+  tablesDeclarationBytes: tableDeclarations.reduce((sum, bytes) => sum + bytes.length, 0),
   fontsBundleGzipBytes: gzipSync(fontsBundle).length,
   adapterSourceBytes: adapterSource.reduce((sum, bytes) => sum + bytes.length, 0),
   optionalFontkitClosureBytes: fontkitBundle.length,

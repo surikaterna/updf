@@ -1,21 +1,41 @@
-import { measureFontText } from "../fonts/measure.js";
-import { type ResolvedFonts, selectedFont } from "../fonts/resources.js";
+import type { ResolvedFonts } from "../fonts/resources.js";
+import { ledger, type WorkLedger } from "../measurement/ledger.js";
+import { rich } from "../measurement/measure.js";
 import { matrix } from "../painting/affine.js";
 import { clip, drawing } from "../painting/read.js";
-import type { DocumentDefinition, NodeDefinition, TextNode } from "../types.js";
-import { fail } from "./error.js";
-import { inkAscent, textWidth } from "./metrics.js";
-import type { MeasuredNode, MeasuredPage, MeasuredText } from "./plan.js";
+import type { DocumentDefinition, NodeDefinition } from "../types.js";
+import { measureFixedText } from "./fixed-text.js";
+import type { MeasuredNode, MeasuredPage } from "./plan.js";
 
-function measuredNode(node: NodeDefinition, path: string, fonts: ResolvedFonts): MeasuredNode {
-  if (node.type === "text") return measureText(node, `${path}/text`, fonts);
+function measuredNode(
+  node: NodeDefinition,
+  path: string,
+  fonts: ResolvedFonts,
+  budget: WorkLedger,
+  tasks: (() => void)[],
+): MeasuredNode {
+  if (node.type === "text") {
+    const result = measureFixedText(node, `${path}/text`, fonts, budget);
+    return result;
+  }
+  if (node.type === "richText") {
+    const plan = rich(
+      { kind: "rich", width: node.width, height: node.height, paragraphs: node.paragraphs },
+      fonts,
+      budget,
+      path,
+    );
+    return { ...node, fragments: plan.fragments };
+  }
   if (node.type === "paintGroup") {
     const clipping = clip(node.clip, `${path}/clip`);
+    const children: MeasuredNode[] = [];
+    schedule(node.children, children, `${path}/children`, fonts, budget, tasks);
     return {
       type: "paintGroup",
       matrix: matrix(node.transform, `${path}/transform`),
       ...(clipping ? { clip: clipping } : {}),
-      children: node.children.map((child, i) => measuredNode(child, `${path}/children/${i}`, fonts)),
+      children,
     };
   }
   if (node.type === "path") return { ...node, painting: drawing({ ...node }, path) };
@@ -23,46 +43,33 @@ function measuredNode(node: NodeDefinition, path: string, fonts: ResolvedFonts):
     ? { ...node, painting: drawing({ ...node }, path) }
     : { ...node };
 }
-
-function wrapParagraph(paragraph: string, node: TextNode, path: string): string[] {
-  const tokens = paragraph.match(/ +|[^ ]+/g) ?? [];
-  const lines: string[] = [];
-  let current = "";
-  for (const token of tokens) {
-    if (textWidth(token, node.fontSize) > node.width) {
-      fail("TOKEN_OVERFLOW", path, "A token exceeds the text box width");
-    }
-    if (textWidth(current + token, node.fontSize) > node.width) {
-      lines.push(current);
-      current = token;
-    } else current += token;
+function schedule(
+  nodes: readonly NodeDefinition[],
+  output: MeasuredNode[],
+  path: string,
+  fonts: ResolvedFonts,
+  budget: WorkLedger,
+  tasks: (() => void)[],
+): void {
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    const node = nodes[i];
+    if (node)
+      tasks.push(() => {
+        output.push(measuredNode(node, `${path}/${i}`, fonts, budget, tasks));
+      });
   }
-  lines.push(current);
-  return lines;
 }
 
-function measureText(node: TextNode, path: string, fonts: ResolvedFonts): MeasuredText {
-  const font = selectedFont(node.font, fonts, path);
-  if (font) return measureFontText(node, font, path);
-  const lines = node.text === "" ? [] : node.text.split("\n").flatMap((p) => wrapParagraph(p, node, path));
-  if (lines.length > Math.floor(node.height / node.lineHeight)) {
-    fail("VERTICAL_OVERFLOW", path, "Text exceeds the text box height");
-  }
-  return {
-    ...node,
-    lines: lines.map((text, i) => {
-      const spare = node.width - textWidth(text, node.fontSize);
-      const offset = node.align === "center" ? spare / 2 : node.align === "right" ? spare : 0;
-      // Reserve the entire ASCII ink envelope above/below every baseline.
-      return { text, x: node.x + offset, y: node.y + i * node.lineHeight + node.fontSize * inkAscent };
-    }),
-  };
-}
-
-export function measure(document: DocumentDefinition, fonts: ResolvedFonts = new Map()): readonly MeasuredPage[] {
-  return document.pages.map((page, i) => ({
-    width: page.width,
-    height: page.height,
-    children: page.children.map((node, j) => measuredNode(node, `/pages/${i}/children/${j}`, fonts)),
-  }));
+export function measure(
+  document: DocumentDefinition,
+  fonts: ResolvedFonts = new Map(),
+  budget: WorkLedger = ledger(),
+): readonly MeasuredPage[] {
+  return document.pages.map((page, i) => {
+    const children: MeasuredNode[] = [];
+    const tasks: (() => void)[] = [];
+    schedule(page.children, children, `/pages/${i}/children`, fonts, budget, tasks);
+    while (tasks.length) tasks.pop()?.();
+    return { width: page.width, height: page.height, children };
+  });
 }

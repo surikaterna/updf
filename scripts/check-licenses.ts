@@ -49,7 +49,7 @@ assert.match(ofl, /SIL OPEN FONT LICENSE/u);
 const destination = await mkdtemp("/tmp/opencode/updf-license-packs-");
 const reports = [];
 try {
-  for (const name of ["core", "geometry", "svg", "fontkit", "legacy"]) {
+  for (const name of ["core", "layout", "tables", "geometry", "svg", "fontkit", "legacy"]) {
     const directory = new URL(`packages/${name}/`, root);
     await validateManifest(directory, name);
     validateProjectLicense(await readFile(new URL("LICENSE", directory), "utf8"));

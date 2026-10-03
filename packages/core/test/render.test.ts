@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, renderUnknown as render } from "@updf/core";
+import { DocumentError, type RenderOptions, renderUnknown as render } from "@updf/core";
 import { measure as measureValidated } from "../dist/core/measure.js";
 import { textWidth } from "../dist/core/metrics.js";
 import { decimal, literal, value } from "../dist/core/pdf-values.js";
@@ -31,9 +31,9 @@ function measuredText(input: unknown) {
   return node;
 }
 
-function rejects(input: unknown, code: string, path?: string) {
+function rejects(input: unknown, code: string, path?: string, options: RenderOptions = {}) {
   assert.throws(
-    () => render(input),
+    () => render(input, options),
     (error: unknown) => {
       assert.ok(error instanceof DocumentError);
       const diagnostic = error.diagnostics[0];
@@ -237,16 +237,19 @@ test("accepted page/node caps and aggregate node counting across pages", () => {
   const rect = { type: "rect", x: 0, y: 0, width: 1, height: 1 };
   const page = { width: 100, height: 100, children: Array(500).fill(rect) };
   assert.ok(render({ version: 1, pages: Array(20).fill(page) }).length);
-  rejects({ version: 1, pages: Array(20).fill({ ...page, children: Array(501).fill(rect) }) }, "LIMIT");
+  rejects({ version: 1, pages: Array(20).fill({ ...page, children: Array(501).fill(rect) }) }, "LIMIT", undefined, {
+    profile: "service",
+  });
   const boundaryText = text({ text: "x".repeat(4096), width: 80, fontSize: 0.00001, lineHeight: 0.00002 });
   assert.ok(render(document([boundaryText])).length);
 });
 
-test("resource caps pages, nodes, per-node text, total text and output bytes", () => {
-  rejects({ version: 1, pages: Array(21).fill(document().pages[0]) }, "LIMIT");
-  rejects(document(Array(10001).fill(text())), "LIMIT");
-  rejects(document([text({ text: "x".repeat(4097) })]), "LIMIT");
-  rejects(document(Array(25).fill(text({ text: "a".repeat(4096) }))), "LIMIT");
+test("optional service page/node/aggregate text/output caps replace mandatory legacy ceilings", () => {
+  const service = { profile: "service" } as const;
+  rejects({ version: 1, pages: Array(21).fill(document().pages[0]) }, "LIMIT", undefined, service);
+  rejects(document(Array(10001).fill(text())), "LIMIT", undefined, service);
+  rejects(document([text({ text: "x".repeat(4097) })]), "LIMIT", undefined, { limits: { textCodePoints: 4096 } });
+  rejects(document(Array(25).fill(text({ text: "a".repeat(4096) }))), "LIMIT", undefined, service);
   const tiny = text({ text: "a\n".repeat(2048), fontSize: Number.MIN_VALUE, lineHeight: Number.MIN_VALUE });
-  rejects(document(Array(24).fill(tiny)), "LIMIT");
+  rejects(document(Array(24).fill(tiny)), "LIMIT", undefined, service);
 });

@@ -20,6 +20,11 @@ export interface TextNode extends Box {
   readonly font?: string;
 }
 
+export interface RichTextNode extends Box {
+  readonly type: "richText";
+  readonly paragraphs: readonly ParagraphDefinition[];
+}
+
 export interface RectangleNode extends Box, Painting {
   readonly type: "rect";
 }
@@ -33,7 +38,7 @@ export interface LineNode extends Painting {
 }
 
 export type PaintingGroupNode = PaintGroup<NodeDefinition>;
-export type NodeDefinition = TextNode | RectangleNode | LineNode | PathNode | PaintingGroupNode;
+export type NodeDefinition = TextNode | RichTextNode | RectangleNode | LineNode | PathNode | PaintingGroupNode;
 
 export interface PageDefinition {
   readonly width: number;
@@ -61,6 +66,8 @@ export type DiagnosticCode =
   | "VDOM_CYCLE"
   | "VDOM_REGISTRY"
   | "VDOM_COMPONENT"
+  | "MEASUREMENT_CONTEXT"
+  | "LAYOUT_OVERSIZED"
   | "FONT_DATA"
   | "FONT_RESOURCE"
   | "FONT_PROFILE"
@@ -89,7 +96,10 @@ export interface DocumentDiagnostic {
   readonly span?: SourceSpan;
 }
 
+import type { ParagraphDefinition } from "./measurement/types.js";
 import type { PaintGroup, Painting, PathNode } from "./painting/types.js";
+
+export type { ParagraphDefinition, TextRun, TextStyle } from "./measurement/types.js";
 
 export type {
   ClipRect,

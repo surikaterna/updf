@@ -1,0 +1,25 @@
+{
+  "name": "@updf/tables",
+  "version": "2.0.0-poc.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@updf/core": "2.0.0-poc.0",
+    "@updf/layout": "2.0.0-poc.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
+}

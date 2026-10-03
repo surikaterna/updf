@@ -2,6 +2,7 @@ import { fail } from "../core/error.js";
 import { nativeTags } from "./create.js";
 import { dataArray, dataRecord, keys, snapshot } from "./data.js";
 import { ownNode } from "./ownership.js";
+import { ownInvocation } from "./progress.js";
 import type {
   Component,
   ComponentContext,
@@ -32,7 +33,8 @@ export function definePrimitive<P extends object>(
   definitions.add(definition);
   const Type: Component<P> = (props) => {
     if ("key" in props) fail("KEY", "/props/key", "Key is constructor metadata, not a data prop");
-    return ownNode({ kind: "extension", definition, props: snapshot(props, "/props") });
+    const owned = snapshot(props, "/props");
+    return ownInvocation(ownNode({ kind: "extension", definition, props: owned }), definition, owned);
   };
   return Object.freeze({ definition, Type });
 }
@@ -54,7 +56,7 @@ export function install(entries: unknown): ReadonlySet<RegistryDefinition> {
   return installed;
 }
 
-export function context(resources: unknown): ComponentContext {
+export function context(resources: unknown): Pick<ComponentContext, "resources"> {
   dataArray(resources, "/options/resourceMetadata");
   const metadata: ResourceMetadata[] = [];
   for (let i = 0; i < resources.length; i++) {

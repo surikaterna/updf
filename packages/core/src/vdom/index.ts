@@ -1,3 +1,5 @@
+export type { Context, ReadContext } from "./context.js";
+export { createContext, useContext } from "./context.js";
 export { bind, h } from "./create.js";
 export { lower } from "./lower.js";
 export { definePrimitive } from "./registry.js";

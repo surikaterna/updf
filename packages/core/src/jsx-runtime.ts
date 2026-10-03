@@ -12,6 +12,12 @@ import {
 
 export { Fragment };
 
+export function jsx<P extends object>(
+  type: (props: Readonly<P>, context: ComponentContext) => VDOMChild,
+  props: P,
+  key?: Key,
+): VNode;
+export function jsx<P extends object>(type: NativeTag | typeof Fragment | Component<P>, props: P, key?: Key): VNode;
 export function jsx<P extends object>(type: NativeTag | typeof Fragment | Component<P>, props: P, key?: Key): VNode {
   return createNode(type, props, key);
 }

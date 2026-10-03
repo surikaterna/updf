@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { allowedInternal, internalExports, portableGraph } from "../../scripts/boundaries.js";
+import { allowedInternal, internalExports, packageEdge, portableGraph } from "../../scripts/boundaries.js";
 
 test("graph checker negative controls reject native Node/globals/legacy/React/optional leakage", () => {
   for (const id of [
@@ -32,4 +32,13 @@ test("internal export inventory rejects broad exports and unexpected helpers", (
   internalExports("export { fail } from './error.js';", ["fail"]);
   assert.throws(() => internalExports("export { fail, serialize } from './error.js';", ["fail"]));
   assert.throws(() => internalExports("export * from './error.js';", []));
+});
+test("layout package edges reject optional/runtime leakage and core dependency inversion", () => {
+  packageEdge("layout", "@updf/core/measurement");
+  packageEdge("layout", "./types.js");
+  assert.throws(() => packageEdge("core", "@updf/layout"));
+  for (const name of ["@updf/svg", "@updf/fontkit", "@updf/geometry", "node:fs", "react", "foreign"]) {
+    assert.throws(() => packageEdge("layout", name));
+  }
+  assert.throws(() => allowedInternal("layout/src/foreign.ts", "@updf/core/internal"));
 });

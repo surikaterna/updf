@@ -1,5 +1,5 @@
 import type { PaintingGroupNode, SourceSpan } from "@updf/core";
-import { finite, number, record } from "@updf/core/internal";
+import { finite, number, validateDataObject as record } from "@updf/core/internal";
 import { compile } from "./compile.js";
 import { mapped, svgFail } from "./error.js";
 import { inspect } from "./inspect.js";

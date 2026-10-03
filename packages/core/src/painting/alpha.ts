@@ -1,4 +1,5 @@
 import type { MeasuredNode, MeasuredPage } from "../core/plan.js";
+import { descendants } from "../core/traversal.js";
 import type { ResolvedPaint } from "./types.js";
 
 export interface Alpha {
@@ -15,9 +16,8 @@ export function collectAlpha(pages: readonly MeasuredPage[]): readonly Alpha[] {
   return [...result.values()];
 }
 function visit(nodes: readonly MeasuredNode[], result: Map<string, Alpha>): void {
-  for (const node of nodes) {
-    if (node.type === "paintGroup") visit(node.children, result);
-    else if (node.type !== "text" && node.painting) {
+  for (const node of descendants(nodes, (node) => (node.type === "paintGroup" ? node.children : []))) {
+    if (node.type !== "paintGroup" && node.type !== "text" && node.type !== "richText" && node.painting) {
       const key = alphaKey(node.painting.paint);
       if (key === "1|1" || result.has(key)) continue;
       result.set(key, {

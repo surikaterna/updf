@@ -1,5 +1,7 @@
 import { fail } from "../core/error.js";
 import type { MeasuredLine, MeasuredNode, MeasuredPage } from "../core/plan.js";
+import { descendants } from "../core/traversal.js";
+import type { PrivateFragment } from "../measurement/lines.js";
 import type { PreparedFont, PreparedGlyph } from "./types.js";
 
 export interface FontUsage {
@@ -15,11 +17,27 @@ export function collectFonts(pages: readonly MeasuredPage[]): readonly FontUsage
   return [...usages.values()];
 }
 function collectNodes(nodes: readonly MeasuredNode[], usages: Map<PreparedFont, FontUsage>): void {
-  for (const node of nodes) {
-    if (node.type === "paintGroup") collectNodes(node.children, usages);
-    else if (node.type === "text" && node.preparedFont && node.lines.length)
+  for (const node of descendants(nodes, (node) => (node.type === "paintGroup" ? node.children : []))) {
+    if (node.type === "richText") {
+      for (const fragment of node.fragments) collectFragment(fragment, usages);
+    } else if (node.type === "text" && node.preparedFont && node.lines.length)
       collectText(node.preparedFont, node.lines, usages);
   }
+}
+function collectFragment(fragment: PrivateFragment, usages: Map<PreparedFont, FontUsage>): void {
+  if (!fragment.preparedFont) return;
+  collectText(
+    fragment.preparedFont,
+    [
+      {
+        text: fragment.text,
+        x: fragment.x,
+        y: fragment.baseline,
+        ...(fragment.glyphs ? { glyphs: fragment.glyphs } : {}),
+      },
+    ],
+    usages,
+  );
 }
 
 function collectText(font: PreparedFont, lines: readonly MeasuredLine[], usages: Map<PreparedFont, FontUsage>): void {

@@ -1,16 +1,27 @@
-import type { FontResources } from "../fonts/types.js";
-import type { LineNode, PaintingGroupNode, PathNode, RectangleNode, TextNode } from "../types.js";
+import type { ContentHandle } from "../core/content-ownership.js";
+import type { OperationOptions } from "../core/policy.js";
+import type { TextMeasurement, TextMeasurementInput } from "../measurement/types.js";
+import type { LineNode, PaintingGroupNode, PathNode, RectangleNode, RichTextNode, TextNode } from "../types.js";
 
 export const Fragment = (props: { readonly children?: VDOMChild }): VDOMChild => props.children;
 export type Key = string | number;
 export type NativeTag = keyof NativeProps;
 export type VDOMChild = VNode | string | null | undefined | boolean | readonly VDOMChild[];
 
-export type DeepReadonly<T> = T extends VNode
+type ReadonlyData<T> = T extends ContentHandle
   ? T
   : T extends object
     ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
     : T;
+export type DeepReadonly<T> = [T] extends [ContentHandle]
+  ? T
+  : [T] extends [VNode]
+    ? T
+    : [T] extends [VDOMChild]
+      ? [VDOMChild] extends [T]
+        ? VDOMChild
+        : ReadonlyData<T>
+      : ReadonlyData<T>;
 
 /** Metadata only: components have no access to serialization or resource byte buffers. */
 export interface ResourceMetadata {
@@ -19,6 +30,7 @@ export interface ResourceMetadata {
 }
 export interface ComponentContext {
   readonly resources: readonly ResourceMetadata[];
+  readonly measurement: { readonly measureText: (input: TextMeasurementInput) => TextMeasurement };
 }
 export type Component<Props extends object> = (props: DeepReadonly<Props>, context: ComponentContext) => VDOMChild;
 export type TextChildren = VDOMChild;
@@ -30,6 +42,7 @@ export interface NativeProps {
   page: { readonly width: number; readonly height: number; readonly children: VDOMChild };
   group: { readonly x?: number; readonly y?: number; readonly children: VDOMChild };
   text: TextProps;
+  richText: Omit<RichTextNode, "type">;
   rect: Omit<RectangleNode, "type">;
   line: Omit<LineNode, "type">;
   path: Omit<PathNode, "type">;
@@ -53,7 +66,10 @@ export interface ExtensionVNode extends NodeMetadata {
   readonly definition: RegistryDefinition;
   readonly props: unknown;
 }
-export type VNode = NativeVNode | ComponentVNode | ExtensionVNode;
+export interface ProviderVNode extends NodeMetadata {
+  readonly kind: "provider";
+}
+export type VNode = NativeVNode | ComponentVNode | ExtensionVNode | ProviderVNode;
 
 /** Instances are created by definePrimitive; installation is local to each lower call. */
 export interface RegistryDefinition {
@@ -64,8 +80,7 @@ export interface Primitive<Props extends object> {
   readonly Type: Component<Props>;
   readonly definition: RegistryDefinition;
 }
-export interface LowerOptions {
-  readonly resources?: FontResources;
+export interface LowerOptions extends OperationOptions {
   readonly registry?: readonly RegistryDefinition[];
   readonly resourceMetadata?: readonly ResourceMetadata[];
 }

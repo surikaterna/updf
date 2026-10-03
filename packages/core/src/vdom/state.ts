@@ -1,4 +1,7 @@
 import type { ResolvedFonts } from "../fonts/resources.js";
+import type { WorkLedger } from "../measurement/ledger.js";
+import type { ProviderEnvironment } from "./context.js";
+import type { Expansion } from "./progress.js";
 import type { ComponentContext, RegistryDefinition } from "./types.js";
 
 export interface OutputPage {
@@ -15,13 +18,26 @@ export interface Location {
   readonly astPath?: string;
 }
 export interface State {
-  units: number;
+  environment: ProviderEnvironment;
+  sourceNodes: number;
+  generatedNodes: number;
+  generatedText: number;
+  generatedCommands: number;
+  readonly expansions: Expansion[];
+  readonly budget: WorkLedger;
+  closed: boolean;
   readonly active: Set<object>;
   readonly installed: ReadonlySet<RegistryDefinition>;
-  readonly context: ComponentContext;
+  readonly context: Pick<ComponentContext, "resources">;
   readonly fonts: ResolvedFonts;
   readonly pages: OutputPage[];
   readonly origins: Map<string, string>;
   document?: { version: unknown };
+  drawing?: (
+    input: unknown,
+    width: number,
+    height: number,
+    path: string,
+  ) => readonly import("../types.js").NodeDefinition[];
 }
 export type Walk = (child: unknown, location: Location, path: string, depth: number) => void;

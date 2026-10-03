@@ -7,7 +7,7 @@ import { inspectSfnt } from "./sfnt.js";
 
 /** Optional parser entry only. Static single-face glyf TrueType, no layout/shaping. */
 export function prepareFont(bytes: Uint8Array<ArrayBuffer>): PreparedFont {
-  byteLength(bytes, "/font/bytes");
+  byteLength(bytes, "/font/bytes", 4 * 1024 * 1024);
   const owned = new Uint8Array(bytes);
   try {
     const rights = inspectSfnt(owned);

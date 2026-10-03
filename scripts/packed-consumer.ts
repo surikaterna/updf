@@ -10,9 +10,12 @@ import { smokeFixture } from "./migration/legacy-smoke-fixture.js";
 
 async function coreProof(directory: string, graphs: Record<string, readonly string[]>): Promise<void> {
   await execute(directory, coreRuntime);
+  await typeConsumer(directory, ["measurement-template.tsx", "fonts-template.ts"]);
+  await typeConsumer(directory, ["measurement-template.tsx", "fonts-template.ts"], true);
   for (const entry of [
     "@updf/core",
     "@updf/core/fonts",
+    "@updf/core/measurement",
     "@updf/core/painting",
     "@updf/core/vdom",
     "@updf/core/jsx-runtime",
@@ -27,11 +30,13 @@ const directories: string[] = [];
 const graphs: Record<string, readonly string[]> = {};
 try {
   const tarballs = new Map<string, string>();
-  for (const name of ["core", "geometry", "svg", "fontkit", "legacy"])
+  for (const name of ["core", "layout", "tables", "geometry", "svg", "fontkit", "legacy"])
     tarballs.set(name, await pack(`packages/${name}`, packs));
   tarballs.set("cmr", await pack("apps/cmr", packs));
   for (const names of [
     ["core", "cmr"],
+    ["core", "layout"],
+    ["core", "layout", "tables"],
     ["core", "geometry"],
     ["core", "geometry", "svg", "cmr"],
     ["core", "fontkit"],
@@ -47,14 +52,40 @@ try {
     await absent(directory, ["fontkit", "react", "react-dom"]);
     await absent(
       directory,
-      ["geometry", "svg", "fontkit", "legacy"].filter((name) => !names.includes(name)).map((name) => `@updf/${name}`),
+      ["tables", "geometry", "svg", "fontkit", "legacy"]
+        .filter((name) => !names.includes(name))
+        .map((name) => `@updf/${name}`),
     );
     if (names.includes("core")) await coreProof(directory, graphs);
+    if (names.includes("layout")) {
+      await typeConsumer(directory, ["content-template.tsx", "mixed-template.tsx"]);
+      await typeConsumer(directory, ["content-template.tsx", "mixed-template.tsx"], true);
+      await typeConsumer(directory, ["flow-template.tsx"]);
+      await typeConsumer(directory, ["flow-template.tsx"], true);
+      await typeConsumer(directory, ["tables-template.tsx"]);
+      await typeConsumer(directory, ["tables-template.tsx"], true);
+      graphs.layout = await installedGraph(directory, "@updf/layout");
+      graphs.layoutVDOM = await installedGraph(directory, "@updf/layout/vdom");
+      graphs.tables = await installedGraph(directory, "@updf/layout/tables");
+      graphs.tablesVDOM = await installedGraph(directory, "@updf/layout/tables/vdom");
+      assert.ok(graphs.tables.some((path) => /tables\/paint\.js$/u.test(path)));
+      assert.ok(!graphs.tables.some((path) => /\/vdom\/(lower|native)\.js$|\/layout\/dist\/vdom\.js$/u.test(path)));
+      assert.ok(!graphs.layoutVDOM.some((path) => /\/tables\//u.test(path)));
+      assert.ok(graphs.tablesVDOM.some((path) => /\/core\/dist\/vdom\//u.test(path)));
+      assert.ok(!graphs.layout.some((path) => /tables|react|geometry|svg|fontkit/u.test(path)));
+    }
     if (names.includes("geometry")) {
       await execute(directory, geometryRuntime);
       graphs.geometry = await installedGraph(directory, "@updf/geometry");
       await typeConsumer(directory, ["geometry-template.ts"]);
       await typeConsumer(directory, ["geometry-template.ts"], true);
+    }
+    if (names.includes("tables")) {
+      await typeConsumer(directory, ["composable-tables-template.tsx"]);
+      await typeConsumer(directory, ["composable-tables-template.tsx"], true);
+      graphs.composableTables = await installedGraph(directory, "@updf/tables");
+      assert.ok(graphs.composableTables.some((path) => /\/tables\/dist\/adapter\.js$/u.test(path)));
+      assert.ok(!graphs.composableTables.some((path) => /\/layout\/dist\/tables\//u.test(path)));
     }
     if (names.includes("svg")) {
       await execute(directory, svgRuntime);
@@ -98,7 +129,7 @@ try {
   await mkdir(join(root, "artifacts"), { recursive: true });
   await writeFile(join(root, "artifacts/installed-graphs.json"), `${JSON.stringify(graphs, null, 2)}\n`);
   console.log(
-    "Five clean external tarball closures passed: core-only, geometry, SVG/tree, Fontkit absent/present, legacy; NodeNext/Bundler types and runtime ownership.",
+    "Seven clean external tarball closures passed: core-only, layout/VDOM, composable tables, geometry, SVG/tree, Fontkit absent/present, legacy; NodeNext/Bundler types and runtime ownership.",
   );
 } finally {
   for (const directory of directories) await rm(directory, { recursive: true, force: true });
