@@ -7,7 +7,7 @@ import type { DecorationPlan } from "./decoration-types.js";
 import { isDecorationPlan } from "./decorations.js";
 import type { ExtensionLifetime } from "./extension-producer.js";
 import type { Extensions } from "./extension-types.js";
-import { type LeafCache, operationLeafCache } from "./leaf-cache.js";
+import { type LeafCache, lifetimeLeafCache } from "./leaf-cache.js";
 import type { PreparedBlock } from "./protocol.js";
 import { type Sizing, sizing } from "./sizing.js";
 
@@ -27,7 +27,7 @@ export function compile(
   single = false,
 ): readonly PreparedBlock[] {
   const result: PreparedBlock[] = [];
-  const state: CompilerState = { scope, tasks: [], cache: operationLeafCache(scope.operation) };
+  const state: CompilerState = { scope, tasks: [], cache: lifetimeLeafCache(scope.lifetime) };
   const visit: Visit = (...args) => visitBlock(state, ...args);
   if (single)
     visit(values[0], width, scope.freshHeight, root, (block) => {

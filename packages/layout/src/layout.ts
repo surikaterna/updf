@@ -19,11 +19,19 @@ import { paginate } from "./paginator.js";
 import { template } from "./template.js";
 import type { FlowDocumentDefinition, FlowResult } from "./types.js";
 
-export function layout(
+export function layout(input: unknown, operation: LayoutOperation, extensions?: Extensions): FlowResult {
+  const lifetime = { active: true };
+  try {
+    return activeLayout(input, operation, extensions, lifetime);
+  } finally {
+    lifetime.active = false;
+  }
+}
+function activeLayout(
   input: unknown,
   operation: LayoutOperation,
-  extensions?: Extensions,
-  lifetime: ExtensionLifetime = { active: true },
+  extensions: Extensions | undefined,
+  lifetime: ExtensionLifetime,
 ): FlowResult {
   validateExtensions(extensions);
   preflight(input, operation.policy);

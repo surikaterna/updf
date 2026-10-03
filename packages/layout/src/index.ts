@@ -99,12 +99,10 @@ export function layoutFlow(
   return layoutFlowUnknown(input, options, extensions);
 }
 export function layoutFlowUnknown(input: unknown, options: RenderOptions = {}, extensions?: Extensions): FlowResult {
-  const lifetime = { active: true };
   const operation = createDrawingLayoutOperation(options);
   try {
-    return layout(input, operation, extensions, lifetime);
+    return layout(input, operation, extensions);
   } finally {
-    lifetime.active = false;
     operation.close();
   }
 }
