@@ -11,10 +11,9 @@ import {
   type FlowBlock,
   layoutFlow,
   layoutFlowUnknown,
-} from "@updf/layout";
+} from "../../../tests/fixtures/transitional-layout.js";
 import { flow, paragraph } from "./fixtures.js";
 
-const inset = (n: number) => ({ top: n, right: n, bottom: n, left: n });
 const text = (value: string): FlowBlock => ({ type: "paragraph", paragraph: paragraph(value) });
 function rejects(run: () => unknown, code: string): void {
   assert.throws(run, (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === code);
@@ -26,10 +25,10 @@ test("border-box sizing fills width, subtracts padding/border, and gaps only sep
         block({
           children: [text("A"), text("B")],
           style: {
-            padding: inset(2),
+            padding: 2,
             border: { width: 1, color: [0, 0, 0] },
             gap: 3,
-            background: [1, 1, 0],
+            backgroundColor: [1, 1, 0],
           },
         }),
       ],
@@ -74,7 +73,7 @@ test("finite style schema rejects negative/undefined/nonfinite values, getters a
       );
   }
   rejects(() => layoutFlow(flow([block({ children: [], style: { width: 0 } })])), "GEOMETRY");
-  rejects(() => layoutFlow(flow([block({ children: [], style: { padding: inset(50) } })])), "GEOMETRY");
+  rejects(() => layoutFlow(flow([block({ children: [], style: { padding: 50 } })])), "GEOMETRY");
   let reads = 0;
   const style = Object.defineProperty({}, "height", {
     enumerable: true,
@@ -93,7 +92,7 @@ test("natural auto height fragments complete children/lines and clones padding/b
     flow([
       block({
         children: [text("A\nB\nC\nD\nE")],
-        style: { padding: inset(2), border: { width: 1, color: [0, 0, 0] } },
+        style: { padding: 2, border: { width: 1, color: [0, 0, 0] } },
       }),
     ]),
   );
@@ -107,6 +106,9 @@ test("natural auto height fragments complete children/lines and clones padding/b
 test("keepTogether moves once or errors independently from error/hidden overflow", () => {
   for (const overflow of ["error", "hidden"] as const) {
     const item = block({ children: [text("A\nB")], keepTogether: true, style: { overflow } });
+    const exact = layoutFlow(flow([{ type: "spacer", height: 20 }, item]));
+    assert.equal(exact.pageCount, 1);
+    assert.equal(exact.placements[1]?.box.height, 20);
     const result = layoutFlow(flow([{ type: "spacer", height: 30 }, item]));
     assert.equal(result.placements[1]?.pageIndex, 1);
     rejects(
@@ -135,7 +137,7 @@ test("minHeight blank space fragments arithmetically, including nested insets an
     [40, 30],
   );
   const nested = layoutFlow(
-    flow([block({ children: [block({ children: [], style: { minHeight: 70 } })], style: { padding: inset(2) } })]),
+    flow([block({ children: [block({ children: [], style: { minHeight: 70 } })], style: { padding: 2 } })]),
   );
   assert.deepEqual(
     nested.placements.map((p) => p.box.height),
@@ -171,7 +173,7 @@ test("fractional translated content axes retain the existing numerical certifica
       [
         block({
           children: [text("AAAAAAAAA\nAAAAAAAAA\nAAAAAAAAA")],
-          style: { padding: { top: 700, left: 700, bottom: 0, right: 0 } },
+          style: { paddingTop: 700, paddingLeft: 700 },
         }),
       ],
       { width: 760.03, height: 730.9 },
@@ -182,7 +184,7 @@ test("fractional translated content axes retain the existing numerical certifica
   rejects(
     () =>
       layoutFlow(
-        flow([block({ children: [], style: { padding: { top: 0, right: 0, bottom: 0, left: 1e20 - 16384 } } })], {
+        flow([block({ children: [], style: { paddingLeft: 1e20 - 16384 } })], {
           width: 1e20,
         }),
       ),

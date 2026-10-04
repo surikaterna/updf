@@ -1,7 +1,7 @@
 /** @jsxImportSource @updf/core */
 import { render } from "@updf/core";
 import { useContext } from "@updf/core/vdom";
-import { Block, Document, Flow, layout, PageContext, PageSize, Paragraph, pageSize } from "@updf/layout";
+import { Block, Document, Flow, layout, PageContext, PageSize, Paragraph, pageSize, pt } from "@updf/layout";
 
 export interface FlowControls {
   readonly count: number;
@@ -13,8 +13,8 @@ export const flowDefaults: FlowControls = { count: 6, preset: "compact", regions
 function ReportFooter() {
   const page = useContext(PageContext);
   return (
-    <Block style={{ padding: { top: 8, right: 0, bottom: 0, left: 0 } }}>
-      <Paragraph defaultStyle={{ fontSize: 10 }} lineHeight={16}>
+    <Block style={{ paddingTop: 8 }}>
+      <Paragraph style={{ fontSize: 10, lineHeight: pt(16) }}>
         {`Repeated footer ${page.docPageNumber}/${page.docPageCount}`}
       </Paragraph>
     </Block>
@@ -31,16 +31,13 @@ export function flowDefinition(title: string, controls: FlowControls = flowDefau
       <Flow pageSize={size} margins={{ top: 16, right: 16, bottom: 16, left: 16 }}>
         {controls.regions && (
           <Flow.Header height={24}>
-            <Paragraph defaultStyle={{ fontSize: 10 }} lineHeight={16}>
-              UPDF flow header
-            </Paragraph>
+            <Paragraph style={{ fontSize: 10, lineHeight: pt(16) }}>UPDF flow header</Paragraph>
           </Flow.Header>
         )}
         <Flow.Body>
           {Array.from({ length: controls.count }, (_, i) => (
             <Paragraph
-              defaultStyle={{ fontSize: 12 }}
-              lineHeight={16}
+              style={{ fontSize: 12, lineHeight: pt(16) }}
               whiteSpace="preserve"
               breakLongWords="codePoint"
               keepTogether={controls.keepTogether || controls.preset === "overflow"}

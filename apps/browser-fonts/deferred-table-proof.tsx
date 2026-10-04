@@ -6,7 +6,7 @@ import { Block, createExtensions, Document, Flow, FragmentContext, layout, PageC
 import { Table, table, tableExtension } from "@updf/tables";
 
 const Theme = createContext({ name: "DEFAULT" });
-const columns = [{ width: 180 }] as const;
+const columns = [{ width: { weight: 1, min: 160, max: 180 } }] as const;
 const extensions = createExtensions([tableExtension]);
 export function deferredTableProof(font: PreparedFont, mode: "data" | "jsx") {
   const contexts: string[] = [];
@@ -15,11 +15,7 @@ export function deferredTableProof(font: PreparedFont, mode: "data" | "jsx") {
       fragment = useContext(FragmentContext);
     const text = `${useContext(Theme).name} ${edge} P${page.docPageNumber}/${page.docPageCount} F${fragment.index}/${fragment.count}`;
     contexts.push(text);
-    return (
-      <Paragraph defaultStyle={{ font: "Proof", fontSize: 8 }} lineHeight={10}>
-        {text}
-      </Paragraph>
-    );
+    return <Paragraph style={{ font: "Proof", fontSize: 8, lineHeight: 1.25 }}>{text}</Paragraph>;
   }
   const content = proofContent(Label, mode);
   const tree = (
@@ -57,7 +53,7 @@ function proofContent(
         <Block.Header height={20}>
           <Label edge={`HEAD${number}`} />
         </Block.Header>
-        <Paragraph defaultStyle={{ font: "Proof", fontSize: 10 }} lineHeight={12}>{`Привет ROW${number}`}</Paragraph>
+        <Paragraph style={{ font: "Proof", fontSize: 10, lineHeight: 1.2 }}>{`Привет ROW${number}`}</Paragraph>
         <Block.Footer height={20}>
           <Label edge={`FOOT${number}`} />
         </Block.Footer>

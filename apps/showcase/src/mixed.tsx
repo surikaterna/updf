@@ -1,7 +1,7 @@
 /** @jsxImportSource @updf/core */
 import { render } from "@updf/core";
 import { createContext, useContext } from "@updf/core/vdom";
-import { Block, Document, Flow, layout, type Orientation, PageContext, PageSize, Paragraph } from "@updf/layout";
+import { Block, Document, Flow, layout, type Orientation, PageContext, PageSize, Paragraph, pt } from "@updf/layout";
 import { FixedAppendix, FixedCover } from "./fixed-pages.js";
 
 export interface MixedControls {
@@ -26,8 +26,8 @@ export function ReportFooter() {
   const page = useContext(PageContext);
   const theme = useContext(Theme);
   return (
-    <Block style={{ background: theme.background }}>
-      <Paragraph defaultStyle={{ fontSize: 10 }} lineHeight={14}>
+    <Block style={{ backgroundColor: theme.background }}>
+      <Paragraph style={{ fontSize: 10, lineHeight: 1.4 }}>
         {`Page ${page.docPageNumber}/${page.docPageCount}`}
       </Paragraph>
     </Block>
@@ -52,12 +52,12 @@ export function mixedExample(title: string, controls: MixedControls = defaults) 
         <Flow pageSize={size} orientation={controls.orientation} margins={{ top: 36, right: 36, bottom: 36, left: 36 }}>
           {controls.header && (
             <Flow.Header height={24}>
-              <Paragraph defaultStyle={{ fontSize: 10 }} lineHeight={14}>{`${title}: flowing report`}</Paragraph>
+              <Paragraph style={{ fontSize: 10, lineHeight: 1.4 }}>{`${title}: flowing report`}</Paragraph>
             </Flow.Header>
           )}
           <Flow.Body>
             {Array.from({ length: controls.count }, (_, index) => (
-              <Paragraph defaultStyle={{ fontSize: 11 }} lineHeight={15}>
+              <Paragraph style={{ fontSize: 11, lineHeight: pt(15) }}>
                 {`Section paragraph ${index + 1}. ${"Measured prose stays in its own flow section; fixed pages never donate unused space. ".repeat(8)}`}
               </Paragraph>
             ))}

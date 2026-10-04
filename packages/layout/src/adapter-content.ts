@@ -56,13 +56,9 @@ function checkConstraints(constraints: AdapterContentConstraints, path: string):
     path += constraints.sourcePath;
   }
   if ("defaults" in constraints) {
-    record(
-      constraints.defaults,
-      ["defaultStyle", "lineHeight", "align", "whiteSpace", "breakLongWords"],
-      `${path}/defaults`,
-    );
-    if ("defaultStyle" in constraints.defaults)
-      record(constraints.defaults.defaultStyle, ["font", "fontSize", "color"], `${path}/defaults/defaultStyle`);
+    record(constraints.defaults, ["style", "whiteSpace", "breakLongWords"], `${path}/defaults`);
+    for (const key of Object.keys(constraints.defaults))
+      if (constraints.defaults[key] === undefined) fail("TYPE", `${path}/defaults/${key}`, "Omit undefined fields");
   }
   if ("implicitParagraph" in constraints && typeof constraints.implicitParagraph !== "boolean")
     fail("TYPE", path, "Expected implicitParagraph boolean");

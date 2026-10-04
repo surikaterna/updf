@@ -3,8 +3,8 @@ import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
 import { render } from "@updf/core";
-import { block, layoutFlow } from "@updf/layout";
 import { flow } from "../../packages/layout/test/fixtures.js";
+import { block, layoutFlow } from "../fixtures/transitional-layout.js";
 
 const child = {
   type: "fixed" as const,
@@ -38,7 +38,10 @@ function colors(ppm: Buffer): { red: number; yellow: number; green: number } {
   return counts;
 }
 test("C-F1: actual PDF child red ink paints over a yellow background", async () => {
-  const images = await raster("background", flow([block({ children: [child], style: { background: [1, 1, 0] } })]));
+  const images = await raster(
+    "background",
+    flow([block({ children: [child], style: { backgroundColor: [1, 1, 0] } })]),
+  );
   assert.deepEqual(colors(images[0]!), { red: 200, yellow: 800, green: 0 });
 });
 test("C-F1: fragmented and hidden backgrounds never obscure children; borders remain outside the clip", async () => {
@@ -47,7 +50,7 @@ test("C-F1: fragmented and hidden backgrounds never obscure children; borders re
     flow([
       block({
         children: [child, child, child, child],
-        style: { padding: { top: 1, right: 1, bottom: 1, left: 1 }, background: [1, 1, 0] },
+        style: { padding: 1, backgroundColor: [1, 1, 0] },
       }),
     ]),
   );
@@ -61,7 +64,7 @@ test("C-F1: fragmented and hidden backgrounds never obscure children; borders re
     flow([
       block({
         children: [child],
-        style: { height: 8, overflow: "hidden", border: { width: 2, color: [0, 1, 0] }, background: [1, 1, 0] },
+        style: { height: 8, overflow: "hidden", border: { width: 2, color: [0, 1, 0] }, backgroundColor: [1, 1, 0] },
       }),
     ]),
   );

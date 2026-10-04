@@ -2,15 +2,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, render } from "@updf/core";
 import { type Component, type ComponentContext, h, lower } from "@updf/core/vdom";
+import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
+import { tableProofDefinition } from "../../../tests/fixtures/transitional-table-proof.js";
 import {
   layoutTable,
   layoutTableFlowUnknown,
   layoutTableUnknown,
   type TableDocumentDefinition,
-} from "@updf/layout/tables";
-import { Tables } from "@updf/layout/tables/vdom";
-import { tableProofDefinition } from "../../../apps/browser-fonts/table-proof.js";
-import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
+} from "../src/tables/index.js";
+import { Tables } from "../src/tables/vdom.js";
 
 function failure(run: () => unknown, code: string, path?: string): void {
   assert.throws(run, (error: unknown) => {

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, render } from "@updf/core";
 import { type ComponentContext, createContext, h, lower, useContext } from "@updf/core/vdom";
+import { badge, badgeAdapter } from "../../../apps/showcase/src/inline-badge.js";
 import {
   Block,
   block,
@@ -14,9 +15,8 @@ import {
   paragraph,
   Span,
   span,
-} from "@updf/layout";
-import { Document } from "@updf/layout/vdom";
-import { badge, badgeAdapter } from "../../../apps/showcase/src/inline-badge.js";
+} from "../../../tests/fixtures/transitional-layout.js";
+import { Document } from "../src/transitional-vdom.js";
 
 const pageTemplate = { width: 120, height: 120, margins: { top: 10, right: 10, bottom: 10, left: 10 } };
 function reject(callback: () => unknown, code: string, path?: RegExp): void {
@@ -68,10 +68,10 @@ test("D: data and semantic JSX share defaults, inherited Span styles, UTF16 sour
 test("D: natural Block measurement uses real capacity, border-box width, insets and native clipping", () => {
   const content = block({
     children: [paragraph({ children: "x" })],
-    style: { width: 80, padding: { top: 2, right: 2, bottom: 2, left: 2 }, border: { width: 1, color: [0, 1, 0] } },
+    style: { width: 80, padding: 2, border: { width: 1, color: [0, 1, 0] } },
   });
   const result = measure(content, { width: 100 });
-  assert.deepEqual(result.size, { width: 80, height: 18 });
+  assert.deepEqual(result.size, { width: 80, height: 16 });
   assert.equal(result.lines[0]?.top, 3);
   assert.equal(result.lines[0]?.fragments[0]?.x, 3);
   const hidden = measure(
@@ -124,7 +124,7 @@ test("D: invalid resources/styles fail before visual callbacks and normalization
   reject(
     () =>
       measure(
-        paragraph({ defaultStyle: { font: "Absent" }, children: inline(adapter, {}) }),
+        paragraph({ style: { font: "Absent" }, children: inline(adapter, {}) }),
         { width: 100 },
         { extensions: createExtensions([adapter]) },
       ),
@@ -172,9 +172,9 @@ test("D: Span boundaries do not split words; whitespace, empty lines and policy 
     "a b",
   );
   assert.equal(measure(paragraph({ children: "\n", whiteSpace: "preserve" }), { width: 100 }).lines.length, 2);
-  assert.equal(measure(paragraph({}), { width: 100 }).size.height, 12);
+  assert.equal(measure(paragraph({}), { width: 100 }).size.height, 10);
   reject(() => measure(paragraph({ children: "abc" }), { width: 100 }, { limits: { textCodePoints: 2 } }), "LIMIT");
-  reject(() => measure(paragraph({ children: "abc" }), { width: 100, height: 11 }), "VERTICAL_OVERFLOW");
+  reject(() => measure(paragraph({ children: "abc" }), { width: 100, height: 9 }), "VERTICAL_OVERFLOW");
 });
 test("D: actual roles reject nested blocks, naked spans, native drawings and numbers without coercion", () => {
   reject(
@@ -243,11 +243,11 @@ test("D: wrappers execute only in the operation with provider frames, progress c
   const Wrapper = (_props: Record<never, never>, context: ComponentContext) => {
     calls++;
     retained = context;
-    return h(Paragraph, { defaultStyle: { fontSize: useContext(Theme).size }, children: "x" });
+    return h(Paragraph, { style: { fontSize: useContext(Theme).size }, children: "x" });
   };
   const tree = h(Theme.Provider, { value: { size: 20 }, children: h(Wrapper, {}) });
   assert.equal(calls, 0);
-  assert.equal(measure(tree, { width: 100 }).size.height, 24);
+  assert.equal(measure(tree, { width: 100 }).size.height, 20);
   assert.equal(calls, 1);
   reject(
     () =>
@@ -261,7 +261,7 @@ test("D: wrappers execute only in the operation with provider frames, progress c
       }),
     "MEASUREMENT_CONTEXT",
   );
-  assert.equal(measure(h(Wrapper, {}), { width: 100 }).size.height, 12);
+  assert.equal(measure(h(Wrapper, {}), { width: 100 }).size.height, 10);
   const Cycle = (): ReturnType<typeof h> => h(Cycle, {});
   reject(() => measure(h(Cycle, {}), { width: 100 }), "VDOM_CYCLE");
   reject(() => useContext(Theme), "MEASUREMENT_CONTEXT");
@@ -279,7 +279,10 @@ test("D: inline native visuals grow auto height, align to a common baseline, wra
   assert.deepEqual(render(lower(h(Document, { pageTemplate, extensions, children: content }))), render(data.document));
   assert.equal(data.placements[0]?.box.height, measured.size.height);
   reject(() => measure(content, { width: 20 }, { extensions }), "TOKEN_OVERFLOW");
-  reject(() => measure(paragraph({ lineHeight: 12, children: badge(24) }), { width: 100 }, { extensions }), "FONT_INK");
+  assert.ok(
+    measure(paragraph({ style: { lineHeight: 1.2 }, children: badge(24) }), { width: 100 }, { extensions }).size
+      .height >= 24,
+  );
   reject(() => measure(content, { width: 100 }), "KEY");
   reject(
     () =>

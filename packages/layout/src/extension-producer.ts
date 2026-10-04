@@ -15,7 +15,7 @@ import { measureAdapterContent } from "./adapter-content.js";
 import { reserveContentDecorations } from "./adapter-decorations.js";
 import { adapterSnapshot, readParts, scopedAdapter } from "./author-parts.js";
 import { reserveAncestors } from "./container-reservation.js";
-import { preflight, preflightSource } from "./data.js";
+import { chargeSourceWork, preflight, preflightSource } from "./data.js";
 import { decorate } from "./decorated-producer.js";
 import { isDecorationPlan } from "./decorations.js";
 import { geometryNodes, instantiateEmissionNodes, snapshotEmissionData } from "./emission-nodes.js";
@@ -23,6 +23,9 @@ import type { BlockFragmentRequest, Extensions, MeasureContext, MeasuredBlock } 
 import { resolveExtension } from "./extensions.js";
 import type { ExtensionMeasurement, LeafCache } from "./leaf-cache.js";
 import type { FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
+import { edgeRegionNode } from "./shared-edge-emission.js";
+import { coordinateSharedEdges } from "./shared-edge-producer.js";
+import { ownEdgeRegion } from "./shared-edge-regions.js";
 
 export interface ExtensionLifetime {
   active: boolean;
@@ -46,6 +49,15 @@ function context(
       return origin.path;
     },
     ancestors: ancestors(operation),
+    chargeSourceWork: (count, sourcePath) => {
+      if (!lifetime.active) fail("MEASUREMENT_CONTEXT", origin.path, "Layout operation has closed");
+      if (!Number.isSafeInteger(count) || count < 0) fail("TYPE", origin.path, "Expected nonnegative work count");
+      chargeSourceWork(count, operation, `${origin.path}${sourcePath}`);
+    },
+    edgeRegion: (input) => {
+      if (!lifetime.active) fail("MEASUREMENT_CONTEXT", origin.path, "Layout operation has closed");
+      return edgeRegionNode(ownEdgeRegion(input, operation, origin.path), operation, origin.path);
+    },
     reserveDecorations: (entries) => {
       if (!lifetime.active) fail("MEASUREMENT_CONTEXT", origin.path, "Layout operation has closed");
       return reserveContentDecorations(entries, operation, origin.path);
@@ -78,6 +90,7 @@ export function extensionProducer(
   if (previous)
     return checkedMeasured(previous.measured, width, path, operation, previous.origin, extensions, lifetime);
   const origin = { path };
+  preflightSource(value.props, operation, `${path}/props`);
   const validated = adapterCall("validate", path, () => definition.validate(value.props), origin);
   preflightSource(validated, operation, `${path}/props`);
   const props = adapterSnapshot(validated, `${path}/props`);
@@ -110,17 +123,7 @@ function checkedMeasured(
   extensions?: Extensions,
   lifetime?: ExtensionLifetime,
 ): PreparedBlock {
-  record(
-    measured,
-    ["fragmentation", "naturalSize", "extent", "fragment", "decorations", "sourcePaths", "sourceKeys", "sourceExtent"],
-    path,
-  );
-  record(measured.naturalSize, ["width", "height"], `${path}/naturalSize`);
-  const naturalSize = Object.freeze({
-    width: number(measured.naturalSize.width, path, true),
-    height: number(measured.naturalSize.height, path),
-  });
-  if (naturalSize.width > width) fail("GEOMETRY", path, "Measured border box width exceeds its measurement region");
+  const naturalSize = checkedMeasuredSize(measured, width, path);
   const extent = progress(measured.extent, 0, Number.MAX_SAFE_INTEGER, `${path}/extent`);
   const source = checkedSource(measured, extent, operation, path);
   const fragmentation = measured.fragmentation;
@@ -131,7 +134,7 @@ function checkedMeasured(
   if ("decorations" in measured && !isDecorationPlan(decorations))
     fail("TYPE", path, "Expected owned decoration capability");
   if (typeof callback !== "function") fail("TYPE", path, "Expected synchronous fragment callback");
-  return decorate(
+  const prepared = decorate(
     {
       naturalSize,
       extent,
@@ -146,6 +149,33 @@ function checkedMeasured(
     lifetime,
     { from: origin.path, to: path },
   );
+  return measured.sharedEdges ? coordinateSharedEdges(prepared, operation, path) : prepared;
+}
+function checkedMeasuredSize(measured: MeasuredBlock, width: number, path: string) {
+  record(
+    measured,
+    [
+      "fragmentation",
+      "naturalSize",
+      "extent",
+      "fragment",
+      "decorations",
+      "sourcePaths",
+      "sourceKeys",
+      "sourceExtent",
+      "sharedEdges",
+    ],
+    path,
+  );
+  record(measured.naturalSize, ["width", "height"], `${path}/naturalSize`);
+  const naturalSize = Object.freeze({
+    width: number(measured.naturalSize.width, path, true),
+    height: number(measured.naturalSize.height, path),
+  });
+  if (naturalSize.width > width) fail("GEOMETRY", path, "Measured border box width exceeds its measurement region");
+  if ("sharedEdges" in measured && typeof measured.sharedEdges !== "boolean")
+    fail("TYPE", path, "Expected sharedEdges boolean");
+  return naturalSize;
 }
 function checkedSource(measured: MeasuredBlock, extent: number, operation: LayoutOperation, path: string) {
   for (const key of ["sourceExtent", "sourcePaths", "sourceKeys"] as const)
@@ -214,7 +244,7 @@ function checkedFragment(
   if (output.nodes.length) request.budget?.charge([{ type: "paintGroup", children: output.nodes }], path);
   array(output.nodes, operation.policy.nodes, `${path}/nodes`);
   preflight(output.nodes, operation.policy);
-  if (output.nodes.length) operation.validateFixed(geometryNodes(output.nodes), width, height, path);
+  if (output.nodes.length) operation.validateFixed(geometryNodes(output.nodes, operation), width, height, path);
   const nodes = snapshotEmissionData(output.nodes, path);
   return {
     nextOffset,

@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, render } from "@updf/core";
 import { createContext, h, useContext } from "@updf/core/vdom";
+import { Table, table, tableExtension } from "@updf/tables";
+import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
 import {
   createExtensions,
   Document,
@@ -15,9 +17,7 @@ import {
   Paragraph,
   paragraph,
   span,
-} from "@updf/layout";
-import { Table, table, tableExtension } from "@updf/tables";
-import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
+} from "../../../tests/fixtures/transitional-layout.js";
 
 const columns = [{ width: 90 }, { width: 90 }] as const;
 const pageTemplate = { width: 200, height: 100, margins: { top: 5, right: 5, bottom: 5, left: 5 } };
@@ -29,17 +29,17 @@ test("F prepared fonts, opaque aliases and table-column-cell-paragraph-Span styl
     limits: { fontBytes: font.metadata.byteLength },
   };
   const input = table({
-    columns: [{ width: 90, style: { defaultStyle: { font: "Alias" } } }, { width: 90 }],
-    style: { defaultStyle: { font: "Demo", fontSize: 10 } },
+    columns: [{ width: 90, style: { font: "Alias" } }, { width: 90 }],
+    style: { font: "Demo", fontSize: 10 },
     body: [
       {
         cells: [
           { children: "Привет" },
           {
-            style: { defaultStyle: { fontSize: 11 } },
+            style: { fontSize: 11 },
             children: paragraph({
               children: ["AB", span({ children: "CD", style: { fontSize: 13, color: [1, 0, 0] } })],
-              defaultStyle: { fontSize: 12 },
+              style: { fontSize: 12 },
             }),
           },
         ],
@@ -188,9 +188,9 @@ test("F explicitly reserved whole head callbacks are opaque until finalization a
 test("F supplied font declarations validate even when overridden or unused", () => {
   for (const body of [
     [],
-    [{ cells: [{ children: paragraph({ children: "A", defaultStyle: { font: "Helvetica" } }) }, {}] }],
+    [{ cells: [{ children: paragraph({ children: "A", style: { font: "Helvetica" } }) }, {}] }],
   ]) {
-    const input = table({ columns, style: { defaultStyle: { font: "Missing" } }, body });
+    const input = table({ columns, style: { font: "Missing" }, body });
     assert.throws(
       () => layoutFlow({ pageTemplate, body: [input] }, {}, createExtensions([tableExtension])),
       (error: unknown) =>

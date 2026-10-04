@@ -27,7 +27,7 @@ const content = <Document><Flow
       <Table.HeaderCell>Description</Table.HeaderCell>
       <Table.HeaderCell>Count</Table.HeaderCell>
     </Table.Row></Table.Head>
-    <Table.Body><Table.Row atomic>
+    <Table.Body><Table.Row keepTogether>
       <Table.Cell><Paragraph>First paragraph</Paragraph>
         <Paragraph>Second paragraph</Paragraph></Table.Cell>
       <Table.Cell>{3}</Table.Cell>
@@ -49,7 +49,7 @@ const content = table({
   head: { repeat: true, rows: [{ cells: [
     { children: "Description" }, { children: "Count" },
   ] }] },
-  body: [{ key: "item-1", atomic: true, cells: [
+  body: [{ key: "item-1", keepTogether: true, cells: [
     { children: "Item 1" }, { children: 3 },
   ] }],
   foot: { rows: [{ cells: [{ children: "Totals" }, { children: 3 }] }] },
@@ -57,25 +57,77 @@ const content = table({
 ```
 
 All input types are readonly; the factory snapshots data without freezing callers.
-Columns are positive explicit point widths; auto, weights, percentages, spans,
+Columns are positive point widths or weighted tracks; auto, percentages, spans,
 nested tables and row splitting are unsupported and diagnose rather than guess.
 Unknown fields, getters, holes, class records and present undefined reject.
+
+## Column widths (#45)
+
+`TableColumn.width` uses layout's shared `WidthTrack`: a fixed number of points or
+`{ weight: number, min?: number, max?: number }`. Weights and explicit bounds must
+be positive finite numbers; max must be at least min. Omitted min is the smallest
+positive binary64 number, omitted max is the table's available content width.
+For example, `columns={[{ width: 40 }, { width: { weight: 1, min: 30 } },
+{ width: { weight: 3, max: 150 } }]}` reserves 40pt and divides the remainder 1:3,
+redistributing after bounds clamp. Fixed widths plus minima exceeding available
+width fail `GEOMETRY` at the occurrence's `/props/columns` before cell measurement;
+invalid track parts diagnose `/columns/<index>/width/<part>`. No silent shrinking.
+
+Resolution is once per table occurrence, before measuring cells, without scanning
+content. Frozen scalar columns are reused by body, static head/foot, and deferred
+PageContext sections through their ordinary adapter-props snapshots. Deferred
+section occurrences certify those same fixed scalars; they do not redistribute
+weights. Caller arrays/objects remain mutable but are not retained by descriptors.
+Separate occurrences use their current available width, providers and resources.
+Actual column counts charge the operation source-node budget before resolver work.
+
+Rounding uses exact binary64 arithmetic, floors fractional shares, then permits one
+successor ULP in stable column order when the exact residual can pay for it and
+max allows it. No decimal quantization or epsilon. Saturated maxima and unavoidable
+representational slack remain unused; table width is the native left-to-right sum
+of allocated scalar widths, **not** the full available width. This preserves fixed
+table placement/output association. Native materialized overflow is rejected;
+existing translated-coordinate/ink certification remains authoritative. Cell
+content uses its allocated column width less local borders and effective padding.
+See [the resolver contract](../../docs/evidence/widths45-a.md) for exact rounding
+and numerical guarantees. No intrinsic/auto content scan or CSS flex semantics.
 
 Cells accept readonly stacked block content, or all-inline content (including
 finite scalar numbers) as one implicit Paragraph. Mixed naked inline/block content
 requires explicit Paragraphs. Numbers in explicit Paragraph/Span remain subject to
 the ordinary strict inline grammar. Text wrapping/baselines use D's existing engine.
 
-`style` inherits table → column → cell → Paragraph → Span. Supported text fields are
-`defaultStyle` (font id/fontSize/RGB), lineHeight, align, whiteSpace, breakLongWords.
-Cell padding defaults to 4pt; background, gap, closed border-box height and
+Text defaults merge library → table → column → row → cell → explicit Paragraph → nested Span.
+`TableStyle`, `RowStyle` and `CellStyle` are explicit readonly role schemas. Supported text fields are
+`font` (resource ID), `fontSize` (points), RGB `color`, `lineHeight` (positive ratio,
+`"normal"`, or layout `pt(n)`), `textAlign`, whiteSpace, breakLongWords. Text fields
+merge per key before becoming Paragraph.style defaults; raw line heights inherit
+through nested Spans. See [text styles](../../docs/text-styles.md). Old text names
+reject rather than alias. Table/column/row styles are cell defaults, not table or row
+layout boxes. Box fields never inherit into cell descendants.
+Cell scalar `padding` defaults to 4pt; `paddingTop/Right/Bottom/Left` override the
+shorthand within each layer regardless of key enumeration. Each layer expands its
+shorthand before merging: a higher-priority padding replaces lower-priority edges.
+`backgroundColor`, gap, closed border-box height and
 error/hidden overflow are supported. Closed cells use the C container/clip engine;
-clipping is not redaction. Row height is max cell border-box height plus the grid
-reservations, or explicit row minHeight. Grid has uniform width/RGB, contained outer
-ink and shared interior edges, painted after content. No glyph-overhang tolerance
+clipping is not redaction. Row height is max cell height plus its own effective edge
+reservations, or explicit row minHeight. `border`, `borderTop/Right/Bottom/Left` reuse
+layout's `BorderPolicy` on every table/column/row/cell style layer, expanded before
+merging. Omitted edges fall back to uniform `grid`; explicit null/zero suppresses it.
+An explicit positive shared edge wins over fallback/null; greater explicit width wins,
+then upper-bottom/left-right owner on ties. Each final interval paints once after
+content, including deferred head/foot styles. Shared bands center on logical boundaries;
+explicit exposed outer bands stay inside allocation. Grid-only placement is preserved.
+Opposing thicker winners never enlarge a neighbor's content inset or cause reflow.
+See [the border contract](../../docs/text-styles.md#table-cell-edges-and-shared-painting)
+for corners, fragments and clips; this is not CSS border-collapse. No glyph-overhang tolerance
 or numerical policy is relaxed.
 
-Rows are atomic by default; `atomic={false}` fails. Head defaults first, Foot last;
+Rows stay together by default; `keepTogether={true}` is explicit and omission has
+the same behavior. `keepTogether={false}` rejects unsupported splitting. The old
+`atomic` field is rejected, not aliased. A row moves intact to a fresh page or fails
+`LAYOUT_OVERSIZED`; cell `overflow: "hidden"` never permits an oversized row to fit.
+Head defaults first, Foot last;
 `repeat` means every table fragment. Multiple section rows are reserved as a unit.
 Without height they measure early; with positive explicit section `height`, JSX
 content is deferred to sealed final PageContext/FragmentContext using the public
@@ -87,7 +139,6 @@ Ordinary `layout()` results expose generic placement source ranges and body keys
 Repeated head/foot rows do not count as body progress; an empty table has source
 range 0..0 even though its zero-height protocol occurrence advances once.
 
-Legacy `@updf/layout/tables`, `/tables/vdom` and layoutTable/layoutTableFlow remain
-unreleased migration controls only. G removes them; this package does not make
-those paths a permanent facade. See `docs/evidence/architecture-tables.md` in the
-workspace for delivery evidence and independent-audit status.
+The transitional `@updf/layout/tables`, `/tables/vdom` and layoutTable/layoutTableFlow are removed.
+There is no permanent facade. See [migration](../../docs/authoring-migration.md)
+and the preserved dated records in `docs/evidence/architecture-tables.md`.

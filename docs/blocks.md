@@ -1,55 +1,49 @@
 # Generic blocks and static fragment decorations (C)
 
-Current D authoring can place `paragraph`/`span` data in these containers and use
-imported `Block`/`Paragraph`/`Span` through the core-owned semantic normalization
-bridge. `@updf/layout/vdom` `Document` accepts those children and owned local
-extension scopes. See [inline.md](inline.md). C is independently verified per the
-D assignment; D is implemented for audit, not verified. The historical C contract
-and status below are retained rather than rewritten. Its paginator/numeric kernel
-is unchanged, and E/F/G/Image remain outside D.
-
-Implemented locally, awaiting independent C audit. D–G, final PageContext,
-deferred page recipes, images and table-cell block content are not implemented.
-This contract uses the existing native renderer and the single layout paginator.
+Current private/unreleased contract. `paragraph`/`span` data and imported
+`Block`/`Paragraph`/`Span` use the core-owned normalization bridge. Native
+`Document` contains `Page`/`Flow` sections; Flow accepts block children and local
+extension scopes. See [inline](inline.md), [documents](documents.md) and
+[tables](tables.md). The native renderer and numeric kernel are unchanged; the
+bounded paginator auto-margin behavior is documented below.
+Historical C delivery/audit records remain under `docs/evidence`.
 
 ## Public data entry
 
 ```ts
-import { block, createExtensions, layoutFlow } from "@updf/layout";
+import { block, createExtensions, document, flow, layout } from "@updf/layout";
 import { chart, chartAdapter } from "../apps/showcase/src/chart.js";
 
-const result = layoutFlow({
-  pageTemplate: {
-    width: 240, height: 160,
-    margins: { top: 10, right: 10, bottom: 10, left: 10 },
-  },
-  body: [block({
+const result = layout(document({ children: flow({
+  pageSize: { width: 240, height: 160 },
+  margins: { top: 10, right: 10, bottom: 10, left: 10 },
+  extensions: createExtensions([chartAdapter]),
+  children: [block({
     children: [chart({ height: 80, values: [0.2, 0.6, 0.9] })],
     style: {
       height: 48, overflow: "hidden",
-      padding: { top: 6, right: 6, bottom: 6, left: 6 },
+      padding: 6,
       border: { width: 2, color: [0, 0.6, 0] },
     },
   })],
-}, {}, createExtensions([chartAdapter]));
+}) }));
 ```
 
 The chart is example source, not a layout package export or native primitive.
 `block` copies/freezes data without freezing callers, preserving owned extension
 descriptors, decoration plans and prepared-font identities. VNodes are not block
 or adapter data. Ordinary raw `{type: "block", ...}` records are also normalized
-by `layoutFlowUnknown`; owned adapter/plan capabilities cannot be forged by JSON.
+by native `layout`; owned adapter/plan capabilities cannot be forged by JSON.
 
-Children are readonly `FlowBlock[]`: current paragraph/fixed/spacer/break,
-extensions and nested containers. Old paragraph wrapping/math remains unchanged.
+Children are readonly block content: native paragraphs, extensions and nested
+containers. Paragraph wrapping/math remains unchanged.
 The compiler handles block normalization; the paginator never switches on
 paragraph/table/container kinds. Internal heap continuations support deeply nested
 container selection and painting without depending on the JS call stack.
 
-Plain data blocks work through the existing ordinary `Flow.Document` component.
-Installing extension sets or transporting decoration capabilities through that
-transitional JSX boundary is not implemented; use the native data entry above.
-This is not a new JSX intrinsic grammar or the later semantic Paragraph API.
+Data blocks and ordinary `<Block>` components work as children of native `<Flow>`
+inside `<Document>`. Install adapters with `Flow.extensions`. No extra JSX runtime
+or intrinsic grammar is introduced.
 
 ## Sizing and overflow
 
@@ -62,17 +56,25 @@ Present undefined fields, unsupported keys, getters, array holes and classes fai
 | `minWidth` / `maxWidth` | Nonnegative constraints applied to computed width; min > max rejects |
 | `height` | Nonnegative **closed** border-box height; omitted uses natural content height |
 | `minHeight` / `maxHeight` | Nonnegative constraints applied to computed height; min > max rejects |
-| `padding` | Optional Insets with all four nonnegative sides; omitted is zero |
-| `border` | Optional nonnegative width and readonly RGB color; reserves each side |
-| `background` | Optional readonly RGB color |
+| `padding` | Optional scalar nonnegative shorthand in points; omitted is zero |
+| `paddingTop` / `paddingRight` / `paddingBottom` / `paddingLeft` | Nonnegative point edges overriding shorthand, regardless of key enumeration |
+| `border` | Uniform fallback: required nonnegative width and readonly RGB color, or null for none |
+| `borderTop` / `borderRight` / `borderBottom` / `borderLeft` | Typed edge or null; explicit edge beats uniform fallback; omission is unspecified |
+| `backgroundColor` | Optional readonly RGB color; absent means no fill |
 | `gap` | Nonnegative space only between non-control children; no outer gap or margin collapse |
 | `overflow` | `error` (default) or `hidden`; no visible/auto/scroll modes |
+| `marginTop` | Only `"auto"`, on a terminal Block with explicit `keepTogether: true`; see below |
 
+Block style never becomes an ambient descendant style. See [styles](text-styles.md) for
+role support, object composition and the deliberate unreleased API migration.
 Width constraints do not shrink an oversized border box to fit a parent. Its final
 width must remain positive and fit the available region, including in hidden mode.
 Border and padding are subtracted before measuring children. Derived content axes
 use the existing private 32-local-ULP dyadic certificates; native associations and
 part/fragment reservations remain checked. No global tolerance change is made.
+Border strips paint wholly inside the allocated border box. Top/bottom own corners;
+side strips fill the remaining height. See the [reusable border policy](text-styles.md#reusable-edge-border-policy-42-a)
+for typed objects, strict source-path validation and per-layer shorthand expansion.
 
 Natural height sums child natural heights, between-child gaps and vertical insets.
 An unconstrained auto-height block grows naturally and is splittable by default,
@@ -107,10 +109,77 @@ contain generic advance controls, including intentional leading/trailing blanks.
 Closed/kept blocks reject page-advance controls rather than pretending a break
 can both remain atomic and create a continuation page.
 
-Decoration break policy is **clone per fragment**: background, all four border
-sides and all padding sides are applied to every container fragment. Additional
-clone reservations can increase aggregate fragmented height beyond its natural
-unfragmented height. This is an explicit basic policy, not full CSS behavior.
+Paragraphs use the same `keepTogether` spelling: `true` keeps all measured lines
+together; omission or `false` permits complete-line fragmentation. Table rows stay
+together even when the property is omitted and reject `false` (row splitting is
+unsupported). Adapter `fragmentation: "atomic"` remains capability terminology,
+not an authoring prop. JSX Fragment only groups syntax; it does not create a layout
+box or keep its children together. Use an actual `<Block keepTogether>` to group a
+headline with a visual. Hidden overflow never grants an atomic oversize fallback.
+The showcase SVG headline and graphic now share a kept Block in `src/svg.ts`;
+the chart headline/visual pair in `src/blocks.tsx` is also a kept Block, independent
+of the surrounding container's whole-block toggle. Source display reads these
+actual modules rather than a separate illustrative snippet.
+
+Background and all padding/border-width **reservations clone per fragment**. Border
+painting uses top only on the first fragment, bottom only on the last, and sides on
+every fragment. Reserved insets remain even on fragments whose top/bottom does not
+paint, preserving existing content geometry/pagination. Additional clone reservations
+can increase aggregate fragmented height beyond its natural unfragmented height.
+This is an explicit basic policy, not full CSS behavior.
+
+## Terminal auto top margin (#53)
+
+`BlockStyle.marginTop?: "auto"` is a bounded normal-flow alignment contract,
+not general CSS margins. Use `block(...)`, `<Block>` or a supported raw Block record.
+Explicit `keepTogether: true` is required even when `height` already makes the box
+atomic. Row, Column, Paragraph, Span and table styles do not accept this field.
+Numeric margins, null, present undefined and other strings reject.
+
+The Block must be the single terminal **body sibling** after providers, ordinary
+components, arrays and Fragments expand. Null, booleans and wrappers with no output
+are ignored; empty Paragraphs, zero-height Blocks/spacers and PageBreak are real
+siblings. A break before the aligned Block is allowed; a sibling or break after it,
+or two auto-margin siblings (even height zero), rejects `VDOM_HIERARCHY` at the
+actual authored `/style/marginTop` path. Flow.Header/Footer and Block.Header/Footer
+are reservations, not body siblings, regardless of their syntactic order.
+
+Direct Flow children use the current remaining page body after margins and reserved
+header/footer heights. An explicit-height Block establishes its resolved content
+region after its own padding/borders; its outer header/footer reservations are
+outside that box and are not subtracted twice. Natural Blocks, including kept boxes
+and minHeight/maxHeight-only boxes, supply **zero auto space**. Row, Column and
+adapter content add no alignment context; a nested explicit-height Block may do so.
+An unpaginated `measure` height constraint is a limit, not an alignment region.
+
+Fit the child's **full decorated atomic height** first. Only then insert
+`max(0, available - preceding - gap - childHeight)` as a private cursor offset.
+There is no spacer PDF node, source item or implicit page advance. Placement boxes
+exclude the margin and report the actual child outer box. Ordinary gaps retain
+their existing semantics. Exact fit has zero margin; a zero-height child can land
+at the endpoint while still making finite extent progress. A Flow child that cannot
+fit moves once to a fresh body and recomputes the margin, then rejects
+`LAYOUT_OVERSIZED` if still too tall. Explicit parents retain constrained overflow,
+not internal pagination. Clipping an aligned child or its explicit alignment parent
+to fit is rejected; no bounds tolerance, implicit clip or shrink is introduced.
+The strict native-materialization limitation documented in #51 remains in force.
+
+Known invalid values/keep policy reject before descendant normalization. Complete
+body eligibility is checked after wrapper expansion and before measurement/fragment
+callbacks. Ordinary components needed to discover siblings necessarily run during
+normalization; this is not a promise that all user components remain uncalled.
+Final PageContext/FragmentContext decorations still run only after pagination, once
+per emitted occurrence, with their captured providers and shared budgets.
+
+The runnable public TSX/data example is `examples/auto-margin.tsx`:
+
+```sh
+node --import tsx --input-type=module -e 'import { autoMarginExample } from "./examples/auto-margin.tsx"; console.log(autoMarginExample().result.placements)'
+```
+
+Its 160pt page has 10pt margins, a 12pt header and 18pt footer: body `[22,132]`.
+After a 30pt body Block, the 20pt summary starts at 112pt (60pt auto margin).
+See [implementation evidence](evidence/auto-margin53.md) for exact checks and controls.
 
 ## Static decorations and candidate reservation
 
@@ -141,10 +210,9 @@ can mutate shared results. Provisional trials do not amplify emitted-node/text
 budgets. Content must advance strict offset/extent even when its height is zero;
 decoration output alone cannot excuse nonprogress.
 
-Existing PageTemplate repeated regions and table header/row geometry retain their
-existing paths. Block decorations are not final-page header/footer recipes. The
-opaque ownership boundary is available for later E integration, but no deferred
-callback/PageContext/FragmentContext API or mutable global current page exists now.
+Static decorations are distinct from reserved deferred `Block.Header`/`Block.Footer`
+recipes. PageContext/FragmentContext are sealed during finalization; see
+[documents](documents.md). There is no mutable global current page.
 
 ## Extension trust and policy
 
@@ -181,5 +249,5 @@ and spans are preserved without prefixing them again. Arbitrary thrown objects'
 message/toString/getters are not read. Measurement callbacks still close in `finally`.
 
 For actual code, browser/demo controls and audited-scope evidence, see
-[architecture-blocks.md](evidence/architecture-blocks.md). Independent audit of C
-must precede D; passing these implementation gates is not independent verification.
+[architecture-blocks.md](evidence/architecture-blocks.md). Passing implementation
+gates is not independent verification.

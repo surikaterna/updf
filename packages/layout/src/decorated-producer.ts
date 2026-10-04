@@ -178,7 +178,7 @@ export function decorate(
   bindDeferredScope(plan, extensions, lifetime);
   for (const entry of plan.entries)
     if (entry.nodes.length)
-      operation.validateFixed(geometryNodes(entry.nodes), base.naturalSize.width, entry.height, path);
+      operation.validateFixed(geometryNodes(entry.nodes, operation), base.naturalSize.width, entry.height, path);
   const naturalHeight = sum([base.naturalSize.height, ...plan.entries.map((entry) => entry.height)]);
   const prepared: PreparedBlock = {
     ...base,

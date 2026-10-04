@@ -1,16 +1,18 @@
 import { render } from "@updf/core";
-import { createExtensions, layoutFlow } from "@updf/layout";
+import { block, document as createDocument, createExtensions, flow, layout } from "@updf/layout";
 import { chart, chartAdapter } from "../../tests/fixtures/chart.js";
 import { blockDefaults, blockExample } from "../showcase/src/blocks.js";
 
 export function blockProof() {
-  const result = layoutFlow(
-    {
-      pageTemplate: { width: 200, height: 100, margins: { top: 0, right: 0, bottom: 0, left: 0 } },
-      body: [{ type: "spacer", height: 50 }, chart({ height: 60, values: [0.2, 0.6, 0.9] })],
-    },
-    {},
-    createExtensions([chartAdapter]),
+  const result = layout(
+    createDocument({
+      children: flow({
+        pageSize: { width: 200, height: 100 },
+        margins: { top: 0, right: 0, bottom: 0, left: 0 },
+        children: [block({ children: [], style: { height: 50 } }), chart({ height: 60, values: [0.2, 0.6, 0.9] })],
+        extensions: createExtensions([chartAdapter]),
+      }),
+    }),
   );
   return { bytes: render(result.document), result };
 }

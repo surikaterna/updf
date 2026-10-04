@@ -5,6 +5,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { type DocumentDefinition, DocumentError, type NodeDefinition, render, type TextNode } from "@updf/core";
+import { createLayoutOperation, paintInlineText } from "@updf/core/internal";
+import type { ParagraphDefinition } from "@updf/core/measurement";
 
 const text = (value: string, overrides: Partial<TextNode> = {}): TextNode => ({
   type: "text",
@@ -111,6 +113,27 @@ function inkRows(image: { width: number; height: number; pixels: Uint8Array }, l
   }
   return rows;
 }
+
+test("internal tight line boxes paint actual ink beyond the line box without clipping", async () => {
+  const paragraph: ParagraphDefinition = {
+    defaultStyle: { font: "Helvetica", fontSize: 100, color: [0, 0, 0] },
+    runs: [{ text: "|" }],
+    lineHeight: 100,
+    align: "left",
+    whiteSpace: "preserve",
+    breakLongWords: "error",
+  };
+  const operation = createLayoutOperation({});
+  const measured = operation.measureInline(paragraph, () => [], 80, { strut: { unit: "pt", value: 40 } }, "/tight")[0];
+  assert.ok(measured);
+  assert.equal(measured.line.height, 40);
+  await withPdf(document(paintInlineText(measured, paragraph, 20, 60)), async (path, directory) => {
+    assert.equal(execFileSync("pdftotext", ["-raw", path, "-"], { encoding: "utf8" }).trim(), "|");
+    const rows = inkRows(await raster(path, directory), 40, 80);
+    assert.ok(rows[0]! < 120, "glyph ink must extend above the line-box top");
+    assert.ok(rows.at(-1)! >= 200, "glyph ink must extend below the line-box bottom");
+  });
+});
 
 test("Poppler raster retains full bar ink at page top and within tight multiline boxes", async () => {
   const input = document([

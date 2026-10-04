@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, render } from "@updf/core";
+import { chart, chartAdapter } from "../../../tests/fixtures/chart.js";
+import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
 import {
   type BlockContent,
   block,
@@ -12,9 +14,7 @@ import {
   type MeasuredContent,
   measure,
   paragraph,
-} from "@updf/layout";
-import { chart, chartAdapter } from "../../../tests/fixtures/chart.js";
-import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
+} from "../../../tests/fixtures/transitional-layout.js";
 import { flow } from "./fixtures.js";
 
 function rejects(callback: () => unknown, code: string): void {
@@ -45,7 +45,7 @@ function producer(
 test("public adapter content measurement uses the same paragraph and stacked block engine", () => {
   const content = block({
     children: [paragraph({ children: "First paragraph" }), paragraph({ children: "Second paragraph" })],
-    style: { padding: { top: 2, right: 3, bottom: 2, left: 3 }, gap: 4 },
+    style: { padding: 3, paddingTop: 2, paddingBottom: 2, gap: 4 },
   });
   const natural = measure(content, { width: 100 });
   const adapter = producer(content, (_context, result) => {
@@ -68,7 +68,7 @@ test("nested public adapters share the installed operation-local extension scope
 });
 test("content measurement captures prepared fonts from the owning operation, not a new default operation", async () => {
   const font = await fixtureFont();
-  const adapter = producer(paragraph({ children: "ABC", defaultStyle: { font: "Demo" } }));
+  const adapter = producer(paragraph({ children: "ABC", style: { font: "Demo" } }));
   const input = flow([extension(adapter, {})]);
   rejects(() => layoutFlow(input, {}, createExtensions([adapter])), "FONT_RESOURCE");
   const options = { resources: { Demo: font } };

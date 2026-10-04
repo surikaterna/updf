@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError } from "@updf/core";
-import { layoutFlow } from "@updf/layout";
+import { layoutFlow } from "../../../tests/fixtures/transitional-layout.js";
 import { fixed, flow } from "./fixtures.js";
 
 test("repeated template output reserves optional cumulative text/node limits before copying pages", () => {

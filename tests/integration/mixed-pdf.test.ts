@@ -33,8 +33,7 @@ function definition() {
               children: h(Paragraph, {
                 children: Array.from({ length: 9 }, (_, index) => `L${index + 1}`).join("\n"),
                 whiteSpace: "preserve" as const,
-                lineHeight: 12,
-                defaultStyle: { fontSize: 10, color: [1, 0, 0] as const },
+                style: { fontSize: 10, color: [1, 0, 0] as const, lineHeight: 1.2 },
               }),
             }),
             h(Flow.Footer, { height: 12, children: h(Footer, {}) }),

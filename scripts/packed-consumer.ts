@@ -58,20 +58,43 @@ try {
     );
     if (names.includes("core")) await coreProof(directory, graphs);
     if (names.includes("layout")) {
-      await typeConsumer(directory, ["content-template.tsx", "mixed-template.tsx"]);
-      await typeConsumer(directory, ["content-template.tsx", "mixed-template.tsx"], true);
-      await typeConsumer(directory, ["flow-template.tsx"]);
-      await typeConsumer(directory, ["flow-template.tsx"], true);
-      await typeConsumer(directory, ["tables-template.tsx"]);
-      await typeConsumer(directory, ["tables-template.tsx"], true);
+      await typeConsumer(directory, [
+        "content-template.tsx",
+        "mixed-template.tsx",
+        "text-style-template.tsx",
+        "rows-template.tsx",
+        "auto-margin-template.tsx",
+      ]);
+      await typeConsumer(
+        directory,
+        [
+          "content-template.tsx",
+          "mixed-template.tsx",
+          "text-style-template.tsx",
+          "rows-template.tsx",
+          "auto-margin-template.tsx",
+        ],
+        true,
+      );
+      await typeConsumer(directory, ["flow-template.tsx", "page-break-template.tsx"]);
+      await typeConsumer(directory, ["flow-template.tsx", "page-break-template.tsx"], true);
       graphs.layout = await installedGraph(directory, "@updf/layout");
-      graphs.layoutVDOM = await installedGraph(directory, "@updf/layout/vdom");
-      graphs.tables = await installedGraph(directory, "@updf/layout/tables");
-      graphs.tablesVDOM = await installedGraph(directory, "@updf/layout/tables/vdom");
-      assert.ok(graphs.tables.some((path) => /tables\/paint\.js$/u.test(path)));
-      assert.ok(!graphs.tables.some((path) => /\/vdom\/(lower|native)\.js$|\/layout\/dist\/vdom\.js$/u.test(path)));
-      assert.ok(!graphs.layoutVDOM.some((path) => /\/tables\//u.test(path)));
-      assert.ok(graphs.tablesVDOM.some((path) => /\/core\/dist\/vdom\//u.test(path)));
+      await execute(
+        directory,
+        `
+        import assert from 'node:assert/strict';
+        const layout = await import('@updf/layout');
+        assert.deepEqual(layout.pt(16), { unit: 'pt', value: 16 });
+        assert.ok(Object.isFrozen(layout.pt(16)));
+        assert.ok(Math.abs(layout.measure(layout.paragraph({ style: { fontSize: 12, lineHeight: 1.2 }, children: 'A' }), { width: 200 }).size.height - 14.4) < 1e-12);
+        for (const key of ['align', 'lineHeight', 'defaultStyle'])
+          assert.throws(() => layout.paragraph({ [key]: 16 }));
+        for (const name of ['layoutFlow', 'layoutFlowUnknown']) assert.equal(name in layout, false);
+        assert.equal('Document' in layout.Flow, false);
+        for (const entry of ['@updf/layout/vdom', '@updf/layout/tables', '@updf/layout/tables/vdom'])
+          await assert.rejects(import(entry), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' });
+      `,
+      );
       assert.ok(!graphs.layout.some((path) => /tables|react|geometry|svg|fontkit/u.test(path)));
     }
     if (names.includes("geometry")) {
@@ -81,6 +104,8 @@ try {
       await typeConsumer(directory, ["geometry-template.ts"], true);
     }
     if (names.includes("tables")) {
+      await typeConsumer(directory, ["tables-template.tsx"]);
+      await typeConsumer(directory, ["tables-template.tsx"], true);
       await typeConsumer(directory, ["composable-tables-template.tsx"]);
       await typeConsumer(directory, ["composable-tables-template.tsx"], true);
       graphs.composableTables = await installedGraph(directory, "@updf/tables");

@@ -1,3 +1,4 @@
+import { cellBorders } from "./borders.js";
 import { array, error, number, record, rgb } from "./checks.js";
 import type { CellProps, CellStyle, TableDefinition, TableInput, TableRow, TableSection } from "./types.js";
 
@@ -5,36 +6,56 @@ export function style(value: unknown, path: string): asserts value is CellStyle 
   record(
     value,
     [
-      "defaultStyle",
+      "font",
+      "fontSize",
+      "color",
       "lineHeight",
-      "align",
+      "textAlign",
       "whiteSpace",
       "breakLongWords",
       "padding",
-      "background",
+      "paddingTop",
+      "paddingRight",
+      "paddingBottom",
+      "paddingLeft",
+      "backgroundColor",
       "height",
       "overflow",
       "gap",
+      "border",
+      "borderTop",
+      "borderRight",
+      "borderBottom",
+      "borderLeft",
     ],
     path,
   );
-  for (const key of ["padding", "height", "gap"] as const) if (key in value) number(value[key], `${path}/${key}`);
-  if ("lineHeight" in value) number(value.lineHeight, `${path}/lineHeight`, true);
-  if ("background" in value) rgb(value.background, `${path}/background`);
-  if ("defaultStyle" in value) {
-    record(value.defaultStyle, ["font", "fontSize", "color"], `${path}/defaultStyle`);
-    if ("font" in value.defaultStyle && typeof value.defaultStyle.font !== "string") error(path, "Expected font id");
-    if ("fontSize" in value.defaultStyle) number(value.defaultStyle.fontSize, `${path}/defaultStyle/fontSize`, true);
-    if ("color" in value.defaultStyle) rgb(value.defaultStyle.color, `${path}/defaultStyle/color`);
-  }
+  cellBorders(value as CellStyle, path);
+  for (const key of ["padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "height", "gap"] as const)
+    if (key in value) number(value[key], `${path}/${key}`);
+  if ("lineHeight" in value) lineHeight(value.lineHeight, `${path}/lineHeight`);
+  if ("backgroundColor" in value) rgb(value.backgroundColor, `${path}/backgroundColor`);
+  if ("font" in value && typeof value.font !== "string") error(`${path}/font`, "Expected font id");
+  if ("fontSize" in value) number(value.fontSize, `${path}/fontSize`, true);
+  if ("color" in value) rgb(value.color, `${path}/color`);
   for (const [key, allowed] of [
-    ["align", ["left", "center", "right"]],
+    ["textAlign", ["left", "center", "right"]],
     ["whiteSpace", ["preserve", "collapse"]],
     ["breakLongWords", ["error", "codePoint"]],
     ["overflow", ["error", "hidden"]],
   ] as const)
     if (key in value && !allowed.some((item) => item === value[key]))
       error(`${path}/${key}`, "Unsupported style value");
+}
+function lineHeight(value: unknown, path: string): void {
+  if (value === "normal") return;
+  if (typeof value === "number") {
+    number(value, path, true);
+    return;
+  }
+  record(value, ["unit", "value"], path);
+  if (value.unit !== "pt") error(`${path}/unit`, "Expected pt line height");
+  number(value.value, `${path}/value`, true);
 }
 export function cell(value: unknown, path: string): asserts value is CellProps {
   record(value, ["children", "style"], path);
@@ -43,14 +64,16 @@ export function cell(value: unknown, path: string): asserts value is CellProps {
     error(`${path}/children`, "Numeric cell text must be finite");
 }
 export function row(value: unknown, path: string, columns: number): asserts value is TableRow {
-  record(value, ["cells", "atomic", "minHeight", "key"], path);
-  atomic(value, path);
+  record(value, ["cells", "style", "keepTogether", "minHeight", "key"], path);
+  rowOptions(value, path);
   array(value.cells, `${path}/cells`);
   if (value.cells.length !== columns) error(`${path}/cells`, "Cell count must match column count");
   for (let i = 0; i < value.cells.length; i++) cell(value.cells[i], `${path}/cells/${i}`);
 }
-export function atomic(value: Record<string, unknown>, path: string): void {
-  if ("atomic" in value && value.atomic !== true) error(`${path}/atomic`, "Rows are atomic; splitting is unsupported");
+export function rowOptions(value: Record<string, unknown>, path: string): void {
+  if ("style" in value) style(value.style, `${path}/style`);
+  if ("keepTogether" in value && value.keepTogether !== true)
+    error(`${path}/keepTogether`, "Rows stay together; splitting is unsupported");
   if ("minHeight" in value) number(value.minHeight, `${path}/minHeight`);
   if ("key" in value && typeof value.key !== "string" && typeof value.key !== "number")
     error(`${path}/key`, "Expected source key");
@@ -66,11 +89,11 @@ export function section(value: unknown, path: string, columns: number): asserts 
 export function validate(input: unknown): TableDefinition {
   record(input, ["columns", "style", "grid", "children", "body", "head", "foot"], "/table");
   array(input.columns, "/table/columns");
-  if (!input.columns.length) error("/table/columns", "At least one explicit column is required");
+  if (!input.columns.length) error("/table/columns", "At least one column is required");
   for (let i = 0; i < input.columns.length; i++) {
     const column = input.columns[i];
     record(column, ["width", "style"], `/table/columns/${i}`);
-    number(column.width, `/table/columns/${i}/width`, true);
+    widthTrack(column.width, `/table/columns/${i}/width`);
     if ("style" in column) style(column.style, `/table/columns/${i}/style`);
   }
   if ("style" in input) style(input.style, "/table/style");
@@ -88,6 +111,18 @@ export function validate(input: unknown): TableDefinition {
   for (const name of ["head", "foot"] as const)
     if (name in input) section(input[name], `/table/${name}`, input.columns.length);
   return input as unknown as TableDefinition;
+}
+function widthTrack(value: unknown, path: string): void {
+  if (typeof value === "number") {
+    number(value, path, true);
+    return;
+  }
+  record(value, ["weight", "min", "max"], path);
+  number(value.weight, `${path}/weight`, true);
+  if ("min" in value) number(value.min, `${path}/min`, true);
+  if ("max" in value) number(value.max, `${path}/max`, true);
+  if (typeof value.min === "number" && typeof value.max === "number" && value.max < value.min)
+    error(`${path}/max`, "Maximum width must be at least minimum width", "GEOMETRY");
 }
 export function data(input: TableDefinition): input is TableInput {
   return "body" in input;

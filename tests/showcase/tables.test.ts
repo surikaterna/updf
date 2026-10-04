@@ -8,6 +8,13 @@ import { tableDefaults, tableExample } from "../../apps/showcase/src/tables.js";
 import { textDemo } from "../../apps/showcase/src/text.js";
 import { observeUrls, pdf, rendered, retained, screenshot, settledModule, site, source } from "./helpers.js";
 
+async function tableSource(page: Page) {
+  await source(page, "tables.tsx");
+  const displayed = await page.locator("#source").innerText();
+  assert.match(displayed, /borderRight:[\s\S]*borderLeft: null/u);
+  assert.match(displayed, /width: \{ weight: wide \? 270 : 140, min: 100 \}/u);
+}
+
 test("optional table source/download, mobile controls, counts, oversize diagnostics and Blob cleanup", async () => {
   const app = await site();
   try {
@@ -18,7 +25,7 @@ test("optional table source/download, mobile controls, counts, oversize diagnost
     await page.getByRole("button", { name: "Generate PDF" }).click();
     assert.deepEqual(await pdf(page), tableExample("Hello portable PDF").bytes);
     await rendered(page, tableExample("Hello portable PDF").result.pageCount);
-    await source(page, "tables.tsx");
+    await tableSource(page);
     assert.match(await page.getByRole("status").innerText(), /12 body rows; \d+ repeated headers/u);
     await page.getByLabel("Body row count", { exact: true }).fill("3");
     await page.getByLabel("Table width preset").selectOption("wide");

@@ -1,15 +1,24 @@
 import type { RGB } from "@updf/core";
-import type { BlockContent, ImplicitInlineContent, ParagraphProps } from "@updf/layout";
+import type {
+  BlockContent,
+  BorderPolicy,
+  BoxStyle,
+  ImplicitInlineContent,
+  ParagraphStyle,
+  WidthTrack,
+} from "@updf/layout";
 
-export interface CellStyle extends Omit<ParagraphProps, "children" | "keepTogether"> {
-  readonly padding?: number;
-  readonly background?: RGB;
+export interface TableStyle extends ParagraphStyle, BoxStyle, BorderPolicy {
+  readonly whiteSpace?: "preserve" | "collapse";
+  readonly breakLongWords?: "error" | "codePoint";
   readonly height?: number;
   readonly overflow?: "error" | "hidden";
   readonly gap?: number;
 }
+export type RowStyle = TableStyle;
+export type CellStyle = TableStyle;
 export interface TableColumn {
-  readonly width: number;
+  readonly width: WidthTrack;
   readonly style?: CellStyle;
 }
 export interface CellProps {
@@ -17,8 +26,9 @@ export interface CellProps {
   readonly style?: CellStyle;
 }
 export interface RowProps {
+  readonly style?: RowStyle;
   readonly children?: BlockContent;
-  readonly atomic?: true;
+  readonly keepTogether?: true;
   readonly minHeight?: number;
 }
 export interface SectionProps {
@@ -27,8 +37,9 @@ export interface SectionProps {
   readonly repeat?: boolean;
 }
 export interface TableRow {
+  readonly style?: RowStyle;
   readonly cells: readonly CellProps[];
-  readonly atomic?: true;
+  readonly keepTogether?: true;
   readonly minHeight?: number;
   readonly key?: string | number;
 }
@@ -39,7 +50,7 @@ export interface TableSection {
 }
 export interface TableProps {
   readonly columns: readonly TableColumn[];
-  readonly style?: CellStyle;
+  readonly style?: TableStyle;
   readonly grid?: { readonly width: number; readonly color: RGB };
   readonly children?: BlockContent;
 }
@@ -49,3 +60,7 @@ export interface TableInput extends Omit<TableProps, "children"> {
   readonly foot?: TableSection;
 }
 export type TableDefinition = TableProps | TableInput;
+
+export interface ResolvedTableInput extends Omit<TableInput, "columns"> {
+  readonly columns: readonly (Omit<TableColumn, "width"> & { readonly width: number })[];
+}

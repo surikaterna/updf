@@ -27,38 +27,30 @@ function blockDocument(title: string, controls: BlockControls) {
         margins={{ top: 10, right: 10, bottom: 10, left: 10 }}
         extensions={createExtensions([chartAdapter])}
       >
-        <Paragraph defaultStyle={{ fontSize: 10 }} lineHeight={12}>{`Before: ${title}`}</Paragraph>
+        <Paragraph style={{ fontSize: 10, lineHeight: 1.2 }}>{`Before: ${title}`}</Paragraph>
         <Block
           keepTogether={controls.keepTogether}
           style={{
             ...(controls.blockHeight ? { height: controls.blockHeight } : {}),
             overflow: controls.hidden ? "hidden" : "error",
-            padding: { top: 6, right: 6, bottom: 6, left: 6 },
+            padding: 6,
             border: { width: 2, color: [0, 0.6, 0] },
             gap: 4,
           }}
         >
           <Block.Header height={12} repeat={false}>
-            <Paragraph defaultStyle={{ fontSize: 10 }} lineHeight={12}>
-              Static block header
-            </Paragraph>
+            <Paragraph style={{ fontSize: 10, lineHeight: 1.2 }}>Static block header</Paragraph>
           </Block.Header>
-          <Paragraph defaultStyle={{ fontSize: 10 }} lineHeight={12}>
-            Headline and chart
-          </Paragraph>
-          <Chart height={controls.chartHeight} values={[0.2, 0.6, 0.9]} />
-          <Paragraph defaultStyle={{ fontSize: 10 }} lineHeight={12}>
-            Clipped text is still extractable.
-          </Paragraph>
+          <Block keepTogether style={{ gap: 4 }}>
+            <Paragraph style={{ fontSize: 10, lineHeight: 1.2 }}>Headline and chart</Paragraph>
+            <Chart height={controls.chartHeight} values={[0.2, 0.6, 0.9]} />
+          </Block>
+          <Paragraph style={{ fontSize: 10, lineHeight: 1.2 }}>Clipped text is still extractable.</Paragraph>
           <Block.Footer height={12} repeat={false}>
-            <Paragraph defaultStyle={{ fontSize: 10 }} lineHeight={12}>
-              Static block footer
-            </Paragraph>
+            <Paragraph style={{ fontSize: 10, lineHeight: 1.2 }}>Static block footer</Paragraph>
           </Block.Footer>
         </Block>
-        <Paragraph defaultStyle={{ fontSize: 10 }} lineHeight={12}>
-          After the chart block.
-        </Paragraph>
+        <Paragraph style={{ fontSize: 10, lineHeight: 1.2 }}>After the chart block.</Paragraph>
       </Flow>
     </Document>
   );

@@ -1,10 +1,17 @@
 import type { DocumentDefinition, NodeDefinition, PageDefinition } from "@updf/core";
-import { checkLimit, fail, type LayoutOperation, type NormalizedContent, snapshotData } from "@updf/core/internal";
+import {
+  checkLimit,
+  fail,
+  type LayoutOperation,
+  type NormalizedContent,
+  type SemanticRecipe,
+  snapshotData,
+} from "@updf/core/internal";
 import { createDrawingLayoutOperation } from "@updf/core/internal-drawing";
 import type { LowerOptions, VDOMChild } from "@updf/core/vdom";
 import { compile } from "./block-compiler.js";
 import { OutputBudget } from "./budget.js";
-import { convertBlocks, normalizeBlocks } from "./content-normalize.js";
+import { checkRole, convertBlocks, normalizeBlocks } from "./content-normalize.js";
 import { finalizeDecorations } from "./deferred-decoration.js";
 import {
   bodyIdentity,
@@ -25,6 +32,7 @@ import { orientedSize } from "./page-size.js";
 import { type PaginationSession, paginate } from "./paginator.js";
 import { validateRegion } from "./region-overflow.js";
 import { renderRegion } from "./region-render.js";
+import { columnIdentity } from "./row-data.js";
 import { type TemplateGeometry, template } from "./template.js";
 import type { FlowBlock, FlowPlacement } from "./types.js";
 
@@ -128,6 +136,7 @@ function planFixed(node: NormalizedContent, section: number, session: Session): 
 }
 interface FlowParts {
   body: FlowBlock[];
+  nodes: NormalizedContent[];
   header?: NormalizedContent;
   footer?: NormalizedContent;
   bodySlot: boolean;
@@ -138,10 +147,24 @@ function flowParts(node: NormalizedContent, session: Session): FlowParts {
     node.value.props.children,
     sectionRecipe,
     `${node.path}/children`,
+    flowChildGuard,
+    undefined,
+    undefined,
+    columnIdentity,
   );
-  const result: FlowParts = { body: [], bodySlot: false };
+  const result: FlowParts = { body: [], nodes: [], bodySlot: false };
   for (const child of children) appendFlowChild(child, result, session);
+  if (!result.bodySlot) result.body = convertBlocks(result.nodes, session.operation);
   return result;
+}
+function flowChildGuard(value: string | SemanticRecipe, path: string, parent: object | undefined): void {
+  if (
+    parent === undefined &&
+    typeof value !== "string" &&
+    [headerIdentity, bodyIdentity, footerIdentity].includes(value.identity)
+  )
+    return;
+  checkRole(value, path, parent);
 }
 function appendFlowChild(child: NormalizedContent, result: FlowParts, session: Session): void {
   if (typeof child.value === "string") fail("VDOM_HIERARCHY", child.path, "Flow text requires Paragraph");
@@ -154,7 +177,7 @@ function appendFlowChild(child: NormalizedContent, result: FlowParts, session: S
     return;
   }
   if (identity === bodyIdentity) {
-    if (result.bodySlot || result.body.length)
+    if (result.bodySlot || result.nodes.length)
       fail("VDOM_HIERARCHY", child.path, "Use one Flow.Body or direct body children");
     result.bodySlot = true;
     validateDataObject(child.value.props, ["children"], child.path);
@@ -166,7 +189,7 @@ function appendFlowChild(child: NormalizedContent, result: FlowParts, session: S
     return;
   }
   if (result.bodySlot) fail("VDOM_HIERARCHY", child.path, "Cannot mix Flow.Body and direct body children");
-  for (const block of convertBlocks([child], session.operation)) result.body.push(block);
+  result.nodes.push(child);
 }
 function planFlow(node: NormalizedContent, section: number, index: number, session: Session): void {
   if (typeof node.value === "string") fail("TYPE", node.path, "Expected Flow");

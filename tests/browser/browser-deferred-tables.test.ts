@@ -12,7 +12,10 @@ test("F-AUD01 data/TSX deferred cell header/body/footer text and final contexts 
     configFile: new URL("../../apps/browser-fonts/vite.config.ts", import.meta.url).pathname,
     preview: { host: "127.0.0.1", port: 0 },
   });
-  const browser = await chromium.launch({ executablePath: "/usr/bin/chromium", args: ["--no-sandbox"] });
+  const browser = await chromium.launch({
+    executablePath: process.env.BROWSER_CHROMIUM ?? "/usr/bin/chromium",
+    args: ["--no-sandbox"],
+  });
   const directory = await mkdtemp("/tmp/opencode/updf-browser-deferred-tables-");
   try {
     const page = await browser.newPage(),

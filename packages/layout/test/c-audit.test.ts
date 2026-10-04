@@ -10,7 +10,7 @@ import {
   layoutFlow,
   type MeasureContext,
   type MeasuredBlock,
-} from "@updf/layout";
+} from "../../../tests/fixtures/transitional-layout.js";
 import { flow } from "./fixtures.js";
 
 const rect: NodeDefinition = { type: "rect", x: 0, y: 0, width: 1, height: 1, paint: { stroke: null } };

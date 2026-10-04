@@ -11,14 +11,14 @@ function ThemedText(props: { readonly title: string; readonly controls: RichCont
   const controls = props.controls;
   return (
     <Paragraph
-      defaultStyle={{ fontSize: controls.fontSize }}
-      lineHeight={controls.fontSize * 1.5}
-      align={controls.align}
+      style={{ fontSize: controls.fontSize, lineHeight: 1.5, textAlign: controls.align }}
       whiteSpace={controls.whiteSpace}
       breakLongWords={controls.breakLongWords}
     >
-      <Span style={{ fontSize: controls.fontSize * 1.2, color: theme.accent }}>{`  ${props.title}`}</Span>
-      <Span style={{ color: theme.body }}>
+      <Span
+        style={{ fontSize: controls.fontSize * 1.2, color: theme.accent, backgroundColor: [1, 0.94, 0.65] }}
+      >{`  ${props.title}`}</Span>
+      <Span style={{ color: theme.body, backgroundColor: [0.85, 0.94, 1] }}>
         {"  styled text across span boundaries.\nSpaces  and hard breaks stay explicit.  "}
       </Span>
       {badge(controls.fontSize)}

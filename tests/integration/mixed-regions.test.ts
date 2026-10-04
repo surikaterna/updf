@@ -23,7 +23,7 @@ test("atomic and native final-region bounds failures are vertical overflow, not 
       children: h(Flow, { pageSize: pageSize(200, 100), margins, children: h(Flow.Footer, { height: 12, children }) }),
     });
   for (const children of [
-    h(Paragraph, { lineHeight: 24, keepTogether: true, children: "too tall" }),
+    h(Paragraph, { style: { lineHeight: { unit: "pt", value: 24 } }, keepTogether: true, children: "too tall" }),
     h("rect", { x: 0, y: 0, width: 180, height: 24, paint: { fill: [0, 1, 0], stroke: null } }),
   ]) {
     assert.throws(

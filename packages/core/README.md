@@ -7,7 +7,7 @@ No example CMR types, React, parser or filesystem APIs are part of core.
 `/measurement` exposes frozen plain/rich measurements; `RichTextNode` and native
 `<richText>` use typed paragraphs/runs, with font/size/RGB styles. Components receive
 operation-bound `context.measurement.measureText`. See repository
-`docs/measurement.md`; #26 is locally implemented, audit pending, not released.
+`docs/measurement.md`; dated audit evidence is retained in `docs/evidence`. Private/unreleased.
 `/internal` is a narrow audited shared-validator seam, not a consumer extension API.
 
 The current local foundation adds `/vdom` `createContext`/`useContext` with owned,

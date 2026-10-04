@@ -1,5 +1,6 @@
 import { array, fail, number, validateDataObject as record, snapshotData, sum } from "@updf/core/internal";
 import { derivedAxis } from "./axis.js";
+import { borderKeys, type ExpandedBorders, expandBorders } from "./borders.js";
 import type { BlockStyle, Insets } from "./container-types.js";
 
 const keys = [
@@ -10,14 +11,19 @@ const keys = [
   "minHeight",
   "maxHeight",
   "padding",
-  "border",
-  "background",
+  "paddingTop",
+  "paddingRight",
+  "paddingBottom",
+  "paddingLeft",
+  ...borderKeys,
+  "backgroundColor",
   "gap",
   "overflow",
+  "marginTop",
 ];
-const zero: Insets = Object.freeze({ top: 0, right: 0, bottom: 0, left: 0 });
 export interface Sizing {
   readonly style: BlockStyle;
+  readonly borders: ExpandedBorders;
   readonly width: number;
   readonly contentWidth: number;
   readonly inset: Insets;
@@ -43,22 +49,23 @@ export function sizing(input: unknown, available: number, path: string): Sizing 
       fail("GEOMETRY", path, "Contradictory min/max");
   }
   const style = value as BlockStyle;
+  if ("marginTop" in style && style.marginTop !== "auto")
+    fail("VDOM_HIERARCHY", `${path}/marginTop`, "Expected auto top margin");
   if ("overflow" in style && style.overflow !== "error" && style.overflow !== "hidden")
     fail("TYPE", path, "Expected error or hidden overflow");
-  if ("border" in style) {
-    record(style.border, ["width", "color"], `${path}/border`);
-    number(style.border.width, path);
-    rgb(style.border.color, path);
-  }
-  if ("background" in style) rgb(style.background, path);
-  const padding = "padding" in style ? style.padding : zero;
-  record(padding, ["top", "right", "bottom", "left"], `${path}/padding`);
-  const border = style.border?.width ?? 0;
+  const borders = expandBorders(
+    Object.fromEntries(borderKeys.filter((key) => key in value).map((key) => [key, value[key]])),
+    path,
+  );
+  if ("backgroundColor" in style) rgb(style.backgroundColor, `${path}/backgroundColor`);
+  for (const key of ["padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft"] as const)
+    if (key in style) number(style[key], `${path}/${key}`);
+  const padding = style.padding ?? 0;
   const inset = {
-    top: sum([number(padding.top, path), border]),
-    right: sum([number(padding.right, path), border]),
-    bottom: sum([number(padding.bottom, path), border]),
-    left: sum([number(padding.left, path), border]),
+    top: sum([style.paddingTop ?? padding, borders.borderTop?.width ?? 0]),
+    right: sum([style.paddingRight ?? padding, borders.borderRight?.width ?? 0]),
+    bottom: sum([style.paddingBottom ?? padding, borders.borderBottom?.width ?? 0]),
+    left: sum([style.paddingLeft ?? padding, borders.borderLeft?.width ?? 0]),
   };
   const width = clamp(style.width ?? available, style.minWidth, style.maxWidth);
   if (width <= 0 || width > available)
@@ -66,6 +73,7 @@ export function sizing(input: unknown, available: number, path: string): Sizing 
   const horizontal = derivedAxis(inset.left, width - inset.right, path);
   return {
     style: snapshotData(style, path),
+    borders,
     width,
     inset,
     contentWidth: horizontal.capacity,

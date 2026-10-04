@@ -5,13 +5,16 @@
     "types": ["node", "react", "react-dom"],
     "noEmit": true,
     "declaration": false,
-    "declarationMap": false
+    "declarationMap": false,
+    "paths": { "@updf/layout": ["./packages/layout/src/index.ts"] }
   },
   "include": [
     "packages/*/test/**/*.ts",
     "tests/**/*.ts",
     "tests/**/*.tsx",
     "scripts/**/*.ts",
+    "examples/**/*.ts",
+    "examples/**/*.tsx",
     "apps/**/*.ts",
     "apps/**/*.tsx",
     "eslint.config.ts"

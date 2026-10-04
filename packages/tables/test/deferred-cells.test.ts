@@ -4,6 +4,7 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import test from "node:test";
 import { DocumentError, render } from "@updf/core";
 import { createContext, h, lower, useContext } from "@updf/core/vdom";
+import { table, tableExtension } from "@updf/tables";
 import {
   Block,
   createExtensions,
@@ -17,8 +18,7 @@ import {
   Page,
   PageContext,
   Paragraph,
-} from "@updf/layout";
-import { table, tableExtension } from "@updf/tables";
+} from "../../../tests/fixtures/transitional-layout.js";
 
 const extensions = createExtensions([tableExtension]);
 const columns = [{ width: 180 }] as const;
@@ -62,7 +62,7 @@ test("F-AUD01 measured nested cell blocks finalize on the placed page with their
       theme = useContext(Theme);
     const text = `${theme.name}_${edge}_P${page.docPageNumber}/${page.docPageCount}_F${fragment.index}/${fragment.count}`;
     seen.push(text);
-    return h(Paragraph, { children: text, defaultStyle: { fontSize: 8 }, lineHeight: 10 });
+    return h(Paragraph, { children: text, style: { fontSize: 8, lineHeight: 1.25 } });
   }
   const cell = h(Block, {
     children: [
@@ -105,7 +105,7 @@ test("F-AUD02 cached semantic tables have independent first/last/count owners fo
     const fragment = useContext(FragmentContext);
     const value = `${fragment.index}/${fragment.count}/${fragment.first}/${fragment.last}`;
     contexts.push(value);
-    return h(Paragraph, { children: value, defaultStyle: { fontSize: 8 }, lineHeight: 10 });
+    return h(Paragraph, { children: value, style: { fontSize: 8, lineHeight: 1.25 } });
   }
   const shared = table({
     columns,

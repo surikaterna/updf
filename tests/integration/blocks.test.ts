@@ -3,9 +3,20 @@ import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
 import { DocumentError, render } from "@updf/core";
-import { createExtensions, layoutFlow } from "@updf/layout";
+import { type ComponentContext, createContext, Fragment, h, lower, useContext } from "@updf/core/vdom";
 import { flow, paragraph } from "../../packages/layout/test/fixtures.js";
 import { chart, chartAdapter } from "../fixtures/chart.js";
+import { fixtureFont } from "../fixtures/fonts/font-fixture.js";
+import {
+  Block,
+  blockComponent,
+  createExtensions,
+  Document,
+  Flow,
+  layout,
+  layoutFlow,
+  Paragraph,
+} from "../fixtures/transitional-layout.js";
 
 test("external public chart adapter produces an atomic PDF between paragraphs without engine changes", async () => {
   const extensions = createExtensions([chartAdapter]);
@@ -44,6 +55,77 @@ test("external public chart adapter produces an atomic PDF between paragraphs wi
     blue++;
   }
   assert.ok(blue > 1000);
+});
+
+test("Fragment is not atomic; a real kept Block fits, advances or rejects without clipping fallback", () => {
+  const Visual = blockComponent(chartAdapter);
+  const extensions = createExtensions([chartAdapter]);
+  const children = [
+    h(Paragraph, { children: "Headline", style: { lineHeight: 1 } }),
+    h(Visual, { height: 40, values: [0.5] }),
+  ];
+  const document = (content: ReturnType<typeof h>, before = true) =>
+    h(Document, {
+      children: h(Flow, {
+        pageSize: { width: 200, height: 50 },
+        margins: { top: 0, right: 0, bottom: 0, left: 0 },
+        extensions,
+        children: [before ? h(Paragraph, { children: "Before", style: { lineHeight: 1 } }) : null, content],
+      }),
+    });
+  const ungrouped = layout(document(h(Fragment, { children })));
+  assert.deepEqual(
+    ungrouped.placements.map((p) => p.pageIndex),
+    [0, 0, 1],
+  );
+  for (const overflow of ["error", "hidden"] as const) {
+    const group = h(Block, { keepTogether: true, style: { overflow }, children });
+    const exact = layout(document(group, false));
+    assert.equal(exact.pageCount, 1);
+    assert.equal(exact.placements[0]?.box.height, 50);
+    const moved = layout(document(group));
+    assert.deepEqual(
+      moved.placements.map((p) => p.pageIndex),
+      [0, 1],
+    );
+    assert.equal(moved.placements[1]?.box.height, 50);
+    const oversized = h(Block, { keepTogether: true, style: { overflow, gap: 1 }, children });
+    assert.throws(
+      () => layout(document(oversized, false)),
+      (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === "LAYOUT_OVERSIZED",
+    );
+  }
+});
+
+test("atomic grouping preserves component context, callbacks and render resources", async () => {
+  const Theme = createContext({ text: "default" });
+  let calls = 0;
+  function Headline(_props: Record<never, never>, context: ComponentContext) {
+    calls++;
+    assert.deepEqual(context.resources, [{ id: "Demo", kind: "font" }]);
+    assert.equal(useContext(Theme).text, "captured");
+    return h(Paragraph, {
+      children: useContext(Theme).text,
+      style: { font: "Demo", lineHeight: { unit: "pt", value: 16 } },
+    });
+  }
+  const tree = h(Theme.Provider, {
+    value: { text: "captured" },
+    children: h(Document, {
+      children: h(Flow, {
+        pageSize: { width: 200, height: 40 },
+        margins: { top: 0, right: 0, bottom: 0, left: 0 },
+        children: h(Block, { keepTogether: true, children: h(Headline, {}) }),
+      }),
+    }),
+  });
+  const options = { resources: { Demo: await fixtureFont() } };
+  const document = lower(tree, options);
+  const bytes = render(document, options);
+  assert.equal(calls, 1);
+  assert.match(new TextDecoder().decode(bytes), /\/FontFile2/u);
+  assert.deepEqual(bytes, render(document, options));
+  assert.throws(() => render(document), DocumentError);
 });
 
 test("external chart atomicity moves once and rejects oversize without shrinking", () => {

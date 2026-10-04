@@ -1,4 +1,5 @@
 import type { RGB } from "@updf/core";
+import type { BorderPolicy } from "./borders.js";
 import type { DecorationPlan } from "./decoration-types.js";
 import type { FlowBlock } from "./types.js";
 
@@ -8,16 +9,22 @@ export interface Insets {
   readonly bottom: number;
   readonly left: number;
 }
-export interface BlockStyle {
+export interface BoxStyle {
+  readonly padding?: number;
+  readonly paddingTop?: number;
+  readonly paddingRight?: number;
+  readonly paddingBottom?: number;
+  readonly paddingLeft?: number;
+  readonly backgroundColor?: RGB;
+}
+export interface BlockStyle extends BoxStyle, BorderPolicy {
+  readonly marginTop?: "auto";
   readonly width?: number;
   readonly height?: number;
   readonly minWidth?: number;
   readonly maxWidth?: number;
   readonly minHeight?: number;
   readonly maxHeight?: number;
-  readonly padding?: Insets;
-  readonly border?: { readonly width: number; readonly color: RGB };
-  readonly background?: RGB;
   readonly gap?: number;
   readonly overflow?: "error" | "hidden";
 }

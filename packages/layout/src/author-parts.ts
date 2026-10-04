@@ -106,6 +106,12 @@ export function scopedContent<T>(
       )
     : invoke(input);
 }
+export function captureContent(input: unknown, node: NormalizedContent, operation: LayoutOperation): ScopedContent {
+  if (!node.scope) fail("MEASUREMENT_CONTEXT", node.path, "Expected captured content scope");
+  const content = ownContentData(Object.freeze({})) as ScopedContent;
+  captures.set(content, { input, scope: node.scope, operation, path: `${node.path}/children` });
+  return content;
+}
 export function readParts(
   input: BlockContent,
   allowed: readonly BlockPartIdentity[],

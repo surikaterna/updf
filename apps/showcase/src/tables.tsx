@@ -10,8 +10,9 @@ import {
   type InlineAdapterIdentity,
   layout,
   Paragraph,
+  pt,
 } from "@updf/layout";
-import { Table, tableExtension } from "@updf/tables";
+import { Table, type TableColumn, tableExtension } from "@updf/tables";
 import { chartAdapter } from "./chart.js";
 
 export interface TableControls {
@@ -35,6 +36,12 @@ export interface TableVisual {
   readonly adapters: readonly (BlockAdapterIdentity | InlineAdapterIdentity)[];
 }
 const Chart = blockComponent(chartAdapter);
+function inventoryColumns(wide: boolean): readonly TableColumn[] {
+  return [
+    { width: { weight: wide ? 270 : 140, min: 100 } },
+    { width: { weight: wide ? 118 : 68, min: 40 }, style: { textAlign: "right" } },
+  ];
+}
 export function tableDefinition(title: string, controls: TableControls = tableDefaults, visual?: TableVisual) {
   if (!Number.isInteger(controls.count) || controls.count < 1 || controls.count > 40)
     throw new Error("Row count must be 1–40");
@@ -43,7 +50,7 @@ export function tableDefinition(title: string, controls: TableControls = tableDe
   if (!Number.isFinite(controls.minHeight ?? 0) || (controls.minHeight ?? 0) < 0 || (controls.minHeight ?? 0) > 100)
     throw new Error("Minimum row height must be 0–100");
   const wide = controls.preset === "wide";
-  const columns = [{ width: wide ? 270 : 140 }, { width: wide ? 118 : 68, style: { align: "right" as const } }];
+  const columns = inventoryColumns(wide);
   return (
     <Document>
       <Flow
@@ -51,27 +58,33 @@ export function tableDefinition(title: string, controls: TableControls = tableDe
         margins={{ top: 16, right: 16, bottom: 16, left: 16 }}
         extensions={createExtensions([tableExtension, chartAdapter, ...(visual?.adapters ?? [])])}
       >
-        <Paragraph lineHeight={14}>{title}</Paragraph>
+        <Paragraph style={{ lineHeight: pt(14) }}>{title}</Paragraph>
         <Table
           columns={columns}
-          style={{ padding: 4, lineHeight: 14, whiteSpace: "preserve", breakLongWords: "codePoint" }}
+          style={{ padding: 4, lineHeight: pt(14), whiteSpace: "preserve", breakLongWords: "codePoint" }}
           grid={{ width: 1, color: [0.2, 0.3, 0.4] }}
         >
           <Table.Head repeat={controls.repeatHeader}>
-            <Table.Row>
-              <Table.HeaderCell style={{ background: [0.85, 0.92, 1] }}>Inventory item</Table.HeaderCell>
-              <Table.HeaderCell style={{ background: [0.85, 0.92, 1] }}>Count</Table.HeaderCell>
+            <Table.Row style={{ borderBottom: { width: 2, color: [0.1, 0.3, 0.7] } }}>
+              <Table.HeaderCell style={{ backgroundColor: [0.85, 0.92, 1] }}>Inventory item</Table.HeaderCell>
+              <Table.HeaderCell style={{ backgroundColor: [0.85, 0.92, 1] }}>Count</Table.HeaderCell>
             </Table.Row>
           </Table.Head>
           <Table.Body>{inventoryRows(controls, visual)}</Table.Body>
           <Table.Foot>
-            <Table.Row>
+            <Table.Row
+              style={{
+                border: null,
+                borderTop: { width: 2, color: [0.1, 0.3, 0.7] },
+                borderBottom: { width: 3, color: [0.1, 0.3, 0.7] },
+              }}
+            >
               <Table.Cell>Inventory totals</Table.Cell>
               <Table.Cell>{String(controls.count)}</Table.Cell>
             </Table.Row>
           </Table.Foot>
         </Table>
-        <Paragraph lineHeight={14}>End of inventory</Paragraph>
+        <Paragraph style={{ lineHeight: pt(14) }}>End of inventory</Paragraph>
       </Flow>
     </Document>
   );
@@ -81,16 +94,16 @@ function inventoryRows(controls: TableControls, visual?: TableVisual) {
   return items.map((item) => (
     <Table.Row
       key={item.id}
-      atomic
+      keepTogether
       minHeight={controls.preset === "overflow" && item.number === 1 ? 240 : (controls.minHeight ?? 0)}
     >
-      <Table.Cell>
+      <Table.Cell style={{ borderRight: { width: 2, color: [0.1, 0.3, 0.7] } }}>
         <Paragraph>{`Item ${item.number}`}</Paragraph>
         {controls.wrapped && <Paragraph>Wrapped description</Paragraph>}
         {controls.cellPreset === "chart" && <Chart height={40} values={[0.2, 0.6, 0.9]} />}
         {controls.cellPreset === "svg" && visual ? visual.content(item.number) : null}
       </Table.Cell>
-      <Table.Cell>{String(item.number * 3)}</Table.Cell>
+      <Table.Cell style={{ borderLeft: null }}>{String(item.number * 3)}</Table.Cell>
     </Table.Row>
   ));
 }

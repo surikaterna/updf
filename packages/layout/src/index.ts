@@ -1,12 +1,8 @@
-import type { RenderOptions } from "@updf/core";
-import { createDrawingLayoutOperation } from "@updf/core/internal-drawing";
-import type { Extensions } from "./extension-types.js";
-import { layout } from "./layout.js";
-import type { FlowDocumentDefinition, FlowResult } from "./types.js";
-
 export { blockComponent, defineBlockPart } from "./author-parts.js";
+export type { BorderEdge, BorderLayer, BorderPolicy, ExpandedBorders } from "./borders.js";
+export { expandBorders, mergeBorders } from "./borders.js";
 export { block } from "./container-data.js";
-export type { BlockInput, BlockStyle, ContainerBlock, Insets } from "./container-types.js";
+export type { BlockInput, BlockStyle, BoxStyle, ContainerBlock, Insets } from "./container-types.js";
 export { Block, Paragraph, paragraph, Span, span } from "./content-data.js";
 export { measure } from "./content-measure.js";
 export type {
@@ -73,10 +69,28 @@ export { createExtensions, defineBlockAdapter, extension } from "./extensions.js
 export { defineInlineAdapter, inline } from "./inline-adapters.js";
 export type { DocumentLayoutResult } from "./mixed-layout.js";
 export { layout } from "./mixed-layout.js";
+export type { PageBreakProps } from "./page-break.js";
+export { PageBreak } from "./page-break.js";
 export type { FragmentInfo, PageInfo } from "./page-context.js";
 export { FragmentContext, PageContext } from "./page-context.js";
 export type { Orientation, PageDimensions } from "./page-size.js";
 export { PageSize, pageSize } from "./page-size.js";
+export { column, row } from "./row-data.js";
+export type {
+  ColumnBlock,
+  ColumnInput,
+  ColumnProps,
+  ColumnStyle,
+  RowAlignment,
+  RowBlock,
+  RowInput,
+  RowProps,
+  RowStyle,
+} from "./row-types.js";
+export { Column, Row } from "./row-vdom.js";
+export type { EdgeRegionInput, LocalEdgeClaim } from "./shared-edge-types.js";
+export type { LineHeight, ParagraphStyle, PointLength, SpanStyle } from "./text-style.js";
+export { pt } from "./text-style.js";
 export type {
   FixedBlock,
   FlowBlock,
@@ -90,19 +104,5 @@ export type {
   SpacerBlock,
 } from "./types.js";
 export { Flow, MixedDocument as Document, Page } from "./vdom.js";
-
-export function layoutFlow(
-  input: FlowDocumentDefinition,
-  options: RenderOptions = {},
-  extensions?: Extensions,
-): FlowResult {
-  return layoutFlowUnknown(input, options, extensions);
-}
-export function layoutFlowUnknown(input: unknown, options: RenderOptions = {}, extensions?: Extensions): FlowResult {
-  const operation = createDrawingLayoutOperation(options);
-  try {
-    return layout(input, operation, extensions);
-  } finally {
-    operation.close();
-  }
-}
+export { resolveWidths } from "./width-resolver.js";
+export type { WeightedWidth, WidthResolution, WidthResolutionInput, WidthTrack } from "./width-types.js";

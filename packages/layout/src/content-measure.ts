@@ -2,12 +2,15 @@ import type { RenderOptions } from "@updf/core";
 import {
   createLayoutOperation,
   fail,
+  MetricSum,
   number,
   validateDataObject as record,
   snapshotData,
   sum,
 } from "@updf/core/internal";
+import { alignedRequest } from "./auto-margin.js";
 import { compile } from "./block-compiler.js";
+import { scheduleContainerLines } from "./content-line-containers.js";
 import { authorParagraph, normalizeBlocks } from "./content-normalize.js";
 import { measureParagraph } from "./content-paragraph.js";
 import type { Content, ContentConstraints, ContentLine, ContentMeasurement, ContentOptions } from "./content-types.js";
@@ -15,7 +18,6 @@ import type { Extensions } from "./extension-types.js";
 import { validateExtensions } from "./extensions.js";
 import { paintNatural } from "./natural-paint.js";
 import type { PreparedBlock } from "./protocol.js";
-import { sizing } from "./sizing.js";
 import type { FlowBlock } from "./types.js";
 
 /** Natural, unpaginated border-box measurement; no painting plan is returned. */
@@ -74,24 +76,54 @@ function collectLines(
   getLines: (value: object, width: number) => readonly ContentLine[],
 ): void {
   const tasks: (() => void)[] = [];
-  const schedule = (body: readonly FlowBlock[], x: number, y: number, gap: number): void => {
+  const schedule = (
+    body: readonly FlowBlock[],
+    x: number,
+    y: number,
+    gap: number,
+    alignment?: PreparedBlock["contentAlignment"],
+  ): void => {
+    const origin = y;
+    const position = new MetricSum();
+    let boxes = 0;
     for (const value of body) {
       const size = sizes.get(value);
       if (!size) continue;
+      if (alignment) {
+        if (!size.block.control && boxes++ > 0) position.add(gap);
+        position.add(lineMargin(size.block, position.value, alignment));
+        y = sum([origin, position.value]);
+      }
       const top = y + beforeHeight(value);
       tasks.push(() => {
         for (const line of getLines(value, size.width)) output.push(translateLine(line, x, top));
-        if ("type" in value && value.type === "block") {
-          const box = sizing(value.style, size.width, "/content/style");
-          schedule(value.children, x + box.inset.left, top + box.inset.top, box.gap);
-        }
+        scheduleContainerLines(value, size, sizes, x, top, schedule);
       });
-      y = sum([y, size.block.naturalSize.height, gap]);
+      if (alignment) position.add(size.block.naturalSize.height);
+      else y = sum([y, size.block.naturalSize.height, gap]);
     }
   };
   schedule(body, x, y, 0);
   while (tasks.length) tasks.pop()?.();
   output.sort((a, b) => a.top - b.top);
+}
+function lineMargin(
+  block: PreparedBlock,
+  usedHeight: number,
+  alignment: NonNullable<PreparedBlock["contentAlignment"]>,
+): number {
+  const selected = alignedRequest(block, {
+    offset: 0,
+    usedHeight,
+    availableHeight: alignment.capacity - usedHeight,
+    freshHeight: alignment.capacity,
+    atFreshRegion: usedHeight === 0,
+    width: block.naturalSize.width,
+    definiteAlignment: true,
+    alignmentHeight: alignment.height,
+  });
+  if (!selected) fail("VERTICAL_OVERFLOW", "/content", "Content exceeds its explicit alignment region");
+  return selected.margin;
 }
 function beforeHeight(value: FlowBlock): number {
   if (value.type !== "block" || !value.decorations) return 0;

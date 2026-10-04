@@ -20,7 +20,10 @@ test("production React in Chromium generates identical Node/HTTP PDF bytes", asy
   });
   const endpoint = createCmrServer();
   await new Promise<void>((resolve) => endpoint.listen(0, "127.0.0.1", resolve));
-  const browser = await chromium.launch({ executablePath: "/usr/bin/chromium", args: ["--no-sandbox"] });
+  const browser = await chromium.launch({
+    executablePath: process.env.BROWSER_CHROMIUM ?? "/usr/bin/chromium",
+    args: ["--no-sandbox"],
+  });
   try {
     const page = await browser.newPage();
     const errors: string[] = [];

@@ -17,10 +17,26 @@ export const demos = {
   rich: { source: richSource },
 };
 
-export type DemoId = keyof typeof demos | "svg" | "flow" | "tables" | "blocks" | "mixed";
+export type DemoId =
+  | keyof typeof demos
+  | "svg"
+  | "flow"
+  | "tables"
+  | "blocks"
+  | "mixed"
+  | "rows"
+  | "rows-overflow"
+  | "invoice"
+  | "freight-invoice"
+  | "freight-invoice-extended"
+  | "manifest";
 
 export function demoId(value: string): DemoId {
   if (
+    value === "manifest" ||
+    value === "freight-invoice" ||
+    value === "freight-invoice-extended" ||
+    value === "invoice" ||
     value === "text" ||
     value === "template" ||
     value === "painting" ||
@@ -29,6 +45,8 @@ export function demoId(value: string): DemoId {
     value === "flow" ||
     value === "blocks" ||
     value === "mixed" ||
+    value === "rows" ||
+    value === "rows-overflow" ||
     value === "tables"
   )
     return value;
@@ -45,9 +63,11 @@ export async function generate(
   mixed?: MixedControls,
 ): Promise<{ bytes: Uint8Array; source: string; summary?: string }> {
   if (title.length > 40) throw new Error("Title must be at most 40 characters");
-  if (id === "template") return templateResult(title);
-  if (id === "mixed") return mixedResult(title, mixed);
+  if (isFreight(id)) return freightResult(title, id === "freight-invoice-extended");
+  if (id === "manifest" || id === "invoice") return id === "manifest" ? manifestResult(title) : invoiceResult(title);
+  if (id === "template" || id === "mixed") return id === "template" ? templateResult(title) : mixedResult(title, mixed);
   if (id === "blocks") return blockResult(title, blocks);
+  if (id === "rows" || id === "rows-overflow") return rowResult(title, id === "rows-overflow");
   if (id === "tables") {
     const { tableExample, source } = await import("./optional-tables.js");
     const visual = tables?.cellPreset === "svg" ? (await import("./optional-table-svg.js")).tableVisual : undefined;
@@ -85,6 +105,45 @@ export async function generate(
 async function templateResult(title: string) {
   const { templateDemo } = await import("./template.js");
   return { bytes: templateDemo(title), source: templateSource };
+}
+async function invoiceResult(title: string) {
+  const { invoiceExample, source } = await import("./optional-invoice.js");
+  const { bytes, metadata } = invoiceExample(title);
+  return {
+    bytes,
+    source,
+    summary: `${metadata.pageCount} A4 pages; ${metadata.itemCount} original mock line items; integer-cent application totals. NOT FOR PAYMENT.`,
+  };
+}
+async function freightResult(title: string, extended: boolean) {
+  const { freightExample, source } = await import("./optional-freight-invoice.js");
+  const { bytes, metadata } = await freightExample(title, extended ? "extended" : "original");
+  return {
+    bytes,
+    source,
+    summary: `${metadata.pageCount} A4 page(s); ${metadata.chargeCount} original mock freight charges; per-charge integer-pence VAT. MOCK - NOT FOR PAYMENT. Title input edits the secondary description; Invoice remains the heading.`,
+  };
+}
+function isFreight(id: DemoId): id is "freight-invoice" | "freight-invoice-extended" {
+  return id === "freight-invoice" || id === "freight-invoice-extended";
+}
+async function manifestResult(title: string) {
+  const { manifestExample, source } = await import("./optional-manifest.js");
+  const { bytes, metadata } = manifestExample(title);
+  return {
+    bytes,
+    source,
+    summary: `${metadata.pageCount} mixed A4 pages; ${metadata.totals.consignmentCount} original mock consignments; integer-gram application totals. NOT FOR TRANSPORT.`,
+  };
+}
+async function rowResult(title: string, oversized: boolean) {
+  const { rowExample, source } = await import("./optional-rows.js");
+  const { bytes, result } = rowExample(title, oversized);
+  return {
+    bytes,
+    source,
+    summary: `${result.pageCount} pages; atomic fixed/weighted nested rows; top/middle/bottom/stretch; explicit clip (not redaction).`,
+  };
 }
 async function mixedResult(title: string, controls?: MixedControls) {
   const { mixedExample, source } = await import("./optional-mixed.js");

@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, render } from "@updf/core";
 import { createContext, h, lower, useContext } from "@updf/core/vdom";
+import { Table, type TableInput, table, tableExtension } from "@updf/tables";
+import { chart, chartAdapter } from "../../../tests/fixtures/chart.js";
 import {
   type BlockContent,
   createExtensions,
@@ -13,9 +15,7 @@ import {
   PageContext,
   Paragraph,
   paragraph,
-} from "@updf/layout";
-import { Table, type TableInput, table, tableExtension } from "@updf/tables";
-import { chart, chartAdapter } from "../../../tests/fixtures/chart.js";
+} from "../../../tests/fixtures/transitional-layout.js";
 
 const extensions = createExtensions([tableExtension, chartAdapter]);
 const pageTemplate = { width: 200, height: 100, margins: { top: 5, right: 5, bottom: 5, left: 5 } };
@@ -23,7 +23,7 @@ const columns = [{ width: 120 }, { width: 60 }] as const;
 function definition(count = 8): TableInput {
   return {
     columns,
-    style: { padding: 4, lineHeight: 12 },
+    style: { padding: 4, lineHeight: { unit: "pt", value: 12 } },
     head: { repeat: true, rows: [{ cells: [{ children: "Description" }, { children: "Count" }] }] },
     body: Array.from({ length: count }, (_, i) => ({
       cells: [{ children: `Item ${i + 1}` }, { children: String(i + 1) }],
@@ -60,14 +60,14 @@ test("empty tables consume zero geometry; header and foot-only empty bodies are 
   assert.equal(run({ columns, body: [] }).placements[0]?.box.height, 0);
   assert.deepEqual(run({ columns, body: [] }).placements[0]?.sourceRange, { start: 0, end: 0 });
   const foot = { rows: [{ cells: [{ children: "Totals" }, { children: "0" }] }] };
-  assert.equal(run({ columns, body: [], foot }).placements[0]?.box.height, 20);
+  assert.equal(run({ columns, body: [], foot }).placements[0]?.box.height, 18);
   assert.equal(run(definition(0)).placements[0]?.box.height, 40);
 });
 test("ordinary core JSX Table and readonly data use the same adapter/native output path", () => {
   const input = definition(2);
   const content = h(Table, {
     columns,
-    style: { padding: 4, lineHeight: 12 },
+    style: { padding: 4, lineHeight: { unit: "pt", value: 12 } },
     children: [
       h(Table.Head, {
         repeat: true,
@@ -77,7 +77,7 @@ test("ordinary core JSX Table and readonly data use the same adapter/native outp
       }),
       h(Table.Body, {
         children: input.body.map((_row, i) =>
-          h(Table.Row, { atomic: true, children: cells(`Item ${i + 1}`, String(i + 1)) }, i),
+          h(Table.Row, { keepTogether: true, children: cells(`Item ${i + 1}`, String(i + 1)) }, i),
         ),
       }),
       h(Table.Foot, { children: h(Table.Row, { children: cells("Totals", "2") }) }),
@@ -112,7 +112,7 @@ test("cells reuse the native stack engine for paragraphs and application-owned c
       },
     ],
   });
-  assert.equal(result.placements[0]?.box.height, 72);
+  assert.equal(result.placements[0]?.box.height, 68);
   assert.ok(render(result.document).length > 0);
 });
 test("nearest providers around cells are captured and restored through the public author-part bridge", () => {
@@ -135,7 +135,7 @@ test("nearest providers around cells are captured and restored through the publi
   assert.match(new TextDecoder().decode(bytes), /captured/u);
   assert.doesNotMatch(new TextDecoder().decode(bytes), /default/u);
 });
-test("mixed inline/block cells, wrong roles, duplicated slots and atomic=false reject explicitly", () => {
+test("mixed inline/block cells, wrong roles and row splitting reject explicitly", () => {
   rejects(
     () =>
       run({
@@ -151,9 +151,45 @@ test("mixed inline/block cells, wrong roles, duplicated slots and atomic=false r
       }),
     "VDOM_HIERARCHY",
   );
-  rejects(() => run({ columns, body: [{ atomic: false, cells: [{}, {}] }] } as unknown as TableInput), "TYPE");
+  rejects(() => run({ columns, body: [{ keepTogether: false, cells: [{}, {}] }] } as unknown as TableInput), "TYPE");
+  const split = h(Table, {
+    columns,
+    children: h(Table.Body, {
+      children: h(Table.Row, {
+        keepTogether: false,
+        children: cells("Cell", "1"),
+      } as unknown as Parameters<typeof Table.Row>[0]),
+    }),
+  });
+  rejects(() => layout(root(split)), "TYPE");
   const invalid = h(Table, { columns, children: h(Table.Body, { children: h(Table.Cell, { children: "wrong" }) }) });
   rejects(() => layout(root(invalid)), "VDOM_HIERARCHY");
+});
+test("obsolete atomic is rejected in data and JSX rather than treated as an alias", () => {
+  for (const atomic of [true, false]) {
+    rejects(() => run({ columns, body: [{ atomic, cells: [{}, {}] }] } as unknown as TableInput), "KEY");
+    const content = h(Table, {
+      columns,
+      children: h(Table.Body, {
+        children: h(Table.Row, { atomic, children: cells("Cell", "1") } as unknown as Parameters<typeof Table.Row>[0]),
+      }),
+    });
+    rejects(() => layout(root(content)), "KEY");
+  }
+});
+test("rows fit exactly, advance intact and reject fresh-page oversize under either overflow policy", () => {
+  for (const overflow of ["error", "hidden"] as const) {
+    const input = {
+      columns,
+      style: { overflow },
+      body: [{ keepTogether: true, minHeight: 90, cells: [{}, {}] }],
+    } as const;
+    assert.equal(run(input).placements[0]?.box.height, 90);
+    const moved = layoutFlow({ pageTemplate, body: [{ type: "spacer", height: 1 }, table(input)] }, {}, extensions);
+    assert.equal(moved.placements[1]?.pageIndex, 1);
+    assert.equal(moved.placements[1]?.box.height, 90);
+    rejects(() => run({ ...input, body: [{ ...input.body[0], minHeight: 91 }] }), "LAYOUT_OVERSIZED");
+  }
 });
 test("oversized row is never shrunk, lost, or painted as a header-only page", () => {
   rejects(
@@ -183,7 +219,7 @@ test("explicit head reservations defer cells until final fragment/page contexts 
       page = useContext(PageContext);
     const text = `Head ${fragment.index + 1}/${fragment.count} page ${page.docPageNumber}/${page.docPageCount}`;
     seen.push(text);
-    return h(Paragraph, { children: text, defaultStyle: { fontSize: 6 }, lineHeight: 8 });
+    return h(Paragraph, { children: text, style: { fontSize: 6, lineHeight: { unit: "pt", value: 8 } } });
   }
   const content = h(Table, {
     columns,

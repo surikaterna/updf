@@ -2,6 +2,7 @@ import type { ResolvedFonts } from "../fonts/resources.js";
 import type { RenderOptions } from "../fonts/types.js";
 import { type InlineLine, type InlineMetric, measureInline } from "../measurement/inline.js";
 import { ledger, type WorkLedger } from "../measurement/ledger.js";
+import { type InlineLineHeights, type LineEnvelope, type LineHeight, participant } from "../measurement/line-height.js";
 import { measureInput } from "../measurement/measure.js";
 import type {
   InkBounds,
@@ -45,17 +46,19 @@ export interface LayoutOperation {
     guard?: ContentGuard,
     native?: DataRecipe,
     numeric?: boolean,
+    deferChildren?: object,
   ) => readonly NormalizedContent[];
   readonly measureInline: (
     paragraph: ParagraphDefinition,
     visuals: () => readonly InlineMetric[],
     width: number,
-    autoHeight: boolean,
+    autoHeight: boolean | InlineLineHeights,
     path: string,
   ) => readonly InlineLine[];
   readonly nativeInk: (nodes: readonly NodeDefinition[]) => InkBounds;
   readonly close: () => void;
   readonly validateStyle: (style: TextStyle, path: string) => void;
+  readonly lineBox: (style: TextStyle, height: LineHeight, path: string) => LineEnvelope;
 }
 const contexts = new WeakMap<object, LayoutOperation>();
 
@@ -71,6 +74,10 @@ export function layoutOperation(
   };
   return Object.freeze({
     policy: budget.policy,
+    lineBox(style: TextStyle, height: LineHeight, path: string) {
+      check();
+      return participant(style, height, fonts, path);
+    },
     ...contentMethods(state, fonts, budget, check),
     close() {
       if (!parent) state.closed = true;
@@ -126,15 +133,15 @@ function contentMethods(state: State, fonts: ResolvedFonts, budget: WorkLedger, 
       paragraph: ParagraphDefinition,
       visuals: () => readonly InlineMetric[],
       width: number,
-      autoHeight: boolean,
+      autoHeight: boolean | InlineLineHeights,
       path: string,
     ) {
       check();
       return measureInline(paragraph, visuals, width, autoHeight, fonts, budget, path);
     },
-    normalizeContent: (input, resolve, path, guard, native, numeric) => {
+    normalizeContent: (input, resolve, path, guard, native, numeric, deferChildren) => {
       check();
-      return normalizeScoped(input, state, resolve, path, guard, native, numeric);
+      return normalizeScoped(input, state, resolve, path, guard, native, numeric, deferChildren);
     },
   };
 }

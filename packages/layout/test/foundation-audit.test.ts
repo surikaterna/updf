@@ -3,11 +3,14 @@ import test from "node:test";
 import { DocumentError, type NodeDefinition, render } from "@updf/core";
 import { createLayoutOperation } from "@updf/core/internal";
 import { h, lower } from "@updf/core/vdom";
-import { type FlowDocumentDefinition, layoutFlow } from "@updf/layout";
-import { layoutTableFlow } from "@updf/layout/tables";
-import { Tables } from "@updf/layout/tables/vdom";
-import { Flow } from "@updf/layout/vdom";
+import {
+  LegacyFlow as Flow,
+  type FlowDocumentDefinition,
+  layoutFlow,
+} from "../../../tests/fixtures/transitional-layout.js";
 import { Paginator } from "../src/paginator.js";
+import { layoutTableFlow } from "../src/tables/index.js";
+import { Tables } from "../src/tables/vdom.js";
 import { template } from "../src/template.js";
 import { flow } from "./fixtures.js";
 

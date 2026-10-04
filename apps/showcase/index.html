@@ -25,11 +25,17 @@
             <select id="example" name="example">
               <option value="text">Natively positioned text</option>
               <option value="template">Typed reusable components with measured flow</option>
+              <option value="invoice">Original mock invoice: reusable business flow (36 items)</option>
+              <option value="freight-invoice">Original mock freight invoice: 3 charges (not for payment)</option>
+              <option value="freight-invoice-extended">Extended mock freight invoice: 8 charges (not for payment)</option>
+              <option value="manifest">Original mock manifest: mixed-page logistics flow (48 consignments)</option>
               <option value="rich">Rich text &amp; shared measurement</option>
               <option value="flow">Optional measured flow &amp; repeated page regions</option>
               <option value="mixed">Mixed fixed pages &amp; flow with final page counts</option>
               <option value="tables">Optional paged inventory table &amp; mixed prose</option>
               <option value="blocks">Optional generic blocks &amp; external chart</option>
+              <option value="rows">Side-by-side Row/Column: chart, SVG &amp; nested rows</option>
+              <option value="rows-overflow">Row/Column: intentional atomic oversize diagnostic</option>
               <option value="painting">Native painting: paths, colors, clips &amp; transforms</option>
               <option value="svg">Advanced: native SVG adapter (loaded on demand)</option>
             </select>
@@ -111,7 +117,7 @@
       <section id="limits" aria-labelledby="limits-heading">
         <h2 id="limits-heading">Core first. Optional means optional.</h2>
         <p>The entry loads core, not React, Fontkit, Node APIs or SVG. Native VDOM, measured TSX templates and layout demos load on demand, as do the SVG adapter and geometry. Native paths need no geometry adapter.</p>
-        <p>Fonts can use prepared resources through <code>@updf/core/fonts</code>; the optional <code>@updf/fontkit</code> adapter prepares trusted static TrueType bytes. This showcase does not load Fontkit or ship font assets.</p>
+        <p>Fonts can use prepared resources through <code>@updf/core/fonts</code>; the optional <code>@updf/fontkit</code> adapter prepares trusted static TrueType bytes. The initial entry remains parser-free; opting into the freight invoice loads Fontkit and two licensed Liberation Sans font assets (regular and bold).</p>
         <ul>
            <li>Core uses fixed point geometry and explicit pages. Optional layout supports measured blocks, padding/border/gap and error/hidden overflow, repeated regions and explicit-width atomic table rows, not general CSS layout or row/column spans.</li>
           <li>Built-in Helvetica: printable ASCII and LF. No shaping, bidi, raster images or full SVG.</li>

@@ -11,6 +11,7 @@ import type {
   ParagraphProps,
 } from "./content-types.js";
 import type { DecorationPlan } from "./decoration-types.js";
+import type { EdgeRegionInput } from "./shared-edge-types.js";
 
 declare const adapterBrand: unique symbol;
 declare const extensionsBrand: unique symbol;
@@ -27,10 +28,14 @@ export interface MeasureContext {
   readonly width: number;
   readonly sourcePath: string;
   readonly ancestors: readonly string[];
+  /** Charge bounded adapter work to the operation's source-node budget before scanning. */
+  readonly chargeSourceWork: (count: number, sourcePath: string) => void;
   readonly measureText: (input: TextMeasurementInput) => TextMeasurement;
   readonly measureContent: ContentMeasurer;
   readonly readParts: (content: BlockContent, allowed: readonly BlockPartIdentity[]) => readonly BlockPart[];
   readonly reserveDecorations: (entries: readonly ContentDecoration[]) => DecorationPlan;
+  /** Operation-owned local report/content wrapper; copies and serialized wrappers carry no claims. */
+  readonly edgeRegion: (input: EdgeRegionInput) => NodeDefinition;
 }
 export interface ContentDecoration {
   readonly edge: "before" | "after";
@@ -88,6 +93,8 @@ export type BlockFragment =
       readonly decorations?: DecorationPlan;
     };
 export interface MeasuredBlock {
+  /** Resolve selected before/body/after root reports together, independently of decoration reservation. */
+  readonly sharedEdges?: boolean;
   readonly sourceExtent?: number;
   readonly sourceKeys?: readonly (string | number | null)[];
   readonly sourcePaths?: readonly string[];

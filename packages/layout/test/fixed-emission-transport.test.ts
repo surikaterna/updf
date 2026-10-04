@@ -2,7 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, type NodeDefinition, render } from "@updf/core";
 import { h } from "@updf/core/vdom";
-import { Block, createExtensions, defineBlockAdapter, extension, layoutFlow, Paragraph } from "@updf/layout";
+import {
+  Block,
+  createExtensions,
+  defineBlockAdapter,
+  extension,
+  layoutFlow,
+  Paragraph,
+} from "../../../tests/fixtures/transitional-layout.js";
 import { flow } from "./fixtures.js";
 
 test("F-AUD01 R2 generic fixed transport retains owned recipes without a table-specific branch", () => {

@@ -12,18 +12,6 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./tables": {
-      "types": "./dist/tables/index.d.ts",
-      "import": "./dist/tables/index.js"
-    },
-    "./tables/vdom": {
-      "types": "./dist/tables/vdom.d.ts",
-      "import": "./dist/tables/vdom.js"
-    },
-    "./vdom": {
-      "types": "./dist/vdom.d.ts",
-      "import": "./dist/vdom.js"
     }
   },
   "dependencies": {

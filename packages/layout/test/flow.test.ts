@@ -2,8 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { DocumentError, render } from "@updf/core";
 import { h, lower } from "@updf/core/vdom";
-import { layoutFlow, layoutFlowUnknown } from "@updf/layout";
-import { Flow } from "@updf/layout/vdom";
+import { LegacyFlow as Flow, layoutFlow, layoutFlowUnknown } from "../../../tests/fixtures/transitional-layout.js";
 import { fixed, flow, paragraph } from "./fixtures.js";
 
 function diagnostic(run: () => unknown, code: string, path?: string): void {

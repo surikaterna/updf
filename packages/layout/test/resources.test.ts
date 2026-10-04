@@ -4,9 +4,8 @@ import { DocumentError, render } from "@updf/core";
 import { createPreparedFont } from "@updf/core/fonts";
 import { measureText } from "@updf/core/measurement";
 import { type Component, type ComponentContext, h, lower } from "@updf/core/vdom";
-import { layoutFlow, layoutFlowUnknown } from "@updf/layout";
-import { Flow } from "@updf/layout/vdom";
 import { fixtureFont, fontInput } from "../../../tests/fixtures/fonts/font-fixture.js";
+import { LegacyFlow as Flow, layoutFlow, layoutFlowUnknown } from "../../../tests/fixtures/transitional-layout.js";
 import { flow, paragraph } from "./fixtures.js";
 
 test("prepared resources are owned and operation-bound, aliases work and retained contexts close", async () => {

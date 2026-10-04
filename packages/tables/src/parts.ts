@@ -1,7 +1,7 @@
 import { type BlockContent, type BlockPart, defineBlockPart, type MeasureContext } from "@updf/layout";
 import { error, number, record } from "./checks.js";
 import type { CellProps, RowProps, SectionProps, TableInput, TableProps, TableRow, TableSection } from "./types.js";
-import { atomic, cell, row } from "./validate.js";
+import { cell, row, rowOptions } from "./validate.js";
 
 export const Head = defineBlockPart<SectionProps>("table.head");
 export const Body = defineBlockPart<{ readonly children?: BlockContent }>("table.body");
@@ -11,6 +11,11 @@ export const Cell = defineBlockPart<CellProps>("table.cell");
 export const HeaderCell = defineBlockPart<CellProps>("table.header-cell");
 const deferred = new WeakMap<TableSection, BlockContent>();
 const cellPaths = new WeakMap<object, string>();
+const rowPaths = new WeakMap<object, string>();
+export function rowSourcePath(row: TableRow, root: string, fallback: string): string {
+  const path = rowPaths.get(row);
+  return path?.startsWith(`${root}/`) ? path.slice(root.length) : fallback;
+}
 export function cellSourcePath(cell: CellProps, root: string, fallback: string): string {
   const path = cellPaths.get(cell);
   return path?.startsWith(`${root}/`) ? path.slice(root.length) : fallback;
@@ -49,8 +54,8 @@ export function fromParts(input: TableProps, context: MeasureContext): TableInpu
 }
 function rows(section: BlockPart, columns: number, context: MeasureContext): readonly TableRow[] {
   return context.readParts(section.content, [Row]).map((part) => {
-    record(part.props, ["atomic", "minHeight"], part.sourcePath);
-    atomic(part.props, part.sourcePath);
+    record(part.props, ["style", "keepTogether", "minHeight"], part.sourcePath);
+    rowOptions(part.props, part.sourcePath);
     const cells = context.readParts(part.content, section.part === Head ? [Cell, HeaderCell] : [Cell]);
     const result = {
       ...part.props,
@@ -62,6 +67,7 @@ function rows(section: BlockPart, columns: number, context: MeasureContext): rea
         return value;
       }),
     };
+    rowPaths.set(result, part.sourcePath);
     row(result, part.sourcePath, columns);
     return result;
   });

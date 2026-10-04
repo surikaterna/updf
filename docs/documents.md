@@ -1,8 +1,8 @@
 # Mixed documents and final decorations (Slice E)
 
-This private, unreleased slice is implemented for independent audit, **not
-verified**. A–D are independently verified per the assignment. F (the separate
-tables package) and G remain separate work; there is no Image or #33 delivery.
+This is the current private, unreleased document contract. Tables are provided by
+the separate `@updf/tables` package. Dated delivery and audit records are retained
+under `docs/evidence`; they are not current API instructions. There is no Image API.
 
 ## One authoring/runtime path
 
@@ -46,8 +46,9 @@ Fixed pages do not produce flow placements. Placement `pageIndex` is zero-based
 in the **whole document**, and source paths identify the originating section.
 
 Core's lowercase `document`/`page` primitives remain the fixed-position API.
-For compatibility, `Flow.Document` and the previous `@updf/layout/vdom` Document
-with `pageTemplate` remain available; new code should use the coherent root API.
+The transitional `Flow.Document`, `layoutFlow`/`layoutFlowUnknown`, and
+`@updf/layout/vdom`, `/tables`, `/tables/vdom` exports are removed, without a facade.
+Use the root API; see [migration](authoring-migration.md).
 No extra `renderDocument` API, React runtime, parser, global plugin or public
 serializer plan is introduced.
 
@@ -72,6 +73,13 @@ are opaque at section normalization: even their pure components are not invoked
 as an early preview. A provider wrapping a slot is captured independently of
 providers wrapping the body or its sibling slots.
 
+A terminal body `<Block keepTogether style={{ marginTop: "auto" }}>` consumes
+only positive unused body space after reserving its complete decorated height.
+Header/footer slots are not body siblings, even if authored after that Block.
+The placement is still ordinary body content, not a footer or fixed-position overlay;
+see [the bounded Block contract](blocks.md#terminal-auto-top-margin-53). It cannot
+borrow page height through a naturally sized nested Block, Row or Column.
+
 The non-JSX constructors are `document`, `page`, `flow`, `flowHeader`, `flowBody`
 and `flowFooter`. Their branded readonly descriptors form a pure data tree:
 
@@ -94,6 +102,33 @@ put positioned drawings in a native paintGroup or author the region as blocks.
 Input snapshots never freeze the caller. Unknown fields, accessors and present
 undefined section fields reject. Serialized/copy-forged authoring descriptors
 are not library capabilities.
+
+## Explicit native page breaks
+
+Import `PageBreak` from `@updf/layout` and use `<PageBreak />` in a Flow body
+or a fragmentable Block body. The equivalent data node is exactly
+`{ type: "pageBreak" }`, for example:
+
+```ts
+layout(document({ children: flow({ pageSize: PageSize.A5, children: [
+  paragraph({ children: "Before" }),
+  { type: "pageBreak" },
+  paragraph({ children: "After" }),
+] }) }));
+```
+
+Each break advances to a new page, including at an empty/zero-height boundary.
+A leading break preserves the initial blank page; a trailing break preserves
+the final blank page; consecutive breaks preserve intermediate blank pages.
+An empty Flow has one page and a Flow containing only N breaks has N + 1 pages.
+These are native pagination controls, not CSS break properties.
+
+PageBreak accepts no props or children (including present `undefined` fields).
+It is not inline content and cannot be a direct Row child, fixed Page drawing,
+or Document section. Breaks inside kept Blocks or closed Row/Column cells reject
+under the existing atomic-content contract. Reserved header/footer and decoration
+regions cannot advance to another page and reject with `VERTICAL_OVERFLOW`.
+No fixed-page geometry or spacing defaults change.
 
 ## Page sizes and units
 
