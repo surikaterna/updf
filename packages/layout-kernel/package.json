@@ -26,6 +26,10 @@
       "types": "./dist/boxes.d.ts",
       "import": "./dist/boxes.js"
     },
+    "./fragmentation": {
+      "types": "./dist/fragmentation.d.ts",
+      "import": "./dist/fragmentation.js"
+    },
     "./numeric": {
       "types": "./dist/numeric.d.ts",
       "import": "./dist/numeric.js"

@@ -30,6 +30,10 @@ async function profile(scope: string, contents: string) {
   assert.ok(inputs.every((path) => path.startsWith("packages/layout-kernel/dist/")));
   assert.deepEqual(metadata.imports, []);
   const retained = Object.entries(metadata.inputs).filter(([, info]) => info.bytesInOutput > 0);
+  assert.ok(
+    retained.every(([path]) => !path.includes("fragment")),
+    "Slice B retained Slice C code",
+  );
   const control = scope === "allocator" ? "/width-resolver.js" : "/box-placement.js";
   assert.ok(retained.some(([path]) => path.endsWith(control)));
   const directory = new URL(`../artifacts/layout-kernel-b/standalone/${scope}/`, import.meta.url);

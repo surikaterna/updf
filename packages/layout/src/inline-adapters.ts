@@ -12,7 +12,7 @@ import {
 import type { TextStyle } from "@updf/core/measurement";
 import { adapterCall } from "./adapter-call.js";
 import { registerAdapter } from "./adapter-ownership.js";
-import { OutputBudget } from "./budget.js";
+import { type BudgetTotals, OutputBudget } from "./budget.js";
 import type { InlineAdapter, InlineAdapterDefinition, InlineMeasurement, InlineVisual } from "./content-types.js";
 import type { Extensions } from "./extension-types.js";
 import { requireInstalled } from "./extensions.js";
@@ -44,6 +44,7 @@ export interface PreparedVisual {
   readonly measurement: InlineMeasurement;
   readonly metrics: RunMetrics;
   readonly path: string;
+  readonly emissionCounts: BudgetTotals;
 }
 export function prepareVisual(
   descriptor: object,
@@ -112,7 +113,9 @@ function measureVisual(
     bottom: bounds.empty ? 0 : bounds.bottom,
     empty: bounds.empty,
   };
-  return { measurement, metrics, path };
+  const emission = new OutputBudget(operation.policy);
+  emission.charge(measurement.nodes, path);
+  return { measurement, metrics, path, emissionCounts: emission.totals() };
 }
 function checkInk(value: InlineMeasurement, actual: InlineMeasurement["inkBounds"], path: string): void {
   if (actual.empty) return;

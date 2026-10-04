@@ -99,6 +99,7 @@ test("#43 generated highlight counts reject before output allocation and are cha
       lines: measured.lines,
       height: measured.size.height,
       backgroundCount: () => 1,
+      emissionCounts: () => ({ nodes: 2, text: 1, commands: 0, work: 0 }),
       paintLine: () => {
         allocated = true;
         return [];

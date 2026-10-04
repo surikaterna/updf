@@ -16,6 +16,7 @@ import type { ExtensionLifetime } from "./extension-producer.js";
 import type { Extensions } from "./extension-types.js";
 import { validateExtensions } from "./extensions.js";
 import { paginate } from "./paginator.js";
+import { closeParagraphFragments } from "./paragraph-fragments.js";
 import { template } from "./template.js";
 import type { FlowDocumentDefinition, FlowResult } from "./types.js";
 
@@ -25,6 +26,7 @@ export function layout(input: unknown, operation: LayoutOperation, extensions?: 
     return activeLayout(input, operation, extensions, lifetime);
   } finally {
     lifetime.active = false;
+    closeParagraphFragments(lifetime);
   }
 }
 function activeLayout(

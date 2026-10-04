@@ -1,4 +1,4 @@
-# @updf/layout-kernel — allocation and atomic boxes (A/B)
+# @updf/layout-kernel — allocation, boxes and fragmentation (A/B/C)
 
 Private MIT `2.0.0-poc.0` package: the canonical binary64 fixed/weighted bounded
 width allocator, independent of PDF, fonts, VDOM, DOM, React, Node and `@updf/core`.
@@ -98,6 +98,74 @@ including no core/layout/VDOM/fonts/DOM/Node/React imports or ambient types.
 
 Production layout maps only recognized `LayoutInputError` failures to the existing
 `DocumentError`. The terminal proof consumes public entries directly. This is not
-a complete layout engine: **Slice C fragmentation/pagination is not implemented**.
-Existing PDF fragment, paint, callback/provider and pagination protocols stay in
-the host; no generic VDOM compiler or renderer is introduced here.
+a complete layout engine: page creation, painting, final contexts and nested PDF
+pagination remain host-owned; no generic VDOM compiler or renderer is introduced.
+
+## Fragmentation (separate entry point)
+
+Import `createFragmentOperation` from `@updf/layout-kernel/fragmentation`.
+Neither the package root nor `/boxes` reexports fragmentation or retains its code.
+
+An operation supports both prepared range queries (`prepare`, `select`) and flat
+indexed column flow (`start`, `fragment`). They use the same maximal-prefix selector.
+Sources have immutable unique `id`/descriptor identities, `path`, nonnegative safe
+integer `extent`, atomic/splittable mode, and either fixed width or reflow width.
+The view supplies an own data `count` and trusted indexed `at` callback; sources are
+read lazily, not copied eagerly. Repeated range queries are legitimate and charged.
+
+`provider.next(descriptor, {offset, extent, width}, work)` measures **one legal
+indivisible unit**, returning own data `{end, height, content}`. It receives no
+height capacity and cannot supply a second page selector. End must progress within
+extent; an atomic unit consumes the whole extent. Height is finite/nonnegative;
+zero height still requires strict offset progress. Empty extents never invoke the
+provider. Fixed-width mismatches reject with `VALUE` before measurement. Reflow
+providers see the actual width of each region. This does not imply PDF rich-text
+reflow: prepared PDF lines are fixed-width, while the ASCII proof uses character offsets.
+
+Range results, unit references, placements, cursors and count snapshots are frozen.
+Opaque host content/descriptors are retained by reference, never cloned or frozen.
+Region input is own data `{id,width,height,usedHeight}` with finite nonnegative
+dimensions and `usedHeight <= height`. Every accepted placement uses the boxes
+kernel's start-aligned zero-gap column placement, plus the existing metric origin sum.
+No nested fragmentable trees, gaps, alignment, page creation or fresh-region
+oversize policy are included. Region results are `done`, `region-full` or `blocked`.
+
+Cursors are operation-owned capabilities authenticated in a local WeakMap, without
+reading token properties. Each attempt consumes the old cursor exactly once,
+including blocked attempts, and returns a new cursor. Forged, foreign, replayed and
+closed tokens reject before providers. Any error poisons the operation; `close()`
+invalidates all cursors. Host callback/proxy exceptions retain their identity.
+Reentrant prepare/start/select/fragment calls are rejected and poison the operation;
+callbacks may read counts or close it. Health is checked immediately after each
+provider/indexed-view callback, so caught failures cannot continue selection or
+charge outputs; even `work.consume(0)` rejects after close/poison. Close and poison
+drop operation-owned descriptor, provider, source, view and cursor associations.
+Retained handles and frozen counts remain usable only for rejection/inspection;
+accepted outputs still borrow host references and remain the caller's responsibility.
+No placement history is retained by default. Active malformed cursor/source attempts
+charge the attempt ledger before authentication; already-closed calls do not charge.
+
+One monotonic ledger spans the entire operation, including unsuccessful trials and
+the first rejected unit. Standalone protective defaults are:
+
+| Category | Limit |
+| --- | ---: |
+| attempts (start/select/fragment) | 10,000 |
+| sourceVisits (each selected/flow-visited source) | 100,000 |
+| sourceReads (prepared snapshots/indexed callbacks) | 100,000 |
+| measurements | 100,000 |
+| unitsExamined | 100,000 |
+| outputFragments (accepted unit refs and region placements) | 100,000 |
+| providerUnits | 1,000,000 |
+
+Limits are nonnegative safe integers, checked before the corresponding callback,
+access or output allocation. Counts of already-performed work do not roll back on
+failure. `work.consume(n)` charges provider-declared safe-integer work; its handle
+expires when the callback returns, including exceptional return. These counters
+are not heap measurements, practical CPU limits, or a hostile callback sandbox.
+
+The PDF adapter uses **one enclosing-operation ledger** with each new category
+capped at `Number.MAX_SAFE_INTEGER`, matching existing internal-work compatibility
+policy pending issue **#25**'s budget design. PDF node/text/path/page caps remain
+separate, unchanged and candidate-forked. This mapping does not weaken standalone
+defaults and is not a practical CPU or hostile-sandbox guarantee.

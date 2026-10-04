@@ -46,6 +46,8 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/template.ts",
     "layout/src/blocks.ts",
     "layout/src/paragraph-producer.ts",
+    "layout/src/paragraph-emission.ts",
+    "layout/src/paragraph-fragments.ts",
     "layout/src/extensions.ts",
     "layout/src/extension-producer.ts",
     "layout/src/block-compiler.ts",

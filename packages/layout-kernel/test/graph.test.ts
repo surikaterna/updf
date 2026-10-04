@@ -16,7 +16,14 @@ test("kernel manifest, ES-only declarations, build config and license are indepe
   assert.equal(manifest.license, "MIT");
   for (const field of ["dependencies", "peerDependencies", "optionalDependencies", "devDependencies"])
     assert.equal(field in manifest, false);
-  assert.deepEqual(Object.keys(manifest.exports), [".", "./arithmetic", "./geometry", "./boxes", "./numeric"]);
+  assert.deepEqual(Object.keys(manifest.exports), [
+    ".",
+    "./arithmetic",
+    "./geometry",
+    "./boxes",
+    "./fragmentation",
+    "./numeric",
+  ]);
   assert.equal(
     await readFile(new URL("LICENSE", root), "utf8"),
     await readFile(new URL("../../LICENSE", root), "utf8"),

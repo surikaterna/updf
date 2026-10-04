@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { installedGraph } from "./graphs.js";
 import { absent, execute } from "./install.js";
 import { boxPropertyRuntime } from "./kernel-box-properties.js";
+import { fragmentationRuntime } from "./kernel-fragmentation.js";
 import { ownPropertyRuntime } from "./kernel-own-properties.js";
 import { typeConsumer } from "./types.js";
 
@@ -15,8 +16,8 @@ export async function kernelProof(directory: string): Promise<readonly string[]>
     "react-dom",
     "fontkit",
   ]);
-  await typeConsumer(directory, ["kernel-template.ts"]);
-  await typeConsumer(directory, ["kernel-template.ts"], true);
+  await typeConsumer(directory, ["kernel-template.ts", "kernel-fragmentation-template.ts"]);
+  await typeConsumer(directory, ["kernel-template.ts", "kernel-fragmentation-template.ts"], true);
   await standaloneRuntime(directory);
   await execute(
     directory,
@@ -30,9 +31,12 @@ export async function kernelProof(directory: string): Promise<readonly string[]>
   );
   const graph = await installedGraph(directory, "@updf/layout-kernel");
   const boxes = await installedGraph(directory, "@updf/layout-kernel/boxes");
+  const fragments = await installedGraph(directory, "@updf/layout-kernel/fragmentation");
+  assert.ok(fragments.every((path) => path.startsWith("@updf/layout-kernel/dist/")));
+  assert.ok([...graph, ...boxes].every((path) => !path.includes("fragment")));
   assert.ok(boxes.every((path) => path.startsWith("@updf/layout-kernel/dist/")));
   assert.ok(graph.every((path) => path.startsWith("@updf/layout-kernel/dist/")));
-  return [...new Set([...graph, ...boxes])];
+  return [...new Set([...graph, ...boxes, ...fragments])];
 }
 async function standaloneRuntime(directory: string): Promise<void> {
   await execute(
@@ -51,6 +55,7 @@ async function standaloneRuntime(directory: string): Promise<void> {
     const { LayoutInputError, resolveWidths } = await import('@updf/layout-kernel');
     const { bits, dyadic } = await import('@updf/layout-kernel/numeric');
     const { layoutBoxes } = await import('@updf/layout-kernel/boxes');
+    ${fragmentationRuntime}
     const view = { id: node => node.id, path: node => '/' + node.id, style: node => node.style ?? {}, childCount: node => node.children?.length ?? 0, childAt: (node, i) => node.children[i], content: node => node.content };
     assert.equal(layoutBoxes({root:{id:'empty'},view,width:80}).boxes[0].height, 0);
     const opaque = {text:'host'};

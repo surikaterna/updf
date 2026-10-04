@@ -1,15 +1,18 @@
 import type { NodeDefinition, ParagraphDefinition } from "@updf/core";
 import { DocumentError, type InlineLine, type LayoutOperation, paintInlineText, sum } from "@updf/core/internal";
+import type { BudgetTotals } from "./budget.js";
 import type { AuthorParagraph } from "./content-normalize.js";
 import type { ContentLine } from "./content-types.js";
 import type { Extensions } from "./extension-types.js";
 import { type PreparedVisual, prepareVisual } from "./inline-adapters.js";
 import { backgroundCount, inlineBackgrounds } from "./inline-background.js";
+import { paragraphEmission } from "./paragraph-emission.js";
 
 export interface MeasuredParagraph {
   readonly lines: readonly ContentLine[];
   readonly height: number;
   readonly backgroundCount: (index: number) => number;
+  readonly emissionCounts: (index: number) => BudgetTotals;
   readonly paintLine: (index: number, x: number, y: number, background?: boolean) => readonly NodeDefinition[];
 }
 const caches = new WeakMap<LayoutOperation, WeakMap<AuthorParagraph, Map<number, MeasuredParagraph>>>();
@@ -55,9 +58,11 @@ function measuredParagraph(
     rethrowSource(error, author, author.path);
   }
   const lines = publicLines(measured, author, visuals, path);
+  const emissions = measured.map((line) => paragraphEmission(line, visuals));
   return {
     lines: Object.freeze(lines),
     height: sum(lines.map((line) => line.height)),
+    emissionCounts: (index) => emissions[index]!,
     backgroundCount: (index) => (measured[index] ? backgroundCount(measured[index], author) : 0),
     paintLine: (index, x, y, background = false) =>
       background
