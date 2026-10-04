@@ -3,6 +3,8 @@
 Private MIT `2.0.0-poc.0` package: the canonical binary64 fixed/weighted bounded
 width allocator, independent of PDF, fonts, VDOM, DOM, React, Node and `@updf/core`.
 No runtime dependencies or ambient declaration dependencies.
+The [authoritative current architecture/API contract](../../docs/architecture/layout-kernel.md)
+consolidates host bindings, lifecycle, limits and evidence provenance.
 
 ```ts
 import { resolveWidths, LayoutInputError } from "@updf/layout-kernel";

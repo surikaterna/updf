@@ -2,6 +2,9 @@
 
 This intentional breaking cleanup is before release. The real `@updf/layout` and
 `@updf/tables` packages remain; there is no public compatibility facade.
+Allocation, atomic placement and paragraph fitting now use the shared kernel;
+see the [authoritative current architecture/API contract](architecture/layout-kernel.md).
+Data/VDOM/TSX remain native host bindings, not separate layout algorithms.
 
 | Removed surface | Native replacement |
 | --- | --- |

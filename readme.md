@@ -20,7 +20,8 @@ verification of the new package structure.
 
 | Workspace | Responsibility / entry points |
 | --- | --- |
-| `@updf/core` | Zero runtime dependencies: `.`, `/measurement`, `/fonts`, `/painting`, `/vdom`, `/jsx-runtime`, `/jsx-dev-runtime` |
+| `@updf/layout-kernel` | Zero dependencies; allocation, atomic boxes, fragment selection and shared arithmetic; [current contract](docs/architecture/layout-kernel.md) |
+| `@updf/core` | PDF bytes; depends on kernel with arithmetic-only runtime retention: `.`, `/measurement`, `/fonts`, `/painting`, `/vdom`, `/jsx-runtime`, `/jsx-dev-runtime` |
 | `@updf/layout` | Native Document/Page/Flow/Block/Paragraph/Span/Row/Column, data constructors, layout/measure, contexts, decorations and adapters |
 | `@updf/geometry` | Optional strict path/color/shape helpers |
 | `@updf/svg` | Optional strict SVG subset; `/tree` native VDOM adapter |
@@ -30,6 +31,11 @@ verification of the new package structure.
 The narrow `/internal` seams are reserved for inventoried native validators and
 the shared scanner, not public extension APIs. CMR types/templates belong to
 private examples, not core. There is no umbrella or permanent POC facade.
+The kernel and optional [playground](apps/layout-playground/README.md) are locally
+implemented, unreleased branch work through `da0b23f`, not yet merged into `develop`.
+The [authoritative current kernel contract](docs/architecture/layout-kernel.md)
+consolidates ownership, API limits, evidence provenance and non-deploying PR gates;
+dated A–D evidence logs are not API authority.
 See [package architecture](docs/architecture/packages.md),
 [native contracts](docs/native-api.md) and [legacy migration](docs/migration/legacy.md).
 
@@ -52,7 +58,7 @@ npm run check:graphs
 npm run check:licenses
 ```
 
-`typecheck` builds in explicit core → layout/geometry/Fontkit → SVG → examples order,
+`typecheck` builds in explicit kernel → core → layout/tables/geometry/Fontkit → SVG → examples order,
 then compiles repository tooling/tests. Legacy compilation uses its scoped old
 toolchain. Native declarations use ES2022 only, no ambient DOM/Node/React or TS
 path aliases. Clean tarball consumers check NodeNext and bundler resolution.

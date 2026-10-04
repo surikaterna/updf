@@ -1,0 +1,144 @@
+name: Pull request validation
+
+on:
+  pull_request:
+    branches: [develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  quality:
+    name: Native quality and portable consumers
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24.21.0
+          cache: npm
+      - name: Install PDF validation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes qpdf poppler-utils
+      - run: npm ci --ignore-scripts
+      - name: Prepare test temporary directory
+        run: mkdir -p /tmp/opencode
+      - name: Format, lint, build and typecheck
+        run: npm run format:check && npm run lint && npm run typecheck
+      - name: Native and portable TUI tests
+        run: npm test 2>&1 | tee native-tests.log
+      - name: Playground Node tests
+        run: npm run test -w @updf/layout-playground 2>&1 | tee playground-node.log
+      - name: Packed consumers and licenses
+        run: npm run test:consumer && npm run check:licenses
+      - name: Fresh browser fixture graphs
+        run: npm run build:browser && npm run check:graphs
+      - name: Preserve validation evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: quality-evidence
+          retention-days: 7
+          path: |
+            artifacts/
+            native-tests.log
+            playground-node.log
+            apps/layout-playground/artifacts/
+
+  browser:
+    name: Production fixtures, showcase and playground
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      BROWSER_CHROMIUM: /usr/bin/google-chrome
+      SHOWCASE_CHROMIUM: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24.21.0
+          cache: npm
+      - name: Install PDF validation tools and log browser version
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes qpdf poppler-utils
+          "$BROWSER_CHROMIUM" --version | tee browser-version.log
+      - run: npm ci --ignore-scripts
+      - name: Prepare test temporary directory
+        run: mkdir -p /tmp/opencode
+      - name: Build packages and all tested apps at root base
+        run: |
+          npm run build
+          npm run build:browser
+          npm run build:showcase
+          npm run build -w @updf/layout-playground
+      - name: Production browser fixtures (SVG reference has its own job)
+        run: npx --no-install tsx --test --test-concurrency=1 tests/browser/*.test.ts 2>&1 | tee browser-tests.log
+      - name: Showcase browser tests
+        run: npm run test:showcase 2>&1 | tee showcase-tests.log
+      - name: Playground browser tests
+        run: npm run test:browser -w @updf/layout-playground 2>&1 | tee playground-browser.log
+      - name: Preserve browser evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: browser-evidence
+          retention-days: 7
+          path: |
+            artifacts/
+            apps/layout-playground/artifacts/
+            browser-version.log
+            browser-tests.log
+            showcase-tests.log
+            playground-browser.log
+
+  svg-reference:
+    name: "SVG reference (known differential tracked in #48 / #50)"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      BROWSER_CHROMIUM: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24.21.0
+          cache: npm
+      - name: Install PDF validation tools and log browser version
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes qpdf poppler-utils
+          "$BROWSER_CHROMIUM" --version | tee browser-version.log
+      - run: npm ci --ignore-scripts
+      - name: Prepare test temporary directory
+        run: mkdir -p /tmp/opencode
+      - name: Build emitted packages
+        run: npm run build
+      - name: Entire unmodified SVG reference suite
+        run: npx --no-install tsx --test tests/svg-reference/browser.test.ts 2>&1 | tee svg-reference.log
+      - name: Preserve SVG differential evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: svg-reference-evidence
+          retention-days: 7
+          path: |
+            artifacts/svg-*.pdf
+            artifacts/svg-*.png
+            artifacts/svg-*.ppm
+            artifacts/svg-comparison.json
+            browser-version.log
+            svg-reference.log
