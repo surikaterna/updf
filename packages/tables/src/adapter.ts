@@ -18,6 +18,7 @@ function measured(input: TableDefinition, context: MeasureContext): MeasuredBloc
   const plan = decorations(table, context);
   const rows = table.body.map((row, index) => measureRow(row, table, context, `/props/body/${index}`));
   return {
+    ...(table.grid?.width ? { sharedEdges: true } : {}),
     fragmentation: rows.length ? "splittable" : "atomic",
     extent: Math.max(1, rows.length),
     ...(plan ? { decorations: plan } : {}),
@@ -29,15 +30,7 @@ function measured(input: TableDefinition, context: MeasureContext): MeasuredBloc
       if (!rows.length) return { status: "placed", nextOffset: 1, height: 0, nodes: [] };
       const nextOffset = selectRows(rows, request.offset, request.availableHeight);
       if (nextOffset === request.offset) return { status: "defer" };
-      const head =
-        table.head &&
-        (table.head.height !== undefined || table.head.rows.length > 0) &&
-        (table.head.repeat || request.offset === 0);
-      const foot =
-        table.foot &&
-        (table.foot.height !== undefined || table.foot.rows.length > 0) &&
-        (table.foot.repeat || nextOffset === rows.length);
-      const output = paintRows(rows.slice(request.offset, nextOffset), table, !head, !foot);
+      const output = paintRows(rows.slice(request.offset, nextOffset), table, context);
       return { status: "placed", nextOffset, height: output.height, nodes: output.nodes };
     },
   };

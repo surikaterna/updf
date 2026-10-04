@@ -34,7 +34,23 @@ function sourcePath(value: unknown, path: string): void {
 }
 
 function claim(input: LocalEdgeClaim, width: number, height: number, path: string): LocalEdgeClaim {
-  record(input, ["axis", "interval", "coordinate", "ownerSide", "provenance", "width", "color", "sourcePath"], path);
+  record(
+    input,
+    [
+      "axis",
+      "interval",
+      "coordinate",
+      "ownerSide",
+      "provenance",
+      "width",
+      "color",
+      "sourcePath",
+      "unsharedInset",
+      "startInset",
+      "endInset",
+    ],
+    path,
+  );
   if (input.axis !== "horizontal" && input.axis !== "vertical") fail("TYPE", `${path}/axis`, "Expected edge axis");
   const horizontal = input.axis === "horizontal";
   const sides = horizontal ? ["top", "bottom"] : ["left", "right"];
@@ -49,6 +65,7 @@ function claim(input: LocalEdgeClaim, width: number, height: number, path: strin
   if (number(input.coordinate, `${path}/coordinate`) > (horizontal ? height : width))
     fail("GEOMETRY", `${path}/coordinate`, "Edge coordinate exceeds region");
   number(input.width, `${path}/width`, true);
+  paintInsets(input, horizontal ? height : width, start, end, path);
   array(input.color, 3, `${path}/color`);
   if (input.color.length !== 3) fail("GEOMETRY", `${path}/color`, "Expected RGB tuple");
   for (const [index, component] of input.color.entries())
@@ -56,6 +73,17 @@ function claim(input: LocalEdgeClaim, width: number, height: number, path: strin
       fail("GEOMETRY", `${path}/color/${index}`, "RGB must be in [0,1]");
   sourcePath(input.sourcePath, `${path}/sourcePath`);
   return snapshotData(input, path);
+}
+
+function paintInsets(input: LocalEdgeClaim, limit: number, start: number, end: number, path: string): void {
+  for (const key of ["unsharedInset", "startInset", "endInset"] as const)
+    if (key in input) number(input[key], `${path}/${key}`);
+  const inset = input.unsharedInset ?? 0;
+  const low = input.ownerSide === "top" || input.ownerSide === "left";
+  if (inset > (low ? limit - input.coordinate : input.coordinate))
+    fail("GEOMETRY", `${path}/unsharedInset`, "Inward displacement must fit the allocation");
+  if (sum([input.startInset ?? 0, input.endInset ?? 0]) >= end - start)
+    fail("GEOMETRY", `${path}/interval`, "Endpoint insets must retain a positive interval");
 }
 
 /** Claims describe local centerlines; final painting must enforce the parent allocation and clip. */

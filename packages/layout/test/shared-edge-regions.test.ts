@@ -28,6 +28,38 @@ const input = (claims: readonly LocalEdgeClaim[] = [edge]): EdgeRegionInput => (
   nodes: [],
   claims,
 });
+test("B1 physical metadata is finite bounded scalar data and rejects unknown keys/getters", () => {
+  const operation = createLayoutOperation({});
+  for (const key of ["unsharedInset", "startInset", "endInset"] as const) {
+    for (const value of [-1, NaN, Infinity, () => 1, undefined])
+      assert.throws(
+        () => ownEdgeRegion(input([{ ...edge, [key]: value } as LocalEdgeClaim]), operation, path),
+        DocumentError,
+      );
+  }
+  for (const patch of [
+    { unsharedInset: 11 },
+    { coordinate: 9, unsharedInset: 2 },
+    { startInset: 9, endInset: 9 },
+    { physicalOffset: 1 },
+  ])
+    assert.throws(() => ownEdgeRegion(input([{ ...edge, ...patch }]), operation, path), DocumentError);
+  let reads = 0;
+  const getter = Object.defineProperty({ ...edge }, "startInset", {
+    enumerable: true,
+    get() {
+      reads++;
+      return 1;
+    },
+  });
+  assert.throws(() => ownEdgeRegion(input([getter]), operation, path), DocumentError);
+  assert.equal(reads, 0);
+  const claim = ownEdgeRegion(input([{ ...edge, unsharedInset: 1, startInset: 1, endInset: 1 }]), operation, path)
+    .claims[0]!;
+  assert.ok(Object.isFrozen(claim));
+  assert.equal(claim.coordinate, 0);
+  assert.deepEqual(claim.interval, [1, 19]);
+});
 function rejects(callback: () => unknown, code: string, at?: string): void {
   assert.throws(callback, (error: unknown) => {
     if (!(error instanceof DocumentError)) return false;

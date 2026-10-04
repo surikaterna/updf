@@ -9,6 +9,11 @@ export interface LocalEdgeClaim {
   readonly width: number;
   readonly color: RGB;
   readonly sourcePath: string;
+  /** Inward displacement used only where no opposite-side logical claim touches. */
+  readonly unsharedInset?: number;
+  /** Endpoint trims waived where an opposite-side perpendicular boundary is shared. */
+  readonly startInset?: number;
+  readonly endInset?: number;
 }
 
 export interface EdgeRegionInput {

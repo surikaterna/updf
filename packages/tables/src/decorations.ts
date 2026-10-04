@@ -30,8 +30,7 @@ export function decorations(table: TableInput, context: MeasureContext): Decorat
         measureRow(row, table, context, `/props/${edge === "before" ? "head" : "foot"}/rows/${index}`),
       ),
       table,
-      edge === "before" || (!table.body.length && !table.head?.rows.length),
-      edge === "after" || (!table.body.length && !table.foot?.rows.length),
+      context,
     );
     if (measured.height) staticEntries.push({ edge, repeat, ...measured });
   }

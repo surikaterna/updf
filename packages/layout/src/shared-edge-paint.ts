@@ -1,5 +1,6 @@
 import type { NodeDefinition } from "@updf/core";
 import { checkLimit, type LayoutOperation, number, sum } from "@updf/core/internal";
+import { edgeKey, sharedIntervals, touches } from "./shared-edge-touch.js";
 import type { LocalEdgeClaim, SharedEdgeGroup } from "./shared-edge-types.js";
 
 interface Claim extends LocalEdgeClaim {
@@ -73,13 +74,35 @@ class Winners {
   }
 }
 function samePaint(a: Claim, b: Claim): boolean {
-  return a.width === b.width && a.color.every((component, index) => component === b.color[index]);
+  return (
+    a.coordinate === b.coordinate &&
+    a.width === b.width &&
+    a.color.every((component, index) => component === b.color[index])
+  );
+}
+type TouchMap = ReadonlyMap<string, readonly (readonly [number, number])[]>;
+function physical(
+  claim: Claim,
+  start: number,
+  end: number,
+  shared: TouchMap,
+): { claim: Claim; start: number; end: number } | undefined {
+  const perpendicular = claim.axis === "horizontal" ? "vertical" : "horizontal";
+  const trim = (point: number, inset: number): number =>
+    touches(shared.get(edgeKey(perpendicular, point)), claim.coordinate, true) ? 0 : inset;
+  const left = Math.max(start, sum([claim.interval[0], trim(claim.interval[0], claim.startInset ?? 0)]));
+  const right = Math.min(end, claim.interval[1] - trim(claim.interval[1], claim.endInset ?? 0));
+  if (left >= right) return undefined;
+  const inset = touches(shared.get(edgeKey(claim.axis, claim.coordinate)), start) ? 0 : (claim.unsharedInset ?? 0);
+  const direction = claim.ownerSide === "top" || claim.ownerSide === "left" ? 1 : -1;
+  return { claim: { ...claim, coordinate: sum([claim.coordinate, direction * inset]) }, start: left, end: right };
 }
 function intervals(
   claims: readonly Claim[],
   group: SharedEdgeGroup,
   operation: LayoutOperation,
   path: string,
+  shared: TouchMap,
 ): NodeDefinition[] {
   const points = [...new Set(claims.flatMap((claim) => [...claim.interval]))].sort((a, b) => a - b);
   const nodes: NodeDefinition[] = [];
@@ -101,10 +124,12 @@ function intervals(
       entering = starts[++next];
     }
     const winner = winners.at(start);
-    if (winner && previous && samePaint(previous.claim, winner) && previous.end === start) previous.end = end;
+    const current = winner ? physical(winner, start, end, shared) : undefined;
+    if (current && previous && samePaint(previous.claim, current.claim) && previous.end === current.start)
+      previous.end = current.end;
     else {
       flush();
-      previous = winner ? { claim: winner, start, end } : undefined;
+      previous = current;
     }
   }
   flush();
@@ -117,13 +142,14 @@ export function paintSharedEdges(
 ): readonly NodeDefinition[] {
   const lines = new Map<string, Claim[]>();
   for (const claim of translated(group)) {
-    const key = `${claim.axis}:${claim.coordinate}`;
+    const key = edgeKey(claim.axis, claim.coordinate);
     const line = lines.get(key) ?? [];
     line.push(claim);
     lines.set(key, line);
   }
-  // Filled bands are butt-capped centerline strokes intersected with the owning allocation.
-  const nodes = [...lines.values()].flatMap((claims) => intervals(claims, group, operation, path));
+  const shared: TouchMap = new Map([...lines].map(([key, claims]) => [key, sharedIntervals(claims)]));
+  // Logical identity is unchanged; only the winning band's physical geometry is adjusted.
+  const nodes = [...lines.values()].flatMap((claims) => intervals(claims, group, operation, path, shared));
   checkLimit(nodes.length, operation.policy.nodes, path, "Shared edge output");
   if (nodes.length) operation.validateFixed(nodes, group.width, group.height, path);
   return nodes;

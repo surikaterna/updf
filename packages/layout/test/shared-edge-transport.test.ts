@@ -148,6 +148,39 @@ test("deferred root reports join only after rendering with current page context;
   }
 });
 
+test("B1 deferred aggregate root retains internal logical boundaries and bounded inset metadata", () => {
+  const child = defineBlockAdapter({
+    name: "edges.inset-aggregate",
+    validate: () => ({}),
+    measure(_props, context) {
+      const bottom = { ...top, coordinate: 5, ownerSide: "bottom" as const, unsharedInset: 2 };
+      const before = context.edgeRegion(region(5, [bottom]));
+      const after = context.edgeRegion(region(5, [{ ...top, unsharedInset: 2 }, bottom]));
+      return {
+        sharedEdges: true,
+        fragmentation: "atomic",
+        extent: 1,
+        naturalSize: { width: 80, height: 10 },
+        fragment: () => ({
+          status: "placed",
+          nextOffset: 1,
+          height: 10,
+          nodes: [before, { type: "paintGroup", transform: [1, 0, 0, 1, 0, 5], children: [after] }],
+        }),
+      };
+    },
+  });
+  const parent = deferredParent(extension(child, {}));
+  const result = layoutFlow(flow([extension(parent, {})], { height: 100 }), {}, createExtensions([parent, child]));
+  assert.deepEqual(
+    rectangles(result.document.pages[0]!.children).map((node) => (node.type === "rect" ? [node.y, node.height] : [])),
+    [
+      [4, 2],
+      [9, 2],
+    ],
+  );
+});
+
 test("serialized marker output is ordinary native content, not a forged shared report", () => {
   const adapter = defineBlockAdapter({
     name: "edges.no-forgery",

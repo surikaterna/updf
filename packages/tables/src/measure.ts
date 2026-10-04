@@ -1,6 +1,7 @@
 import type { NodeDefinition } from "@updf/core";
 import type { MeasureContext, ParagraphProps } from "@updf/layout";
 import { error, number } from "./checks.js";
+import { reportGrid } from "./edge-report.js";
 import { cellSourcePath } from "./parts.js";
 import type { CellProps, CellStyle, TableInput, TableRow } from "./types.js";
 
@@ -118,7 +119,7 @@ export function measureRow(row: TableRow, table: TableInput, context: MeasureCon
   }
   return { height, nodes };
 }
-export function paintRows(rows: readonly MeasuredRow[], table: TableInput, top = true, bottom = true): MeasuredRow {
+export function paintRows(rows: readonly MeasuredRow[], table: TableInput, context: MeasureContext): MeasuredRow {
   const nodes: NodeDefinition[] = [];
   const boundaries: number[] = [];
   let height = 0;
@@ -128,49 +129,5 @@ export function paintRows(rows: readonly MeasuredRow[], table: TableInput, top =
     boundaries.push(height);
   }
   number(height, "/table/rows/height");
-  if (height && table.grid?.width)
-    edges(
-      nodes,
-      table.columns.map((column) => column.width),
-      height,
-      table,
-      boundaries.slice(0, -1),
-      top,
-      bottom,
-    );
-  return { height, nodes };
-}
-function edges(
-  nodes: NodeDefinition[],
-  widths: readonly number[],
-  height: number,
-  table: TableInput,
-  boundaries: readonly number[],
-  top: boolean,
-  bottom: boolean,
-): void {
-  const grid = table.grid;
-  if (!grid) return;
-  const width = widths.reduce((sum, value) => sum + value, 0);
-  const paint = {
-    stroke: grid.color,
-    fill: null,
-    width: grid.width,
-    lineCap: "butt" as const,
-    lineJoin: "bevel" as const,
-  };
-  const inset = grid.width;
-  const topY = top ? inset : 0,
-    bottomY = bottom ? height - inset : height;
-  const lines: NodeDefinition[] = [];
-  let x = 0;
-  for (let i = 0; i <= widths.length; i++) {
-    const edge = i === 0 ? inset : i === widths.length ? width - inset : x;
-    lines.push({ type: "line", x: edge, y: topY, x2: edge, y2: bottomY, paint });
-    x += widths[i] ?? 0;
-  }
-  for (const y of [topY, ...boundaries, bottomY])
-    lines.push({ type: "line", x: inset, y, x2: width - inset, y2: y, paint });
-  // Adjacent reserved regions paint complementary half-strokes at their shared edge.
-  nodes.push({ type: "paintGroup", clip: { x: 0, y: 0, width, height }, children: lines });
+  return reportGrid({ height, nodes }, table, boundaries.slice(0, -1), context);
 }

@@ -11,6 +11,21 @@ import { paintSharedEdges } from "./shared-edge-paint.js";
 import { ownEdgeRegion, ownSharedEdgeGroup, requireEdgeRegion } from "./shared-edge-regions.js";
 import type { EdgeRegionPlacement, SharedEdgeGroup } from "./shared-edge-types.js";
 
+/** A fixed transport wrapper can carry one direct report, never nested authored roots. */
+export function fixedRootReportPath(nodes: readonly NodeDefinition[]): string | undefined {
+  let children = nodes;
+  while (children.length === 1) {
+    const node = children[0];
+    if (!node || node.type !== "paintGroup") return undefined;
+    const value = sharedEdgeEmission(node);
+    if (value) return value.kind === "region" ? value.path : undefined;
+    const matrix = node.transform ?? [1, 0, 0, 1, 0, 0];
+    if (node.clip || matrix[0] !== 1 || matrix[1] !== 0 || matrix[2] !== 0 || matrix[3] !== 1) return undefined;
+    children = node.children;
+  }
+  return undefined;
+}
+
 function reports(
   nodes: readonly NodeDefinition[],
   operation: LayoutOperation,

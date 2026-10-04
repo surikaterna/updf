@@ -72,6 +72,48 @@ test("outer centerlines intersect only their allocation and unrepresentable stro
   );
   assert.throws(() => paint([{ ...edge, width: Number.MIN_VALUE }]), DocumentError);
 });
+test("B1 logical overlap resolves inset only on unshared spans without epsilon or same-side touch", () => {
+  const operation = createLayoutOperation({});
+  const before = ownEdgeRegion(
+    { width: 80, height: 10, nodes: [], claims: [{ ...edge, unsharedInset: 2, startInset: 2, endInset: 2 }] },
+    operation,
+    "/before",
+  );
+  const after = ownEdgeRegion(
+    {
+      width: 40,
+      height: 10,
+      nodes: [],
+      claims: [{ ...edge, coordinate: 0, interval: [0, 40], ownerSide: "top", unsharedInset: 2 }],
+    },
+    operation,
+    "/after",
+  );
+  const group = ownSharedEdgeGroup(
+    {
+      width: 80,
+      height: 20,
+      regions: [
+        { region: before, x: 0, y: 0 },
+        { region: after, x: 20, y: 10 },
+      ],
+    },
+    operation,
+    "/group",
+  );
+  assert.deepEqual(
+    paintSharedEdges(group, operation, "/group").map((node) =>
+      node.type === "rect" ? [node.x, node.y, node.width, node.height] : [],
+    ),
+    [
+      [2, 7, 18, 2],
+      [20, 9, 40, 2],
+      [60, 7, 18, 2],
+    ],
+  );
+  assert.deepEqual(before.claims[0]!.interval, [0, 80]);
+  assert.equal(before.claims[0]!.coordinate, 10);
+});
 test("the interval sweep handles many overlapping starts and expired winners without quadratic rescans", () => {
   const claims = Array.from(
     { length: 4000 },
