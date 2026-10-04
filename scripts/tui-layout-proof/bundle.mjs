@@ -37,7 +37,7 @@ function baselineSources(builder) {
     path: resolve(here, "../../packages/core/src/internal.ts"),
   }));
   const filter =
-    /(?:packages\/layout\/src\/(?:binary64|width-(?:resolver|distribution|input|types))\.ts|scripts\/tui-layout-proof\/(?:intervals\.ts|bundle\.mjs|run\.mjs))$/;
+    /(?:packages\/layout\/src\/(?:binary64|width-(?:resolver|distribution|input|types))\.ts|scripts\/tui-layout-proof\/(?:intervals\.ts|terminal\.ts|bundle\.mjs|run\.mjs))$/;
   // Immutable Git blobs are only historical evidence, never a second production allocator.
   builder.onLoad({ filter }, ({ path }) => ({
     contents: execFileSync("git", ["show", `${updfBaseline}:${path.slice(resolve(here, "../..").length + 1)}`], {
@@ -50,8 +50,8 @@ function baselineSources(builder) {
 
 function configure(builder, root, baseline) {
   if (baseline) baselineSources(builder);
-  builder.onResolve({ filter: /^@updf\/layout-kernel(?:\/numeric)?$/ }, ({ path }) => ({
-    path: resolve(here, `../../packages/layout-kernel/src/${path.endsWith("/numeric") ? "numeric" : "index"}.ts`),
+  builder.onResolve({ filter: /^@updf\/layout-kernel(?:\/(?:numeric|boxes|arithmetic|geometry))?$/ }, ({ path }) => ({
+    path: resolve(here, `../../packages/layout-kernel/src/${path.split("/")[2] ?? "index"}.ts`),
   }));
   builder.onResolve({ filter: /^proof:/ }, ({ path }) => ({
     path: join(root, "apps/demos/src", path === "proof:compile" ? "fsx/compile.ts" : "runtime/kalada-demo-install.ts"),

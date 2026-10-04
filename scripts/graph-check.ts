@@ -43,7 +43,12 @@ for (const build of builds) {
     );
   if (build === "dist-core") assert.ok(!modules.some((id) => /\/layout\//u.test(id)), "Layout leaked into core");
   if (build === "dist-core")
-    assert.ok(!modules.some((id) => /\/packages\/layout-kernel\//u.test(id)), "Kernel leaked into core");
+    assert.ok(
+      modules
+        .filter((id) => /\/packages\/layout-kernel\//u.test(id))
+        .every((id) => id.endsWith("/layout-kernel/dist/arithmetic.js")),
+      "Non-arithmetic kernel code leaked into core",
+    );
   if (["dist-flow", "dist-tables", "dist-composable-tables"].includes(build))
     assert.ok(
       modules.some((id) => /\/layout-kernel\/dist\/width-resolver\.js$/u.test(id)),

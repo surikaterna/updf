@@ -24,6 +24,7 @@ export interface ProofSnapshot {
   readonly outputs: readonly { key: string; nodeId: string; value: unknown; format: unknown }[];
 }
 export interface Row {
+  readonly source: ProofNode;
   readonly texts: readonly string[];
   readonly id: string;
 }
@@ -44,11 +45,11 @@ function textRow(node: ProofNode, snapshot: ProofSnapshot): Row {
     const control = snapshot.controls.find((entry) => entry.key === node.key);
     if (!control || control.type !== "field" || control.rendererId !== "text" || !control.visible)
       throw new Error("Unsupported/missing text control");
-    return { id: node.nodeId, texts: [ascii(node.label ?? ""), ascii(control.value)] };
+    return { source: node, id: node.nodeId, texts: [ascii(node.label ?? ""), ascii(control.value)] };
   }
   const output = snapshot.outputs.find((entry) => entry.key === node.key);
   if (!output || output.format !== "plain") throw new Error("Unsupported/missing plain output");
-  return { id: node.nodeId, texts: [ascii(output.value)] };
+  return { source: node, id: node.nodeId, texts: [ascii(output.value)] };
 }
 
 function container(node: ProofNode): boolean {

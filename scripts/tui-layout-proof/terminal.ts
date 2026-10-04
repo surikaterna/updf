@@ -1,4 +1,4 @@
-import { intervals } from "./intervals.js";
+import { terminalLayout } from "./box-bridge.js";
 import { ascii, type ProofSnapshot, rows, windowSize } from "./profile.js";
 
 export function wrap(text: string, width: number): string[] {
@@ -24,22 +24,6 @@ interface Box {
   readonly lines: readonly string[];
 }
 
-function place(texts: readonly string[], width: number, y: number): Box[] {
-  const tracks =
-    texts.length === 2
-      ? [
-          { weight: 1, min: 8, max: 24 },
-          { weight: 2, min: 12, max: 100 },
-        ]
-      : [width];
-  return intervals(width, tracks).boxes.map((box, index) => ({
-    x: box.start,
-    y,
-    width: box.width,
-    lines: wrap(texts[index] ?? "", box.width),
-  }));
-}
-
 function raster(boxes: readonly Box[], width: number, height: number): string {
   const buffer = Array.from({ length: height }, () => Array<string>(width).fill(" "));
   const occupied = new Set<number>();
@@ -63,22 +47,13 @@ function raster(boxes: readonly Box[], width: number, height: number): string {
 export function render(snapshot: ProofSnapshot, width: number, height = 20, footer = "STATIC / cell units") {
   windowSize(width, height);
   const content = rows(snapshot, footer);
-  const boxes: Box[] = [];
-  let y = 0;
-  for (const row of content) {
-    const placed = place(row.texts, width, y);
-    boxes.push(...placed);
-    y += Math.max(...placed.map((box) => box.lines.length));
-  }
   const border = `+${"-".repeat(width - 2)}+`;
   const footerLines = [border, ...wrap(footer, width - 2).map((line) => `|${line.padEnd(width - 2)}|`), border];
-  const full = intervals(width, [width]).boxes[0];
-  if (!full) throw new Error("Missing footer interval");
-  boxes.push({ x: full.start, y, width: full.width, lines: footerLines });
-  if (y + footerLines.length > height) throw new Error("Bounds overflow; clipping is forbidden");
+  const placed = terminalLayout(content, footerLines, width, wrap);
+  if (placed.height > height) throw new Error("Bounds overflow; clipping is forbidden");
   return Object.freeze({
-    body: raster(boxes, width, y + footerLines.length),
-    boxes: Object.freeze(boxes),
+    body: raster(placed.boxes, width, placed.height),
+    boxes: placed.boxes,
     order: content.map((row) => row.id),
   });
 }

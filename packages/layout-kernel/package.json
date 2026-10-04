@@ -14,6 +14,18 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./arithmetic": {
+      "types": "./dist/arithmetic.d.ts",
+      "import": "./dist/arithmetic.js"
+    },
+    "./geometry": {
+      "types": "./dist/geometry.d.ts",
+      "import": "./dist/geometry.js"
+    },
+    "./boxes": {
+      "types": "./dist/boxes.d.ts",
+      "import": "./dist/boxes.js"
+    },
     "./numeric": {
       "types": "./dist/numeric.d.ts",
       "import": "./dist/numeric.js"

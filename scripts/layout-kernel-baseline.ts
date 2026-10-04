@@ -1,5 +1,6 @@
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { gzipSync } from "node:zlib";
 import { render } from "@updf/core";
 import { cmrFixture, createCmrDocument } from "@updf/example-cmr/cmr";
@@ -8,6 +9,7 @@ import { freightInvoiceExample } from "../examples/business/freight-invoice.js";
 import { freightFonts } from "../tests/fixtures/fonts/freight-fonts.js";
 
 const hash = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
+const baseline = process.argv.includes("--baseline");
 const result = await build({
   stdin: {
     contents:
@@ -20,10 +22,32 @@ const result = await build({
   format: "esm",
   platform: "neutral",
   minify: true,
+  plugins: baseline
+    ? [
+        {
+          name: "immutable-arithmetic-control",
+          setup(builder) {
+            builder.onLoad({ filter: /packages\/core\/dist\/measurement\/arithmetic\.js$/ }, () => ({
+              contents: execFileSync(
+                "git",
+                ["show", "e96d2741f8d4a5f3086e6b95ff61a5967db7e7f1:packages/core/src/measurement/arithmetic.ts"],
+                { encoding: "utf8" },
+              ),
+              loader: "ts",
+            }));
+          },
+        },
+      ]
+    : [],
 });
 const bytes = result.outputFiles[0]?.contents;
 if (!bytes) throw new Error("Missing bundle");
 const runtime = await import(`data:text/javascript;base64,${Buffer.from(bytes).toString("base64")}`);
+const directory = new URL(`../artifacts/layout-kernel-b/core-${baseline ? "before" : "after"}/`, import.meta.url);
+await mkdir(directory, { recursive: true });
+await writeFile(new URL("bundle.mjs", directory), bytes);
+await writeFile(new URL("bundle.mjs.gz", directory), gzipSync(bytes));
+await writeFile(new URL("metafile.json", directory), `${JSON.stringify(result.metafile, null, 2)}\n`);
 console.log(
   JSON.stringify(
     {

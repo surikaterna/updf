@@ -31,17 +31,17 @@ const directories: string[] = [];
 const graphs: Record<string, readonly string[]> = {};
 try {
   const tarballs = new Map<string, string>();
-  for (const name of ["core", "layout-kernel", "layout", "tables", "geometry", "svg", "fontkit", "legacy"])
+  for (const name of ["layout-kernel", "core", "layout", "tables", "geometry", "svg", "fontkit", "legacy"])
     tarballs.set(name, await pack(`packages/${name}`, packs));
   tarballs.set("cmr", await pack("apps/cmr", packs));
   for (const names of [
     ["layout-kernel"],
-    ["core", "cmr"],
+    ["layout-kernel", "core", "cmr"],
     ["core", "layout-kernel", "layout"],
     ["core", "layout-kernel", "layout", "tables"],
-    ["core", "geometry"],
-    ["core", "geometry", "svg", "cmr"],
-    ["core", "fontkit"],
+    ["layout-kernel", "core", "geometry"],
+    ["layout-kernel", "core", "geometry", "svg", "cmr"],
+    ["layout-kernel", "core", "fontkit"],
     ["legacy"],
   ]) {
     const paths = names.map((name) => {
@@ -98,7 +98,11 @@ try {
           await assert.rejects(import(entry), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' });
       `,
       );
-      assert.ok(!graphs.layout.some((path) => /tables|react|geometry|svg|fontkit/u.test(path)));
+      assert.ok(
+        !graphs.layout.some((path) =>
+          /^(?:@updf\/(?:tables|geometry|svg|fontkit)\/|react(?:-dom)?(?:\/|$))/u.test(path),
+        ),
+      );
     }
     if (names.includes("geometry")) {
       await execute(directory, geometryRuntime);
@@ -125,7 +129,7 @@ try {
       await typeConsumer(directory, types);
       await typeConsumer(directory, types, true);
     }
-    if (names.length === 2 && names.includes("core") && names.includes("cmr")) {
+    if (names.length === 3 && names.includes("core") && names.includes("cmr")) {
       await absent(directory, ["@updf/geometry", "@updf/svg", "@updf/fontkit", "@updf/legacy"]);
     }
     if (names.includes("fontkit")) {

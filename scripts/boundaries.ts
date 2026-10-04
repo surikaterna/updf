@@ -54,6 +54,7 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/row-data.ts",
     "layout/src/row-vdom.ts",
     "layout/src/row-producer.ts",
+    "layout/src/row-placement.ts",
     "layout/src/container-data.ts",
     "layout/src/container-paint.ts",
     "layout/src/container-producer.ts",
@@ -140,8 +141,9 @@ export function portableGraph(modules: readonly string[], optional = false, reac
 export function packageEdge(owner: string, specifier: string): void {
   if (owner === "core")
     assert.ok(
-      !/^@updf\/(?:layout|layout-kernel|tables)(?:\/|$)/u.test(specifier),
-      "Core must not depend on layout/kernel/tables",
+      specifier === "@updf/layout-kernel/arithmetic" ||
+        !/^@updf\/(?:layout|layout-kernel|tables)(?:\/|$)/u.test(specifier),
+      "Core may depend only on kernel arithmetic, not boxes/layout/tables",
     );
   if (owner === "layout-kernel") assert.ok(specifier.startsWith("."), "Kernel must have zero runtime dependencies");
   if (owner === "layout")
@@ -159,6 +161,8 @@ export function packageEdge(owner: string, specifier: string): void {
 function sourceEdges(owner: string, text: string, path: string, root: string): void {
   for (const match of text.matchAll(/(?:from\s+|import\s*\()['"]([^'"]+)['"]/gu)) {
     if (match[1]) packageEdge(owner, match[1]);
+    if (owner === "core" && match[1] === "@updf/layout-kernel/arithmetic")
+      assert.equal(path.slice(join(root, "packages").length + 1), "core/src/measurement/arithmetic.ts");
   }
   for (const match of text.matchAll(/from ['"](@updf\/[^'"]+\/internal(?:-drawing)?)['"]/gu)) {
     const specifier = match[1];
