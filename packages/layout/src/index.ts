@@ -89,3 +89,5 @@ export type {
   SpacerBlock,
 } from "./types.js";
 export { Flow, MixedDocument as Document, Page } from "./vdom.js";
+export { resolveWidths } from "./width-resolver.js";
+export type { WeightedWidth, WidthResolution, WidthResolutionInput, WidthTrack } from "./width-types.js";
