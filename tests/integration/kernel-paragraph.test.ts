@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import { test } from "node:test";
-import { build } from "esbuild";
+import { certifyControlSource, controlSource, paragraphFixture } from "./kernel-paragraph-control.js";
 
 const fixture = `
 import {render} from '@updf/core';
@@ -18,36 +18,9 @@ export const result=layout(wrap(data));
 export const bytes=render(result.document);
 export const jsxBytes=render(layout(wrap(jsx)).document);
 `;
-async function paragraphFixture(control: boolean) {
-  const result = await build({
-    stdin: { contents: fixture, resolveDir: process.cwd() },
-    bundle: true,
-    write: false,
-    format: "esm",
-    platform: "neutral",
-    plugins: control
-      ? [
-          {
-            name: "pre-C-selector-control",
-            setup(builder) {
-              builder.onLoad({ filter: /packages\/layout\/dist\/content-producer\.js$/ }, () => ({
-                contents: execFileSync(
-                  "git",
-                  ["show", "cb719c2e709f0d2ee2dc79773fb093c9ce17650a:packages/layout/src/content-producer.ts"],
-                  { encoding: "utf8" },
-                ),
-                loader: "ts",
-              }));
-            },
-          },
-        ]
-      : [],
-  });
-  return import(`data:text/javascript;base64,${Buffer.from(result.outputFiles[0]!.contents).toString("base64")}`);
-}
 test("C production multipage authored paragraph matches pre-C paint/fit bytes, TSX and real PDF line order", async () => {
-  const current = await paragraphFixture(false),
-    control = await paragraphFixture(true);
+  const current = await paragraphFixture(fixture),
+    control = await paragraphFixture(fixture, await controlSource());
   assert.deepEqual(current.bytes, control.bytes);
   assert.deepEqual(current.bytes, current.jsxBytes);
   assert.equal(current.result.pageCount, 3);
@@ -73,4 +46,14 @@ test("C production multipage authored paragraph matches pre-C paint/fit bytes, T
     "SIXTH",
   ]);
   execFileSync("pdftoppm", ["-r", "72", "-png", path, "artifacts/layout-kernel-c/paragraph"]);
+});
+
+test("pre-C paragraph control rejects byte mutation and executes the historical producer body", async () => {
+  const source = await controlSource();
+  assert.throws(() => certifyControlSource(`${source} `), /pre-C source certificate/u);
+  const sentinel = "PRE_C_PARAGRAPH_PRODUCER_EXECUTED";
+  const mutated = source.replace("\n  return {", `\n  throw new Error('${sentinel}');\n  return {`);
+  assert.notEqual(mutated, source);
+  // In-memory fault injection only: the pinned fixture and production module stay untouched.
+  await assert.rejects(paragraphFixture(fixture, mutated), { message: sentinel });
 });

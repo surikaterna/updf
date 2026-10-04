@@ -90,3 +90,79 @@ lint/tests pass. No new exception or Changeset (showcase-only CSS/test change).
 Core/kernel production, PDF fixtures, SVG thresholds (#48/#50), workflows and
 playground dist are unchanged. Hosted CI on a new commit remains for parent
 delivery/monitoring after independent audit; no hosted-green claim.
+
+## 2026-10-04 follow-up: wire the historical paragraph control
+
+Addresses [PR #58 discussion r4179232761](https://github.com/surikaterna/updf/pull/58#discussion_r4179232761).
+Same worktree/branch; this follow-up starts at clean base/HEAD
+`2d9cc4d7a785d2eefbd2aa20a065bab52b621cb8` and remains uncommitted.
+
+Baseline esbuild probe (`stdin` exports `layout` from `@updf/layout`, with
+the original dist-only onLoad filter and `metafile: true`) returned:
+
+```json
+{"hits":0,"inputs":["packages/layout/src/content-producer.ts"]}
+```
+
+Root tsconfig source resolution bypassed the control: the earlier paragraph
+comparison was current versus current, not historical compatibility evidence.
+No checkout-depth change is needed. The replacement accepts the resolved source
+path (and dist for compatibility), asserts exactly one producer metafile input
+and exactly **one** replacement hit, and resolves historical relative imports
+from layout source. These assertions run before importing each control bundle.
+
+The test-only `tests/integration/fixtures/pre-c-content-producer.ts.txt` preserves
+the exact historical bytes. Development provenance:
+
+```sh
+git show cb719c2e709f0d2ee2dc79773fb093c9ce17650a:packages/layout/src/content-producer.ts | sha256sum
+```
+
+SHA-256: `eb2c1c642e0eaf4f384e78edd84d169a5a6fc7d3b3402b6f9cfeb829d06db32c`.
+The independent certificate is pinned in `kernel-paragraph-control.ts`; tests
+read the fixture, never Git. An appended source byte must fail certification.
+A separate in-memory mutation inserts a producer-body throw: public paragraph
+execution rejects with exact message `PRE_C_PARAGRAPH_PRODUCER_EXECUTED`.
+It is not an import-time throw; different bundled bytes produce a different
+data URL, avoiding reuse of the unmutated module. No real source is mutated.
+
+The original paragraph input, including style/lineHeight semantics, PDF byte
+comparison, data/TSX comparison, three-page ranges, qpdf check, Poppler line
+order and raster generation are unchanged. The real historical comparison
+passes; no golden or expected output was altered.
+
+Fresh historyless reproduction (no shared node_modules): archive base HEAD to
+`/tmp/opencode/pr58-control-historyless`, overlay the three delivered test files
+with tar, then from that directory run `npm ci --ignore-scripts --no-audit
+--no-fund`, `npm run build`, and `GIT_CEILING_DIRECTORIES=/tmp/opencode npm test`.
+Result: **688/688**, zero failures/skips. `GIT_CEILING_DIRECTORIES=/tmp/opencode
+git rev-parse --is-inside-work-tree` fails: no repository. Logs:
+`/tmp/opencode/pr58-control-historyless-{install,build,native}.log`.
+
+Local follow-up gates all pass:
+
+- `./node_modules/.bin/tsx --test tests/integration/kernel-paragraph.test.ts`: **2/2**.
+- `npm run format:check`, `npm run lint`, `npm run typecheck`: pass.
+- `npm test`: **688/688**, zero failures/skips.
+- `npm run test:consumer`: all **eight** clean tarball closures pass.
+- `npm run check:graphs`: all **12 existing** browser graph reports pass;
+  no app rebuild. `npm run check:licenses`: all **eight** package tarballs pass.
+- `npm pack --dry-run --json ./packages/<name>` manifest assertions exclude
+  the historical fixture/helper for layout-kernel/core/layout/tables/geometry/
+  svg/fontkit/legacy (99/299/399/51/37/76/19/66 files respectively).
+  Both `artifacts/{module-graphs,installed-graphs}.json` also exclude them.
+- `git diff --check`: pass. Gate logs: `/tmp/opencode/pr58-control-*.log`.
+
+Browser tests were not rerun for this test-only change. Prior hosted provenance:
+[run 37234214764](https://github.com/surikaterna/updf/actions/runs/37234214764),
+at base HEAD, passed native **687**, production browser **9**, showcase **57**,
+and playground browser **5**. Its separate unmodified SVG-reference job failed
+(#48/#50); the overall run is not green. These are prior results, not hosted
+validation of this follow-up. No thresholds, retries or workflows changed.
+
+Code-principles checklist passes: correctness and fault-injection coverage;
+cohesive files below 400 lines, changed functions below 50 and nesting at most
+three; intent/provenance comments only; lint/tests pass. No new exception or
+Changeset: test fixture/helper/test and evidence only, no runtime package change.
+No app build, served playground dist, showcase CSS, other worktree, tracker,
+staging, commit or delivery mutation. Ready for independent audit, not verified.
