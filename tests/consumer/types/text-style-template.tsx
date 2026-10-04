@@ -1,6 +1,8 @@
 /** @jsxImportSource @updf/core */
 import { render } from "@updf/core";
 import {
+  Block,
+  type BlockStyle,
   Document,
   Flow,
   type LineHeight,
@@ -25,10 +27,18 @@ const body: ParagraphStyle = {
   textAlign: "left",
 };
 const emphasis: SpanStyle = { fontSize: 20, lineHeight: absolute };
+const box: BlockStyle = {
+  backgroundColor: [0.9, 0.96, 1],
+  padding: 4,
+  paddingLeft: 8,
+  border: { width: 1, color: [0, 0, 0] },
+};
 const content = (
-  <Paragraph style={body}>
-    <Span style={emphasis}>Packed style</Span>
-  </Paragraph>
+  <Block style={box}>
+    <Paragraph style={body}>
+      <Span style={emphasis}>Packed style</Span>
+    </Paragraph>
+  </Block>
 );
 const measured = measure(content, { width: 200 });
 const tree = (
@@ -57,4 +67,13 @@ if (measured.size.height < 0) {
   // @ts-expect-error Present undefined is not supported.
   const undefinedStyle: ParagraphStyle = { lineHeight: undefined };
   void [family, aligned, pixels, undefinedStyle];
+  // @ts-expect-error Background is not an alias.
+  const obsoleteBox: BlockStyle = { background: [1, 1, 0] };
+  // @ts-expect-error Scalar-only padding shorthand.
+  const insetBox: BlockStyle = { padding: { top: 1, right: 1, bottom: 1, left: 1 } };
+  // @ts-expect-error Span backgrounds are planned separately in #43.
+  const highlighted: SpanStyle = { backgroundColor: [1, 1, 0] };
+  // @ts-expect-error Per-edge borders are planned separately in #42.
+  const bordered: BlockStyle = { borderLeft: { width: 1, color: [0, 0, 0] } };
+  void [obsoleteBox, insetBox, highlighted, bordered];
 }

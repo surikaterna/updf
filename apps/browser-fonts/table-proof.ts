@@ -33,7 +33,7 @@ export function tableProofDefinition() {
                 cells: [
                   {
                     children: span({ children: "Header", style: { font: "Helvetica", color: [1, 0, 0] } }),
-                    style: { background: [0.8, 1, 0.8] },
+                    style: { backgroundColor: [0.8, 1, 0.8] },
                   },
                   { children: "" },
                 ],

@@ -18,7 +18,7 @@ function decoration(box: Sizing, height: number): NodeDefinition[] {
     if (width > 0 && extent > 0)
       nodes.push({ type: "rect", x, y, width, height: extent, paint: { fill: color, stroke: null } });
   };
-  if (box.style.background) rect(0, 0, box.width, height, box.style.background);
+  if (box.style.backgroundColor) rect(0, 0, box.width, height, box.style.backgroundColor);
   const border = box.style.border;
   if (border?.width) {
     rect(0, 0, box.width, border.width, border.color);
@@ -62,7 +62,7 @@ export function* paintContainerSteps(
     for (const node of nodes) content.push(node);
   }
   // Background is beneath ink; only border rectangles remain for the foreground layer.
-  const children: NodeDefinition[] = outside.splice(0, box.style.background ? 1 : 0);
+  const children: NodeDefinition[] = outside.splice(0, box.style.backgroundColor ? 1 : 0);
   if (hidden)
     children.push({
       type: "paintGroup",

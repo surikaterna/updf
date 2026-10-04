@@ -117,12 +117,12 @@ async function nestedReservations(glyphTop: number): Promise<void> {
       { edge: "before", repeat: "first", height: 5, nodes: [] },
       { edge: "after", repeat: "all", height: 7, nodes: [] },
     ]),
-    style: { padding: { top: 1, right: 1, bottom: 1, left: 1 }, gap: 4 },
+    style: { padding: 1, gap: 4 },
     children: [paragraph({ children: "A" }), paragraph({ children: "A" })],
   });
   const content = block({
     decorations: before,
-    style: { padding: { top: 2, right: 2, bottom: 2, left: 2 }, gap: 3 },
+    style: { padding: 2, gap: 3 },
     children: [inside, paragraph({ children: "A" })],
   });
   const result = laidOut(content);

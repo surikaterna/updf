@@ -74,7 +74,7 @@ const stacked = Layout.block({
     width: 170,
     maxWidth: 180,
     height: 15,
-    padding: { top: 1, right: 1, bottom: 1, left: 1 },
+    padding: 1,
     border: { width: 1, color: [0, 1, 0] },
     gap: 1,
     overflow: "hidden",

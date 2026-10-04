@@ -1,15 +1,27 @@
 /** @jsxImportSource @updf/core */
 import { render } from "@updf/core";
 import { lower } from "@updf/core/vdom";
-import { createExtensions, Document, Flow, layout, Paragraph } from "@updf/layout";
-import { Table, type TableInput, table, tableExtension } from "@updf/tables";
+import { Block, createExtensions, Document, Flow, layout, Paragraph, Span } from "@updf/layout";
+import {
+  type CellStyle,
+  type RowStyle,
+  Table,
+  type TableInput,
+  type TableStyle,
+  table,
+  tableExtension,
+} from "@updf/tables";
 
 const columns = [{ width: 120 }, { width: 60 }] as const;
 const extensions = createExtensions([tableExtension]);
+const base: TableStyle = { fontSize: 10, lineHeight: 1.2, padding: 4, backgroundColor: [0.9, 0.96, 1] };
+const rowStyle: RowStyle = { padding: 3, paddingTop: 4, color: [0, 0, 1] };
+const cellStyle: CellStyle = { paddingLeft: 6, backgroundColor: [1, 1, 0] };
 const data = {
   columns,
+  style: base,
   head: { repeat: true, rows: [{ cells: [{ children: "Description" }, { children: "Count" }] }] },
-  body: [{ keepTogether: true, cells: [{ children: "Item" }, { children: 1 }] }],
+  body: [{ style: rowStyle, keepTogether: true, cells: [{ style: cellStyle, children: "Item" }, { children: 1 }] }],
   foot: { rows: [{ cells: [{ children: "Totals" }, { children: 1 }] }] },
 } as const satisfies TableInput;
 const content = (
@@ -19,7 +31,7 @@ const content = (
       margins={{ top: 5, right: 5, bottom: 5, left: 5 }}
       extensions={extensions}
     >
-      <Table columns={columns}>
+      <Table columns={columns} style={base}>
         <Table.Head repeat>
           <Table.Row>
             <Table.HeaderCell>Description</Table.HeaderCell>
@@ -27,9 +39,13 @@ const content = (
           </Table.Row>
         </Table.Head>
         <Table.Body>
-          <Table.Row keepTogether>
-            <Table.Cell>
-              <Paragraph>Item</Paragraph>
+          <Table.Row keepTogether style={rowStyle}>
+            <Table.Cell style={cellStyle}>
+              <Block style={{ paddingTop: 1 }}>
+                <Paragraph style={{ fontSize: 12 }}>
+                  Item<Span style={{ color: [1, 0, 0] }}>!</Span>
+                </Paragraph>
+              </Block>
             </Table.Cell>
             <Table.Cell>{"1"}</Table.Cell>
           </Table.Row>
@@ -62,4 +78,11 @@ if (result.pageCount < 0) {
   table({ columns, body: [{ keepTogether: false, cells: [{}, {}] }] });
   // @ts-expect-error Data rows are deeply readonly.
   data.body[0].cells.push({ children: "mutation" });
+  // @ts-expect-error Row defaults are role-aware, not arbitrary paragraph props.
+  const childStyle: RowStyle = { children: "text" };
+  // @ts-expect-error Uniform borders belong to Blocks; table grids are explicit.
+  const borderStyle: CellStyle = { border: { width: 1, color: [0, 0, 0] } };
+  // @ts-expect-error No compatibility background alias.
+  const oldStyle: TableStyle = { background: [1, 1, 0] };
+  void [childStyle, borderStyle, oldStyle];
 }

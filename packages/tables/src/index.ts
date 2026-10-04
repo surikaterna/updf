@@ -10,6 +10,7 @@ export type {
   CellProps,
   CellStyle,
   RowProps,
+  RowStyle,
   SectionProps,
   TableColumn,
   TableDefinition,
@@ -17,6 +18,7 @@ export type {
   TableProps,
   TableRow,
   TableSection,
+  TableStyle,
 } from "./types.js";
 export const Table = Object.freeze(
   Object.assign(blockComponent<TableProps>(tableExtension), { Head, Body, Foot, Row, Cell, HeaderCell }),

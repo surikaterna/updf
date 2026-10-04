@@ -28,8 +28,8 @@ export function composableInventory(title: string) {
             rows: [
               {
                 cells: [
-                  { children: "Inventory item", style: { background: [0.85, 0.92, 1] } },
-                  { children: "Count", style: { background: [0.85, 0.92, 1] } },
+                  { children: "Inventory item", style: { backgroundColor: [0.85, 0.92, 1] } },
+                  { children: "Count", style: { backgroundColor: [0.85, 0.92, 1] } },
                 ],
               },
             ],

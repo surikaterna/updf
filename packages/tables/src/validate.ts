@@ -13,16 +13,21 @@ export function style(value: unknown, path: string): asserts value is CellStyle 
       "whiteSpace",
       "breakLongWords",
       "padding",
-      "background",
+      "paddingTop",
+      "paddingRight",
+      "paddingBottom",
+      "paddingLeft",
+      "backgroundColor",
       "height",
       "overflow",
       "gap",
     ],
     path,
   );
-  for (const key of ["padding", "height", "gap"] as const) if (key in value) number(value[key], `${path}/${key}`);
+  for (const key of ["padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "height", "gap"] as const)
+    if (key in value) number(value[key], `${path}/${key}`);
   if ("lineHeight" in value) lineHeight(value.lineHeight, `${path}/lineHeight`);
-  if ("background" in value) rgb(value.background, `${path}/background`);
+  if ("backgroundColor" in value) rgb(value.backgroundColor, `${path}/backgroundColor`);
   if ("font" in value && typeof value.font !== "string") error(`${path}/font`, "Expected font id");
   if ("fontSize" in value) number(value.fontSize, `${path}/fontSize`, true);
   if ("color" in value) rgb(value.color, `${path}/color`);
@@ -52,13 +57,14 @@ export function cell(value: unknown, path: string): asserts value is CellProps {
     error(`${path}/children`, "Numeric cell text must be finite");
 }
 export function row(value: unknown, path: string, columns: number): asserts value is TableRow {
-  record(value, ["cells", "keepTogether", "minHeight", "key"], path);
+  record(value, ["cells", "style", "keepTogether", "minHeight", "key"], path);
   rowOptions(value, path);
   array(value.cells, `${path}/cells`);
   if (value.cells.length !== columns) error(`${path}/cells`, "Cell count must match column count");
   for (let i = 0; i < value.cells.length; i++) cell(value.cells[i], `${path}/cells/${i}`);
 }
 export function rowOptions(value: Record<string, unknown>, path: string): void {
+  if ("style" in value) style(value.style, `${path}/style`);
   if ("keepTogether" in value && value.keepTogether !== true)
     error(`${path}/keepTogether`, "Rows stay together; splitting is unsupported");
   if ("minHeight" in value) number(value.minHeight, `${path}/minHeight`);

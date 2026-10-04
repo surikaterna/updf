@@ -13,7 +13,7 @@ import { render } from '@updf/core';
 import { lower } from '@updf/core/vdom';
 import { Block, Document, Flow, measure, Paragraph, Span } from '@updf/layout';
 
-const content = <Block style={{ padding: { top: 4, right: 4, bottom: 4, left: 4 } }}>
+const content = <Block style={{ padding: 4 }}>
   <Paragraph style={{ fontSize: 10, lineHeight: 1.2 }}>
     {'Author text '}<Span style={{ color: [1, 0, 0] }}>with nested styles</Span>
   </Paragraph>
@@ -23,9 +23,9 @@ const bytes = render(lower(<Document><Flow pageSize={{ width: 200, height: 100 }
   margins={{ top: 10, right: 10, bottom: 10, left: 10 }}>{content}</Flow></Document>));
 ```
 
-Data authoring is equivalent: `paragraph({ children: ['Author text ',
+Data authoring is equivalent: `paragraph({ style: { fontSize: 10, lineHeight: 1.2 }, children: ['Author text ',
 span({ style: { color: [1, 0, 0] }, children: 'with nested styles' })] })`, optionally
-inside `block({ children: [...] })`. `layout(document({ children: flow({ pageSize,
+inside `block({ style: { padding: 4 }, children: [...] })`. `layout(document({ children: flow({ pageSize,
 margins, children }) }))` accepts the same data content. Import components and
 constructors from the root. Root imports do not load tables, SVG, Fontkit, React or Node code.
 The small core-owned recipe/context normalization bridge is intentionally present.

@@ -10,13 +10,30 @@ export interface MeasuredRow {
 }
 function inherit(...styles: readonly (CellStyle | undefined)[]): CellStyle {
   let result: CellStyle = {};
-  for (const style of styles) if (style) result = { ...result, ...style };
+  for (const style of styles) {
+    if (!style) continue;
+    const padding = style.padding;
+    const expanded =
+      padding === undefined
+        ? {}
+        : {
+            paddingTop: padding,
+            paddingRight: padding,
+            paddingBottom: padding,
+            paddingLeft: padding,
+          };
+    result = { ...result, ...expanded, ...style };
+  }
   return result;
 }
 export function paragraphDefaults(style: CellStyle): ParagraphProps {
   const { whiteSpace, breakLongWords, ...text } = style;
   delete text.padding;
-  delete text.background;
+  delete text.paddingTop;
+  delete text.paddingRight;
+  delete text.paddingBottom;
+  delete text.paddingLeft;
+  delete text.backgroundColor;
   delete text.height;
   delete text.overflow;
   delete text.gap;
@@ -34,7 +51,6 @@ function measuredCell(
   context: MeasureContext,
   sourcePath: string,
 ) {
-  const padding = style.padding ?? 4;
   const inset = grid;
   const innerWidth = width - 2 * grid;
   number(innerWidth, `${context.sourcePath}${sourcePath}/width`, true);
@@ -45,7 +61,11 @@ function measuredCell(
     implicitParagraph: true as const,
     sourcePath,
     style: {
-      padding: { top: padding, right: padding, bottom: padding, left: padding },
+      padding: 4,
+      ...(style.paddingTop === undefined ? {} : { paddingTop: style.paddingTop }),
+      ...(style.paddingRight === undefined ? {} : { paddingRight: style.paddingRight }),
+      ...(style.paddingBottom === undefined ? {} : { paddingBottom: style.paddingBottom }),
+      ...(style.paddingLeft === undefined ? {} : { paddingLeft: style.paddingLeft }),
       ...(style.gap === undefined ? {} : { gap: style.gap }),
       ...(style.height === undefined ? {} : { height: style.height }),
       ...(style.overflow === undefined ? {} : { overflow: style.overflow }),
@@ -58,7 +78,7 @@ export function measureRow(row: TableRow, table: TableInput, context: MeasureCon
   const cells = row.cells.map((cell, index) => {
     const column = table.columns[index];
     if (!column) error("/table/columns", "Missing column");
-    const style = inherit(table.style, column.style, cell.style);
+    const style = inherit(table.style, column.style, row.style, cell.style);
     return {
       ...measuredCell(
         cell,
@@ -80,14 +100,14 @@ export function measureRow(row: TableRow, table: TableInput, context: MeasureCon
   const nodes: NodeDefinition[] = [];
   let x = 0;
   for (const cell of cells) {
-    if (cell.style.background)
+    if (cell.style.backgroundColor)
       nodes.push({
         type: "rect",
         x,
         y: 0,
         width: cell.width,
         height,
-        paint: { fill: cell.style.background, stroke: null },
+        paint: { fill: cell.style.backgroundColor, stroke: null },
       });
     nodes.push({
       type: "paintGroup",

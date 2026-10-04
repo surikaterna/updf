@@ -45,7 +45,7 @@ function producer(
 test("public adapter content measurement uses the same paragraph and stacked block engine", () => {
   const content = block({
     children: [paragraph({ children: "First paragraph" }), paragraph({ children: "Second paragraph" })],
-    style: { padding: { top: 2, right: 3, bottom: 2, left: 3 }, gap: 4 },
+    style: { padding: 3, paddingTop: 2, paddingBottom: 2, gap: 4 },
   });
   const natural = measure(content, { width: 100 });
   const adapter = producer(content, (_context, result) => {

@@ -1,4 +1,4 @@
-# Public paragraph/span text styles (#49-B)
+# Public role-aware styles (#49)
 
 This is a deliberate migration of the unreleased native authoring API, not CSS
 compatibility. Import `ParagraphStyle`, `SpanStyle`, `LineHeight`, `PointLength`
@@ -77,18 +77,91 @@ boundaries; LF is a hard break in both. `breakLongWords` is `"error"` or
 CSS min-content `overflowWrap: anywhere`. Span boundaries do not split words.
 Fresh-page atomic oversize remains a strict error, not CSS break-inside fallback.
 
-## Migration and bounded table plumbing
+## Boxes and table defaults
+
+Import `BoxStyle`/`BlockStyle` from `@updf/layout` and `TableStyle`, `RowStyle`,
+`CellStyle` from `@updf/tables`. These are supported schemas, not
+`React.CSSProperties` or arbitrary Paragraph props. Row and cell defaults currently
+support the same fields; the named schemas describe where they apply.
+
+| Fields | Block.style | Table / column / row / cell.style | Paragraph / Span |
+| --- | --- | --- | --- |
+| font, fontSize, color, lineHeight, textAlign | no | Paragraph defaults | as above |
+| whiteSpace, breakLongWords | no | Paragraph controls | Paragraph props only |
+| backgroundColor | yes | cell-owner fill | no; Span highlights planned in #43 |
+| padding, paddingTop/Right/Bottom/Left | yes | cell-owner insets | no |
+| height, gap, overflow | yes | cell-owner constraints | no |
+| width, min/maxWidth, min/maxHeight | yes | no; columns have explicit width, rows have minHeight prop | no |
+| border | uniform Block border only | no; Table.grid is uniform and explicit | no |
+
+Geometry is finite nonnegative PDF points, except positive Block/column width and
+fontSize. Background is an RGB triple, not a CSS color string. Omitted background
+means no fill; omitted border/grid means no stroke reservation. Block padding is
+zero by default; cell padding is 4pt. Gap defaults zero, height is natural when
+omitted, overflow defaults error. Block width fills available width; omitted min/max
+constraints do not impose extra bounds. Cell height closes its border box, not the
+row; row height is max cell height plus grid reservations, subject to row minHeight.
+Table, column and row style objects supply cell defaults; they do not create extra
+layout boxes or an ambient cascade. Box properties never flow into nested Blocks,
+Paragraphs or Spans. Text defaults do reach explicit Paragraphs inside cell Blocks
+under the explicit table content contract. Header/footer rows use the same rules.
+
+Only scalar `padding` is a shorthand; no strings, arrays or Insets object. An edge
+overrides shorthand within one style object, **independent of key enumeration**:
+`{ paddingLeft: 8, padding: 4 }` and `{ padding: 4, paddingLeft: 8 }` are equivalent.
+Ordinary object spreads still choose the last value for the *same* key. Objects
+have no history: `{ ...{ paddingLeft: 8 }, ...{ padding: 4 } }` retains that explicit
+left edge. Across distinct table default layers, each shorthand is expanded to
+four edges **before** merging, so a later row `padding: 3` replaces an earlier
+column `paddingLeft: 8`. A cell's explicit edge can then override just that edge.
+No general CSS shorthand set, parser or cascade is implemented.
+
+Merge order is per property: library → table → column → row → cell → explicit
+Paragraph → nested Span. Last supported value wins; omitted keys preserve earlier
+values. Ratios remain raw through all layers. Present undefined is an error, not a
+reset; unknown/wrong-role keys and malformed/nonfinite/negative values reject with
+source paths even when an earlier layer would be overridden. Resource IDs are
+validated before content measurement callbacks. Table measurements and final PDF
+painting share the same operation's resources, profile, limits and extension scope.
+Do not add an independent callback or measurement configuration for styles.
+
+```tsx
+/** @jsxImportSource @updf/core */
+import { Block, Paragraph, Span } from '@updf/layout';
+import { Table } from '@updf/tables';
+const content = <Block style={{ backgroundColor: [0.9, 0.96, 1], padding: 4,
+  paddingLeft: 8, border: { width: 1, color: [0, 0, 0] } }}>
+  <Table columns={[{ width: 120, style: { paddingLeft: 9 } }]}
+    style={{ fontSize: 10, lineHeight: 1.2, padding: 4 }}>
+    <Table.Body><Table.Row style={{ padding: 3, color: [0, 0, 1] }}>
+      <Table.Cell style={{ backgroundColor: [1, 1, 0], paddingTop: 5 }}>
+        <Paragraph style={{ fontSize: 12 }}>Text<Span style={{ fontSize: 20 }}>!</Span></Paragraph>
+      </Table.Cell>
+    </Table.Row></Table.Body>
+  </Table>
+</Block>;
+```
+
+Install `tableExtension` explicitly in the containing Flow/measurement extensions.
+For branding, read an application-owned `Theme` via `useContext(Theme)` and apply
+its typed values to these styles explicitly, as in the mixed showcase. A provider
+alone does not restyle anything. Borders remain existing uniform Block border and
+Table grid semantics; per-edge borders are coordinated future #42, not a duplicate
+implementation. Span backgrounds remain future #43, not box inheritance.
+
+## Migration
 
 - Paragraph `defaultStyle: { fontSize: 12 }` → `style: { fontSize: 12 }`.
 - Paragraph `align: "right"` → `style: { textAlign: "right" }`.
 - Old paragraph `lineHeight: 16` → `style: { lineHeight: pt(16) }`, **not 16**.
 - Span `style` gains raw lineHeight; its other field names are unchanged.
-- Table/column/cell text defaults now use flat `font`, `fontSize`, `color`,
+- Table/column/row/cell text defaults now use flat `font`, `fontSize`, `color`,
   `lineHeight` and `textAlign` within their existing style object. Existing
-  table → column → cell defaults merge per key, then paragraph → nested Span
+  table → column → row → cell defaults merge per key, then paragraph → nested Span
   overrides. Whitespace/break controls remain explicit paragraph defaults.
-  C owns backgrounds/padding/row-cell schema and the final merge contract;
-  B does not introduce row styles or aliases for old text defaults.
+- Block/cell `background` → `backgroundColor`, with no alias.
+- Block `padding: { top: 2, right: 3, bottom: 2, left: 3 }` →
+  `padding: 3, paddingTop: 2, paddingBottom: 2`. All scalar geometry stays points.
 
 Fixed core `text`/`richText` and `ParagraphDefinition` are a separate low-level
 point-valued contract; do not migrate them to ratios. Legacy and historical audit
@@ -99,3 +172,5 @@ flex are added. Any future stylesheet adapter is a distinct optional boundary.
 Compile-checked NodeNext/Bundler public examples live in
 `tests/consumer/types/text-style-template.tsx`; geometry, inheritance, strict
 runtime rejection and independent Poppler ink proofs protect the native path.
+Cross-role table examples compile in NodeNext and Bundler mode in
+`tests/consumer/types/composable-tables-template.tsx` using clean packed packages.

@@ -1,15 +1,15 @@
 import type { RGB } from "@updf/core";
-import type { BlockContent, ImplicitInlineContent, ParagraphStyle } from "@updf/layout";
+import type { BlockContent, BoxStyle, ImplicitInlineContent, ParagraphStyle } from "@updf/layout";
 
-export interface CellStyle extends ParagraphStyle {
+export interface TableStyle extends ParagraphStyle, BoxStyle {
   readonly whiteSpace?: "preserve" | "collapse";
   readonly breakLongWords?: "error" | "codePoint";
-  readonly padding?: number;
-  readonly background?: RGB;
   readonly height?: number;
   readonly overflow?: "error" | "hidden";
   readonly gap?: number;
 }
+export type RowStyle = TableStyle;
+export type CellStyle = TableStyle;
 export interface TableColumn {
   readonly width: number;
   readonly style?: CellStyle;
@@ -19,6 +19,7 @@ export interface CellProps {
   readonly style?: CellStyle;
 }
 export interface RowProps {
+  readonly style?: RowStyle;
   readonly children?: BlockContent;
   readonly keepTogether?: true;
   readonly minHeight?: number;
@@ -29,6 +30,7 @@ export interface SectionProps {
   readonly repeat?: boolean;
 }
 export interface TableRow {
+  readonly style?: RowStyle;
   readonly cells: readonly CellProps[];
   readonly keepTogether?: true;
   readonly minHeight?: number;
@@ -41,7 +43,7 @@ export interface TableSection {
 }
 export interface TableProps {
   readonly columns: readonly TableColumn[];
-  readonly style?: CellStyle;
+  readonly style?: TableStyle;
   readonly grid?: { readonly width: number; readonly color: RGB };
   readonly children?: BlockContent;
 }

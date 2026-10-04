@@ -35,8 +35,11 @@ Native Paragraph and Span styles now follow the [#49 text-style migration](text-
 replace paragraph `defaultStyle` with `style`, `align` with `style.textAlign`, and
 old point-valued `lineHeight: 16` with `style: { lineHeight: pt(16) }`. Numeric style
 line heights are ratios, not points. No old-prop aliases remain. Fixed core text/
-rich-text definitions and the separate legacy package are unchanged. Box and table
-row/cell schema migration remains the separate #49-C slice.
+rich-text definitions and the separate legacy package are unchanged. Block/cell
+`background` is now `backgroundColor` without an alias; Block padding is a scalar
+shorthand plus `paddingTop/Right/Bottom/Left`. Table row styles join explicit cell
+default layers, expanded before merging. The linked contract defines supported
+roles and precedence; per-edge borders #42 and Span backgrounds #43 remain planned.
 
 Historical audit records under `docs/evidence` retain their dated APIs/status.
 Test-only direct source imports preserve internal renderer regression coverage;

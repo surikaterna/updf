@@ -107,7 +107,7 @@ test("#49-B composition is source-order object composition, sibling inheritance 
     [20, 12, 12],
   );
   assert.equal(
-    measure(block({ style: { background: [1, 1, 0] }, children: [paragraph({ children: "A" })] }), { width: 200 })
+    measure(block({ style: { backgroundColor: [1, 1, 0] }, children: [paragraph({ children: "A" })] }), { width: 200 })
       .lines[0]!.height,
     10,
   );

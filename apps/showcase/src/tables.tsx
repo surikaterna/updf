@@ -60,8 +60,8 @@ export function tableDefinition(title: string, controls: TableControls = tableDe
         >
           <Table.Head repeat={controls.repeatHeader}>
             <Table.Row>
-              <Table.HeaderCell style={{ background: [0.85, 0.92, 1] }}>Inventory item</Table.HeaderCell>
-              <Table.HeaderCell style={{ background: [0.85, 0.92, 1] }}>Count</Table.HeaderCell>
+              <Table.HeaderCell style={{ backgroundColor: [0.85, 0.92, 1] }}>Inventory item</Table.HeaderCell>
+              <Table.HeaderCell style={{ backgroundColor: [0.85, 0.92, 1] }}>Count</Table.HeaderCell>
             </Table.Row>
           </Table.Head>
           <Table.Body>{inventoryRows(controls, visual)}</Table.Body>

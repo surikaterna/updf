@@ -6,7 +6,7 @@ import { type DocumentDefinition, render } from "@updf/core";
 import { flow, paragraph } from "../../packages/layout/test/fixtures.js";
 import { block, type FlowBlock, layoutFlow } from "../fixtures/transitional-layout.js";
 
-const padding = { top: 4, right: 4, bottom: 4, left: 4 };
+const padding = 4;
 function definition(nested = false): DocumentDefinition {
   const fixed: FlowBlock = {
     type: "fixed",
@@ -32,7 +32,7 @@ function definition(nested = false): DocumentDefinition {
         style: {
           height: 50,
           overflow: "hidden",
-          padding: { top: 2, right: 2, bottom: 2, left: 2 },
+          padding: 2,
           border: { width: 1, color: [0, 0, 1] },
         },
       })

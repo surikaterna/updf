@@ -33,7 +33,7 @@ function blockDocument(title: string, controls: BlockControls) {
           style={{
             ...(controls.blockHeight ? { height: controls.blockHeight } : {}),
             overflow: controls.hidden ? "hidden" : "error",
-            padding: { top: 6, right: 6, bottom: 6, left: 6 },
+            padding: 6,
             border: { width: 2, color: [0, 0.6, 0] },
             gap: 4,
           }}

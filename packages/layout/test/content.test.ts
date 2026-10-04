@@ -68,7 +68,7 @@ test("D: data and semantic JSX share defaults, inherited Span styles, UTF16 sour
 test("D: natural Block measurement uses real capacity, border-box width, insets and native clipping", () => {
   const content = block({
     children: [paragraph({ children: "x" })],
-    style: { width: 80, padding: { top: 2, right: 2, bottom: 2, left: 2 }, border: { width: 1, color: [0, 1, 0] } },
+    style: { width: 80, padding: 2, border: { width: 1, color: [0, 1, 0] } },
   });
   const result = measure(content, { width: 100 });
   assert.deepEqual(result.size, { width: 80, height: 16 });

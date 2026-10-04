@@ -66,13 +66,18 @@ finite scalar numbers) as one implicit Paragraph. Mixed naked inline/block conte
 requires explicit Paragraphs. Numbers in explicit Paragraph/Span remain subject to
 the ordinary strict inline grammar. Text wrapping/baselines use D's existing engine.
 
-`style` inherits table → column → cell → Paragraph → Span. Supported text fields are
+Text defaults merge library → table → column → row → cell → explicit Paragraph → nested Span.
+`TableStyle`, `RowStyle` and `CellStyle` are explicit readonly role schemas. Supported text fields are
 `font` (resource ID), `fontSize` (points), RGB `color`, `lineHeight` (positive ratio,
 `"normal"`, or layout `pt(n)`), `textAlign`, whiteSpace, breakLongWords. Text fields
 merge per key before becoming Paragraph.style defaults; raw line heights inherit
 through nested Spans. See [text styles](../../docs/text-styles.md). Old text names
-reject rather than alias. Box/row-cell schema migration belongs to #49-C.
-Cell padding defaults to 4pt; background, gap, closed border-box height and
+reject rather than alias. Table/column/row styles are cell defaults, not table or row
+layout boxes. Box fields never inherit into cell descendants.
+Cell scalar `padding` defaults to 4pt; `paddingTop/Right/Bottom/Left` override the
+shorthand within each layer regardless of key enumeration. Each layer expands its
+shorthand before merging: a higher-priority padding replaces lower-priority edges.
+`backgroundColor`, gap, closed border-box height and
 error/hidden overflow are supported. Closed cells use the C container/clip engine;
 clipping is not redaction. Row height is max cell border-box height plus the grid
 reservations, or explicit row minHeight. Grid has uniform width/RGB, contained outer

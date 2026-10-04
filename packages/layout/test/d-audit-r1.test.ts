@@ -142,7 +142,7 @@ test("D-F2: nested mixed reservations, insets, gaps and following siblings match
     { edge: "after", repeat: "all", height: 2, nodes: [] },
     { edge: "after", repeat: "last", height: 3, nodes: [] },
   ]);
-  const inset = { top: 1, right: 1, bottom: 1, left: 1 };
+  const inset = 1;
   const inner = block({
     decorations: createDecorationPlan([
       { edge: "before", repeat: "last", height: 5, nodes: [] },

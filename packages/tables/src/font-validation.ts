@@ -1,6 +1,6 @@
 import { type MeasureContext, paragraph } from "@updf/layout";
 import { paragraphDefaults } from "./measure.js";
-import { cellSourcePath } from "./parts.js";
+import { cellSourcePath, rowSourcePath } from "./parts.js";
 import type { CellStyle, TableInput } from "./types.js";
 
 export function validateFonts(table: TableInput, context: MeasureContext): void {
@@ -20,10 +20,13 @@ export function validateFonts(table: TableInput, context: MeasureContext): void 
     ["body", table.body],
     ["foot", table.foot?.rows ?? []],
   ] as const)
-    for (const [index, row] of rows.entries())
+    for (const [index, row] of rows.entries()) {
+      const path = `/props/${name}${name === "body" ? "" : "/rows"}/${index}`;
+      check(row.style, `${rowSourcePath(row, context.sourcePath, path)}/style`);
       for (const [column, cell] of row.cells.entries())
         check(
           cell.style,
           `${cellSourcePath(cell, context.sourcePath, `/props/${name}${name === "body" ? "" : "/rows"}/${index}/cells/${column}`)}/style`,
         );
+    }
 }

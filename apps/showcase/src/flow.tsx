@@ -13,7 +13,7 @@ export const flowDefaults: FlowControls = { count: 6, preset: "compact", regions
 function ReportFooter() {
   const page = useContext(PageContext);
   return (
-    <Block style={{ padding: { top: 8, right: 0, bottom: 0, left: 0 } }}>
+    <Block style={{ paddingTop: 8 }}>
       <Paragraph style={{ fontSize: 10, lineHeight: pt(16) }}>
         {`Repeated footer ${page.docPageNumber}/${page.docPageCount}`}
       </Paragraph>

@@ -21,7 +21,7 @@ const result = layout(document({ children: flow({
     children: [chart({ height: 80, values: [0.2, 0.6, 0.9] })],
     style: {
       height: 48, overflow: "hidden",
-      padding: { top: 6, right: 6, bottom: 6, left: 6 },
+      padding: 6,
       border: { width: 2, color: [0, 0.6, 0] },
     },
   })],
@@ -55,12 +55,15 @@ Present undefined fields, unsupported keys, getters, array holes and classes fai
 | `minWidth` / `maxWidth` | Nonnegative constraints applied to computed width; min > max rejects |
 | `height` | Nonnegative **closed** border-box height; omitted uses natural content height |
 | `minHeight` / `maxHeight` | Nonnegative constraints applied to computed height; min > max rejects |
-| `padding` | Optional Insets with all four nonnegative sides; omitted is zero |
+| `padding` | Optional scalar nonnegative shorthand in points; omitted is zero |
+| `paddingTop` / `paddingRight` / `paddingBottom` / `paddingLeft` | Nonnegative point edges overriding shorthand, regardless of key enumeration |
 | `border` | Optional nonnegative width and readonly RGB color; reserves each side |
-| `background` | Optional readonly RGB color |
+| `backgroundColor` | Optional readonly RGB color; absent means no fill |
 | `gap` | Nonnegative space only between non-control children; no outer gap or margin collapse |
 | `overflow` | `error` (default) or `hidden`; no visible/auto/scroll modes |
 
+Block style never becomes an ambient descendant style. See [styles](text-styles.md) for
+role support, object composition and the deliberate unreleased API migration.
 Width constraints do not shrink an oversized border box to fit a parent. Its final
 width must remain positive and fit the available region, including in hidden mode.
 Border and padding are subtracted before measuring children. Derived content axes

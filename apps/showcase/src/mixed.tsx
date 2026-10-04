@@ -26,7 +26,7 @@ export function ReportFooter() {
   const page = useContext(PageContext);
   const theme = useContext(Theme);
   return (
-    <Block style={{ background: theme.background }}>
+    <Block style={{ backgroundColor: theme.background }}>
       <Paragraph style={{ fontSize: 10, lineHeight: 1.4 }}>
         {`Page ${page.docPageNumber}/${page.docPageCount}`}
       </Paragraph>
