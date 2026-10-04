@@ -246,3 +246,137 @@ at most three; no unnecessary comments; proportional tests; lint/tests pass.
 No new exception and no Changeset: private app-only runtime fix. Implementation
 is ready for independent audit; no stage/commit/push or delivery authorization
 was exercised.
+
+## 2026-10-05: prepared width fit and historyless arithmetic profiling
+
+Bounded PR #58 review fixes (Copilot prepared-width finding and discussion
+r4179506395). Worktree `/home/sprawl/projects/updf/trees/layout-kernel`, branch
+`feature/layout-kernel`, clean starting base/HEAD
+`6d4fe13b2aa92f36494f37555004ec19a6b4877c`. All changes remain unstaged/uncommitted;
+no tracker or delivery mutation. Issue ID: N/A (PR review assignment).
+
+### Runtime fit contract
+
+`viewBox` now checks compensated width minus left/right insets against the
+compensated child-width total plus fixed gaps, before `placeResolved`. This uses
+the same existing `exceeds` metric policy as its vertical prepared precondition;
+no new epsilon, allocation, resize, truncation, margin or wrapping behavior.
+Generic boxes and later strict PDF materialized-geometry checks are unchanged.
+Zero child sizes remain accepted. The README states both prepared fit checks.
+Aggregate fit is checked after the indexed child snapshot: trusted `childAt`
+size callbacks legitimately run to discover the total, once per child. Invalid
+metadata/counts/accessors reject before child callbacks; no content measurement
+is introduced.
+
+Focused tests cover child totals, gaps, each inset, combined reservations,
+empty rows with oversized insets, nonfinite totals, exact ordinary/fractional/
+tiny/large fits, zero sizes, invalid numeric fields/counts and accessor rejection.
+The standalone packed consumer checks true inset-associated output bounds and
+rejects the real width-10/two-width-8 example. A separate actual bundled old/new
+probe (`/tmp/opencode/pr58-review-profiles.mjs`) confirms old output coordinates
+`[[0,8],[8,8]]` reach 16; current execution throws `GEOMETRY` at
+`/actual-overflow`. Neither result is mocked.
+
+### Historical control
+
+`scripts/layout-kernel-baseline.ts --baseline` now loads the test-only
+`tests/integration/fixtures/pre-kernel-arithmetic.ts.txt`, with independent pinned
+SHA-256 `6c99483a778c69420c73b74c4745247479d484c4d6d0eacce1be1ed28b0dd620`.
+Provenance is the original
+`e96d2741f8d4a5f3086e6b95ff61a5967db7e7f1:packages/core/src/measurement/arithmetic.ts`,
+as certified above. No Git object, network or install is needed at runtime.
+The cohesive script helper accepts source/dist resolution, asserts exactly one
+matching metafile input and one replacement, and reports revision/path/digest,
+resolved input and replacement count before executing the bundle.
+
+The focused regression exercises both source and dist hooks, rejects an appended
+source byte and a wrong-entry/zero-hit graph, retains loader parse-error origin,
+and inserts a throw inside historical `MetricSum.add`. Public **rich** core
+measurement executes that exact body sentinel; the unmutated control succeeds.
+Default current profiling remains current. Missing rows evidence fails clearly
+with the build/test prerequisite and original ENOENT cause, not a hidden install.
+Historical evidence above is not rewritten or presented as a new baseline run.
+
+Historyless reproduction: archive starting HEAD to
+`/tmp/opencode/pr58-review-historyless`, overlay this slice's tracked diff and
+four new files, copy existing node_modules preserving local workspace symlinks,
+then from that archive cwd run `npm run build`,
+`GIT_CEILING_DIRECTORIES=/tmp/opencode npm test` (**694/694**), and
+`GIT_CEILING_DIRECTORIES=/tmp/opencode ./node_modules/.bin/tsx scripts/layout-kernel-baseline.ts --baseline`.
+The final control metadata reports `packages/core/dist/measurement/arithmetic.js`
+and **1** replacement. Git repository detection fails as expected. No install.
+
+### Fresh cost and preservation evidence
+
+Captured existing profiles before editing at the starting HEAD, then reran
+`tsx scripts/{kernel-profile,box-profile,fragment-profile,layout-kernel-baseline}.ts`.
+Logs/JSON: `/tmp/opencode/pr58-review-{before,after}-{kernel,box,fragment,core}.json`
+and `/tmp/opencode/pr58-review-profiles.log`.
+
+| Scope | Before raw/gzip | Current raw/gzip |
+| --- | ---: | ---: |
+| Allocator/numeric | 4575/1991 | 4575/1991 |
+| Empty generic box | 14219/5358 | 14219/5358 |
+| Measured generic row | 14392/5419 | 14392/5419 |
+| Fragmentation | 11306/4277 | 11306/4277 |
+| Boxes + fragmentation | 21879/7772 | 21879/7770 |
+| Public prepared helper microbundle | 4672/2063 | 4875/2150 |
+| Current native core | 39516/13985 | 39516/13985 |
+
+Prepared helper delta: **+203 raw / +87 gzip**. Its old/current SHA-256 values
+are `168e3e7b2d4b7a18ff6c393f5981db7d092fdb8609294946c81eca0b736c0d63` and
+`51d1e70b4b686cd3e5407e4ac9691735a4ca92ec2f06e740a8f6e139e9a35f03`.
+Combined generic boxes/fragmentation retains no prepared-helper bytes; its small
+gzip delta accompanies minified symbol changes, not new retained functionality.
+Whole installed kernel unpacked bytes: **152602 -> 153529** (+927 including
+emitted source/maps and README). Current core SHA-256 remains
+`d4f77fda0ba7aa58bb7c8f1391ee155873a81e0cbec0fe28f0b7bbcfa7e893b0`.
+Fresh historical control is 39516/13984 with SHA-256
+`00664c963c61a7017a1fdbadcafc3c6564df43814223b5fc1344621c2e751b21`;
+different control bundle bytes, identical PDF bytes. Four unchanged PDF hashes:
+
+- Native: `07175eea062e0b7e4ce412840d86ad6d65a51faa6e6a081bc4ee8a0d1056ee6a`.
+- CMR: `8316f7de647590dbfad97a7dff0aac7dd6dbde1ff98cbdff544387ca59c49a22`.
+- Real Rows geometry: `83c3e00d2ed01e1d26721c315b6ae35a9346da3cd97f6ee89af8f7bc09f60a2e`.
+- Freight: `fb0e28599369c2eccd401bd236fadcb0399de3480385e2e80fde56014381c58c`.
+
+### Gates and delivered manifest
+
+- `tsx --test packages/layout-kernel/test/*.test.ts tests/integration/kernel-arithmetic-control.test.ts`: **60/60**.
+- `npm test`: **694/694**, including fractional PDF Rows, strict geometry and width oracle; no expectations refreshed.
+- `npm test -w @updf/layout-playground`: **12/12**, real positive/negative PDFs.
+- `npm run format:check`, `npm run lint`, `npm run typecheck`, `git diff --check`: pass.
+- `npm run test:consumer`: **8** clean tarball closures; `npm run check:licenses`: **8** pass.
+- `npm run build:browser`, `npm run check:graphs`: final serial build and **12 fresh** graphs pass.
+- `BROWSER_CHROMIUM=/home/sprawl/.cache/ms-playwright/chromium-1246/chrome-linux64/chrome tsx --test tests/browser/*.test.ts`: **9/9**.
+- `npm run build:showcase`, `SHOWCASE_CHROMIUM=/home/sprawl/.cache/ms-playwright/chromium-1246/chrome-linux64/chrome npm run test:showcase`: **57/57**.
+- In the isolated archive only: `npm run build -w @updf/layout-playground` and
+  `BROWSER_CHROMIUM=/home/sprawl/.cache/ms-playwright/chromium-1246/chrome-linux64/chrome npm run test:browser -w @updf/layout-playground`: **5/5**.
+  Fresh chunk graph excludes `box-prepared`. Active 4318 `/layout` dist untouched.
+- `FORMBAR_ROOT=/home/sprawl/projects/formbar node scripts/tui-layout-proof/run.mjs --widths=32,80 --states=hidden,shown`,
+  `FORMBAR_ROOT=/home/sprawl/projects/formbar node --test scripts/tui-layout-proof/live.test.mjs`,
+  and `FORMBAR_ROOT=/home/sprawl/projects/formbar node scripts/tui-layout-proof/profile.mjs`:
+  pass, **4/4**, 274 projections, positive kernel controls, no PDF leaks. Same
+  pinned clean Formbar revision, read-only reuse, no install/build there.
+
+One initial browser build collided with the concurrent showcase package rebuild
+(`packages/layout/dist/index.js` temporarily absent). Final serial build passes;
+this was not a browser assertion retry. Gate logs use
+`/tmp/opencode/pr58-review-*.log`. SVG-reference #48/#50 was not rerun: known
+prior failures remain unresolved; no skip, threshold, retry or hosted-green claim.
+
+Changed tracked files: kernel `src/box-prepared.ts` and README,
+`scripts/consumer/kernel.ts`, `scripts/layout-kernel-baseline.ts`, this evidence.
+New files: `packages/layout-kernel/test/prepared-box.test.ts`,
+`scripts/layout-kernel-control.ts`, the arithmetic fixture and its focused
+integration test. Eight dry-pack manifests exclude fixture/helper (file counts
+99/299/399/51/37/76/19/66 for kernel/core/layout/tables/geometry/svg/fontkit/legacy);
+installed/browser graphs exclude them too.
+
+Code-principles checklist passes: correctness and real negative reproduction;
+cohesive production files below 400 lines; changed functions below 50 lines and
+nesting at most three; provenance/intent comments only; proportional regressions;
+lint/typecheck/tests pass. No approved/new exception. No Changeset: project does
+not use Changesets. Both acceptance slices implemented, ready for independent
+audit, not verified. Remaining host action: parent audit and authorized delivery;
+new hosted CI status is unknown. No unrelated contract or feature changes.

@@ -81,7 +81,9 @@ checked before invoking an over-budget callback and reported in `counts`.
 gap/alignment, path, `childCount` and `childAt(index): {width,height}`. It snapshots
 validated indexed sizes (at most 100000), uses the **same** pure placement routine,
 and returns frozen `{height, children: [{left,top,width,height}]}`. It does not
-resolve already-certified tracks or measure content. Its prepared fit precondition
+resolve already-certified tracks or measure content. Zero child sizes are accepted;
+children plus fixed gaps must fit width minus left/right insets, and the tallest
+child plus vertical insets must fit height. Its prepared fit precondition
 retains the host's existing metric `exceeds` policy, unlike generic boxes' strict
 truncation/geometry checks. Production PDF preparation owns this placement; actual
 complete fragments must match prepared heights. Both paint and content-line

@@ -24,6 +24,10 @@ export function viewBox(input: PreparedBoxView): BoxPlacement {
     const child = record(data.childAt(i), ["width", "height"], `${data.path}/children/${i}`);
     sizes.push({ width: number(child.width, data.path), height: number(child.height, data.path) });
   }
+  const contentWidth = sum([data.width, -data.paddingLeft, -data.paddingRight]);
+  const occupiedWidth = sum([...sizes.map((size) => size.width), Math.max(0, sizes.length - 1) * data.gap]);
+  if (exceeds(occupiedWidth, contentWidth))
+    fail("GEOMETRY", data.path, "Prepared box children and gaps must fit within horizontal insets");
   const vertical = sum([data.paddingTop, data.paddingBottom]);
   const tallest = sizes.reduce((max, size) => Math.max(max, size.height), 0);
   if (exceeds(sum([vertical, tallest]), data.height))

@@ -54,7 +54,12 @@ async function standaloneRuntime(directory: string): Promise<void> {
     }});
     const { LayoutInputError, resolveWidths } = await import('@updf/layout-kernel');
     const { bits, dyadic } = await import('@updf/layout-kernel/numeric');
-    const { layoutBoxes } = await import('@updf/layout-kernel/boxes');
+     const { layoutBoxes, viewBox } = await import('@updf/layout-kernel/boxes');
+     const prepared = {width:10,height:2,paddingTop:0,paddingBottom:0,paddingLeft:1,paddingRight:1,gap:1,alignItems:'start',childCount:2,childAt:i=>({width:i===0?3:4,height:1}),path:'/packed-row'};
+     const placed = viewBox(prepared);
+     assert.deepEqual(placed.children.map(c=>[c.left,c.width]),[[0,3],[4,4]]);
+     assert.ok(placed.children.every(c=>prepared.paddingLeft+c.left+c.width<=prepared.width-prepared.paddingRight));
+     assert.throws(()=>viewBox({...prepared,paddingLeft:0,paddingRight:0,gap:0,childAt:()=>({width:8,height:1})}),e=>e instanceof LayoutInputError && e.code==='GEOMETRY' && e.path==='/packed-row');
     ${fragmentationRuntime}
     const view = { id: node => node.id, path: node => '/' + node.id, style: node => node.style ?? {}, childCount: node => node.children?.length ?? 0, childAt: (node, i) => node.children[i], content: node => node.content };
     assert.equal(layoutBoxes({root:{id:'empty'},view,width:80}).boxes[0].height, 0);

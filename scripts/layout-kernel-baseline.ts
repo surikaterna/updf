@@ -1,4 +1,3 @@
-import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { gzipSync } from "node:zlib";
@@ -7,9 +6,14 @@ import { cmrFixture, createCmrDocument } from "@updf/example-cmr/cmr";
 import { build } from "esbuild";
 import { freightInvoiceExample } from "../examples/business/freight-invoice.js";
 import { freightFonts } from "../tests/fixtures/fonts/freight-fonts.js";
+import { arithmeticControl, arithmeticSource } from "./layout-kernel-control.js";
 
 const hash = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
 const baseline = process.argv.includes("--baseline");
+const rows = await readFile("artifacts/rows/geometry.pdf").catch((cause: unknown) => {
+  throw new Error("Missing artifacts/rows/geometry.pdf prerequisite: run npm run build and npm test first", { cause });
+});
+const control = baseline ? arithmeticControl(await arithmeticSource()) : undefined;
 const result = await build({
   stdin: {
     contents:
@@ -22,24 +26,9 @@ const result = await build({
   format: "esm",
   platform: "neutral",
   minify: true,
-  plugins: baseline
-    ? [
-        {
-          name: "immutable-arithmetic-control",
-          setup(builder) {
-            builder.onLoad({ filter: /packages\/core\/dist\/measurement\/arithmetic\.js$/ }, () => ({
-              contents: execFileSync(
-                "git",
-                ["show", "e96d2741f8d4a5f3086e6b95ff61a5967db7e7f1:packages/core/src/measurement/arithmetic.ts"],
-                { encoding: "utf8" },
-              ),
-              loader: "ts",
-            }));
-          },
-        },
-      ]
-    : [],
+  plugins: control ? [control.plugin] : [],
 });
+const controlMetadata = control?.assertApplied(result.metafile);
 const bytes = result.outputFiles[0]?.contents;
 if (!bytes) throw new Error("Missing bundle");
 const runtime = await import(`data:text/javascript;base64,${Buffer.from(bytes).toString("base64")}`);
@@ -51,6 +40,7 @@ await writeFile(new URL("metafile.json", directory), `${JSON.stringify(result.me
 console.log(
   JSON.stringify(
     {
+      control: controlMetadata,
       core: {
         raw: bytes.length,
         gzip: gzipSync(bytes).length,
@@ -60,7 +50,7 @@ console.log(
       },
       pdf: {
         cmr: hash(render(createCmrDocument(cmrFixture))),
-        rows: hash(await readFile("artifacts/rows/geometry.pdf")),
+        rows: hash(rows),
         freight: hash(freightInvoiceExample(await freightFonts()).bytes),
       },
     },
