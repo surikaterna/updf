@@ -46,12 +46,18 @@ test("D: empty and overridden-away Span styles still validate without inventing 
     "FONT_RESOURCE",
     /style\/font$/u,
   );
-  assert.equal(measure(paragraph({ children: span({ style: { fontSize: 20 } }) }), { width: 100 }).size.height, 12);
+  assert.equal(measure(paragraph({ children: span({ style: { fontSize: 20 } }) }), { width: 100 }).size.height, 10);
 });
 test("D: subnormal text advances retain representable native boxes without a point-size floor", () => {
-  const measured = measure(paragraph({ defaultStyle: { fontSize: Number.MIN_VALUE }, align: "right", children: "i" }), {
-    width: 100,
-  });
+  const measured = measure(
+    paragraph({
+      style: { fontSize: Number.MIN_VALUE, textAlign: "right", lineHeight: { unit: "pt", value: 12 } },
+      children: "i",
+    }),
+    {
+      width: 100,
+    },
+  );
   assert.equal(measured.size.height, 12);
   assert.equal(measured.lines[0]?.advance, 0);
 });

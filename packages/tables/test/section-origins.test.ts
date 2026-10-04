@@ -10,7 +10,7 @@ const pageTemplate = { width: 200, height: 160, margins: { top: 5, right: 5, bot
 const extensions = createExtensions([tableExtension]);
 const failures: readonly { readonly code: string; readonly cell: CellProps }[] = [
   { code: "CHARACTER", cell: { children: "Ж" } },
-  { code: "FONT_RESOURCE", cell: { children: "FONT", style: { defaultStyle: { font: "Missing" } } } },
+  { code: "FONT_RESOURCE", cell: { children: "FONT", style: { font: "Missing" } } },
   { code: "GEOMETRY", cell: { children: "BOX", style: { padding: 100 } } },
 ];
 test("F-AUD03 multi-row static head/foot character, font and geometry paths name the section and row", () => {

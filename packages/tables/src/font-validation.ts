@@ -1,13 +1,14 @@
 import { type MeasureContext, paragraph } from "@updf/layout";
+import { paragraphDefaults } from "./measure.js";
 import { cellSourcePath } from "./parts.js";
 import type { CellStyle, TableInput } from "./types.js";
 
 export function validateFonts(table: TableInput, context: MeasureContext): void {
   const seen = new Set<CellStyle>();
   const check = (style: CellStyle | undefined, sourcePath: string): void => {
-    if (!style?.defaultStyle || seen.has(style)) return;
+    if (!style || seen.has(style)) return;
     seen.add(style);
-    context.measureContent(paragraph({ children: "", defaultStyle: style.defaultStyle }), {
+    context.measureContent(paragraph({ children: "", ...paragraphDefaults(style) }), {
       width: context.width,
       sourcePath,
     });

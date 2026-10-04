@@ -10,18 +10,21 @@ export interface MeasuredRow {
 }
 function inherit(...styles: readonly (CellStyle | undefined)[]): CellStyle {
   let result: CellStyle = {};
-  for (const style of styles)
-    if (style) result = { ...result, ...style, defaultStyle: { ...result.defaultStyle, ...style.defaultStyle } };
+  for (const style of styles) if (style) result = { ...result, ...style };
   return result;
 }
-function paragraphDefaults(style: CellStyle): ParagraphProps {
-  const props = { ...style };
-  delete props.padding;
-  delete props.background;
-  delete props.height;
-  delete props.overflow;
-  delete props.gap;
-  return props;
+export function paragraphDefaults(style: CellStyle): ParagraphProps {
+  const { whiteSpace, breakLongWords, ...text } = style;
+  delete text.padding;
+  delete text.background;
+  delete text.height;
+  delete text.overflow;
+  delete text.gap;
+  return {
+    style: text,
+    ...(whiteSpace === undefined ? {} : { whiteSpace }),
+    ...(breakLongWords === undefined ? {} : { breakLongWords }),
+  };
 }
 function measuredCell(
   cell: CellProps,

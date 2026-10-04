@@ -58,8 +58,8 @@ try {
     );
     if (names.includes("core")) await coreProof(directory, graphs);
     if (names.includes("layout")) {
-      await typeConsumer(directory, ["content-template.tsx", "mixed-template.tsx"]);
-      await typeConsumer(directory, ["content-template.tsx", "mixed-template.tsx"], true);
+      await typeConsumer(directory, ["content-template.tsx", "mixed-template.tsx", "text-style-template.tsx"]);
+      await typeConsumer(directory, ["content-template.tsx", "mixed-template.tsx", "text-style-template.tsx"], true);
       await typeConsumer(directory, ["flow-template.tsx"]);
       await typeConsumer(directory, ["flow-template.tsx"], true);
       graphs.layout = await installedGraph(directory, "@updf/layout");
@@ -68,6 +68,11 @@ try {
         `
         import assert from 'node:assert/strict';
         const layout = await import('@updf/layout');
+        assert.deepEqual(layout.pt(16), { unit: 'pt', value: 16 });
+        assert.ok(Object.isFrozen(layout.pt(16)));
+        assert.ok(Math.abs(layout.measure(layout.paragraph({ style: { fontSize: 12, lineHeight: 1.2 }, children: 'A' }), { width: 200 }).size.height - 14.4) < 1e-12);
+        for (const key of ['align', 'lineHeight', 'defaultStyle'])
+          assert.throws(() => layout.paragraph({ [key]: 16 }));
         for (const name of ['layoutFlow', 'layoutFlowUnknown']) assert.equal(name in layout, false);
         assert.equal('Document' in layout.Flow, false);
         for (const entry of ['@updf/layout/vdom', '@updf/layout/tables', '@updf/layout/tables/vdom'])

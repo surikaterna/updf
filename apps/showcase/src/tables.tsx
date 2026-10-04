@@ -10,6 +10,7 @@ import {
   type InlineAdapterIdentity,
   layout,
   Paragraph,
+  pt,
 } from "@updf/layout";
 import { Table, tableExtension } from "@updf/tables";
 import { chartAdapter } from "./chart.js";
@@ -43,7 +44,7 @@ export function tableDefinition(title: string, controls: TableControls = tableDe
   if (!Number.isFinite(controls.minHeight ?? 0) || (controls.minHeight ?? 0) < 0 || (controls.minHeight ?? 0) > 100)
     throw new Error("Minimum row height must be 0–100");
   const wide = controls.preset === "wide";
-  const columns = [{ width: wide ? 270 : 140 }, { width: wide ? 118 : 68, style: { align: "right" as const } }];
+  const columns = [{ width: wide ? 270 : 140 }, { width: wide ? 118 : 68, style: { textAlign: "right" as const } }];
   return (
     <Document>
       <Flow
@@ -51,10 +52,10 @@ export function tableDefinition(title: string, controls: TableControls = tableDe
         margins={{ top: 16, right: 16, bottom: 16, left: 16 }}
         extensions={createExtensions([tableExtension, chartAdapter, ...(visual?.adapters ?? [])])}
       >
-        <Paragraph lineHeight={14}>{title}</Paragraph>
+        <Paragraph style={{ lineHeight: pt(14) }}>{title}</Paragraph>
         <Table
           columns={columns}
-          style={{ padding: 4, lineHeight: 14, whiteSpace: "preserve", breakLongWords: "codePoint" }}
+          style={{ padding: 4, lineHeight: pt(14), whiteSpace: "preserve", breakLongWords: "codePoint" }}
           grid={{ width: 1, color: [0.2, 0.3, 0.4] }}
         >
           <Table.Head repeat={controls.repeatHeader}>
@@ -71,7 +72,7 @@ export function tableDefinition(title: string, controls: TableControls = tableDe
             </Table.Row>
           </Table.Foot>
         </Table>
-        <Paragraph lineHeight={14}>End of inventory</Paragraph>
+        <Paragraph style={{ lineHeight: pt(14) }}>End of inventory</Paragraph>
       </Flow>
     </Document>
   );

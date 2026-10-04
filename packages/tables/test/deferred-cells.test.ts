@@ -62,7 +62,7 @@ test("F-AUD01 measured nested cell blocks finalize on the placed page with their
       theme = useContext(Theme);
     const text = `${theme.name}_${edge}_P${page.docPageNumber}/${page.docPageCount}_F${fragment.index}/${fragment.count}`;
     seen.push(text);
-    return h(Paragraph, { children: text, defaultStyle: { fontSize: 8 }, lineHeight: 10 });
+    return h(Paragraph, { children: text, style: { fontSize: 8, lineHeight: 1.25 } });
   }
   const cell = h(Block, {
     children: [
@@ -105,7 +105,7 @@ test("F-AUD02 cached semantic tables have independent first/last/count owners fo
     const fragment = useContext(FragmentContext);
     const value = `${fragment.index}/${fragment.count}/${fragment.first}/${fragment.last}`;
     contexts.push(value);
-    return h(Paragraph, { children: value, defaultStyle: { fontSize: 8 }, lineHeight: 10 });
+    return h(Paragraph, { children: value, style: { fontSize: 8, lineHeight: 1.25 } });
   }
   const shared = table({
     columns,

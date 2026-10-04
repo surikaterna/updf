@@ -60,7 +60,11 @@ test("D: independent raster oracle rejects absent and displaced visual fragments
     ...proof.document,
     pages: proof.document.pages.map((page) => ({
       ...page,
-      children: page.children.filter((node) => node.type !== "paintGroup" || node.clip),
+      children: page.children.map((node) =>
+        node.type === "paintGroup"
+          ? { ...node, children: node.children.filter((child) => child.type !== "paintGroup") }
+          : node,
+      ),
     })),
   };
   const removed = await raster("inline-missing", render(missing, options));
@@ -76,8 +80,15 @@ test("D: independent raster oracle rejects absent and displaced visual fragments
     pages: proof.document.pages.map((page) => ({
       ...page,
       children: page.children.map((node) =>
-        node.type === "paintGroup" && !node.clip && node.transform
-          ? { ...node, transform: [1, 0, 0, 1, node.transform[4], node.transform[5] + 40] }
+        node.type === "paintGroup"
+          ? {
+              ...node,
+              children: node.children.map((child) =>
+                child.type === "paintGroup" && child.transform
+                  ? { ...child, transform: [1, 0, 0, 1, child.transform[4] + 30, child.transform[5]] as const }
+                  : child,
+              ),
+            }
           : node,
       ),
     })),
@@ -89,7 +100,10 @@ test("D: mixed prepared em boxes preserve the common baseline and real ink in an
   const options = { resources: { Demo: await fixtureFont() } };
   const content = paragraph({ children: [span({ style: { font: "Demo", fontSize: 40 }, children: "i" }), "A"] });
   const measured = measure(content, { width: 100 }, options);
-  assert.equal(measured.size.height, 40);
+  const font = options.resources.Demo;
+  const natural =
+    ((font.metadata.descriptor.ascent - font.metadata.descriptor.descent) * 40) / font.metadata.unitsPerEm;
+  assert.equal(measured.size.height, natural);
   const result = layoutFlow(
     {
       pageTemplate: { width: 100, height: measured.size.height, margins: { top: 0, right: 0, bottom: 0, left: 0 } },
@@ -105,7 +119,7 @@ test("D: mixed prepared em boxes preserve the common baseline and real ink in an
     { encoding: "utf8" },
   );
   assert.match(text.replaceAll(/\s/gu, ""), /iA/u);
-  assert.ok(!measured.inkBounds.empty && measured.inkBounds.top >= 0 && measured.inkBounds.bottom <= 40);
+  assert.ok(!measured.inkBounds.empty && measured.inkBounds.top >= 0 && measured.inkBounds.bottom <= natural);
 });
 test("D: prepared negative side bearings retain alignment and native ink instead of reflowing at a Span boundary", async () => {
   const font = await fixtureFont();
@@ -116,8 +130,7 @@ test("D: prepared negative side bearings retain alignment and native ink instead
   const text = String.fromCodePoint(glyph.codePoint);
   const options = { resources: { Demo: font } };
   const content = paragraph({
-    defaultStyle: { font: "Demo", fontSize: 20 },
-    align: "center",
+    style: { font: "Demo", fontSize: 20, textAlign: "center" },
     children: span({ children: text }),
   });
   const measured = measure(content, { width: 100 }, options);

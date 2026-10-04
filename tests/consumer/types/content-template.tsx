@@ -36,7 +36,7 @@ const adapter = defineInlineAdapter<{ height: number }>({
 const extensions = createExtensions([adapter]);
 const content = (
   <Block>
-    <Paragraph defaultStyle={{ fontSize: 10 }}>
+    <Paragraph style={{ fontSize: 10 }}>
       {"author text "}
       <Span style={{ color: [1, 0, 0] }}>
         {"styled"}
@@ -62,7 +62,7 @@ const result = render(
 );
 if (measured.lines.length !== 1 || result.length === 0) throw new Error("semantic TSX");
 const data = paragraph({ children: ["data ", span({ children: "span" })] });
-if (measure(data, { width: 100 }).size.height !== 12) throw new Error("data defaults");
+if (measure(data, { width: 100 }).size.height !== 10) throw new Error("data defaults");
 const owner = defineBlockAdapter({
   name: "consumer.content-owner",
   validate: (input) => input,

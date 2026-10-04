@@ -23,7 +23,7 @@ const columns = [{ width: 120 }, { width: 60 }] as const;
 function definition(count = 8): TableInput {
   return {
     columns,
-    style: { padding: 4, lineHeight: 12 },
+    style: { padding: 4, lineHeight: { unit: "pt", value: 12 } },
     head: { repeat: true, rows: [{ cells: [{ children: "Description" }, { children: "Count" }] }] },
     body: Array.from({ length: count }, (_, i) => ({
       cells: [{ children: `Item ${i + 1}` }, { children: String(i + 1) }],
@@ -60,14 +60,14 @@ test("empty tables consume zero geometry; header and foot-only empty bodies are 
   assert.equal(run({ columns, body: [] }).placements[0]?.box.height, 0);
   assert.deepEqual(run({ columns, body: [] }).placements[0]?.sourceRange, { start: 0, end: 0 });
   const foot = { rows: [{ cells: [{ children: "Totals" }, { children: "0" }] }] };
-  assert.equal(run({ columns, body: [], foot }).placements[0]?.box.height, 20);
+  assert.equal(run({ columns, body: [], foot }).placements[0]?.box.height, 18);
   assert.equal(run(definition(0)).placements[0]?.box.height, 40);
 });
 test("ordinary core JSX Table and readonly data use the same adapter/native output path", () => {
   const input = definition(2);
   const content = h(Table, {
     columns,
-    style: { padding: 4, lineHeight: 12 },
+    style: { padding: 4, lineHeight: { unit: "pt", value: 12 } },
     children: [
       h(Table.Head, {
         repeat: true,
@@ -112,7 +112,7 @@ test("cells reuse the native stack engine for paragraphs and application-owned c
       },
     ],
   });
-  assert.equal(result.placements[0]?.box.height, 72);
+  assert.equal(result.placements[0]?.box.height, 68);
   assert.ok(render(result.document).length > 0);
 });
 test("nearest providers around cells are captured and restored through the public author-part bridge", () => {
@@ -219,7 +219,7 @@ test("explicit head reservations defer cells until final fragment/page contexts 
       page = useContext(PageContext);
     const text = `Head ${fragment.index + 1}/${fragment.count} page ${page.docPageNumber}/${page.docPageCount}`;
     seen.push(text);
-    return h(Paragraph, { children: text, defaultStyle: { fontSize: 6 }, lineHeight: 8 });
+    return h(Paragraph, { children: text, style: { fontSize: 6, lineHeight: { unit: "pt", value: 8 } } });
   }
   const content = h(Table, {
     columns,

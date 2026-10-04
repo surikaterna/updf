@@ -43,11 +43,7 @@ export function contentSnapshot<T>(value: T, path: string): T {
   );
 }
 export function paragraph(props: ParagraphProps): ParagraphContent {
-  record(
-    props,
-    ["children", "defaultStyle", "lineHeight", "align", "whiteSpace", "breakLongWords", "keepTogether"],
-    "/paragraph",
-  );
+  record(props, ["children", "style", "whiteSpace", "breakLongWords", "keepTogether"], "/paragraph");
   return ownContentData(contentSnapshot({ type: "contentParagraph" as const, props }, "/paragraph"));
 }
 export function span(props: SpanProps): SpanContent {

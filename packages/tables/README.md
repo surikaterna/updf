@@ -67,7 +67,11 @@ requires explicit Paragraphs. Numbers in explicit Paragraph/Span remain subject 
 the ordinary strict inline grammar. Text wrapping/baselines use D's existing engine.
 
 `style` inherits table → column → cell → Paragraph → Span. Supported text fields are
-`defaultStyle` (font id/fontSize/RGB), lineHeight, align, whiteSpace, breakLongWords.
+`font` (resource ID), `fontSize` (points), RGB `color`, `lineHeight` (positive ratio,
+`"normal"`, or layout `pt(n)`), `textAlign`, whiteSpace, breakLongWords. Text fields
+merge per key before becoming Paragraph.style defaults; raw line heights inherit
+through nested Spans. See [text styles](../../docs/text-styles.md). Old text names
+reject rather than alias. Box/row-cell schema migration belongs to #49-C.
 Cell padding defaults to 4pt; background, gap, closed border-box height and
 error/hidden overflow are supported. Closed cells use the C container/clip engine;
 clipping is not redaction. Row height is max cell border-box height plus the grid

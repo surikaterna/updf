@@ -5,21 +5,25 @@ import { table, tableExtension } from "@updf/tables";
 
 export function tableProofDefinition() {
   const defaults = {
-    defaultStyle: { font: "Demo", fontSize: 10, color: [0, 0, 1] as const },
-    lineHeight: 16,
-    align: "left" as const,
+    font: "Demo",
+    fontSize: 10,
+    color: [0, 0, 1] as const,
+    lineHeight: { unit: "pt" as const, value: 16 },
+    textAlign: "left" as const,
     whiteSpace: "preserve" as const,
     breakLongWords: "codePoint" as const,
   };
+  const { whiteSpace, breakLongWords, ...style } = defaults;
+  const text = { style, whiteSpace, breakLongWords };
   return document({
     children: flow({
       pageSize: { width: 180, height: 100 },
       margins: { top: 10, right: 10, bottom: 10, left: 10 },
       extensions: createExtensions([tableExtension]),
       children: [
-        paragraph({ ...defaults, children: "Привет" }),
+        paragraph({ ...text, children: "Привет" }),
         table({
-          columns: [{ width: 100 }, { width: 60, style: { align: "right" } }],
+          columns: [{ width: 100 }, { width: 60, style: { textAlign: "right" } }],
           style: { ...defaults, padding: 2 },
           grid: { width: 1, color: [0, 0, 0] },
           head: {
@@ -43,7 +47,7 @@ export function tableProofDefinition() {
             ],
           })),
         }),
-        paragraph({ ...defaults, children: "End" }),
+        paragraph({ ...text, children: "End" }),
       ],
     }),
   });

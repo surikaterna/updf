@@ -60,14 +60,17 @@ test("external public chart adapter produces an atomic PDF between paragraphs wi
 test("Fragment is not atomic; a real kept Block fits, advances or rejects without clipping fallback", () => {
   const Visual = blockComponent(chartAdapter);
   const extensions = createExtensions([chartAdapter]);
-  const children = [h(Paragraph, { children: "Headline", lineHeight: 10 }), h(Visual, { height: 40, values: [0.5] })];
+  const children = [
+    h(Paragraph, { children: "Headline", style: { lineHeight: 1 } }),
+    h(Visual, { height: 40, values: [0.5] }),
+  ];
   const document = (content: ReturnType<typeof h>, before = true) =>
     h(Document, {
       children: h(Flow, {
         pageSize: { width: 200, height: 50 },
         margins: { top: 0, right: 0, bottom: 0, left: 0 },
         extensions,
-        children: [before ? h(Paragraph, { children: "Before", lineHeight: 10 }) : null, content],
+        children: [before ? h(Paragraph, { children: "Before", style: { lineHeight: 1 } }) : null, content],
       }),
     });
   const ungrouped = layout(document(h(Fragment, { children })));
@@ -101,7 +104,10 @@ test("atomic grouping preserves component context, callbacks and render resource
     calls++;
     assert.deepEqual(context.resources, [{ id: "Demo", kind: "font" }]);
     assert.equal(useContext(Theme).text, "captured");
-    return h(Paragraph, { children: useContext(Theme).text, defaultStyle: { font: "Demo" }, lineHeight: 16 });
+    return h(Paragraph, {
+      children: useContext(Theme).text,
+      style: { font: "Demo", lineHeight: { unit: "pt", value: 16 } },
+    });
   }
   const tree = h(Theme.Provider, {
     value: { text: "captured" },

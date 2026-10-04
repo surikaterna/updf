@@ -1,7 +1,9 @@
 import type { RGB } from "@updf/core";
-import type { BlockContent, ImplicitInlineContent, ParagraphProps } from "@updf/layout";
+import type { BlockContent, ImplicitInlineContent, ParagraphStyle } from "@updf/layout";
 
-export interface CellStyle extends Omit<ParagraphProps, "children" | "keepTogether"> {
+export interface CellStyle extends ParagraphStyle {
+  readonly whiteSpace?: "preserve" | "collapse";
+  readonly breakLongWords?: "error" | "codePoint";
   readonly padding?: number;
   readonly background?: RGB;
   readonly height?: number;

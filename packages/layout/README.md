@@ -58,9 +58,15 @@ Prepared resources are owned handles, never font bytes or implicit fallback.
   large. JSX Fragment is syntax grouping, not an atomic layout box.
 - Hidden overflow clips an explicitly constrained Block, not arbitrary oversized
   atomic content. It is not redaction and does not bypass resource/text validation.
-- Defaults remain Helvetica10, black, line12, left alignment, collapsed spaces and
-  long-word error. Numeric geometry and current lineHeight values are PDF points;
-  this cleanup does not implement #49's style migration.
+- Text uses `Paragraph.style`/`Span.style`: `font` is a resource ID, `fontSize`
+  is points, `color` is RGB, and paragraph-only `textAlign` is left/center/right.
+  `lineHeight: 1.2` is a positive font-size ratio; `pt(16)` is an absolute point
+  length inherited unchanged. The default `normal` is font-aware (Helvetica10:
+  10pt). Glyph ink may overflow tight line boxes, but must fit page bounds or an
+  explicit clip. Zero is unsupported by the positive-progress contract.
+  See [text styles](../../docs/text-styles.md); old top-level paragraph `align`,
+  `lineHeight`, and `defaultStyle` reject, not compatibility aliases. Fixed core
+  `ParagraphDefinition` retains its separate point-valued contract.
 - Theme is explicitly read with core `useContext` and applied to props. Providers
   scope copied data; they do not create an implicit CSS cascade or box inheritance.
 - Source and generated output have independent accounting under the same trusted/

@@ -1,6 +1,6 @@
 import { type PreparedFont, render } from "@updf/core";
 import { h, lower } from "@updf/core/vdom";
-import { Document, document, flow, flowHeader, layout, paragraph, span } from "@updf/layout";
+import { Document, document, flow, flowHeader, layout, paragraph, pt, span } from "@updf/layout";
 
 export function flowProofDefinition() {
   return document({
@@ -25,14 +25,12 @@ export function flowProofDefinition() {
           ],
         }),
         paragraph({
-          defaultStyle: { font: "Demo", fontSize: 16, color: [0, 0, 0] },
+          style: { font: "Demo", fontSize: 16, color: [0, 0, 0], lineHeight: pt(26), textAlign: "center" },
           children: [
             span({ children: "Привет  ", style: { color: [0, 0, 1] } }),
             span({ children: " portable\n", style: { font: "Helvetica", fontSize: 20, color: [1, 0, 0] } }),
             "А\u00a0Б\nMeasured flow\nComplete lines\nRepeated regions",
           ],
-          lineHeight: 26,
-          align: "center",
           whiteSpace: "collapse",
           breakLongWords: "codePoint",
         }),

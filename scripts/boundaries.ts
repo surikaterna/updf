@@ -16,6 +16,7 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/extension-types.ts",
     "layout/src/content-data.ts",
     "layout/src/content-types.ts",
+    "layout/src/text-style.ts",
     "layout/src/content-normalize.ts",
     "layout/src/content-paragraph.ts",
     "layout/src/content-producer.ts",
@@ -141,6 +142,7 @@ function sourceEdges(owner: string, text: string, path: string, root: string): v
 }
 
 const coreExports = [
+  "validateLineHeight",
   "DocumentError",
   "fail",
   "array",

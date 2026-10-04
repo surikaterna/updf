@@ -43,7 +43,7 @@ test("D-F1: exact-height fractional preserved-space PDFs have identical rich-con
 async function fractionalRaster(align: ParagraphDefinition["align"]): Promise<void> {
   const fontSize = 10.3,
     text = "  second line ";
-  const props = { defaultStyle: { fontSize }, whiteSpace: "preserve" as const, align };
+  const props = fractionalProps(fontSize, align);
   const whole = laidOut(paragraph({ ...props, children: text }));
   const split = laidOut(
     paragraph({ ...props, children: ["  ", span({ children: "second" }), " ", span({ children: "line" }), " "] }),
@@ -100,7 +100,7 @@ test("D-F2: public line/fragment metadata tracks real PDF placement for nested s
       const offset = word(image.bbox, "A").yMin - word(control.bbox, "A").yMin;
       assert.equal(offset, edge === "before" ? 5 : 0);
       assert.equal(result.measured.lines[0]?.top, offset);
-      assert.equal(result.measured.size.height, 17);
+      assert.equal(result.measured.size.height, 15);
       assert.deepEqual(result.measured.lines[0]?.inkBounds, result.measured.inkBounds);
       assert.deepEqual(result.measured.lines[0]?.fragments[0]?.inkBounds, result.measured.inkBounds);
     }
@@ -130,20 +130,26 @@ async function nestedReservations(glyphTop: number): Promise<void> {
   const offsets = [...actual.bbox.matchAll(/<word[^>]*yMin="([^"]+)"[^>]*>A<\/word>/gu)].map(
     (match) => Number(match[1]) - glyphTop,
   );
-  assert.deepEqual(offsets, [10, 26, 49]);
+  assert.deepEqual(offsets, [10, 24, 45]);
   assert.deepEqual(
     result.measured.lines.map((line) => line.top),
     offsets,
   );
   assert.deepEqual(
     result.measured.lines.map((line) => line.baseline),
-    offsets.map((top) => top + 8.75),
+    offsets.map((top) => top + 7.75),
   );
-  assert.equal(result.measured.size.height, 66);
+  assert.equal(result.measured.size.height, 60);
   assert.ok(Object.isFrozen(result.measured.lines[0]?.fragments[0]?.source));
 }
 function word(xml: string, text: string): { yMin: number } {
   const match = [...xml.matchAll(/<word[^>]*yMin="([^"]+)"[^>]*>([^<]+)<\/word>/gu)].find((match) => match[2] === text);
   assert.ok(match);
   return { yMin: Number(match[1]) };
+}
+function fractionalProps(fontSize: number, textAlign: ParagraphDefinition["align"]) {
+  return {
+    style: { fontSize, textAlign, lineHeight: { unit: "pt" as const, value: Math.max(12, fontSize * 1.2) } },
+    whiteSpace: "preserve" as const,
+  };
 }

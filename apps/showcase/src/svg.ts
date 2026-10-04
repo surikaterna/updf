@@ -39,7 +39,7 @@ export function svgDemo(title: string): Uint8Array {
       children: h(Block, {
         keepTogether: true,
         style: { gap: 24 },
-        children: [h(Paragraph, { defaultStyle: { fontSize: 16 }, lineHeight: 20, children: title }), h(Visual, {})],
+        children: [h(Paragraph, { style: { fontSize: 16, lineHeight: 1.25 }, children: title }), h(Visual, {})],
       }),
     }),
   });

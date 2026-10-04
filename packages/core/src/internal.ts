@@ -14,6 +14,7 @@ export { exceeds, MetricSum, sum } from "./measurement/arithmetic.js";
 export type { InlineLine, InlineMetric } from "./measurement/inline.js";
 export { paintInlineText } from "./measurement/inline-paint.js";
 export type { InlineLineHeights, LineHeight } from "./measurement/line-height.js";
+export { validateLineHeight } from "./measurement/line-height.js";
 export type { RunMetrics } from "./measurement/metrics.js";
 export { matrix } from "./painting/affine.js";
 export { commands } from "./painting/commands.js";

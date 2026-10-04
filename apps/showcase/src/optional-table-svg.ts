@@ -32,6 +32,6 @@ export const tableVisual: TableVisual = {
   adapters: [svgAdapter, inlineSVGAdapter],
   content: () => [
     extension(svgAdapter, {}),
-    paragraph({ lineHeight: 18, children: ["Inline badge ", inlineSVG(tableIconSource, 20, 12)] }),
+    paragraph({ style: { lineHeight: 1.8 }, children: ["Inline badge ", inlineSVG(tableIconSource, 20, 12)] }),
   ],
 };

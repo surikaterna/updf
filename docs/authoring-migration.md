@@ -31,8 +31,12 @@ headline plus graphic.
 Theme is explicit context data: create a context, provide its value, read it with
 `useContext(Theme)` in a component and apply the chosen values to native props.
 The provider does not implicitly style descendants or implement a CSS cascade.
-Existing style names and point-valued lineHeight remain unchanged here; #49 is a
-separate contract migration. The separate legacy package is unchanged.
+Native Paragraph and Span styles now follow the [#49 text-style migration](text-styles.md):
+replace paragraph `defaultStyle` with `style`, `align` with `style.textAlign`, and
+old point-valued `lineHeight: 16` with `style: { lineHeight: pt(16) }`. Numeric style
+line heights are ratios, not points. No old-prop aliases remain. Fixed core text/
+rich-text definitions and the separate legacy package are unchanged. Box and table
+row/cell schema migration remains the separate #49-C slice.
 
 Historical audit records under `docs/evidence` retain their dated APIs/status.
 Test-only direct source imports preserve internal renderer regression coverage;

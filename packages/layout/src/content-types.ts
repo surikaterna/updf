@@ -1,9 +1,10 @@
-import type { NodeDefinition, RenderOptions, RGB, TextAlign } from "@updf/core";
+import type { NodeDefinition, RenderOptions, RGB } from "@updf/core";
 import type { ContentHandle } from "@updf/core/internal";
 import type { InkBounds, TextStyle } from "@updf/core/measurement";
 import type { ComponentContext, VDOMChild, VNode } from "@updf/core/vdom";
 import type { BlockInput, ContainerBlock } from "./container-types.js";
 import type { Extensions, ReadonlyProps, ScopedContent } from "./extension-types.js";
+import type { ParagraphStyle, SpanStyle } from "./text-style.js";
 import type { FlowBlock } from "./types.js";
 
 export type InlineContent = string | SpanContent | InlineVisual | VNode | readonly InlineContent[] | null | boolean;
@@ -20,16 +21,14 @@ export type BlockContent =
 export type Content = BlockContent;
 export interface ParagraphProps {
   readonly children?: InlineContent;
-  readonly defaultStyle?: Partial<TextStyle>;
-  readonly lineHeight?: number;
-  readonly align?: TextAlign;
+  readonly style?: ParagraphStyle;
   readonly whiteSpace?: "preserve" | "collapse";
   readonly breakLongWords?: "error" | "codePoint";
   readonly keepTogether?: boolean;
 }
 export interface SpanProps {
   readonly children?: InlineContent;
-  readonly style?: Partial<TextStyle>;
+  readonly style?: SpanStyle;
 }
 export interface ParagraphContent extends ContentHandle {
   readonly type: "contentParagraph";

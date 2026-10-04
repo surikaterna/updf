@@ -71,6 +71,8 @@ export type { FragmentInfo, PageInfo } from "./page-context.js";
 export { FragmentContext, PageContext } from "./page-context.js";
 export type { Orientation, PageDimensions } from "./page-size.js";
 export { PageSize, pageSize } from "./page-size.js";
+export type { LineHeight, ParagraphStyle, PointLength, SpanStyle } from "./text-style.js";
+export { pt } from "./text-style.js";
 export type {
   FixedBlock,
   FlowBlock,

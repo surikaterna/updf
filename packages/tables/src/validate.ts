@@ -5,9 +5,11 @@ export function style(value: unknown, path: string): asserts value is CellStyle 
   record(
     value,
     [
-      "defaultStyle",
+      "font",
+      "fontSize",
+      "color",
       "lineHeight",
-      "align",
+      "textAlign",
       "whiteSpace",
       "breakLongWords",
       "padding",
@@ -19,22 +21,29 @@ export function style(value: unknown, path: string): asserts value is CellStyle 
     path,
   );
   for (const key of ["padding", "height", "gap"] as const) if (key in value) number(value[key], `${path}/${key}`);
-  if ("lineHeight" in value) number(value.lineHeight, `${path}/lineHeight`, true);
+  if ("lineHeight" in value) lineHeight(value.lineHeight, `${path}/lineHeight`);
   if ("background" in value) rgb(value.background, `${path}/background`);
-  if ("defaultStyle" in value) {
-    record(value.defaultStyle, ["font", "fontSize", "color"], `${path}/defaultStyle`);
-    if ("font" in value.defaultStyle && typeof value.defaultStyle.font !== "string") error(path, "Expected font id");
-    if ("fontSize" in value.defaultStyle) number(value.defaultStyle.fontSize, `${path}/defaultStyle/fontSize`, true);
-    if ("color" in value.defaultStyle) rgb(value.defaultStyle.color, `${path}/defaultStyle/color`);
-  }
+  if ("font" in value && typeof value.font !== "string") error(`${path}/font`, "Expected font id");
+  if ("fontSize" in value) number(value.fontSize, `${path}/fontSize`, true);
+  if ("color" in value) rgb(value.color, `${path}/color`);
   for (const [key, allowed] of [
-    ["align", ["left", "center", "right"]],
+    ["textAlign", ["left", "center", "right"]],
     ["whiteSpace", ["preserve", "collapse"]],
     ["breakLongWords", ["error", "codePoint"]],
     ["overflow", ["error", "hidden"]],
   ] as const)
     if (key in value && !allowed.some((item) => item === value[key]))
       error(`${path}/${key}`, "Unsupported style value");
+}
+function lineHeight(value: unknown, path: string): void {
+  if (value === "normal") return;
+  if (typeof value === "number") {
+    number(value, path, true);
+    return;
+  }
+  record(value, ["unit", "value"], path);
+  if (value.unit !== "pt") error(`${path}/unit`, "Expected pt line height");
+  number(value.value, `${path}/value`, true);
 }
 export function cell(value: unknown, path: string): asserts value is CellProps {
   record(value, ["children", "style"], path);

@@ -46,7 +46,7 @@ function geometry(result: ContentMeasurement) {
   };
 }
 test("D-F1: preserved fractional text emits on its exact-height zero-margin page", () => {
-  const content = paragraph({ defaultStyle: { fontSize: 10.3 }, whiteSpace: "preserve", children: "  second line " });
+  const content = paragraph({ style: { fontSize: 10.3 }, whiteSpace: "preserve", children: "  second line " });
   const measured = measure(content, { width: 100 });
   const result = layout(content, measured.size.height);
   assert.equal(result.pageCount, 1);
@@ -64,19 +64,22 @@ test("D-F1: segmentation, alignment, fractional sizes and core context preserve 
 });
 function verifyFractional(fontSize: number, align: ParagraphDefinition["align"]): void {
   const text = "  second line ";
-  const plain = paragraph({ defaultStyle: { fontSize }, whiteSpace: "preserve", align, children: text });
+  const style = {
+    fontSize,
+    textAlign: align,
+    lineHeight: { unit: "pt" as const, value: Math.max(12, fontSize * 1.2) },
+  };
+  const plain = paragraph({ style, whiteSpace: "preserve", children: text });
   const split = paragraph({
-    defaultStyle: { fontSize },
+    style,
     whiteSpace: "preserve",
-    align,
     children: ["  ", span({ children: "second" }), " ", span({ children: "line" }), " "],
   });
   const Theme = createContext({ fontSize });
   const Author = () =>
     h(Paragraph, {
-      defaultStyle: { fontSize: useContext(Theme).fontSize },
+      style: { ...style, fontSize: useContext(Theme).fontSize },
       whiteSpace: "preserve" as const,
-      align,
       children: text,
     });
   const contextual = h(Theme.Provider, { value: { fontSize }, children: h(Author, {}) });
@@ -122,10 +125,10 @@ test("D-F2: all unpaginated before/after repeat policies position frozen metadat
         children: [paragraph({ children: "A" })],
       });
       const measured = measure(content, { width: 100 });
-      assert.equal(measured.size.height, 17);
+      assert.equal(measured.size.height, 15);
       assert.equal(measured.lines[0]?.top, edge === "before" ? 5 : 0);
-      assert.equal(measured.lines[0]?.baseline, edge === "before" ? 13.75 : 8.75);
-      verifyPainted(measured, layout(content, 17).document);
+      assert.equal(measured.lines[0]?.baseline, edge === "before" ? 12.75 : 7.75);
+      verifyPainted(measured, layout(content, 15).document);
       assert.ok(Object.isFrozen(measured) && Object.isFrozen(measured.lines[0]?.fragments[0]?.inkBounds));
     }
   }
@@ -154,10 +157,10 @@ test("D-F2: nested mixed reservations, insets, gaps and following siblings match
     children: [paragraph({ children: "A" }), inner, paragraph({ children: "C" })],
   });
   const measured = measure(content, { width: 100 });
-  assert.deepEqual(measured.size, { width: 100, height: 75 });
+  assert.deepEqual(measured.size, { width: 100, height: 69 });
   assert.deepEqual(
     measured.lines.map((line) => line.top),
-    [10, 32, 56],
+    [10, 30, 52],
   );
   assert.deepEqual(
     measured.lines.map((line) => line.fragments[0]?.x),

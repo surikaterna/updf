@@ -14,7 +14,7 @@ import { lower } from '@updf/core/vdom';
 import { Block, Document, Flow, measure, Paragraph, Span } from '@updf/layout';
 
 const content = <Block style={{ padding: { top: 4, right: 4, bottom: 4, left: 4 } }}>
-  <Paragraph defaultStyle={{ fontSize: 10 }}>
+  <Paragraph style={{ fontSize: 10, lineHeight: 1.2 }}>
     {'Author text '}<Span style={{ color: [1, 0, 0] }}>with nested styles</Span>
   </Paragraph>
 </Block>;
@@ -57,16 +57,18 @@ or global name registry is introduced. Final PageContext is described in [docume
 
 ## Paragraph styles and measurement
 
-Defaults are Helvetica, 10 points, black, line height 12, left alignment, collapsed
-ASCII spaces, and `breakLongWords: 'error'`. A larger base font defaults to
-`max(12, fontSize * 1.2)`. Omitted lineHeight allows each line to grow for actual
-mixed-font/visual ascent and descent and the text em strut. A supplied lineHeight is
-a fixed reservation that must contain the complete envelope; insufficient height errors,
-never clips or shrinks a visual. Blank paragraphs occupy one line; trailing LF
+Defaults are Helvetica, 10 points, black, `style.lineHeight: 'normal'`, left
+alignment, collapsed ASCII spaces, and `breakLongWords: 'error'`. See the
+[public text-style contract](text-styles.md) for units, role checks, inheritance
+and migration. Normal line height is font-aware; raw ratios resolve per run and
+absolute `pt(...)` values inherit unchanged. Text line boxes may be tighter than
+glyph ink and overlap, without implicit glyph clipping or clamping. Visual ascent/
+descent and the paragraph strut participate in the combined line envelope.
+Blank paragraphs occupy one strut line; trailing LF
 reserves a trailing empty line. `whiteSpace: 'preserve'` retains space advances;
 collapse operates across Span boundaries. LF is a hard break in either mode.
 
-Span `style` overrides only font/fontSize/color and inherits the **whole effective
+Span `style` overrides font/fontSize/color/lineHeight and inherits the **whole effective
 parent style**. Siblings resume their parent, not the previous run. Span boundaries
 are never artificial word-break opportunities. `breakLongWords: 'codePoint'` uses
 the existing scalar splitter, preserving UTF16 spans and supplementary scalars;
@@ -95,13 +97,14 @@ block adapters retain C's natural-size contract; do not supply dishonest metrics
 The compiler obtains real natural container capacities rather than inventing an
 extreme page size. The C paginator, local-ULP certificates and numeric helpers are
 unchanged. Text-only wrap/glyph math is reused, not duplicated; only atomic token
-boundaries and the opt-in per-line auto-height envelope were adapted.
+boundaries and the per-participant line-height envelope were adapted.
 Native text fragments reserve actual em/ink envelopes and pad side bearings with
 native alignment, never synthetic Unicode. If a nominal empty em box extends
-beyond a line, an ink-neutral native line clip permits that box only **after** the
-complete ink envelope has been checked. Tight zero-margin mixed-font and negative
-bearing PDF tests cover this path. Insufficient explicit lineHeight still errors;
-genuine glyph overflow is never converted into clipping.
+beyond a line, an ink-neutral native envelope clip bounds only nominal overhang.
+The envelope includes all glyph ink, even beyond a tight line box. Tight zero-margin
+mixed-font and negative-bearing PDF tests cover this path. Actual page bounds and
+explicit Block clipping remain separate constraints; lineHeight never silently
+clips glyph ink or shrinks a visual.
 
 The existing mixed table entry obtains authored prose through the same compiler;
 its standalone operation closes newly possible wrapper contexts too. Table cells,

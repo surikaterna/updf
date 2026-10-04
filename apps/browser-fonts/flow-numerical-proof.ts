@@ -9,6 +9,7 @@ import {
   flowHeader,
   layout,
   paragraph,
+  pt,
 } from "@updf/layout";
 
 function definition(
@@ -32,9 +33,7 @@ function definition(
           : []),
         paragraph({
           children: text,
-          defaultStyle: { font, fontSize, color: [0, 0, 0] },
-          lineHeight: 10.3,
-          align: "left",
+          style: { font, fontSize, color: [0, 0, 0], lineHeight: pt(10.3), textAlign: "left" },
           whiteSpace: "preserve",
           breakLongWords: "error",
           keepTogether,

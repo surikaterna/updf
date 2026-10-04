@@ -4,14 +4,13 @@ import * as Core from "@updf/core";
 import { render } from "@updf/core";
 import { lower } from "@updf/core/vdom";
 import * as Layout from "@updf/layout";
-import { Document, document, Flow, flow, layout, paragraph } from "@updf/layout";
+import { Document, document, Flow, flow, layout, paragraph, pt } from "@updf/layout";
 
 const margins = { top: 10, right: 10, bottom: 10, left: 10 };
 const pageSize = { width: 200, height: 100 };
 const content = paragraph({
   children: "Portable flow\ncomplete lines",
-  defaultStyle: { fontSize: 10 },
-  lineHeight: 12,
+  style: { fontSize: 10, lineHeight: pt(12) },
 });
 const result = layout(document({ children: flow({ pageSize, margins, children: content }) }));
 const bytes = render(
@@ -104,8 +103,7 @@ for (const keepTogether of [false, true]) {
       <Flow pageSize={{ width: 760.03, height: 730.9 }} margins={{ top: 700, right: 0, bottom: 0, left: 700 }}>
         {paragraph({
           children: "AAAAAAAAA\nAAAAAAAAA\nAAAAAAAAA",
-          defaultStyle: { fontSize: 10 },
-          lineHeight: 10.3,
+          style: { fontSize: 10, lineHeight: pt(10.3) },
           keepTogether,
         })}
       </Flow>

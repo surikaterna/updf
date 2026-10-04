@@ -6,7 +6,7 @@ import { Table, type TableInput, table, tableExtension } from "@updf/tables";
 
 const input: TableInput = {
   columns: [{ width: 100 }],
-  style: { defaultStyle: { fontSize: 10 }, lineHeight: 12, padding: 0 },
+  style: { fontSize: 10, lineHeight: 1.2, padding: 0 },
   body: [{ keepTogether: true, cells: [{ children: "Packed tables" }] }],
 };
 const pageSize = { width: 100, height: 100 };

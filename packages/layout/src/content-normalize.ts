@@ -1,12 +1,14 @@
 import type { ParagraphDefinition } from "@updf/core";
 import {
   fail,
+  type InlineLineHeights,
   type LayoutOperation,
+  type LineHeight,
   type NormalizedContent,
-  number,
   validateDataObject as record,
   type SemanticRecipe,
   snapshotData,
+  validateLineHeight,
 } from "@updf/core/internal";
 import type { TextRun, TextStyle } from "@updf/core/measurement";
 import { authorBlock, isAdapterComponent, scopeDataBlock, scopedContent } from "./author-parts.js";
@@ -25,7 +27,7 @@ import type { FlowBlock, ParagraphBlock } from "./types.js";
 export interface AuthorParagraph {
   readonly path: string;
   readonly definition: ParagraphDefinition;
-  readonly autoHeight: boolean;
+  readonly lineHeights: InlineLineHeights;
   readonly sources: readonly string[];
   readonly styleSources: readonly StyleSources[];
   readonly visuals: ReadonlyMap<
@@ -189,27 +191,24 @@ function normalizeParagraph(
 ): ParagraphBlock {
   if (typeof node.value === "string") fail("TYPE", node.path, "Expected paragraph");
   const props = inheritedParagraph(node.value.props, defaults, node.path);
-  const base = textStyle(
-    { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
-    props.defaultStyle,
-    `${node.path}/defaultStyle`,
-    operation,
-  );
+  const style = authorStyle(props.style, `${node.path}/style`, true);
+  const base = textStyle({ font: "Helvetica", fontSize: 10, color: [0, 0, 0] }, style, `${node.path}/style`, operation);
   const runs: TextRun[] = [],
     sources: string[] = [];
   const styleSources: StyleSources[] = [];
   const visuals = new Map<number, { descriptor: object; style: TextStyle; path: string }>();
-  flattenInline(node.children, base, runs, sources, styleSources, visuals, node.path, operation);
+  const lineHeights: LineHeight[] = [];
+  const strut = (style.lineHeight ?? "normal") as LineHeight;
+  flattenInline(node.children, base, runs, sources, styleSources, visuals, node.path, operation, strut, lineHeights);
   const typed = props as ParagraphProps;
   const definition = reuseDefinition(node.value.props, operation, {
     runs,
     defaultStyle: base,
-    lineHeight: typed.lineHeight ?? Math.max(12, base.fontSize * 1.2),
-    align: typed.align ?? "left",
+    lineHeight: base.fontSize,
+    align: (style.textAlign ?? "left") as ParagraphDefinition["align"],
     whiteSpace: typed.whiteSpace ?? "collapse",
     breakLongWords: typed.breakLongWords ?? "error",
   });
-  if (typed.lineHeight !== undefined) number(typed.lineHeight, `${node.path}/lineHeight`, true);
   if ("keepTogether" in props && typeof props.keepTogether !== "boolean")
     fail("TYPE", node.path, "Expected boolean keepTogether");
   const block: ParagraphBlock = {
@@ -220,7 +219,7 @@ function normalizeParagraph(
   paragraphs.set(block, {
     path: node.path,
     definition,
-    autoHeight: typed.lineHeight === undefined,
+    lineHeights: { strut, runs: lineHeights },
     sources,
     styleSources,
     visuals,
@@ -232,19 +231,16 @@ function inheritedParagraph(
   defaults: ParagraphProps | undefined,
   path: string,
 ): Readonly<Record<string, unknown>> {
-  record(
-    props,
-    ["children", "defaultStyle", "lineHeight", "align", "whiteSpace", "breakLongWords", "keepTogether"],
-    path,
-  );
+  record(props, ["children", "style", "whiteSpace", "breakLongWords", "keepTogether"], path);
   for (const key of Object.keys(props))
     if (props[key] === undefined) fail("TYPE", `${path}/${key}`, "Omit undefined fields");
   if (!defaults) return props;
-  if ("defaultStyle" in props) record(props.defaultStyle, ["font", "fontSize", "color"], `${path}/defaultStyle`);
+  authorStyle(props.style, `${path}/style`, true);
+  authorStyle(defaults.style, `${path}/defaults/style`, true);
   return {
     ...defaults,
     ...props,
-    defaultStyle: { ...defaults.defaultStyle, ...(props.defaultStyle as object | undefined) },
+    style: { ...defaults.style, ...(props.style as object | undefined) },
   };
 }
 function reuseDefinition(
@@ -288,13 +284,28 @@ function sameStyle(left: TextStyle, right: TextStyle): boolean {
   );
 }
 function textStyle(base: TextStyle, override: unknown, path: string, operation: LayoutOperation): TextStyle {
-  const value = override === undefined ? {} : override;
-  record(value, ["font", "fontSize", "color"], path);
-  for (const key of Object.keys(value))
-    if (value[key] === undefined) fail("TYPE", `${path}/${key}`, "Omit undefined style fields");
-  const result = snapshotData({ ...base, ...value }, path) as TextStyle;
+  const value = override as Readonly<Record<string, unknown>>;
+  const result = snapshotData(
+    {
+      ...base,
+      ...("font" in value ? { font: value.font } : {}),
+      ...("fontSize" in value ? { fontSize: value.fontSize } : {}),
+      ...("color" in value ? { color: value.color } : {}),
+    },
+    path,
+  ) as TextStyle;
   operation.validateStyle(result, path);
   return result;
+}
+function authorStyle(override: unknown, path: string, paragraph = false): Readonly<Record<string, unknown>> {
+  const value = override === undefined ? {} : override;
+  record(value, ["font", "fontSize", "color", "lineHeight", ...(paragraph ? ["textAlign"] : [])], path);
+  for (const key of Object.keys(value))
+    if (value[key] === undefined) fail("TYPE", `${path}/${key}`, "Omit undefined style fields");
+  if ("lineHeight" in value) validateLineHeight(value.lineHeight as LineHeight, `${path}/lineHeight`);
+  if ("textAlign" in value && !["left", "center", "right"].includes(value.textAlign as string))
+    fail("VALUE", `${path}/textAlign`, "Expected text alignment");
+  return value;
 }
 function flattenInline(
   nodes: readonly NormalizedContent[],
@@ -305,27 +316,33 @@ function flattenInline(
   visuals: Map<number, { descriptor: object; style: TextStyle; path: string }>,
   path: string,
   operation: LayoutOperation,
+  strut: LineHeight,
+  lineHeights: LineHeight[],
 ): void {
   const tasks: (() => void)[] = [];
-  const schedule = (children: readonly NormalizedContent[], style: TextStyle, origins: StyleSources): void => {
+  const schedule: InlineSchedule = (children, style, origins, height) => {
     for (let i = children.length - 1; i >= 0; i--) {
       const node = children[i];
-      if (node) tasks.push(() => visit(node, style, origins));
+      if (node) tasks.push(() => visit(node, style, origins, height));
     }
   };
-  const visit = (node: NormalizedContent, style: TextStyle, origins: StyleSources): void => {
+  const visit = (node: NormalizedContent, style: TextStyle, origins: StyleSources, height: LineHeight): void => {
     if (typeof node.value === "string") {
       sources.push(node.path);
       styleSources.push(origins);
       runs.push({ text: node.value, style });
+      lineHeights.push(height);
       return;
     }
     if (node.value.identity === spanIdentity) {
-      record(node.value.props, ["children", "style"], node.path);
-      for (const key of Object.keys(node.value.props))
-        if (node.value.props[key] === undefined) fail("TYPE", `${node.path}/${key}`, "Omit undefined fields");
-      const next = textStyle(style, node.value.props.style, `${node.path}/style`, operation);
-      schedule(node.children, next, styleOrigins(origins, node.value.props.style, `${node.path}/style`));
+      const override = spanStyle(node.value.props, node.path);
+      const next = textStyle(style, override, `${node.path}/style`, operation);
+      schedule(
+        node.children,
+        next,
+        styleOrigins(origins, override, `${node.path}/style`),
+        (override.lineHeight ?? height) as LineHeight,
+      );
       return;
     }
     if (node.value.identity !== visualIdentity)
@@ -334,13 +351,25 @@ function flattenInline(
     styleSources.push(origins);
     visuals.set(runs.length, { descriptor: node.value.props.descriptor as object, style, path: node.path });
     runs.push({ text: "", style });
+    lineHeights.push(height);
   };
-  schedule(nodes, base, {
-    font: `${path}/defaultStyle/font`,
-    fontSize: `${path}/defaultStyle/fontSize`,
-    color: `${path}/defaultStyle/color`,
-  });
+  schedule(nodes, base, initialOrigins(path), strut);
   while (tasks.length) tasks.pop()?.();
+}
+function spanStyle(props: Readonly<Record<string, unknown>>, path: string): Readonly<Record<string, unknown>> {
+  record(props, ["children", "style"], path);
+  for (const key of Object.keys(props))
+    if (props[key] === undefined) fail("TYPE", `${path}/${key}`, "Omit undefined fields");
+  return authorStyle(props.style, `${path}/style`);
+}
+type InlineSchedule = (
+  children: readonly NormalizedContent[],
+  style: TextStyle,
+  origins: StyleSources,
+  height: LineHeight,
+) => void;
+function initialOrigins(path: string): StyleSources {
+  return { font: `${path}/style/font`, fontSize: `${path}/style/fontSize`, color: `${path}/style/color` };
 }
 function styleOrigins(base: StyleSources, override: unknown, path: string): StyleSources {
   if (!override || typeof override !== "object") return base;

@@ -11,9 +11,7 @@ function ThemedText(props: { readonly title: string; readonly controls: RichCont
   const controls = props.controls;
   return (
     <Paragraph
-      defaultStyle={{ fontSize: controls.fontSize }}
-      lineHeight={controls.fontSize * 1.5}
-      align={controls.align}
+      style={{ fontSize: controls.fontSize, lineHeight: 1.5, textAlign: controls.align }}
       whiteSpace={controls.whiteSpace}
       breakLongWords={controls.breakLongWords}
     >

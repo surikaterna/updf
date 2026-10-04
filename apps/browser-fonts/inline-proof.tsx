@@ -9,7 +9,7 @@ const Theme = createContext({ color: [0, 0, 1] as const });
 const svg = '<svg viewBox="0 0 16 16"><path d="M0 0H16V16H0Z" fill="#ff0000"/></svg>';
 function Content() {
   return (
-    <Paragraph defaultStyle={{ font: "Demo", fontSize: 12 }} whiteSpace="collapse">
+    <Paragraph style={{ font: "Demo", fontSize: 12 }} whiteSpace="collapse">
       <Span style={{ color: useContext(Theme).color }}>{"Привет  "}</Span>
       {badge(24)}
       <Span style={{ font: "Helvetica", color: [0, 0, 0] }}>{" portable "}</Span>

@@ -68,7 +68,7 @@ test("nested public adapters share the installed operation-local extension scope
 });
 test("content measurement captures prepared fonts from the owning operation, not a new default operation", async () => {
   const font = await fixtureFont();
-  const adapter = producer(paragraph({ children: "ABC", defaultStyle: { font: "Demo" } }));
+  const adapter = producer(paragraph({ children: "ABC", style: { font: "Demo" } }));
   const input = flow([extension(adapter, {})]);
   rejects(() => layoutFlow(input, {}, createExtensions([adapter])), "FONT_RESOURCE");
   const options = { resources: { Demo: font } };

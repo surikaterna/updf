@@ -5,9 +5,7 @@ import { Block, Document, Flow, Paragraph, pageSize } from "@updf/layout";
 
 const Card: Component<{ readonly title: string }> = ({ title }) => (
   <Block style={{ background: [0.9, 0.96, 1], padding: { top: 18, right: 12, bottom: 22, left: 12 } }}>
-    <Paragraph defaultStyle={{ fontSize: 16 }} lineHeight={20}>
-      {title}
-    </Paragraph>
+    <Paragraph style={{ fontSize: 16, lineHeight: 1.25 }}>{title}</Paragraph>
   </Block>
 );
 
