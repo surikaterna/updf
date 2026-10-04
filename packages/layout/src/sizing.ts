@@ -1,5 +1,6 @@
 import { array, fail, number, validateDataObject as record, snapshotData, sum } from "@updf/core/internal";
 import { derivedAxis } from "./axis.js";
+import { borderKeys, type ExpandedBorders, expandBorders } from "./borders.js";
 import type { BlockStyle, Insets } from "./container-types.js";
 
 const keys = [
@@ -14,13 +15,14 @@ const keys = [
   "paddingRight",
   "paddingBottom",
   "paddingLeft",
-  "border",
+  ...borderKeys,
   "backgroundColor",
   "gap",
   "overflow",
 ];
 export interface Sizing {
   readonly style: BlockStyle;
+  readonly borders: ExpandedBorders;
   readonly width: number;
   readonly contentWidth: number;
   readonly inset: Insets;
@@ -48,21 +50,19 @@ export function sizing(input: unknown, available: number, path: string): Sizing 
   const style = value as BlockStyle;
   if ("overflow" in style && style.overflow !== "error" && style.overflow !== "hidden")
     fail("TYPE", path, "Expected error or hidden overflow");
-  if ("border" in style) {
-    record(style.border, ["width", "color"], `${path}/border`);
-    number(style.border.width, path);
-    rgb(style.border.color, path);
-  }
+  const borders = expandBorders(
+    Object.fromEntries(borderKeys.filter((key) => key in value).map((key) => [key, value[key]])),
+    path,
+  );
   if ("backgroundColor" in style) rgb(style.backgroundColor, `${path}/backgroundColor`);
   for (const key of ["padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft"] as const)
     if (key in style) number(style[key], `${path}/${key}`);
   const padding = style.padding ?? 0;
-  const border = style.border?.width ?? 0;
   const inset = {
-    top: sum([style.paddingTop ?? padding, border]),
-    right: sum([style.paddingRight ?? padding, border]),
-    bottom: sum([style.paddingBottom ?? padding, border]),
-    left: sum([style.paddingLeft ?? padding, border]),
+    top: sum([style.paddingTop ?? padding, borders.borderTop?.width ?? 0]),
+    right: sum([style.paddingRight ?? padding, borders.borderRight?.width ?? 0]),
+    bottom: sum([style.paddingBottom ?? padding, borders.borderBottom?.width ?? 0]),
+    left: sum([style.paddingLeft ?? padding, borders.borderLeft?.width ?? 0]),
   };
   const width = clamp(style.width ?? available, style.minWidth, style.maxWidth);
   if (width <= 0 || width > available)
@@ -70,6 +70,7 @@ export function sizing(input: unknown, available: number, path: string): Sizing 
   const horizontal = derivedAxis(inset.left, width - inset.right, path);
   return {
     style: snapshotData(style, path),
+    borders,
     width,
     inset,
     contentWidth: horizontal.capacity,

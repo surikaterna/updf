@@ -31,7 +31,15 @@ function* splittable(
   if (!selected) return undefined;
   const height = sum([box.vertical, selected.height]);
   reserveAncestors(reserve, request.budget, request.state, selected.height);
-  return painted(box, selected, height, false, path, selected.nextOffset);
+  const fragmentBox = {
+    ...box,
+    borders: {
+      ...box.borders,
+      ...(request.offset === 0 ? {} : { borderTop: null }),
+      ...(selected.nextOffset === content.extent ? {} : { borderBottom: null }),
+    },
+  };
+  return painted(fragmentBox, selected, height, false, path, selected.nextOffset);
 }
 function* atomic(
   box: Sizing,
@@ -56,7 +64,7 @@ function* atomic(
   });
   if (!selected || selected.nextOffset !== content.extent || selected.advance)
     fail("TYPE", path, "Closed/kept blocks cannot contain page advance controls");
-  if (hidden && height <= 2 * (box.style.border?.width ?? 0))
+  if (hidden && height <= (box.borders.borderTop?.width ?? 0) + (box.borders.borderBottom?.width ?? 0))
     fail("GEOMETRY", path, "Hidden content requires a positive padding-edge clip");
   return painted(box, selected, height, hidden, path, 1);
 }
@@ -90,7 +98,7 @@ export function containerProducer(
   const clipped = height < natural;
   if (clipped && box.style.overflow !== "hidden")
     fail("VERTICAL_OVERFLOW", path, "Natural children exceed the constrained border-box height");
-  if (clipped && height <= 2 * (box.style.border?.width ?? 0))
+  if (clipped && height <= (box.borders.borderTop?.width ?? 0) + (box.borders.borderBottom?.width ?? 0))
     fail("GEOMETRY", path, "Hidden content requires a positive padding-edge clip");
   if (height < box.vertical) fail("GEOMETRY", path, "Height cannot erase padding/border reservations");
   const blank = Math.max(0, height - natural);

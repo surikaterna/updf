@@ -92,7 +92,7 @@ support the same fields; the named schemas describe where they apply.
 | padding, paddingTop/Right/Bottom/Left | yes | cell-owner insets | no |
 | height, gap, overflow | yes | cell-owner constraints | no |
 | width, min/maxWidth, min/maxHeight | yes | no; columns have explicit width, rows have minHeight prop | no |
-| border | uniform Block border only | no; Table.grid is uniform and explicit | no |
+| border, borderTop/Right/Bottom/Left | yes; typed edge or null | no; Table.grid is uniform and explicit (#42-B later) | no |
 
 Geometry is finite nonnegative PDF points, except positive Block/column width and
 fontSize. Background is an RGB triple, not a CSS color string. Omitted background
@@ -145,9 +145,63 @@ const content = <Block style={{ backgroundColor: [0.9, 0.96, 1], padding: 4,
 Install `tableExtension` explicitly in the containing Flow/measurement extensions.
 For branding, read an application-owned `Theme` via `useContext(Theme)` and apply
 its typed values to these styles explicitly, as in the mixed showcase. A provider
-alone does not restyle anything. Borders remain existing uniform Block border and
-Table grid semantics; per-edge borders are coordinated future #42, not a duplicate
-implementation. Span backgrounds remain future #43, not box inheritance.
+alone does not restyle anything. Block border policy is documented below; Table
+grid semantics remain unchanged. Span backgrounds remain future #43, not box inheritance.
+
+### Reusable edge-border policy (#42-A)
+
+Import `BorderEdge`, `BorderPolicy`, `ExpandedBorders`, `expandBorders` and
+`mergeBorders` from `@updf/layout`. A `BorderEdge` requires both nonnegative finite
+`width` (PDF points) and `color` (readonly RGB triple in [0,1]); there is no implicit
+width/color. Width zero reserves and paints nothing. `border` is a uniform fallback.
+An explicit `borderTop`, `borderRight`, `borderBottom` or `borderLeft` beats that
+fallback within the same object, regardless of key enumeration. Omission means
+unspecified; `null` deliberately means no border (also supported for `border`).
+Present undefined, unknown keys, accessors, malformed edges and invalid numbers/colors
+reject with the source path, even in layers subsequently overridden.
+
+```ts
+import { type BorderEdge, type BorderPolicy, type BlockStyle, mergeBorders } from '@updf/layout';
+const rule: BorderEdge = { width: 2, color: [0, 0, 1] };
+const heading: BorderPolicy = { borderBottom: rule };
+const framed: BlockStyle = { border: rule, borderTop: null, padding: 4 };
+const composed: BlockStyle = {
+  ...mergeBorders([
+    { style: { borderLeft: rule }, path: '/theme/base' },
+    { style: { border: rule, borderBottom: null }, path: '/theme/override' },
+  ]),
+  padding: 4,
+};
+```
+
+`expandBorders` accepts a border-only policy, validates and snapshots it, and expands
+uniform shorthand without filling unspecified edges. `mergeBorders` accepts explicit
+border-only layers with their diagnostic paths, expands **each layer before merging**,
+then replaces per edge in source order. Thus a later uniform shorthand replaces earlier
+explicit edges; a later omitted edge preserves the previous value, and null clears it.
+Ordinary spreads have no history: `{ ...{ borderLeft: rule }, ...{ border: null } }`
+still contains an explicit left edge, so use `mergeBorders` for layer semantics.
+This is explicit data composition, not CSS `all`, a parser, or a cascade.
+
+Block width/height allocate the **border box**. Content insets are the resolved edge
+width plus that edge's padding; borders do not inherit into children. Borders paint
+as filled strips wholly inside allocated geometry, not centered strokes extending
+outside it. Top/bottom own corner strips; sides fill the remaining height. Background
+fills the border box behind content, then borders paint in front. Hidden overflow clips
+content at the padding edge (border box minus each border width), not at the content edge.
+
+Natural fragmented Blocks retain the existing cloned padding **and border-width
+reservations on every fragment**, preserving content capacity and pagination, including
+when that fragment's horizontal edge does not paint. Top paints only on the first
+fragment, bottom only on the last, and sides paint on each fragment. Closed/kept Blocks
+paint all specified edges once; explicit/max-height hidden overflow has no continuation.
+Ancestor preflight conservatively reserves specified decorations before the last-fragment
+decision; final painting accounts for the actual fragment edges.
+
+The reusable policy is ready for #42-B, but table cell edges/shared-edge drawing are
+**not implemented here**. Planned table conflict resolution is explicit cell edge over
+grid fallback, then greater width, with stable top/left owner on ties and each shared
+edge drawn once. Existing uniform `Table.grid` is unchanged; mixed cell edges await B.
 
 ## Migration
 
@@ -166,7 +220,7 @@ implementation. Span backgrounds remain future #43, not box inheritance.
 Fixed core `text`/`richText` and `ParagraphDefinition` are a separate low-level
 point-valued contract; do not migrate them to ratios. Legacy and historical audit
 documents are unchanged. No selectors, cascade interpreter, CSS parser, browser
-layout, full shorthand set, per-edge borders (#42), Span backgrounds (#43), or
+layout, full shorthand set, table per-edge borders (#42-B), Span backgrounds (#43), or
 flex are added. Any future stylesheet adapter is a distinct optional boundary.
 
 Compile-checked NodeNext/Bundler public examples live in

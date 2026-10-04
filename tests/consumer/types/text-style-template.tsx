@@ -3,11 +3,14 @@ import { render } from "@updf/core";
 import {
   Block,
   type BlockStyle,
+  type BorderEdge,
+  type BorderPolicy,
   Document,
   Flow,
   type LineHeight,
   layout,
   measure,
+  mergeBorders,
   Paragraph,
   type ParagraphStyle,
   type PointLength,
@@ -27,11 +30,14 @@ const body: ParagraphStyle = {
   textAlign: "left",
 };
 const emphasis: SpanStyle = { fontSize: 20, lineHeight: absolute };
+const rule: BorderEdge = { width: 2, color: [0, 0, 1] };
+const heading: BorderPolicy = { borderBottom: rule, borderTop: null };
 const box: BlockStyle = {
   backgroundColor: [0.9, 0.96, 1],
   padding: 4,
   paddingLeft: 8,
   border: { width: 1, color: [0, 0, 0] },
+  ...mergeBorders([{ style: heading, path: "/theme/heading" }]),
 };
 const content = (
   <Block style={box}>
@@ -73,7 +79,10 @@ if (measured.size.height < 0) {
   const insetBox: BlockStyle = { padding: { top: 1, right: 1, bottom: 1, left: 1 } };
   // @ts-expect-error Span backgrounds are planned separately in #43.
   const highlighted: SpanStyle = { backgroundColor: [1, 1, 0] };
-  // @ts-expect-error Per-edge borders are planned separately in #42.
-  const bordered: BlockStyle = { borderLeft: { width: 1, color: [0, 0, 0] } };
+  // @ts-expect-error Border edges require a color.
+  const bordered: BlockStyle = { borderLeft: { width: 1 } };
+  // @ts-expect-error Omit an edge instead of setting undefined.
+  const undefinedBorder: BorderPolicy = { borderTop: undefined };
+  void undefinedBorder;
   void [obsoleteBox, insetBox, highlighted, bordered];
 }

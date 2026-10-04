@@ -51,7 +51,7 @@ test("#49-C unknown, obsolete, undefined and invalid box styles reject", () => {
     { paddingBottom: NaN },
     { backgroundColor: [2, 0, 0] },
     { fontSize: 12 },
-    { borderTop: { width: 1, color: [0, 0, 0] } },
+    { borderTop: { width: 1, color: [0, 0, 2] } },
   ])
     assert.throws(() => measure(block({ style, children: [] } as never), { width: 100 }), DocumentError);
 });

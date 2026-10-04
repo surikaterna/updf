@@ -57,7 +57,8 @@ Present undefined fields, unsupported keys, getters, array holes and classes fai
 | `minHeight` / `maxHeight` | Nonnegative constraints applied to computed height; min > max rejects |
 | `padding` | Optional scalar nonnegative shorthand in points; omitted is zero |
 | `paddingTop` / `paddingRight` / `paddingBottom` / `paddingLeft` | Nonnegative point edges overriding shorthand, regardless of key enumeration |
-| `border` | Optional nonnegative width and readonly RGB color; reserves each side |
+| `border` | Uniform fallback: required nonnegative width and readonly RGB color, or null for none |
+| `borderTop` / `borderRight` / `borderBottom` / `borderLeft` | Typed edge or null; explicit edge beats uniform fallback; omission is unspecified |
 | `backgroundColor` | Optional readonly RGB color; absent means no fill |
 | `gap` | Nonnegative space only between non-control children; no outer gap or margin collapse |
 | `overflow` | `error` (default) or `hidden`; no visible/auto/scroll modes |
@@ -69,6 +70,9 @@ width must remain positive and fit the available region, including in hidden mod
 Border and padding are subtracted before measuring children. Derived content axes
 use the existing private 32-local-ULP dyadic certificates; native associations and
 part/fragment reservations remain checked. No global tolerance change is made.
+Border strips paint wholly inside the allocated border box. Top/bottom own corners;
+side strips fill the remaining height. See the [reusable border policy](text-styles.md#reusable-edge-border-policy-42-a)
+for typed objects, strict source-path validation and per-layer shorthand expansion.
 
 Natural height sums child natural heights, between-child gaps and vertical insets.
 An unconstrained auto-height block grows naturally and is splittable by default,
@@ -115,10 +119,12 @@ the chart headline/visual pair in `src/blocks.tsx` is also a kept Block, indepen
 of the surrounding container's whole-block toggle. Source display reads these
 actual modules rather than a separate illustrative snippet.
 
-Decoration break policy is **clone per fragment**: background, all four border
-sides and all padding sides are applied to every container fragment. Additional
-clone reservations can increase aggregate fragmented height beyond its natural
-unfragmented height. This is an explicit basic policy, not full CSS behavior.
+Background and all padding/border-width **reservations clone per fragment**. Border
+painting uses top only on the first fragment, bottom only on the last, and sides on
+every fragment. Reserved insets remain even on fragments whose top/bottom does not
+paint, preserving existing content geometry/pagination. Additional clone reservations
+can increase aggregate fragmented height beyond its natural unfragmented height.
+This is an explicit basic policy, not full CSS behavior.
 
 ## Static decorations and candidate reservation
 

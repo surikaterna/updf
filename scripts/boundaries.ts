@@ -48,6 +48,7 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/decorations.ts",
     "layout/src/decorated-producer.ts",
     "layout/src/sizing.ts",
+    "layout/src/borders.ts",
     "layout/src/stack.ts",
     "layout/src/output-scan.ts",
     "layout/src/adapter-call.ts",

@@ -1,5 +1,6 @@
 import type { NodeDefinition } from "@updf/core";
 import { fail, sum } from "@updf/core/internal";
+import { borderRectangles } from "./border-rectangles.js";
 import { containerTotals } from "./container-budget.js";
 import type { FragmentPaintContext, PaintCall } from "./protocol.js";
 import type { Sizing } from "./sizing.js";
@@ -19,13 +20,7 @@ function decoration(box: Sizing, height: number): NodeDefinition[] {
       nodes.push({ type: "rect", x, y, width, height: extent, paint: { fill: color, stroke: null } });
   };
   if (box.style.backgroundColor) rect(0, 0, box.width, height, box.style.backgroundColor);
-  const border = box.style.border;
-  if (border?.width) {
-    rect(0, 0, box.width, border.width, border.color);
-    rect(0, height - border.width, box.width, border.width, border.color);
-    rect(0, border.width, border.width, height - 2 * border.width, border.color);
-    rect(box.width - border.width, border.width, border.width, height - 2 * border.width, border.color);
-  }
+  nodes.push(...borderRectangles(box.borders, box.width, height));
   return nodes;
 }
 export function* paintContainerSteps(
@@ -38,7 +33,10 @@ export function* paintContainerSteps(
 ): Generator<PaintCall, readonly NodeDefinition[], readonly NodeDefinition[]> {
   if (height === 0) return [];
   const outside = decoration(box, height);
-  const border = box.style.border?.width ?? 0;
+  const top = box.borders.borderTop?.width ?? 0;
+  const right = box.borders.borderRight?.width ?? 0;
+  const bottom = box.borders.borderBottom?.width ?? 0;
+  const left = box.borders.borderLeft?.width ?? 0;
   context.budget.apply(containerTotals(box, height, hidden), path);
   const content: NodeDefinition[] = [];
   for (const piece of selection.pieces) {
@@ -66,7 +64,7 @@ export function* paintContainerSteps(
   if (hidden)
     children.push({
       type: "paintGroup",
-      clip: { x: border, y: border, width: box.width - 2 * border, height: height - 2 * border },
+      clip: { x: left, y: top, width: box.width - left - right, height: height - top - bottom },
       children: content,
     });
   else for (const node of content) children.push(node);

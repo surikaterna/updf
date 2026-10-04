@@ -1,4 +1,6 @@
 export { blockComponent, defineBlockPart } from "./author-parts.js";
+export type { BorderEdge, BorderLayer, BorderPolicy, ExpandedBorders } from "./borders.js";
+export { expandBorders, mergeBorders } from "./borders.js";
 export { block } from "./container-data.js";
 export type { BlockInput, BlockStyle, BoxStyle, ContainerBlock, Insets } from "./container-types.js";
 export { Block, Paragraph, paragraph, Span, span } from "./content-data.js";
