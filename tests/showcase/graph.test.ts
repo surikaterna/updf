@@ -75,6 +75,7 @@ function layoutClosures(chunks: readonly Chunk[], entry: Chunk): void {
   mixedClosure(chunks, entry);
   rowClosure(chunks, entry);
   invoiceClosure(chunks, entry);
+  manifestClosure(chunks, entry);
   const template = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/template.tsx")));
   assert.ok(template && entry.dynamicImports.includes(template.fileName));
   assert.ok(closure(chunks, template).some((name) => name.endsWith("/layout/dist/mixed-layout.js")));
@@ -161,4 +162,14 @@ function invoiceClosure(chunks: readonly Chunk[], entry: Chunk): void {
   assert.ok(modules.some((name) => name.endsWith("/tables/dist/adapter.js")));
   assert.ok(!modules.some((name) => /\/packages\/(svg|geometry|fontkit)\/|node:|\/react(?:-dom)?\//u.test(name)));
   assert.ok(!closure(chunks, entry).some((name) => name.includes("/examples/business/")));
+}
+function manifestClosure(chunks: readonly Chunk[], entry: Chunk): void {
+  const manifest = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-manifest.ts")));
+  assert.ok(manifest && entry.dynamicImports.includes(manifest.fileName));
+  const modules = closure(chunks, manifest);
+  for (const name of ["manifest.tsx", "manifest-data.ts", "manifest-calculations.ts", "components.tsx"])
+    assert.ok(modules.some((path) => path.endsWith(`/examples/business/${name}`)));
+  assert.ok(modules.some((name) => name.endsWith("/tables/dist/adapter.js")));
+  assert.ok(!modules.some((name) => /\/packages\/(svg|geometry|fontkit)\/|node:|\/react(?:-dom)?\//u.test(name)));
+  assert.ok(!modules.some((name) => name.endsWith("/invoice.tsx") || name.endsWith("/invoice-data.ts")));
 }

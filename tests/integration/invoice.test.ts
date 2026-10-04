@@ -5,6 +5,19 @@ import test from "node:test";
 import { invoiceExample } from "../../examples/business/invoice.js";
 import { calculateInvoice, money } from "../../examples/business/invoice-calculations.js";
 import { mockInvoice } from "../../examples/business/invoice-data.js";
+import { eraseRegion } from "./manifest-pdf-checks.js";
+
+test("#46-A audited invoice accepts deeply frozen application input without mutation", () => {
+  const data = structuredClone(mockInvoice);
+  const freeze = (value: object): void => {
+    for (const child of Object.values(value)) if (child && typeof child === "object") freeze(child);
+    Object.freeze(value);
+  };
+  freeze(data);
+  const before = JSON.stringify(data);
+  assert.deepEqual(invoiceExample(undefined, data).bytes, invoiceExample().bytes);
+  assert.equal(JSON.stringify(data), before);
+});
 
 test("#46-A integer cents reconcile independently, round half-up and reject unsafe business inputs", () => {
   const totals = calculateInvoice(mockInvoice);
@@ -59,6 +72,9 @@ test("#46-A actual PDF: qpdf, Poppler order/amounts, page-local geometry and ras
     const blank = Buffer.from(ppm);
     blank.fill(255, blank.indexOf(Buffer.from("255\n")) + 4);
     assert.throws(() => assertRaster(blank), assert.AssertionError);
+    assert.throws(() => assertRaster(eraseRegion(ppm, 30, 30, 566, 54)), assert.AssertionError);
+    assert.throws(() => assertRaster(eraseRegion(ppm, 30, 790, 566, 813)), assert.AssertionError);
+    assert.throws(() => assertRaster(eraseRegion(ppm, 326, 54, 328, 790)), assert.AssertionError);
   }
 });
 

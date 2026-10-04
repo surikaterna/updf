@@ -26,10 +26,12 @@ export type DemoId =
   | "mixed"
   | "rows"
   | "rows-overflow"
-  | "invoice";
+  | "invoice"
+  | "manifest";
 
 export function demoId(value: string): DemoId {
   if (
+    value === "manifest" ||
     value === "invoice" ||
     value === "text" ||
     value === "template" ||
@@ -57,7 +59,7 @@ export async function generate(
   mixed?: MixedControls,
 ): Promise<{ bytes: Uint8Array; source: string; summary?: string }> {
   if (title.length > 40) throw new Error("Title must be at most 40 characters");
-  if (id === "invoice") return invoiceResult(title);
+  if (id === "manifest" || id === "invoice") return id === "manifest" ? manifestResult(title) : invoiceResult(title);
   if (id === "template") return templateResult(title);
   if (id === "mixed") return mixedResult(title, mixed);
   if (id === "blocks") return blockResult(title, blocks);
@@ -107,6 +109,15 @@ async function invoiceResult(title: string) {
     bytes,
     source,
     summary: `${metadata.pageCount} A4 pages; ${metadata.itemCount} original mock line items; integer-cent application totals. NOT FOR PAYMENT.`,
+  };
+}
+async function manifestResult(title: string) {
+  const { manifestExample, source } = await import("./optional-manifest.js");
+  const { bytes, metadata } = manifestExample(title);
+  return {
+    bytes,
+    source,
+    summary: `${metadata.pageCount} mixed A4 pages; ${metadata.totals.consignmentCount} original mock consignments; integer-gram application totals. NOT FOR TRANSPORT.`,
   };
 }
 async function rowResult(title: string, oversized: boolean) {

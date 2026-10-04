@@ -6,6 +6,7 @@ import { mixedExample } from "../../apps/showcase/src/mixed.js";
 import { richExample } from "../../apps/showcase/src/rich.js";
 import { tableExample } from "../../apps/showcase/src/tables.js";
 import { invoiceExample } from "../../examples/business/invoice.js";
+import { manifestExample } from "../../examples/business/manifest.js";
 import { observeUrls, pageErrors, pdf, rendered, site } from "./helpers.js";
 
 test("all measured demos auto-publish latest bytes and ordered PDF canvases across mobile resize and restoration", async () => {
@@ -22,6 +23,7 @@ test("all measured demos auto-publish latest bytes and ordered PDF canvases acro
       ["blocks", blockExample],
       ["mixed", mixedExample],
       ["invoice", invoiceExample],
+      ["manifest", manifestExample],
     ] as const) {
       await page.getByLabel("Example", { exact: true }).selectOption(id);
       await page.getByLabel("PDF title", { exact: true }).fill("Obsolete draft");

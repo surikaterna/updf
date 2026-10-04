@@ -85,7 +85,9 @@ atomic rows with fixed/weighted tracks and all alignments; an oversize entry exp
 the controlled diagnostic. The separate [#46-A original mock invoice](docs/business-showcases.md)
 is a runnable three-page business showcase with shared application components,
 integer-cent calculations, a Node CLI and the lazy browser/mobile demo. #46-B's
-manifest remains follow-up work; neither example is operational paperwork.
+original mock manifest adds 48 consignments in mixed portrait/landscape flow with
+integer-gram/package totals and the same Node/browser paths. Neither example is
+operational paperwork; both are unreleased application examples, not library APIs.
 It generates downloadable PDFs locally,
 with automatic, multi-page PDF.js canvas previews and a mobile open/download fallback.
 PDF.js and its worker are lazy, locally bundled assets; SVG remains optional.

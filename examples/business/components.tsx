@@ -43,14 +43,16 @@ export function Section({ title, children }: { readonly title: string; readonly 
 }
 export function Totals({
   entries,
+  note = "All amounts in GBP. Mock transaction only.",
 }: {
   readonly entries: readonly { readonly label: string; readonly value: string }[];
+  readonly note?: string;
 }) {
   const theme = useContext(Theme);
   return (
     <Row style={{ gap: 16, padding: 8, borderTop: { width: 1, color: theme.accent } }}>
       <Column width={{ weight: 1 }}>
-        <Paragraph style={theme.text}>All amounts in GBP. Mock transaction only.</Paragraph>
+        <Paragraph style={theme.text}>{note}</Paragraph>
       </Column>
       <Column width={260} style={{ gap: 4 }}>
         {entries.map(({ label, value }) => (
