@@ -14,12 +14,18 @@ export function scheduleContainerLines(
   sizes: WeakMap<object, ContentSize>,
   x: number,
   y: number,
-  schedule: (body: readonly FlowBlock[], x: number, y: number, gap: number) => void,
+  schedule: (
+    body: readonly FlowBlock[],
+    x: number,
+    y: number,
+    gap: number,
+    alignment?: PreparedBlock["contentAlignment"],
+  ) => void,
 ): void {
   if (value.type !== "block" && value.type !== "column" && value.type !== "row") return;
   const box = sizing(value.style, size.block.naturalSize.width, "/content/style");
   if (value.type !== "row") {
-    schedule(value.children, x + box.inset.left, y + box.inset.top, box.gap);
+    schedule(value.children, x + box.inset.left, y + box.inset.top, box.gap, size.block.contentAlignment);
     return;
   }
   const horizontal = new MetricSum();

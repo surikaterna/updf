@@ -63,10 +63,17 @@ try {
         "mixed-template.tsx",
         "text-style-template.tsx",
         "rows-template.tsx",
+        "auto-margin-template.tsx",
       ]);
       await typeConsumer(
         directory,
-        ["content-template.tsx", "mixed-template.tsx", "text-style-template.tsx", "rows-template.tsx"],
+        [
+          "content-template.tsx",
+          "mixed-template.tsx",
+          "text-style-template.tsx",
+          "rows-template.tsx",
+          "auto-margin-template.tsx",
+        ],
         true,
       );
       await typeConsumer(directory, ["flow-template.tsx", "page-break-template.tsx"]);

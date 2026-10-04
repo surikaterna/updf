@@ -19,6 +19,7 @@ const keys = [
   "backgroundColor",
   "gap",
   "overflow",
+  "marginTop",
 ];
 export interface Sizing {
   readonly style: BlockStyle;
@@ -48,6 +49,8 @@ export function sizing(input: unknown, available: number, path: string): Sizing 
       fail("GEOMETRY", path, "Contradictory min/max");
   }
   const style = value as BlockStyle;
+  if ("marginTop" in style && style.marginTop !== "auto")
+    fail("VDOM_HIERARCHY", `${path}/marginTop`, "Expected auto top margin");
   if ("overflow" in style && style.overflow !== "error" && style.overflow !== "hidden")
     fail("TYPE", path, "Expected error or hidden overflow");
   const borders = expandBorders(

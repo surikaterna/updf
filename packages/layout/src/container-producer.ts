@@ -27,6 +27,7 @@ function* splittable(
     availableHeight: capacity - request.usedHeight,
     width: box.contentWidth,
     reserve,
+    definiteAlignment: false,
   });
   if (!selected) return undefined;
   const height = sum([box.vertical, selected.height]);
@@ -48,6 +49,7 @@ function* atomic(
   hidden: boolean,
   request: FragmentRequest,
   path: string,
+  alignment: PreparedBlock["contentAlignment"],
 ): Generator<FragmentCall, PlacedFragment | undefined, PlacedFragment | undefined> {
   if (exceeds(sum([request.usedHeight, height]), request.freshHeight)) return undefined;
   const reserve = containerReservation(box, request, path, { height, hidden });
@@ -55,12 +57,14 @@ function* atomic(
   const selected = yield* selectStackSteps(content, {
     ...request,
     offset: 0,
-    freshHeight: Math.max(content.height, 1),
-    availableHeight: Math.max(content.height, 1),
+    freshHeight: alignment?.capacity ?? Math.max(content.height, 1),
+    availableHeight: alignment?.capacity ?? Math.max(content.height, 1),
     usedHeight: 0,
     atFreshRegion: true,
     width: box.contentWidth,
     reserve,
+    definiteAlignment: alignment !== undefined,
+    alignmentHeight: alignment?.height ?? 0,
   });
   if (!selected || selected.nextOffset !== content.extent || selected.advance)
     fail("TYPE", path, "Closed/kept blocks cannot contain page advance controls");
@@ -85,36 +89,73 @@ function painted(
   };
   return fragment;
 }
-export function containerProducer(
+function containerPlan(
   box: Sizing,
   children: readonly PreparedBlock[],
   keepTogether: boolean,
   freshHeight: number,
   path: string,
-): PreparedBlock {
+  blockRole = false,
+) {
   const initial = stack(children, box.gap, 0, Math.max(1, freshHeight - box.vertical), path);
   const natural = sum([initial.height, box.vertical]);
   const height = clamp(box.style.height ?? natural, box.style.minHeight, box.style.maxHeight);
   const clipped = height < natural;
+  const aligned = children.some((child) => child.autoMargin);
+  const containsAutoAlignment = children.some((child) => child.autoMargin || child.containsAutoAlignment);
+  const definiteAlignment = blockRole && box.style.height !== undefined && aligned;
+  const contentAlignment = definiteAlignment
+    ? { height: height - box.vertical, capacity: contentCapacity(box, height, path) }
+    : undefined;
+  if (clipped && (box.style.marginTop === "auto" || containsAutoAlignment))
+    fail("VERTICAL_OVERFLOW", path, "Auto alignment cannot clip its child or explicit-height parent");
   if (clipped && box.style.overflow !== "hidden")
     fail("VERTICAL_OVERFLOW", path, "Natural children exceed the constrained border-box height");
   if (clipped && height <= (box.borders.borderTop?.width ?? 0) + (box.borders.borderBottom?.width ?? 0))
     fail("GEOMETRY", path, "Hidden content requires a positive padding-edge clip");
   if (height < box.vertical) fail("GEOMETRY", path, "Height cannot erase padding/border reservations");
   const blank = Math.max(0, height - natural);
-  const content = stack(children, box.gap, blank, contentCapacity(box, freshHeight, path), path);
+  const content = stack(
+    children,
+    box.gap,
+    definiteAlignment && aligned ? 0 : blank,
+    contentCapacity(box, freshHeight, path),
+    path,
+  );
   const whole = keepTogether || box.style.height !== undefined || clipped;
   const hidden =
     box.style.overflow === "hidden" &&
     (box.style.height !== undefined || box.style.maxHeight !== undefined) &&
     height > 0;
+  return { content, height, whole, hidden, contentAlignment, containsAutoAlignment };
+}
+export function containerProducer(
+  box: Sizing,
+  children: readonly PreparedBlock[],
+  keepTogether: boolean,
+  freshHeight: number,
+  path: string,
+  blockRole = false,
+): PreparedBlock {
+  const { content, height, whole, hidden, contentAlignment, containsAutoAlignment } = containerPlan(
+    box,
+    children,
+    keepTogether,
+    freshHeight,
+    path,
+    blockRole,
+  );
   const prepared: PreparedBlock = {
+    ...(contentAlignment ? { contentAlignment } : {}),
+    ...(containsAutoAlignment ? { containsAutoAlignment } : {}),
     fragmentation: whole ? "atomic" : "splittable",
     naturalSize: { width: box.width, height },
     extent: whole ? 1 : content.extent,
     fragment: (request) => resolveFragment(prepared, request),
     fragmentSteps: (request) =>
-      whole ? atomic(box, content, height, hidden, request, path) : splittable(box, content, request, path),
+      whole
+        ? atomic(box, content, height, hidden, request, path, contentAlignment)
+        : splittable(box, content, request, path),
   };
   return prepared;
 }

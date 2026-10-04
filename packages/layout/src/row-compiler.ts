@@ -1,4 +1,5 @@
 import { array, fail, type LayoutOperation, validateDataObject as record, sum } from "@updf/core/internal";
+import { autoMarginInput } from "./auto-margin.js";
 import { columnBody } from "./column-content.js";
 import { columnInput, columnSizing } from "./column-sizing.js";
 import { containerProducer } from "./container-producer.js";
@@ -38,6 +39,7 @@ export function compileRow(
   }
 }
 function rowSizing(value: Record<string, unknown>, width: number, operation: LayoutOperation, path: string) {
+  autoMarginInput(value, false, path);
   record(value, ["type", "children", "align", "style"], path);
   for (const key of ["align", "style"])
     if (key in value && value[key] === undefined) fail("TYPE", `${path}/${key}`, "Omit undefined fields");

@@ -1,5 +1,6 @@
 import type { NodeDefinition, PageDefinition } from "@updf/core";
 import { checkLimit, exceeds, fail, MetricSum, type Policy, sum } from "@updf/core/internal";
+import { alignedRequest } from "./auto-margin.js";
 import { materializedStart } from "./axis.js";
 import { OutputBudget } from "./budget.js";
 import { snapshot } from "./data.js";
@@ -170,8 +171,9 @@ export class Paginator {
         fragment.nextOffset > item.extent
       )
         fail("TYPE", path, "Fragment must make finite extent progress");
-      if (!Number.isFinite(fragment.height) || fragment.height < 0 || !this.fits(fragment.height))
+      if (!Number.isFinite(fragment.height) || fragment.height < 0 || !this.fits(selection.margin, fragment.height))
         fail("GEOMETRY", path, "Fragment exceeds available body height");
+      this.position.add(selection.margin);
       const origin = this.cursor;
       const y = materializedStart(this.geometry.vertical, origin, fragment.height, path);
       if (y < this.bottom)
@@ -192,7 +194,7 @@ export class Paginator {
   }
   private selection(item: PreparedBlock, offset: number, previous: FragmentState) {
     const state = previous.fork();
-    const fragment = resolveFragment(item, {
+    const aligned = alignedRequest(item, {
       offset,
       availableHeight: this.geometry.body.height - this.cursor,
       freshHeight: this.geometry.body.height,
@@ -201,8 +203,11 @@ export class Paginator {
       usedHeight: this.cursor,
       budget: this.budget.fork(),
       state,
+      definiteAlignment: true,
+      alignmentHeight: this.geometry.vertical.nominalExtent,
     });
-    return { fragment, state };
+    const fragment = aligned ? resolveFragment(item, aligned.request) : undefined;
+    return { fragment, state, margin: aligned?.margin ?? 0 };
   }
   private recordFragment(
     item: PreparedBlock,

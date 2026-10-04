@@ -131,6 +131,12 @@ support the same fields; the named schemas describe where they apply.
 | height, gap, overflow | yes | cell-owner constraints | no |
 | width, min/maxWidth, min/maxHeight | yes | no; columns have explicit width, rows have minHeight prop | no |
 | border, borderTop/Right/Bottom/Left | yes; typed edge or null | yes; cell-owner policy, with Table.grid fallback | no |
+| marginTop | only `"auto"`; terminal Block with explicit keepTogether | no | no |
+
+Native layout RowStyle and ColumnStyle also exclude `marginTop` rather than
+inheriting it from BlockStyle. There are no numeric/general margins. See the
+[terminal auto-margin contract](blocks.md#terminal-auto-top-margin-53), including
+explicit-height versus natural parent regions and unchanged table defaults.
 
 Geometry is finite nonnegative PDF points, except positive Block/column width and
 fontSize. Background is an RGB triple, not a CSS color string. Omitted background

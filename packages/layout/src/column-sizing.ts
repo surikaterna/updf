@@ -1,7 +1,9 @@
 import { fail, validateDataObject as record } from "@updf/core/internal";
+import { autoMarginInput } from "./auto-margin.js";
 import { type Sizing, sizing } from "./sizing.js";
 
 export function columnInput(value: unknown, path: string): Record<string, unknown> {
+  autoMarginInput(value, false, path);
   record(value, ["type", "children", "width", "style", "keepTogether"], path);
   if (value.type !== "column") fail("TYPE", path, "Row children must be Columns");
   for (const key of ["width", "style", "keepTogether"])

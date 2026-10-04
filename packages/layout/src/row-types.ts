@@ -4,8 +4,8 @@ import type { FlowBlock } from "./types.js";
 import type { WidthTrack } from "./width-types.js";
 
 export type RowAlignment = "top" | "middle" | "bottom" | "stretch";
-export type ColumnStyle = Omit<BlockStyle, "width" | "minWidth" | "maxWidth">;
-export type RowStyle = Omit<BlockStyle, "overflow"> & { readonly overflow?: "error" };
+export type ColumnStyle = Omit<BlockStyle, "width" | "minWidth" | "maxWidth" | "marginTop">;
+export type RowStyle = Omit<BlockStyle, "overflow" | "marginTop"> & { readonly overflow?: "error" };
 export interface ColumnInput {
   readonly children: readonly FlowBlock[];
   readonly width?: WidthTrack;

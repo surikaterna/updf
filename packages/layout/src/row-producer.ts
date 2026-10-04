@@ -23,6 +23,7 @@ export function rowProducer(
   path: string,
 ): PreparedBlock {
   const prepared: PreparedBlock = {
+    ...(columns.some((column) => column.containsAutoAlignment) ? { containsAutoAlignment: true } : {}),
     fragmentation: "atomic",
     naturalSize: { width: box.width, height },
     extent: 1,

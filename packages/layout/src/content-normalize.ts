@@ -6,10 +6,10 @@ import {
   type LineHeight,
   type NormalizedContent,
   validateDataObject as record,
-  type SemanticRecipe,
 } from "@updf/core/internal";
 import type { TextRun, TextStyle } from "@updf/core/measurement";
-import { authorBlock, captureContent, isAdapterComponent, scopeDataBlock, scopedContent } from "./author-parts.js";
+import { authorBlock, captureContent, scopeDataBlock, scopedContent } from "./author-parts.js";
+import { checkAutoBody, rememberAutoOrigin } from "./auto-margin.js";
 import { deferColumnBody } from "./column-content.js";
 import { blockParts } from "./content-block-parts.js";
 import {
@@ -20,9 +20,9 @@ import {
   spanIdentity,
   visualIdentity,
 } from "./content-data.js";
+import { checkRole } from "./content-role.js";
 import { authorStyle, initialOrigins, type StyleSources, styleOrigins, textStyle } from "./content-style.js";
 import type { ParagraphProps } from "./content-types.js";
-import { blockBodyIdentity, blockFooterIdentity, blockHeaderIdentity } from "./deferred-decoration.js";
 import { backgroundColor } from "./inline-background.js";
 import { pageBreakIdentity, pageBreakProps } from "./page-break.js";
 import { columnIdentity, rowIdentity } from "./row-data.js";
@@ -91,30 +91,7 @@ export function normalizeBlocks(
     return convertBlocks(nodes, operation, defaults);
   });
 }
-export function checkRole(value: string | SemanticRecipe, path: string, parent: object | undefined): void {
-  const inline = parent === paragraphIdentity || parent === spanIdentity;
-  if (typeof value === "string") {
-    if (!inline) fail("VDOM_HIERARCHY", path, "Text requires a Paragraph");
-    return;
-  }
-  if (value.identity === pageBreakIdentity) pageBreakProps(value.props, path);
-  const slot =
-    parent === blockIdentity && [blockBodyIdentity, blockHeaderIdentity, blockFooterIdentity].includes(value.identity);
-  const valid =
-    parent === rowIdentity
-      ? value.identity === columnIdentity
-      : slot ||
-        (inline
-          ? value.identity === spanIdentity || value.identity === visualIdentity
-          : value.identity === paragraphIdentity ||
-            value.identity === blockIdentity ||
-            value.identity === rowIdentity ||
-            value.identity === columnIdentity ||
-            value.identity === pageBreakIdentity ||
-            value.identity === legacyIdentity ||
-            isAdapterComponent(value.identity));
-  if (!valid) fail("VDOM_HIERARCHY", path, inline ? "Expected inline content" : "Inline content requires a Paragraph");
-}
+export { checkRole } from "./content-role.js";
 export function convertBlocks(
   nodes: readonly NormalizedContent[],
   operation: LayoutOperation,
@@ -144,7 +121,7 @@ export function convertBlocks(
       if (parts.plan) props.decorations = parts.plan;
       const type = value.identity === rowIdentity ? "row" : value.identity === columnIdentity ? "column" : "block";
       const block = { ...props, type, children } as FlowBlock;
-      target.push(block);
+      target.push(rememberAutoOrigin(block, node.path));
       if (value.identity === columnIdentity) deferBody(node, block, children, operation, defaults);
       else schedule(parts.body, children);
       return;
@@ -170,6 +147,7 @@ function scheduleBlocks(
   tasks: (() => void)[],
   visit: (node: NormalizedContent, target: FlowBlock[]) => void,
 ): void {
+  checkAutoBody(values);
   for (let i = values.length - 1; i >= 0; i--) {
     const node = values[i];
     if (node) tasks.push(() => visit(node, target));

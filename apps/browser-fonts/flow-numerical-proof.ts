@@ -13,6 +13,7 @@ import {
   paragraph,
   pt,
 } from "@updf/layout";
+import { assertAutoMarginProof, autoMarginProofDefinition, autoMarginProofFailures } from "./auto-margin-proof.js";
 import { inlineBackgroundProofDefinition } from "./inline-background-proof.js";
 
 function definition(
@@ -48,6 +49,7 @@ function definition(
 function success(input: DocumentContentData, font: PreparedFont) {
   const options = { resources: { Demo: font } };
   const result = layout(input, options);
+  if (input === autoDefinition) assertAutoMarginProof(result);
   const bytes = render(result.document, options);
   const component = render(lower(h(Document, input.props), options), options);
   if (bytes.length !== component.length || bytes.some((byte, i) => byte !== component[i]))
@@ -87,6 +89,7 @@ export function numericalFlowProof(font: PreparedFont) {
     inlineBackgroundProofDefinition(),
     fractionalParagraph(pt(12.6)),
     fractionalParagraph(1.4),
+    autoDefinition,
   ].map((input) => success(input, font));
   const invalidAxis = (axis: "width" | "height") =>
     document({
@@ -107,6 +110,8 @@ export function numericalFlowProof(font: PreparedFont) {
     invalidAxis("width"),
     invalidAxis("height"),
     fractionalParagraph(1.4, 31.2),
+    ...autoMarginProofFailures(),
   ].map(failure);
   return { successes, failures };
 }
+const autoDefinition = autoMarginProofDefinition();

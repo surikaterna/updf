@@ -97,4 +97,13 @@ if (result.pageCount < 0) {
   // @ts-expect-error No compatibility background alias.
   const oldStyle: TableStyle = { background: [1, 1, 0] };
   void [childStyle, borderStyle, oldStyle];
+  // @ts-expect-error Table defaults do not inherit Block auto margins.
+  const autoTable: TableStyle = { marginTop: "auto" };
+  // @ts-expect-error Table row defaults do not inherit Block auto margins.
+  const autoRow: RowStyle = { marginTop: "auto" };
+  // @ts-expect-error Table cells do not inherit Block auto margins.
+  const autoCell: CellStyle = { marginTop: "auto" };
+  // @ts-expect-error Table column defaults do not inherit Block auto margins.
+  table({ columns: [{ width: 20, style: { marginTop: "auto" } }], body: [] });
+  void [autoTable, autoRow, autoCell];
 }

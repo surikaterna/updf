@@ -1,4 +1,5 @@
 import { array, fail, type LayoutOperation, validateDataObject as record, sum } from "@updf/core/internal";
+import { autoMarginInput, autoOrigin, checkAutoDataBody } from "./auto-margin.js";
 import { prepareLeaf } from "./blocks.js";
 import { columnBody } from "./column-content.js";
 import { columnInput, columnSizing } from "./column-sizing.js";
@@ -30,6 +31,7 @@ export function compile(
   scope: CompilerScope,
   single = false,
 ): readonly PreparedBlock[] {
+  checkAutoDataBody(values, root, single);
   const result: PreparedBlock[] = [];
   const state: CompilerState = { scope, tasks: [], cache: lifetimeLeafCache(scope.lifetime) };
   const visit: Visit = (...args) => visitBlock(state, ...args);
@@ -74,6 +76,7 @@ function visitBlock(
     return;
   }
   const finish = (block: PreparedBlock): void => {
+    if (autoMarginInput(value, value.type === "block", autoOrigin(value, path))) block = { ...block, autoMargin: true };
     scope.onPrepared?.(value, block, width);
     assign(block);
   };
@@ -117,6 +120,7 @@ function visitContainer(
           keepTogether,
           state.scope.unpaginated ? naturalCapacity(box, children) : Math.max(0, freshHeight - reserved),
           path,
+          value.type === "block",
         ),
         plan,
         state.scope.operation,

@@ -136,6 +136,7 @@ function planFixed(node: NormalizedContent, section: number, session: Session): 
 }
 interface FlowParts {
   body: FlowBlock[];
+  nodes: NormalizedContent[];
   header?: NormalizedContent;
   footer?: NormalizedContent;
   bodySlot: boolean;
@@ -151,8 +152,9 @@ function flowParts(node: NormalizedContent, session: Session): FlowParts {
     undefined,
     columnIdentity,
   );
-  const result: FlowParts = { body: [], bodySlot: false };
+  const result: FlowParts = { body: [], nodes: [], bodySlot: false };
   for (const child of children) appendFlowChild(child, result, session);
+  if (!result.bodySlot) result.body = convertBlocks(result.nodes, session.operation);
   return result;
 }
 function flowChildGuard(value: string | SemanticRecipe, path: string, parent: object | undefined): void {
@@ -175,7 +177,7 @@ function appendFlowChild(child: NormalizedContent, result: FlowParts, session: S
     return;
   }
   if (identity === bodyIdentity) {
-    if (result.bodySlot || result.body.length)
+    if (result.bodySlot || result.nodes.length)
       fail("VDOM_HIERARCHY", child.path, "Use one Flow.Body or direct body children");
     result.bodySlot = true;
     validateDataObject(child.value.props, ["children"], child.path);
@@ -187,7 +189,7 @@ function appendFlowChild(child: NormalizedContent, result: FlowParts, session: S
     return;
   }
   if (result.bodySlot) fail("VDOM_HIERARCHY", child.path, "Cannot mix Flow.Body and direct body children");
-  for (const block of convertBlocks([child], session.operation)) result.body.push(block);
+  result.nodes.push(child);
 }
 function planFlow(node: NormalizedContent, section: number, index: number, session: Session): void {
   if (typeof node.value === "string") fail("TYPE", node.path, "Expected Flow");

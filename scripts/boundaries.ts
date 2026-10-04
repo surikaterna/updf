@@ -18,6 +18,8 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/content-types.ts",
     "layout/src/text-style.ts",
     "layout/src/content-normalize.ts",
+    "layout/src/content-role.ts",
+    "layout/src/auto-margin.ts",
     "layout/src/content-block-parts.ts",
     "layout/src/content-line-containers.ts",
     "layout/src/content-style.ts",

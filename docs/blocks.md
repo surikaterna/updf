@@ -4,7 +4,8 @@ Current private/unreleased contract. `paragraph`/`span` data and imported
 `Block`/`Paragraph`/`Span` use the core-owned normalization bridge. Native
 `Document` contains `Page`/`Flow` sections; Flow accepts block children and local
 extension scopes. See [inline](inline.md), [documents](documents.md) and
-[tables](tables.md). The native renderer, paginator and numeric kernel are unchanged.
+[tables](tables.md). The native renderer and numeric kernel are unchanged; the
+bounded paginator auto-margin behavior is documented below.
 Historical C delivery/audit records remain under `docs/evidence`.
 
 ## Public data entry
@@ -62,6 +63,7 @@ Present undefined fields, unsupported keys, getters, array holes and classes fai
 | `backgroundColor` | Optional readonly RGB color; absent means no fill |
 | `gap` | Nonnegative space only between non-control children; no outer gap or margin collapse |
 | `overflow` | `error` (default) or `hidden`; no visible/auto/scroll modes |
+| `marginTop` | Only `"auto"`, on a terminal Block with explicit `keepTogether: true`; see below |
 
 Block style never becomes an ambient descendant style. See [styles](text-styles.md) for
 role support, object composition and the deliberate unreleased API migration.
@@ -125,6 +127,59 @@ every fragment. Reserved insets remain even on fragments whose top/bottom does n
 paint, preserving existing content geometry/pagination. Additional clone reservations
 can increase aggregate fragmented height beyond its natural unfragmented height.
 This is an explicit basic policy, not full CSS behavior.
+
+## Terminal auto top margin (#53)
+
+`BlockStyle.marginTop?: "auto"` is a bounded normal-flow alignment contract,
+not general CSS margins. Use `block(...)`, `<Block>` or a supported raw Block record.
+Explicit `keepTogether: true` is required even when `height` already makes the box
+atomic. Row, Column, Paragraph, Span and table styles do not accept this field.
+Numeric margins, null, present undefined and other strings reject.
+
+The Block must be the single terminal **body sibling** after providers, ordinary
+components, arrays and Fragments expand. Null, booleans and wrappers with no output
+are ignored; empty Paragraphs, zero-height Blocks/spacers and PageBreak are real
+siblings. A break before the aligned Block is allowed; a sibling or break after it,
+or two auto-margin siblings (even height zero), rejects `VDOM_HIERARCHY` at the
+actual authored `/style/marginTop` path. Flow.Header/Footer and Block.Header/Footer
+are reservations, not body siblings, regardless of their syntactic order.
+
+Direct Flow children use the current remaining page body after margins and reserved
+header/footer heights. An explicit-height Block establishes its resolved content
+region after its own padding/borders; its outer header/footer reservations are
+outside that box and are not subtracted twice. Natural Blocks, including kept boxes
+and minHeight/maxHeight-only boxes, supply **zero auto space**. Row, Column and
+adapter content add no alignment context; a nested explicit-height Block may do so.
+An unpaginated `measure` height constraint is a limit, not an alignment region.
+
+Fit the child's **full decorated atomic height** first. Only then insert
+`max(0, available - preceding - gap - childHeight)` as a private cursor offset.
+There is no spacer PDF node, source item or implicit page advance. Placement boxes
+exclude the margin and report the actual child outer box. Ordinary gaps retain
+their existing semantics. Exact fit has zero margin; a zero-height child can land
+at the endpoint while still making finite extent progress. A Flow child that cannot
+fit moves once to a fresh body and recomputes the margin, then rejects
+`LAYOUT_OVERSIZED` if still too tall. Explicit parents retain constrained overflow,
+not internal pagination. Clipping an aligned child or its explicit alignment parent
+to fit is rejected; no bounds tolerance, implicit clip or shrink is introduced.
+The strict native-materialization limitation documented in #51 remains in force.
+
+Known invalid values/keep policy reject before descendant normalization. Complete
+body eligibility is checked after wrapper expansion and before measurement/fragment
+callbacks. Ordinary components needed to discover siblings necessarily run during
+normalization; this is not a promise that all user components remain uncalled.
+Final PageContext/FragmentContext decorations still run only after pagination, once
+per emitted occurrence, with their captured providers and shared budgets.
+
+The runnable public TSX/data example is `examples/auto-margin.tsx`:
+
+```sh
+node --import tsx --input-type=module -e 'import { autoMarginExample } from "./examples/auto-margin.tsx"; console.log(autoMarginExample().result.placements)'
+```
+
+Its 160pt page has 10pt margins, a 12pt header and 18pt footer: body `[22,132]`.
+After a 30pt body Block, the 20pt summary starts at 112pt (60pt auto margin).
+See [implementation evidence](evidence/auto-margin53.md) for exact checks and controls.
 
 ## Static decorations and candidate reservation
 

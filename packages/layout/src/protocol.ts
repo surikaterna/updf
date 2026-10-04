@@ -11,6 +11,8 @@ export interface FragmentRequest {
   readonly atFreshRegion: boolean;
   readonly width: number;
   readonly usedHeight: number;
+  readonly definiteAlignment?: boolean;
+  readonly alignmentHeight?: number;
   readonly budget?: OutputBudget;
   readonly state?: FragmentState;
   readonly reserve?: AncestorReservation;
@@ -44,6 +46,9 @@ export interface PaintCall {
   readonly context: FragmentPaintContext;
 }
 export interface PreparedBlock {
+  readonly autoMargin?: boolean;
+  readonly contentAlignment?: { readonly height: number; readonly capacity: number };
+  readonly containsAutoAlignment?: boolean;
   readonly sourceExtent?: number;
   readonly sourceKeys?: readonly (string | number | null)[];
   readonly sourcePaths?: readonly string[];

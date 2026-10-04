@@ -73,6 +73,13 @@ are opaque at section normalization: even their pure components are not invoked
 as an early preview. A provider wrapping a slot is captured independently of
 providers wrapping the body or its sibling slots.
 
+A terminal body `<Block keepTogether style={{ marginTop: "auto" }}>` consumes
+only positive unused body space after reserving its complete decorated height.
+Header/footer slots are not body siblings, even if authored after that Block.
+The placement is still ordinary body content, not a footer or fixed-position overlay;
+see [the bounded Block contract](blocks.md#terminal-auto-top-margin-53). It cannot
+borrow page height through a naturally sized nested Block, Row or Column.
+
 The non-JSX constructors are `document`, `page`, `flow`, `flowHeader`, `flowBody`
 and `flowFooter`. Their branded readonly descriptors form a pure data tree:
 

@@ -19,15 +19,19 @@ interface CostReport {
 
 const phase = process.argv[2];
 assert.ok(phase === "before" || phase === "after");
+const output = new URL(`../artifacts/${process.argv[3] ?? "style49"}/`, import.meta.url);
 const inputs = {
   textOnly: `import { render } from '@updf/core';
 export const pdf = (text) => render({pages:[{width:200,height:200,children:[{type:'text',x:10,y:10,width:180,height:20,text,font:'Helvetica',fontSize:12,lineHeight:16}]}]});`,
   paragraphFlow: `import { render } from '@updf/core';
 import { document, flow, paragraph, layout, pageSize } from '@updf/layout';
 export const pdf = (text) => render(layout(document({children:flow({pageSize:pageSize(200,200),children:paragraph({children:text})})})).document);`,
+  fixedGeometry: `import { render } from '@updf/core';
+export const pdf = (text) => render({pages:[{width:200,height:200,children:[{type:'rect',x:10,y:10,width:180,height:180,paint:{fill:[0.9,0.9,0.9],stroke:null}},{type:'text',x:20,y:20,width:160,height:20,text,font:'Helvetica',fontSize:12,lineHeight:16}]}]});`,
 };
-await mkdir(new URL("../artifacts/style49/", import.meta.url), { recursive: true });
+await mkdir(output, { recursive: true });
 for (const [scope, contents] of Object.entries(inputs)) {
+  if (process.argv[4] && process.argv[4] !== scope) continue;
   const result = await build({
     stdin: { contents, resolveDir: process.cwd(), sourcefile: `${scope}.js` },
     bundle: true,
@@ -60,10 +64,7 @@ for (const [scope, contents] of Object.entries(inputs)) {
     modules,
     metafile: result.metafile,
   };
-  await writeFile(
-    new URL(`../artifacts/style49/${phase}-${scope}.json`, import.meta.url),
-    `${JSON.stringify(report, null, 2)}\n`,
-  );
+  await writeFile(new URL(`${phase}-${scope}.json`, output), `${JSON.stringify(report, null, 2)}\n`);
   console.log({ phase, scope, raw: report.raw, gzip: report.gzip, retained: retained.length });
   if (phase === "after") {
     const before: {
@@ -74,7 +75,7 @@ for (const [scope, contents] of Object.entries(inputs)) {
       raw: number;
       gzip: number;
       retained: string[];
-    } = JSON.parse(await readFile(new URL(`../artifacts/style49/before-${scope}.json`, import.meta.url), "utf8"));
+    } = JSON.parse(await readFile(new URL(`before-${scope}.json`, output), "utf8"));
     assert.equal(before.input, report.input);
     assert.deepEqual(before.options, report.options);
     assert.equal(before.node, report.node);
@@ -86,10 +87,7 @@ for (const [scope, contents] of Object.entries(inputs)) {
       added: retained.filter((id) => !before.retained.includes(id)),
       removed: before.retained.filter((id: string) => !retained.includes(id)),
     };
-    await writeFile(
-      new URL(`../artifacts/style49/delta-${scope}.json`, import.meta.url),
-      `${JSON.stringify(delta, null, 2)}\n`,
-    );
+    await writeFile(new URL(`delta-${scope}.json`, output), `${JSON.stringify(delta, null, 2)}\n`);
     console.log(delta);
   }
 }

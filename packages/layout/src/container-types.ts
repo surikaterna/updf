@@ -18,6 +18,7 @@ export interface BoxStyle {
   readonly backgroundColor?: RGB;
 }
 export interface BlockStyle extends BoxStyle, BorderPolicy {
+  readonly marginTop?: "auto";
   readonly width?: number;
   readonly height?: number;
   readonly minWidth?: number;

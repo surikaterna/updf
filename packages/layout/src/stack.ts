@@ -1,4 +1,5 @@
 import { checkLimit, exceeds, fail, MetricSum, sum } from "@updf/core/internal";
+import { alignedRequest } from "./auto-margin.js";
 import { bits, dyadic, floorDyadic, value } from "./binary64.js";
 import { offsetReservation, reserveAncestors } from "./container-reservation.js";
 import { certifyGeneratedFragment, type GeneratedInterval, generatedIntervals } from "./generated-interval.js";
@@ -114,15 +115,21 @@ export function* selectStackSteps(
       ...(request.state ? { state: request.state.fork() } : {}),
       ...(request.reserve ? { reserve: offsetReservation(request.reserve, prefix) } : {}),
     };
+    const aligned = entry.block ? alignedRequest(entry.block, local) : { margin: 0, request: local };
+    if (!aligned) break;
     const fragment = entry.block?.control
       ? { nextOffset: 1, height: 0, advance: true, paint: () => [] }
       : entry.block
-        ? yield { block: entry.block, request: local }
+        ? yield { block: entry.block, request: aligned.request }
         : space(entry, local);
     if (!fragment) break;
     if (local.budget) request.budget?.adopt(local.budget);
     if (local.state) request.state?.adopt(local.state);
     checkProgress(fragment, local.offset, entry.end - entry.start);
+    if (aligned.margin > 0) {
+      sequence.append(aligned.margin, "");
+      height.add(aligned.margin);
+    }
     pieces.push(stackPiece(fragment, height.value, sequence));
     height.add(fragment.height);
     offset = entry.start + fragment.nextOffset;
