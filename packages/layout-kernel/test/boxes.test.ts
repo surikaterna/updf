@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { LayoutInputError } from "@updf/layout-kernel";
@@ -297,12 +297,13 @@ test("prepared source view and generic row share identical placements without re
   );
 });
 test("arithmetic extraction is byte-preserved against the assigned base", async () => {
-  const before = execFileSync(
-    "git",
-    ["show", "e96d2741f8d4a5f3086e6b95ff61a5967db7e7f1:packages/core/src/measurement/arithmetic.ts"],
-    { encoding: "utf8" },
+  // SHA-256 of raw packages/core/src/measurement/arithmetic.ts bytes at
+  // e96d2741f8d4a5f3086e6b95ff61a5967db7e7f1; no history needed in CI/archives.
+  const bytes = await readFile(new URL("../src/arithmetic.ts", import.meta.url));
+  assert.equal(
+    createHash("sha256").update(bytes).digest("hex"),
+    "6c99483a778c69420c73b74c4745247479d484c4d6d0eacce1be1ed28b0dd620",
   );
-  assert.equal(await readFile(new URL("../src/arithmetic.ts", import.meta.url), "utf8"), before);
 });
 test("bad source callback metadata and invalid limits fail before unbounded work", () => {
   for (const change of [
