@@ -28,12 +28,14 @@ export type DemoId =
   | "rows-overflow"
   | "invoice"
   | "freight-invoice"
+  | "freight-invoice-extended"
   | "manifest";
 
 export function demoId(value: string): DemoId {
   if (
     value === "manifest" ||
     value === "freight-invoice" ||
+    value === "freight-invoice-extended" ||
     value === "invoice" ||
     value === "text" ||
     value === "template" ||
@@ -61,7 +63,7 @@ export async function generate(
   mixed?: MixedControls,
 ): Promise<{ bytes: Uint8Array; source: string; summary?: string }> {
   if (title.length > 40) throw new Error("Title must be at most 40 characters");
-  if (id === "freight-invoice") return freightResult(title);
+  if (isFreight(id)) return freightResult(title, id === "freight-invoice-extended");
   if (id === "manifest" || id === "invoice") return id === "manifest" ? manifestResult(title) : invoiceResult(title);
   if (id === "template" || id === "mixed") return id === "template" ? templateResult(title) : mixedResult(title, mixed);
   if (id === "blocks") return blockResult(title, blocks);
@@ -113,15 +115,17 @@ async function invoiceResult(title: string) {
     summary: `${metadata.pageCount} A4 pages; ${metadata.itemCount} original mock line items; integer-cent application totals. NOT FOR PAYMENT.`,
   };
 }
-async function freightResult(title: string) {
+async function freightResult(title: string, extended: boolean) {
   const { freightExample, source } = await import("./optional-freight-invoice.js");
-  const { bytes } = await freightExample(title);
+  const { bytes, metadata } = await freightExample(title, extended ? "extended" : "original");
   return {
     bytes,
     source,
-    summary:
-      "1 A4 page; original mock freight; per-charge integer-pence VAT. MOCK - NOT FOR PAYMENT. Title input edits the secondary description; Invoice remains the heading.",
+    summary: `${metadata.pageCount} A4 page(s); ${metadata.chargeCount} original mock freight charges; per-charge integer-pence VAT. MOCK - NOT FOR PAYMENT. Title input edits the secondary description; Invoice remains the heading.`,
   };
+}
+function isFreight(id: DemoId): id is "freight-invoice" | "freight-invoice-extended" {
+  return id === "freight-invoice" || id === "freight-invoice-extended";
 }
 async function manifestResult(title: string) {
   const { manifestExample, source } = await import("./optional-manifest.js");

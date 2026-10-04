@@ -153,7 +153,7 @@ function SummaryLine({ label, amount }: { readonly label: string; readonly amoun
     </Row>
   );
 }
-export function FreightFooter({ data }: { readonly data: FreightInvoiceData }) {
+export function FreightSummary({ data }: { readonly data: FreightInvoiceData }) {
   const totals = calculateFreight(data.charges);
   return (
     <Block style={{ gap: 4 }}>

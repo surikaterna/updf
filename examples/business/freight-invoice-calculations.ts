@@ -1,5 +1,7 @@
 import type { FreightCharge } from "./freight-invoice-data.js";
 
+// Application bound for a single atomic shipment, not a layout-engine limit.
+export const MAX_FREIGHT_CHARGES = 20;
 function safe(value: number): number {
   if (!Number.isSafeInteger(value)) throw new Error("Freight amounts must be safe integer pence");
   return value;
@@ -13,8 +15,13 @@ function tax(charge: FreightCharge): number {
   return Math.sign(charge.netPence) * Math.floor(numerator / 10000);
 }
 export function calculateFreight(charges: readonly FreightCharge[]) {
-  if (charges.length !== 3) throw new Error("This single-shipment mock invoice requires exactly three charges");
-  const taxes = charges.map(tax);
+  if (charges.length < 1 || charges.length > MAX_FREIGHT_CHARGES)
+    throw new Error(`Freight requires 1 to ${MAX_FREIGHT_CHARGES} charges`);
+  const taxes = charges.map((charge) => {
+    const vat = tax(charge);
+    safe(charge.netPence + vat);
+    return vat;
+  });
   const netPence = charges.reduce((sum, charge) => safe(sum + charge.netPence), 0);
   const vatPence = taxes.reduce((sum, value) => safe(sum + value), 0);
   return { taxes, netPence, vatPence, grossPence: safe(netPence + vatPence) };

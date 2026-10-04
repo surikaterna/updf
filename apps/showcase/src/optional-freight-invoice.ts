@@ -1,6 +1,7 @@
 import { freightInvoiceExample } from "../../../examples/business/freight-invoice.js";
 import template from "../../../examples/business/freight-invoice.tsx?raw";
 import calculations from "../../../examples/business/freight-invoice-calculations.ts?raw";
+import { type FreightPreset, freightPreset } from "../../../examples/business/freight-invoice-data.js";
 import data from "../../../examples/business/freight-invoice-data.ts?raw";
 import { freightFontResources } from "../../../examples/business/freight-invoice-fonts.js";
 import fonts from "../../../examples/business/freight-invoice-fonts.ts?raw";
@@ -17,12 +18,12 @@ async function asset(url: string): Promise<Uint8Array<ArrayBuffer>> {
   if (!response.ok) throw new Error("Unable to load licensed freight font asset");
   return new Uint8Array(await response.arrayBuffer());
 }
-export async function freightExample(description: string) {
+export async function freightExample(description: string, preset: FreightPreset = "original") {
   prepared ??= Promise.all([asset(regularUrl), asset(boldUrl)]).then(([regular, bold]) =>
     freightFontResources(regular, bold),
   );
   try {
-    return freightInvoiceExample(await prepared, description);
+    return freightInvoiceExample(await prepared, description, freightPreset(preset));
   } catch (error) {
     prepared = undefined;
     throw error;

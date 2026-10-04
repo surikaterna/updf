@@ -62,6 +62,7 @@ function showSource(): void {
   source.textContent =
     id === "manifest" ||
     id === "freight-invoice" ||
+    id === "freight-invoice-extended" ||
     id === "invoice" ||
     id === "svg" ||
     id === "flow" ||

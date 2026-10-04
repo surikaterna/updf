@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-export function freightGeometry(bbox: string) {
+export function freightGeometry(bbox: string, summaryTop = 617.8897637795277) {
   assert.equal((bbox.match(/<page /gu) ?? []).length, 1);
   assert.match(bbox, /width="595\.275591" height="841\.889764"/u);
   const words = [
@@ -35,10 +35,10 @@ export function freightGeometry(bbox: string) {
   ] as const)
     band(text, left, right, 250, 280);
   band("£267.50", 440, 583, 365, 405);
-  band("NET", 240, 583, 592, 620);
-  band("£317.73", 490, 583, 695, 735);
-  band("billing@example.invalid", 12, 200, 780, 815);
-  assert.ok(!words.some((word) => word.y > 410 && word.y < 592), "Real elastic whitespace");
+  band("NET", 240, 583, summaryTop, summaryTop + 28);
+  band("£317.73", 490, 583, summaryTop + 103, summaryTop + 143);
+  band("billing@example.invalid", 12, 200, 806, 830);
+  assert.ok(!words.some((word) => word.y > 410 && word.y < summaryTop), "Real elastic whitespace");
   noOverlaps(words);
 }
 function noOverlaps(
@@ -55,7 +55,7 @@ function noOverlaps(
     }
   }
 }
-export function freightRaster(ppm: Buffer) {
+export function freightRaster(ppm: Buffer, summaryTop = 617.8897637795277) {
   const header = /^P6\s+(\d+) (\d+)\s+255\s/u.exec(ppm.subarray(0, 60).toString("ascii"));
   assert.ok(header);
   const width = Number(header[1]),
@@ -77,10 +77,33 @@ export function freightRaster(ppm: Buffer) {
   }
   assert.ok(pixel(500, 265) < 235, "Charges heading");
   assert.ok(ink(440, 367, 580, 369) > 100, "Order box top border");
-  assert.ok(ink(247, 695, 577, 698) > 280, "Invoice money box top border");
-  assert.ok(ink(240, 591, 583, 595) > 300, "Bottom-anchored summary rule");
-  assert.ok(ink(12, 738, 583, 742) > 500, "Full-width terms rule");
-  assert.equal(ink(12, 411, 583, 590), 0, "Clear elastic gap");
+  assert.ok(
+    ink(247, Math.floor(summaryTop + 103), 577, Math.ceil(summaryTop + 106)) > 280,
+    "Invoice money box top border",
+  );
+  assert.ok(ink(240, Math.floor(summaryTop - 1), 583, Math.ceil(summaryTop + 3)) > 300, "Bottom-anchored summary rule");
+  assert.ok(ink(12, 764, 583, 768) > 500, "Full-width terms rule");
+  assert.equal(ink(12, 411, 583, Math.floor(summaryTop - 1)), 0, "Clear elastic gap");
   assert.equal(ink(0, 0, 596, 10), 0);
-  assert.equal(ink(0, 815, 596, 842), 0);
+  assert.equal(ink(0, 830, 596, 842), 0);
+}
+
+export function freightMultipageGeometry(bbox: string, summaryTop: number) {
+  const pages = [...bbox.matchAll(/<page [^>]*>([\s\S]*?)<\/page>/gu)].map((match) => match[1]!);
+  assert.equal(pages.length, 2);
+  for (const [index, page] of pages.entries()) {
+    const words = [
+      ...page.matchAll(/<word xMin="([^"]+)" yMin="([^"]+)" xMax="([^"]+)" yMax="([^"]+)">([^<]+)<\/word>/gu),
+    ].map((m) => ({ x: Number(m[1]), y: Number(m[2]), right: Number(m[3]), bottom: Number(m[4]), text: m[5] }));
+    noOverlaps(words);
+    assert.ok(words.every((w) => w.x >= 12 && w.right <= 583.28 && w.y >= 12 && w.bottom <= 830));
+    assert.equal(words.filter((w) => w.text === "Total").length, index === 1 ? 3 : 0);
+    if (index === 0) assert.ok(words.some((w) => w.text === "ORDER" && w.y > 500 && w.bottom < 546));
+    else {
+      const net = words.find((w) => w.text === "NET");
+      assert.ok(net && net.y >= summaryTop && net.y < summaryTop + 20);
+      assert.ok(words.some((w) => w.text === "billing@example.invalid" && w.bottom > 820));
+      assert.ok(!words.some((w) => w.y > 124 && w.y < summaryTop));
+    }
+  }
 }

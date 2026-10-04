@@ -1,9 +1,11 @@
 # Runnable original business showcases (unreleased checkout)
 
-## followup46: single-shipment freight invoice (tracker N/A)
+## followup46/#53: single-shipment freight invoice (tracker N/A)
 
-Select **Original mock freight invoice** in the showcase. This is a separate
-single-page business example; the existing invoice and manifest are unchanged.
+Select **Original mock freight invoice: 3 charges** or **Extended mock freight
+invoice: 8 charges** in the showcase. These render one and two pages respectively
+with the supplied presets; the UI reports the actual runtime count, not an assumed
+count. This is a separate business example; the existing invoice and manifest are unchanged.
 The invented **Aster Wake Shipping** and **Copper Finch Logistics** contacts use
 `example.invalid`. Every payment field is a non-operational placeholder. The PDF
 explicitly says **MOCK - NOT FOR PAYMENT**. No private source imagery, logo,
@@ -12,17 +14,23 @@ customer data, bank details or legal wording is distributed.
 ```sh
 npm run build
 npx tsx scripts/freight-invoice-example.ts
+npx tsx scripts/freight-invoice-example.ts artifacts/freight-extended extended
+qpdf --check artifacts/freight-extended/updf-freight-invoice.pdf
+pdftotext -layout artifacts/freight-extended/updf-freight-invoice.pdf -
 qpdf --check artifacts/freight-invoice/updf-freight-invoice.pdf
 pdffonts artifacts/freight-invoice/updf-freight-invoice.pdf
 pdftotext -bbox artifacts/freight-invoice/updf-freight-invoice.pdf -
 pdftoppm -png -r 110 artifacts/freight-invoice/updf-freight-invoice.pdf artifacts/freight-invoice/preview
-npx tsx --test tests/integration/freight-invoice.test.ts
+npx tsx --test tests/integration/freight-invoice.test.ts tests/integration/freight-auto-margin.test.ts
 npm run build:showcase
 SHOWCASE_CHROMIUM=/usr/bin/chromium npm run test:showcase
 ```
 
 The CLI writes the full PDF and application `validation.json`, accepting an
-optional output directory. Node >=24, qpdf and Poppler are prerequisites.
+optional output directory followed by `original` (default) or `extended`.
+For an explicit original run: `npx tsx scripts/freight-invoice-example.ts artifacts/freight-original original`.
+Node >=24, qpdf and Poppler are prerequisites. JSON records preset, actual page and
+charge counts and application totals; it is not independent validation or PDF Info metadata.
 `freight-invoice-data.ts`, `freight-invoice-calculations.ts`,
 `freight-invoice-sections.tsx`, `freight-invoice.tsx` and
 `freight-invoice-fonts.ts` own data, application arithmetic, visual sections,
@@ -32,20 +40,30 @@ contains the real Node CLI and browser loader, with paths that must be preserved
 The constant heading is **Invoice**. The shared UI title field edits a secondary
 description (maximum 40 characters, one line of input; long words wrap by code
 point). Identical inputs produce identical Node/browser/download bytes. PDF.js
-shows the full single page with an accessible label, including at 320px widths.
+shows every page with accessible labels and actual A4 sizes, including at 320px widths.
 
 Composition uses only existing `Document`, `Flow`, `Row/Column`, `Block` and
 `Paragraph` APIs: A4 portrait, 12pt margins, 112pt reserved header, paired billing
-panels, four equal shipment tracks and a 238pt reserved footer. A weighted empty
+panels, four equal shipment tracks and a naturally measured financial summary. A weighted empty
 column (2) beside the summary (3) places it in the right 60%. The large gap is the
-unused measured body region above a real footer, not a spacer, manual XY, table
-layout or imported background. A hard `limits.pages: 1` budget makes overfull
-input fail rather than repeating financial totals. There is no repeat shipment UI.
+auto margin above the single terminal `<Block keepTogether style={{ marginTop: "auto" }}>`
+in `Flow.Body` (#53), not a spacer, manual XY, table layout or imported background.
+The summary moves intact to a fresh page when needed, then bottom-aligns in its
+current body. Only the 112pt header repeats, with final PageContext counts.
+There is no financial Flow.Footer, fixed summary height or one-page budget;
+existing bounded engine defaults remain unchanged. There is no repeat shipment UI.
 
 Per-charge half-up VAT uses safe integer pence, with signed credits rounding away
 from zero at ties. Net charges £16.35 at 0%, £218.40 at 20% and £32.75 at 20%
 yield taxes £0.00, £43.68 and £6.55: net **£267.50**, VAT **£50.23**, gross
 **£317.73**. This is demonstration policy, not legal/tax advice or engine formulas.
+The application accepts **1–20 charges**, a stable single-shipment demonstration
+bound, not an engine feature. Count-valid content still must fit atomically on a
+fresh body; excessively tall shipment/summary content fails clearly, without
+clipping, splitting or raising engine limits. Eight charges add real port handling,
+deck securing, customs service (0%), cold storage and a signed return-crate credit.
+Expected net **£379.00**, VAT **£67.33**, gross **£446.33**. Charges appear once in
+the shipment and once in the net reconciliation, not duplicated shipment rows.
 
 Both real Liberation Sans faces are prepared with `@updf/fontkit` and passed to
 layout **and** rendering; bold is not synthesized. See
@@ -60,7 +78,9 @@ fractional reservation limitation without changing the engine.
 Independent literals, qpdf, font embedding bytes, Poppler word bounds/no-overlap,
 raster fills/money borders/whitespace and realistic negative controls protect this
 example. Wrapped description and shipment text preserve the bottom anchor;
-overflow fails closed. See `docs/evidence/freight-invoice46.md` for executed gates.
+overflow fails closed. See `docs/evidence/freight-auto-margin.md` for current
+migration gates and the actual sanitized before/after source; historical evidence
+remains in `docs/evidence/freight-invoice46.md`.
 
 ## #46-A: invoice
 

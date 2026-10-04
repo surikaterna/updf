@@ -46,3 +46,23 @@ export const mockFreightInvoice: FreightInvoiceData = Object.freeze({
     Object.freeze({ label: "Energy fee", netPence: 3275, vatBasisPoints: 2000 }),
   ]),
 });
+
+export const extendedFreightInvoice: FreightInvoiceData = Object.freeze({
+  ...mockFreightInvoice,
+  number: "MOCK-FI-053",
+  charges: Object.freeze([
+    ...mockFreightInvoice.charges,
+    Object.freeze({ label: "Port handling", netPence: 4200, vatBasisPoints: 2000 }),
+    Object.freeze({ label: "Deck securing", netPence: 1850, vatBasisPoints: 2000 }),
+    Object.freeze({ label: "Customs service", netPence: 2600, vatBasisPoints: 0 }),
+    Object.freeze({ label: "Cold storage", netPence: 3750, vatBasisPoints: 2000 }),
+    Object.freeze({ label: "Return crate credit", netPence: -1250, vatBasisPoints: 2000 }),
+  ]),
+});
+
+export type FreightPreset = "original" | "extended";
+export function freightPreset(value: string): FreightInvoiceData {
+  if (value === "original") return mockFreightInvoice;
+  if (value === "extended") return extendedFreightInvoice;
+  throw new Error("Freight preset must be original or extended");
+}
