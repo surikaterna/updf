@@ -1,7 +1,7 @@
 import type { RGB } from "@updf/core";
-import type { BlockContent, BoxStyle, ImplicitInlineContent, ParagraphStyle } from "@updf/layout";
+import type { BlockContent, BorderPolicy, BoxStyle, ImplicitInlineContent, ParagraphStyle } from "@updf/layout";
 
-export interface TableStyle extends ParagraphStyle, BoxStyle {
+export interface TableStyle extends ParagraphStyle, BoxStyle, BorderPolicy {
   readonly whiteSpace?: "preserve" | "collapse";
   readonly breakLongWords?: "error" | "codePoint";
   readonly height?: number;

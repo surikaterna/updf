@@ -79,9 +79,17 @@ shorthand within each layer regardless of key enumeration. Each layer expands it
 shorthand before merging: a higher-priority padding replaces lower-priority edges.
 `backgroundColor`, gap, closed border-box height and
 error/hidden overflow are supported. Closed cells use the C container/clip engine;
-clipping is not redaction. Row height is max cell border-box height plus the grid
-reservations, or explicit row minHeight. Grid has uniform width/RGB, contained outer
-ink and shared interior edges, painted after content. No glyph-overhang tolerance
+clipping is not redaction. Row height is max cell height plus its own effective edge
+reservations, or explicit row minHeight. `border`, `borderTop/Right/Bottom/Left` reuse
+layout's `BorderPolicy` on every table/column/row/cell style layer, expanded before
+merging. Omitted edges fall back to uniform `grid`; explicit null/zero suppresses it.
+An explicit positive shared edge wins over fallback/null; greater explicit width wins,
+then upper-bottom/left-right owner on ties. Each final interval paints once after
+content, including deferred head/foot styles. Shared bands center on logical boundaries;
+explicit exposed outer bands stay inside allocation. Grid-only placement is preserved.
+Opposing thicker winners never enlarge a neighbor's content inset or cause reflow.
+See [the border contract](../../docs/text-styles.md#table-cell-edges-and-shared-painting)
+for corners, fragments and clips; this is not CSS border-collapse. No glyph-overhang tolerance
 or numerical policy is relaxed.
 
 Rows stay together by default; `keepTogether={true}` is explicit and omission has

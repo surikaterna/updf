@@ -31,6 +31,15 @@ is an error, never body retry or repagination. The native-style/ink and C clippi
 checks still apply. Clipping is not redaction; hidden text remains extractable and
 counts toward resource policy.
 
+Table/column/row/cell styles accept the reusable typed `BorderPolicy`; see
+[the border contract](text-styles.md#table-cell-edges-and-shared-painting). Shorthands
+expand per layer before merging. Explicit positive edges win over grid/null; greater
+width then upper-bottom/left-right owner resolves ties. Shared intervals paint once
+after content and final deferred section styles. Insets remain local to each cell:
+an opposing thicker winner never reflows its neighbor. Explicit outer bands stay
+inside allocation; grid-only historical placement is unchanged. Clipping never
+invents a cut edge. These are cell defaults, not CSS border-collapse or extra row boxes.
+
 Generic placements expose `sourceRange` and optional body `sourceKeys`. Header/foot
 copies are decoration emissions, not consumed body rows. Empty tables make zero
 body progress and zero geometry unless their head/foot is meaningful, in which

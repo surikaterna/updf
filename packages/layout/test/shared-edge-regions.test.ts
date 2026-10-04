@@ -173,7 +173,7 @@ test("claim geometry rejects nonfinite, reversed, zero and out-of-region interva
     { coordinate: 11 },
     { coordinate: -1 },
     { coordinate: Number.NaN },
-    { width: 0 },
+    { width: -1 },
     { width: Number.POSITIVE_INFINITY },
     { color: [0, 0, 2] },
   ];
@@ -190,12 +190,16 @@ test("claims reject incompatible sides, foreign provenance and malformed source 
   for (const fields of [
     { axis: "diagonal" },
     { ownerSide: "left" },
-    { provenance: "explicit" },
+    { provenance: "foreign" },
     { sourcePath: "relative" },
     { sourcePath: "/bad~2" },
   ])
     rejects(() => ownEdgeRegion(input([{ ...edge, ...fields } as LocalEdgeClaim]), operation, path), "TYPE");
   assert.equal(ownEdgeRegion(input([{ ...edge, sourcePath: "/escaped~0/~1" }]), operation, path).claims.length, 1);
+  assert.equal(
+    ownEdgeRegion(input([{ ...edge, provenance: "explicit", width: 0 }]), operation, path).claims[0]?.width,
+    0,
+  );
   rejects(() => ownEdgeRegion(input([{ ...edge, sourcePath: `${"/".repeat(10000)}~2` }]), operation, path), "TYPE");
 });
 

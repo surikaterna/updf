@@ -5,7 +5,7 @@ export interface LocalEdgeClaim {
   readonly interval: readonly [number, number];
   readonly coordinate: number;
   readonly ownerSide: "top" | "right" | "bottom" | "left";
-  readonly provenance: "grid";
+  readonly provenance: "grid" | "explicit";
   readonly width: number;
   readonly color: RGB;
   readonly sourcePath: string;

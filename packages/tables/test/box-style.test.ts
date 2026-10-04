@@ -97,7 +97,7 @@ test("#49-C validates row defaults even overridden or empty; unsupported box/tex
     { background: [0, 0, 0] },
     { paddingRight: NaN },
     { backgroundColor: [0, 2, 0] },
-    { border: { width: 1, color: [0, 0, 0] } },
+    { border: { width: 1, color: "black" } },
     { fontSize: Infinity },
     { lineHeight: undefined },
     { padding: "2pt" },

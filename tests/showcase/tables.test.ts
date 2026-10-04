@@ -19,6 +19,7 @@ test("optional table source/download, mobile controls, counts, oversize diagnost
     assert.deepEqual(await pdf(page), tableExample("Hello portable PDF").bytes);
     await rendered(page, tableExample("Hello portable PDF").result.pageCount);
     await source(page, "tables.tsx");
+    assert.match(await page.locator("#source").innerText(), /borderRight:[\s\S]*borderLeft: null/u);
     assert.match(await page.getByRole("status").innerText(), /12 body rows; \d+ repeated headers/u);
     await page.getByLabel("Body row count", { exact: true }).fill("3");
     await page.getByLabel("Table width preset").selectOption("wide");

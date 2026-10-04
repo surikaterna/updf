@@ -58,6 +58,43 @@ test("grid intervals split overlaps by width, retain gaps, and coalesce adjacent
     1,
   );
 });
+test("#42-B2 generic provenance and owner ranking does not depend on incoming report order", () => {
+  const explicit = { ...edge, provenance: "explicit" as const, color: [1, 0, 0] as const };
+  for (const axis of ["horizontal", "vertical"] as const) {
+    const winner = {
+      ...explicit,
+      axis,
+      interval: [0, 20] as const,
+      ownerSide: axis === "horizontal" ? ("bottom" as const) : ("right" as const),
+    };
+    const opposing = {
+      ...winner,
+      ownerSide: axis === "horizontal" ? ("top" as const) : ("left" as const),
+      color: [0, 0, 1] as const,
+    };
+    for (const claims of [
+      [opposing, winner],
+      [winner, opposing],
+    ])
+      assert.deepEqual(
+        paint(claims).map((node) => (node.type === "rect" ? node.paint?.fill : undefined)),
+        [[1, 0, 0]],
+      );
+    assert.deepEqual(
+      paint([
+        { ...winner, provenance: "grid", width: 8 },
+        { ...opposing, width: 0 },
+      ]),
+      [],
+    );
+    assert.deepEqual(
+      paint([{ ...winner, provenance: "grid", width: 8 }, opposing]).map((node) =>
+        node.type === "rect" ? node.paint?.fill : undefined,
+      ),
+      [[0, 0, 1]],
+    );
+  }
+});
 test("outer centerlines intersect only their allocation and unrepresentable stroke thickness rejects", () => {
   const nodes = paint([
     { ...edge, coordinate: 0, ownerSide: "top" },

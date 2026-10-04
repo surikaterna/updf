@@ -18,7 +18,7 @@ function measured(input: TableDefinition, context: MeasureContext): MeasuredBloc
   const plan = decorations(table, context);
   const rows = table.body.map((row, index) => measureRow(row, table, context, `/props/body/${index}`));
   return {
-    ...(table.grid?.width ? { sharedEdges: true } : {}),
+    sharedEdges: true,
     fragmentation: rows.length ? "splittable" : "atomic",
     extent: Math.max(1, rows.length),
     ...(plan ? { decorations: plan } : {}),

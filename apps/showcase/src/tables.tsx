@@ -59,14 +59,20 @@ export function tableDefinition(title: string, controls: TableControls = tableDe
           grid={{ width: 1, color: [0.2, 0.3, 0.4] }}
         >
           <Table.Head repeat={controls.repeatHeader}>
-            <Table.Row>
+            <Table.Row style={{ borderBottom: { width: 2, color: [0.1, 0.3, 0.7] } }}>
               <Table.HeaderCell style={{ backgroundColor: [0.85, 0.92, 1] }}>Inventory item</Table.HeaderCell>
               <Table.HeaderCell style={{ backgroundColor: [0.85, 0.92, 1] }}>Count</Table.HeaderCell>
             </Table.Row>
           </Table.Head>
           <Table.Body>{inventoryRows(controls, visual)}</Table.Body>
           <Table.Foot>
-            <Table.Row>
+            <Table.Row
+              style={{
+                border: null,
+                borderTop: { width: 2, color: [0.1, 0.3, 0.7] },
+                borderBottom: { width: 3, color: [0.1, 0.3, 0.7] },
+              }}
+            >
               <Table.Cell>Inventory totals</Table.Cell>
               <Table.Cell>{String(controls.count)}</Table.Cell>
             </Table.Row>
@@ -85,13 +91,13 @@ function inventoryRows(controls: TableControls, visual?: TableVisual) {
       keepTogether
       minHeight={controls.preset === "overflow" && item.number === 1 ? 240 : (controls.minHeight ?? 0)}
     >
-      <Table.Cell>
+      <Table.Cell style={{ borderRight: { width: 2, color: [0.1, 0.3, 0.7] } }}>
         <Paragraph>{`Item ${item.number}`}</Paragraph>
         {controls.wrapped && <Paragraph>Wrapped description</Paragraph>}
         {controls.cellPreset === "chart" && <Chart height={40} values={[0.2, 0.6, 0.9]} />}
         {controls.cellPreset === "svg" && visual ? visual.content(item.number) : null}
       </Table.Cell>
-      <Table.Cell>{String(item.number * 3)}</Table.Cell>
+      <Table.Cell style={{ borderLeft: null }}>{String(item.number * 3)}</Table.Cell>
     </Table.Row>
   ));
 }

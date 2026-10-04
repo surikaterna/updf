@@ -92,7 +92,7 @@ support the same fields; the named schemas describe where they apply.
 | padding, paddingTop/Right/Bottom/Left | yes | cell-owner insets | no |
 | height, gap, overflow | yes | cell-owner constraints | no |
 | width, min/maxWidth, min/maxHeight | yes | no; columns have explicit width, rows have minHeight prop | no |
-| border, borderTop/Right/Bottom/Left | yes; typed edge or null | no; Table.grid is uniform and explicit (#42-B later) | no |
+| border, borderTop/Right/Bottom/Left | yes; typed edge or null | yes; cell-owner policy, with Table.grid fallback | no |
 
 Geometry is finite nonnegative PDF points, except positive Block/column width and
 fontSize. Background is an RGB triple, not a CSS color string. Omitted background
@@ -100,7 +100,7 @@ means no fill; omitted border/grid means no stroke reservation. Block padding is
 zero by default; cell padding is 4pt. Gap defaults zero, height is natural when
 omitted, overflow defaults error. Block width fills available width; omitted min/max
 constraints do not impose extra bounds. Cell height closes its border box, not the
-row; row height is max cell height plus grid reservations, subject to row minHeight.
+row; row height is max cell height plus its own effective edge reservations, subject to row minHeight.
 Table, column and row style objects supply cell defaults; they do not create extra
 layout boxes or an ambient cascade. Box properties never flow into nested Blocks,
 Paragraphs or Spans. Text defaults do reach explicit Paragraphs inside cell Blocks
@@ -145,10 +145,10 @@ const content = <Block style={{ backgroundColor: [0.9, 0.96, 1], padding: 4,
 Install `tableExtension` explicitly in the containing Flow/measurement extensions.
 For branding, read an application-owned `Theme` via `useContext(Theme)` and apply
 its typed values to these styles explicitly, as in the mixed showcase. A provider
-alone does not restyle anything. Block border policy is documented below; Table
-grid semantics remain unchanged. Span backgrounds remain future #43, not box inheritance.
+alone does not restyle anything. Border policy is documented below; grid-only
+placement remains unchanged. Span backgrounds remain future #43, not box inheritance.
 
-### Reusable edge-border policy (#42-A)
+### Reusable edge-border policy (#42)
 
 Import `BorderEdge`, `BorderPolicy`, `ExpandedBorders`, `expandBorders` and
 `mergeBorders` from `@updf/layout`. A `BorderEdge` requires both nonnegative finite
@@ -198,10 +198,37 @@ paint all specified edges once; explicit/max-height hidden overflow has no conti
 Ancestor preflight conservatively reserves specified decorations before the last-fragment
 decision; final painting accounts for the actual fragment edges.
 
-The reusable policy is ready for #42-B, but table cell edges/shared-edge drawing are
-**not implemented here**. Planned table conflict resolution is explicit cell edge over
-grid fallback, then greater width, with stable top/left owner on ties and each shared
-edge drawn once. Existing uniform `Table.grid` is unchanged; mixed cell edges await B.
+### Table cell edges and shared painting
+
+Table, column, row and cell styles reuse this same policy. Each layer expands its
+border shorthand before table → column → row → cell merging, just like padding.
+Every layer is validated even if overridden. These are **cell defaults**, not borders
+around additional table/column/row boxes; borders never enter Paragraph defaults.
+Omitted resolved edges use `Table.grid` (or zero without a grid). Explicit null or
+width zero suppresses that cell's grid fallback. Each cell locally reserves its own
+effective top/right/bottom/left widths plus padding. A thicker opposing winner does
+**not** increase the other cell's content padding or reflow it: winning ink can extend
+into that cell's locally unreserved space. Deferred sections cannot repaginate neighbors.
+
+Final painting resolves each logical shared interval once, after all backgrounds and
+content, including current-page deferred head/foot styles. An explicit positive edge
+beats grid fallback and explicit null/zero. Between positive explicit edges, greater
+width wins; equal widths choose the **upper cell's bottom** or **left cell's right**
+edge, irrespective of report order. Without any explicit positive edge, null/zero
+suppresses fallback; otherwise the grid paints. Equal grid claims use the same owner
+tie rule; exact same-owner ties use stable report order.
+
+Shared bands center on the logical cell boundary. Exposed explicit outer bands move
+inward by half their width, wholly inside the allocation; top/bottom own exposed
+corner strips and vertical edges trim by the cell's own top/bottom insets. Grid-only
+outer bands preserve historical inward centerline displacement by a full grid width
+and grid endpoint trims. Logical identity is never displaced or epsilon-snapped.
+At shared perpendicular boundaries endpoint trims are waived to keep intervals joined.
+Rows remain atomic: fragment tops/bottoms use the edges of actual first/last rows on
+that fragment; repeated sections join only where their actual measured roots touch.
+Reserved gaps remain gaps. Hidden overflow clips actual ink, never invents a border
+at the clip cut. This is a deterministic UPDF policy, **not CSS border-collapse**, CSS
+`all`, a selector engine or an ambient cascade.
 
 ## Migration
 
@@ -220,7 +247,7 @@ edge drawn once. Existing uniform `Table.grid` is unchanged; mixed cell edges aw
 Fixed core `text`/`richText` and `ParagraphDefinition` are a separate low-level
 point-valued contract; do not migrate them to ratios. Legacy and historical audit
 documents are unchanged. No selectors, cascade interpreter, CSS parser, browser
-layout, full shorthand set, table per-edge borders (#42-B), Span backgrounds (#43), or
+layout, full shorthand set, Span backgrounds (#43), or
 flex are added. Any future stylesheet adapter is a distinct optional boundary.
 
 Compile-checked NodeNext/Bundler public examples live in

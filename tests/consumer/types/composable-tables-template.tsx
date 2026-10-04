@@ -12,11 +12,20 @@ import {
   tableExtension,
 } from "@updf/tables";
 
-const columns = [{ width: 120 }, { width: 60 }] as const;
+const columns = [{ width: 120, style: { borderLeft: { width: 2, color: [0, 0, 1] } } }, { width: 60 }] as const;
 const extensions = createExtensions([tableExtension]);
-const base: TableStyle = { fontSize: 10, lineHeight: 1.2, padding: 4, backgroundColor: [0.9, 0.96, 1] };
-const rowStyle: RowStyle = { padding: 3, paddingTop: 4, color: [0, 0, 1] };
-const cellStyle: CellStyle = { paddingLeft: 6, backgroundColor: [1, 1, 0] };
+const base: TableStyle = { fontSize: 10, lineHeight: 1.2, padding: 4, backgroundColor: [0.9, 0.96, 1], border: null };
+const rowStyle: RowStyle = {
+  padding: 3,
+  paddingTop: 4,
+  color: [0, 0, 1],
+  borderBottom: { width: 2, color: [0, 0, 1] },
+};
+const cellStyle: CellStyle = {
+  paddingLeft: 6,
+  backgroundColor: [1, 1, 0],
+  borderRight: { width: 0, color: [0, 0, 0] },
+};
 const data = {
   columns,
   style: base,
@@ -80,8 +89,8 @@ if (result.pageCount < 0) {
   data.body[0].cells.push({ children: "mutation" });
   // @ts-expect-error Row defaults are role-aware, not arbitrary paragraph props.
   const childStyle: RowStyle = { children: "text" };
-  // @ts-expect-error Uniform borders belong to Blocks; table grids are explicit.
-  const borderStyle: CellStyle = { border: { width: 1, color: [0, 0, 0] } };
+  // @ts-expect-error Border colors require RGB, not CSS strings.
+  const borderStyle: CellStyle = { border: { width: 1, color: "red" } };
   // @ts-expect-error No compatibility background alias.
   const oldStyle: TableStyle = { background: [1, 1, 0] };
   void [childStyle, borderStyle, oldStyle];

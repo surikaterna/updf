@@ -1,3 +1,4 @@
+import { cellBorders } from "./borders.js";
 import { array, error, number, record, rgb } from "./checks.js";
 import type { CellProps, CellStyle, TableDefinition, TableInput, TableRow, TableSection } from "./types.js";
 
@@ -21,9 +22,15 @@ export function style(value: unknown, path: string): asserts value is CellStyle 
       "height",
       "overflow",
       "gap",
+      "border",
+      "borderTop",
+      "borderRight",
+      "borderBottom",
+      "borderLeft",
     ],
     path,
   );
+  cellBorders(value as CellStyle, path);
   for (const key of ["padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "height", "gap"] as const)
     if (key in value) number(value[key], `${path}/${key}`);
   if ("lineHeight" in value) lineHeight(value.lineHeight, `${path}/lineHeight`);

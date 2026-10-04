@@ -36,7 +36,14 @@ function band(claim: Claim, start: number, end: number, group: SharedEdgeGroup, 
     paint: { fill: claim.color, stroke: null },
   };
 }
-const preferred = (a: Claim, b: Claim): boolean => a.width > b.width || (a.width === b.width && a.order < b.order);
+const rank = (claim: Claim): number => (claim.provenance === "explicit" ? (claim.width > 0 ? 2 : 1) : 0);
+const ownerRank = (claim: Claim): number => (claim.ownerSide === "bottom" || claim.ownerSide === "right" ? 1 : 0);
+function preferred(a: Claim, b: Claim): boolean {
+  if (rank(a) !== rank(b)) return rank(a) > rank(b);
+  if (a.width !== b.width) return a.width > b.width;
+  if (ownerRank(a) !== ownerRank(b)) return ownerRank(a) > ownerRank(b);
+  return a.order < b.order;
+}
 class Winners {
   private readonly heap: Claim[] = [];
   add(claim: Claim): void {
@@ -124,7 +131,7 @@ function intervals(
       entering = starts[++next];
     }
     const winner = winners.at(start);
-    const current = winner ? physical(winner, start, end, shared) : undefined;
+    const current = winner?.width ? physical(winner, start, end, shared) : undefined;
     if (current && previous && samePaint(previous.claim, current.claim) && previous.end === current.start)
       previous.end = current.end;
     else {

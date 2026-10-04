@@ -55,7 +55,8 @@ function claim(input: LocalEdgeClaim, width: number, height: number, path: strin
   const horizontal = input.axis === "horizontal";
   const sides = horizontal ? ["top", "bottom"] : ["left", "right"];
   if (!sides.includes(input.ownerSide)) fail("TYPE", `${path}/ownerSide`, "Owner side must match edge axis");
-  if (input.provenance !== "grid") fail("TYPE", `${path}/provenance`, "Expected grid provenance");
+  if (input.provenance !== "grid" && input.provenance !== "explicit")
+    fail("TYPE", `${path}/provenance`, "Expected grid or explicit provenance");
   array(input.interval, 2, `${path}/interval`);
   if (input.interval.length !== 2) fail("TYPE", `${path}/interval`, "Expected edge interval pair");
   const start = number(input.interval[0], `${path}/interval/0`);
@@ -64,7 +65,7 @@ function claim(input: LocalEdgeClaim, width: number, height: number, path: strin
     fail("GEOMETRY", `${path}/interval`, "Expected positive interval within region");
   if (number(input.coordinate, `${path}/coordinate`) > (horizontal ? height : width))
     fail("GEOMETRY", `${path}/coordinate`, "Edge coordinate exceeds region");
-  number(input.width, `${path}/width`, true);
+  number(input.width, `${path}/width`);
   paintInsets(input, horizontal ? height : width, start, end, path);
   array(input.color, 3, `${path}/color`);
   if (input.color.length !== 3) fail("GEOMETRY", `${path}/color`, "Expected RGB tuple");
