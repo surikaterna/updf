@@ -4,6 +4,7 @@ import {
   type FragmentProvider,
   type FragmentSource,
 } from "@updf/layout-kernel/fragmentation";
+import { PlaygroundError } from "./error.js";
 import type { Placement, Region, Snapshot, Unit } from "./snapshot.js";
 
 export const LIMITS = Object.freeze({
@@ -57,7 +58,9 @@ export function paginate(
         break;
       }
     }
-    const next = units[regions.reduce((count, region) => count + region.placements.length, 0)];
+    const next = groups.flatMap((group) => group.descriptor)[
+      regions.reduce((count, region) => count + region.placements.length, 0)
+    ];
     const blocked =
       status === "blocked" && next
         ? Object.freeze({ id: next.id, height: next.height, width, regionHeight: height })
@@ -92,30 +95,35 @@ function expandPlacement(placement: FragmentPlacement<Unit>): readonly Placement
 }
 
 function groupSources(units: readonly Unit[], width: number): readonly FragmentSource<readonly Unit[]>[] {
-  const lines = units.filter((item) => item.line !== undefined);
-  const atomic = units.filter((item) => item.line === undefined);
+  const ids = new Set<string>();
+  for (const item of units) {
+    if (ids.has(item.id)) throw new PlaygroundError("VALUE", item.path, "Unit identity must be unique");
+    ids.add(item.id);
+  }
   const groups: FragmentSource<readonly Unit[]>[] = [];
-  if (lines.length)
+  let paragraph = 0;
+  for (let index = 0; index < units.length; ) {
+    const item = units[index]!;
+    const start = index++;
+    const lines = item.line !== undefined;
+    if (lines) while (index < units.length && units[index]!.line !== undefined) index++;
+    let id = item.id;
+    if (lines) {
+      do {
+        id = ++paragraph === 1 ? "paragraph" : `paragraph-${paragraph}`;
+      } while (ids.has(id));
+      ids.add(id);
+    }
     groups.push(
       Object.freeze({
-        id: "paragraph",
-        path: "/paragraph",
-        descriptor: Object.freeze(lines),
-        extent: lines.length,
-        mode: "splittable",
+        id,
+        path: lines ? `/${id}` : item.path,
+        descriptor: Object.freeze(units.slice(start, index)),
+        extent: index - start,
+        mode: lines ? "splittable" : "atomic",
         width: { mode: "fixed" as const, value: width },
       }),
     );
-  for (const item of atomic)
-    groups.push(
-      Object.freeze({
-        id: item.id,
-        path: item.path,
-        descriptor: Object.freeze([item]),
-        extent: 1,
-        mode: "atomic",
-        width: { mode: "fixed" as const, value: width },
-      }),
-    );
+  }
   return Object.freeze(groups);
 }

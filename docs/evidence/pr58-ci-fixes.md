@@ -166,3 +166,83 @@ three; intent/provenance comments only; lint/tests pass. No new exception or
 Changeset: test fixture/helper/test and evidence only, no runtime package change.
 No app build, served playground dist, showcase CSS, other worktree, tracker,
 staging, commit or delivery mutation. Ready for independent audit, not verified.
+
+## 2026-10-04 follow-up: preserve app pagination input order
+
+Addresses [PR #58 discussion r4179380528](https://github.com/surikaterna/updf/pull/58#discussion_r4179380528).
+Worktree/branch unchanged; clean starting HEAD
+`e586f16c254fafb390dbdea3d5ffd22504ff921e`. PR base is `develop`,
+`12e485b9ac881f2d6ba620a390ba36ff7ea8a4b2`. This slice is uncommitted.
+
+Root cause is purely app host grouping: filtering all lines and then all atomics
+silently reordered mixed inputs. Blocked metadata subsequently indexed the
+original input using the reordered accepted count. The helper now scans input
+order, coalesces only adjacent line runs, and gives each atomic its own source.
+Blocked metadata reads the same grouped progression as the operation.
+Kernel selectors, region progress, unit heights, geometry, provider `next`, and
+budgets are unchanged. Source-bar/client selection still uses original unit IDs.
+
+Line-run source IDs/paths are `paragraph`/`/paragraph`, then `paragraph-2` etc.,
+skipping IDs reserved by any input unit. Allocation is deterministic within an
+operation. Atomic IDs/paths remain the original unit IDs/paths. Duplicate input
+unit IDs reject with `VALUE` at the duplicate unit path, rather than permitting
+ambiguous identity. Mixed inputs therefore have intentionally different source
+group identities and run-local offsets; this is not a claim of unchanged source
+IDs for all inputs. Placement `start`/`end` index the adjacent run (atomics 0/1).
+Original unit paths, lineIndex, measured line top/baseline and UTF16 fragment
+source spans remain untouched and are not replaced by those run-local offsets.
+
+Risk regressions cover atomic-before-lines, line/atomic/line, consecutive
+atomics, empty input, blank lines, source coverage/order across pages, exact
+accepted prefix at cap, oversized atomic and oversized line blocked metadata,
+multiple line groups, generated-ID collisions, and duplicate unit rejection.
+Before the fix, `tsx --test apps/layout-playground/test/pagination.test.ts`
+failed all three initial tests: reordered coverage, non-prefix acceptance,
+and `paragraph` source identity collision. After the fix the final four tests
+pass. The prefix case accepts only `line-0` at cap 1/height 18; with a larger
+cap it blocks at `atomic-row` (height 70), not a later line.
+
+The new real-PDF test passes qpdf, Poppler text order/coordinates, and atomic
+edge raster checks. Its row is at PDF y=38 after `First`; a later blank line
+fits below it, and `Last` resumes on page 2. A negative PDF rendered from the
+old partition order fails both text geometry and atomic raster checks. No fake
+kernel results. The raster helper now checks line/row non-overlap on either side
+of the row, instead of assuming every line must precede it.
+
+Final worktree gates:
+
+- `npm test -w @updf/layout-playground`: **12/12** (previously 7); includes
+  qpdf/Poppler and positive/negative PDF raster checks.
+- `npm run format:check`, `npm run lint`, `npm run typecheck`: pass.
+  Typecheck builds root packages/examples/legacy, not app dist. The initial
+  new-fixture optional-property type error was fixed before the final pass.
+- `git diff --check`: pass.
+
+Isolated build/browser evidence: archived starting HEAD into
+`/tmp/opencode/pr58-grouping`, overlaid only the five changed app source/test
+files, and read-only reused dependencies through a symlink to this worktree's
+existing `node_modules`. No dependency install. From that archive cwd:
+
+- `npm run build -w @updf/layout-playground`: pass (root base, isolated dist).
+- `BROWSER_CHROMIUM=/home/sprawl/.cache/ms-playwright/chromium-1246/chrome-linux64/chrome npm run test:browser -w @updf/layout-playground`:
+  **5/5**, including actual browser/Node PDF-byte parity and unit-ID selection.
+  Harness ephemeral preview/browser processes close in `finally`.
+- `./node_modules/.bin/tsx preservation.ts`: compares old helper extracted with
+  `git show HEAD:apps/layout-playground/src/pagination.ts` to the new helper.
+  Default paragraph/row, leading blank line, blocked height 18/cap 20, and
+  capped default all have identical complete snapshots/counts/blocked metadata;
+  complete cases also have exactly identical PDF bytes.
+
+Root native tests are not rerun: no production package or root test changed;
+prior **688/688** evidence above remains applicable, not a fresh result.
+Production browser 9/showcase 57 and separate known SVG #50 failure are also
+prior evidence only. No SVG thresholds/retries, CSS, workflows, services,
+Tailscale configuration, active `/layout` app dist, other worktrees, or tracker
+changed. Hosted outcome for this slice remains unknown until parent delivery.
+
+Code-principles checklist passes: correctness/red-green and real-PDF negatives;
+cohesive source below 400 lines, changed functions below 50 lines and nesting
+at most three; no unnecessary comments; proportional tests; lint/tests pass.
+No new exception and no Changeset: private app-only runtime fix. Implementation
+is ready for independent audit; no stage/commit/push or delivery authorization
+was exercised.

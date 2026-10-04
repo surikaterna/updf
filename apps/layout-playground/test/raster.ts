@@ -25,8 +25,7 @@ export function assertAtomicRaster(projection: Projection, name: string): void {
   for (const rect of page.rectangles) assertEdges(rect, painted);
   const row = page.rectangles.find((rect) => rect.id === "atomic-row");
   assert.ok(row);
-  const lastLine = page.lines.at(-1);
-  if (lastLine) assert.ok(lastLine.y + lastLine.line.height <= row.y);
+  for (const line of page.lines) assert.ok(line.y + line.line.height <= row.y || line.y >= row.y + row.height);
 }
 
 function rasterize(directory: string, name: string, pageNumber: number): void {

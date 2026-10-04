@@ -1,11 +1,29 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { compute } from "../src/compute.js";
+import { paginate } from "../src/pagination.js";
 import { exportProjection } from "../src/pdf.js";
 import { project } from "../src/projection.js";
-import { controls } from "./fixtures.js";
+import { controls, mixedUnits } from "./fixtures.js";
 import { assertPDFGeometry, inspectPDF } from "./pdf-tools.js";
 import { assertAtomicRaster } from "./raster.js";
+
+test("mixed input order survives real PDF text and atomic-row geometry; old partition order rejects", async () => {
+  const units = await mixedUnits();
+  const projection = project(paginate(units, controls.width, 108, 8, null, true));
+  assert.equal(projection.pages.length, 2);
+  assert.equal(projection.pages[0]?.rectangles.find((rect) => rect.id === "atomic-row")?.y, 38);
+  assertPDFGeometry(projection, inspectPDF(exportProjection(projection), "mixed-order"));
+  assertAtomicRaster(projection, "mixed-order");
+  const reordered = [
+    ...units.filter((item) => item.line !== undefined),
+    ...units.filter((item) => item.line === undefined),
+  ];
+  const negative = project(paginate(reordered, controls.width, 108, 8, null, true));
+  const actual = inspectPDF(exportProjection(negative), "mixed-old-order");
+  assert.throws(() => assertPDFGeometry(projection, actual));
+  assert.throws(() => assertAtomicRaster(projection, "mixed-old-order"));
+});
 
 test("qpdf + Poppler confirm actual page count, source order and accepted text coordinates", async () => {
   const projection = project(await compute(controls));
