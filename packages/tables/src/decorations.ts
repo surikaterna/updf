@@ -10,9 +10,10 @@ import {
 import { tableExtension } from "./adapter.js";
 import { measureRow, paintRows } from "./measure.js";
 import { deferredSection, Foot, Head } from "./parts.js";
-import type { TableInput, TableSection } from "./types.js";
+import type { ResolvedTableInput, TableSection } from "./types.js";
+import { retainAllocation } from "./widths.js";
 
-export function decorations(table: TableInput, context: MeasureContext): DecorationPlan | undefined {
+export function decorations(table: ResolvedTableInput, context: MeasureContext): DecorationPlan | undefined {
   const staticEntries: StaticDecoration[] = [];
   const entries: ContentDecoration[] = [];
   for (const [edge, section] of [
@@ -22,7 +23,7 @@ export function decorations(table: TableInput, context: MeasureContext): Decorat
     if (!section) continue;
     const repeat = section.repeat ? "all" : edge === "before" ? "first" : "last";
     if (section.height !== undefined) {
-      entries.push({ edge, repeat, height: section.height, content: sectionContent(table, section) });
+      entries.push({ edge, repeat, height: section.height, content: sectionContent(table, section, context) });
       continue;
     }
     const measured = paintRows(
@@ -44,14 +45,16 @@ export function decorations(table: TableInput, context: MeasureContext): Decorat
     });
   return context.reserveDecorations(entries);
 }
-function sectionContent(table: TableInput, section: TableSection) {
+function sectionContent(table: ResolvedTableInput, section: TableSection, context: MeasureContext) {
   const content = deferredSection(section);
-  return extension(tableExtension, {
+  const props = {
     columns: table.columns,
+    allocation: retainAllocation(table.columns, context),
     ...(content
       ? { children: jsx(table.head === section ? Head : Foot, { children: content }) }
       : { body: section.rows }),
     ...(table.style ? { style: table.style } : {}),
     ...(table.grid ? { grid: table.grid } : {}),
-  });
+  };
+  return extension(tableExtension, props);
 }

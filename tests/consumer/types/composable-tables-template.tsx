@@ -12,7 +12,10 @@ import {
   tableExtension,
 } from "@updf/tables";
 
-const columns = [{ width: 120, style: { borderLeft: { width: 2, color: [0, 0, 1] } } }, { width: 60 }] as const;
+const columns = [
+  { width: { weight: 2, min: 80, max: 140 }, style: { borderLeft: { width: 2, color: [0, 0, 1] } } },
+  { width: 60 },
+] as const;
 const extensions = createExtensions([tableExtension]);
 const base: TableStyle = { fontSize: 10, lineHeight: 1.2, padding: 4, backgroundColor: [0.9, 0.96, 1], border: null };
 const rowStyle: RowStyle = {
@@ -73,7 +76,7 @@ const result = layout(content);
 if (render(result.document).length !== render(lower(content)).length || !table(data))
   throw new Error("composable tables");
 if (result.pageCount < 0) {
-  // @ts-expect-error Columns require numeric explicit widths, not CSS strings.
+  // @ts-expect-error Columns require point widths or weighted tracks, not CSS strings.
   table({ columns: [{ width: "50%" }], body: [] });
   // @ts-expect-error Rows cannot opt into unsupported splitting.
   const split = <Table.Row keepTogether={false} />;

@@ -89,11 +89,11 @@ export function section(value: unknown, path: string, columns: number): asserts 
 export function validate(input: unknown): TableDefinition {
   record(input, ["columns", "style", "grid", "children", "body", "head", "foot"], "/table");
   array(input.columns, "/table/columns");
-  if (!input.columns.length) error("/table/columns", "At least one explicit column is required");
+  if (!input.columns.length) error("/table/columns", "At least one column is required");
   for (let i = 0; i < input.columns.length; i++) {
     const column = input.columns[i];
     record(column, ["width", "style"], `/table/columns/${i}`);
-    number(column.width, `/table/columns/${i}/width`, true);
+    widthTrack(column.width, `/table/columns/${i}/width`);
     if ("style" in column) style(column.style, `/table/columns/${i}/style`);
   }
   if ("style" in input) style(input.style, "/table/style");
@@ -111,6 +111,18 @@ export function validate(input: unknown): TableDefinition {
   for (const name of ["head", "foot"] as const)
     if (name in input) section(input[name], `/table/${name}`, input.columns.length);
   return input as unknown as TableDefinition;
+}
+function widthTrack(value: unknown, path: string): void {
+  if (typeof value === "number") {
+    number(value, path, true);
+    return;
+  }
+  record(value, ["weight", "min", "max"], path);
+  number(value.weight, `${path}/weight`, true);
+  if ("min" in value) number(value.min, `${path}/min`, true);
+  if ("max" in value) number(value.max, `${path}/max`, true);
+  if (typeof value.min === "number" && typeof value.max === "number" && value.max < value.min)
+    error(`${path}/max`, "Maximum width must be at least minimum width", "GEOMETRY");
 }
 export function data(input: TableDefinition): input is TableInput {
   return "body" in input;

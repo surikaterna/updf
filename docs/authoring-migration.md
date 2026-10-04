@@ -42,6 +42,12 @@ default layers, expanded before merging. The linked contract defines supported
 roles and precedence; per-edge borders #42 and Span backgrounds #43 remain planned.
 
 Historical audit records under `docs/evidence` retain their dated APIs/status.
+Native table columns may now keep a fixed point `width` or use
+`width: { weight: 1, min: 40, max: 160 }` (layout's shared `WidthTrack`). Existing
+fixed tables stay narrow and retain scalar placement; weighted tables allocate
+only the available remainder and may leave trailing space at saturated maxima.
+Infeasible fixed/minimum totals fail rather than shrink. See the
+[table width contract](../packages/tables/README.md#column-widths-45).
 Test-only direct source imports preserve internal renderer regression coverage;
 they are not supported package exports. Packed NodeNext/Bundler and runtime
 consumers test native exports and reject the removed surfaces.

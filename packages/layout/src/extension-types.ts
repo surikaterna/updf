@@ -28,6 +28,8 @@ export interface MeasureContext {
   readonly width: number;
   readonly sourcePath: string;
   readonly ancestors: readonly string[];
+  /** Charge bounded adapter work to the operation's source-node budget before scanning. */
+  readonly chargeSourceWork: (count: number, sourcePath: string) => void;
   readonly measureText: (input: TextMeasurementInput) => TextMeasurement;
   readonly measureContent: ContentMeasurer;
   readonly readParts: (content: BlockContent, allowed: readonly BlockPartIdentity[]) => readonly BlockPart[];

@@ -17,6 +17,12 @@ test("F converted public-adapter pipeline preserves the historical 63-edge raste
   await mkdir(directory, { recursive: true });
   const fresh = composableInventory("Inventory"),
     legacy = legacyInventory("Inventory");
+  const weighted = composableInventory("Inventory", [
+    { width: { weight: 140, min: 100 } },
+    { width: { weight: 68, max: 68 }, style: { textAlign: "right" } },
+  ]);
+  assert.deepEqual(weighted.bytes, fresh.bytes);
+  assert.deepEqual(weighted.result.placements, fresh.result.placements);
   assert.equal(fresh.result.pageCount, 3);
   const tablePlacements = fresh.result.placements.filter((placement) => placement.sourceIndex === 1);
   assert.deepEqual(

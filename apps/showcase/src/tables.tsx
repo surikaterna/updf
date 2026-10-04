@@ -12,7 +12,7 @@ import {
   Paragraph,
   pt,
 } from "@updf/layout";
-import { Table, tableExtension } from "@updf/tables";
+import { Table, type TableColumn, tableExtension } from "@updf/tables";
 import { chartAdapter } from "./chart.js";
 
 export interface TableControls {
@@ -36,6 +36,12 @@ export interface TableVisual {
   readonly adapters: readonly (BlockAdapterIdentity | InlineAdapterIdentity)[];
 }
 const Chart = blockComponent(chartAdapter);
+function inventoryColumns(wide: boolean): readonly TableColumn[] {
+  return [
+    { width: { weight: wide ? 270 : 140, min: 100 } },
+    { width: { weight: wide ? 118 : 68, min: 40 }, style: { textAlign: "right" } },
+  ];
+}
 export function tableDefinition(title: string, controls: TableControls = tableDefaults, visual?: TableVisual) {
   if (!Number.isInteger(controls.count) || controls.count < 1 || controls.count > 40)
     throw new Error("Row count must be 1–40");
@@ -44,7 +50,7 @@ export function tableDefinition(title: string, controls: TableControls = tableDe
   if (!Number.isFinite(controls.minHeight ?? 0) || (controls.minHeight ?? 0) < 0 || (controls.minHeight ?? 0) > 100)
     throw new Error("Minimum row height must be 0–100");
   const wide = controls.preset === "wide";
-  const columns = [{ width: wide ? 270 : 140 }, { width: wide ? 118 : 68, style: { textAlign: "right" as const } }];
+  const columns = inventoryColumns(wide);
   return (
     <Document>
       <Flow

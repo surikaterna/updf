@@ -1,5 +1,12 @@
 import type { RGB } from "@updf/core";
-import type { BlockContent, BorderPolicy, BoxStyle, ImplicitInlineContent, ParagraphStyle } from "@updf/layout";
+import type {
+  BlockContent,
+  BorderPolicy,
+  BoxStyle,
+  ImplicitInlineContent,
+  ParagraphStyle,
+  WidthTrack,
+} from "@updf/layout";
 
 export interface TableStyle extends ParagraphStyle, BoxStyle, BorderPolicy {
   readonly whiteSpace?: "preserve" | "collapse";
@@ -11,7 +18,7 @@ export interface TableStyle extends ParagraphStyle, BoxStyle, BorderPolicy {
 export type RowStyle = TableStyle;
 export type CellStyle = TableStyle;
 export interface TableColumn {
-  readonly width: number;
+  readonly width: WidthTrack;
   readonly style?: CellStyle;
 }
 export interface CellProps {
@@ -53,3 +60,7 @@ export interface TableInput extends Omit<TableProps, "children"> {
   readonly foot?: TableSection;
 }
 export type TableDefinition = TableProps | TableInput;
+
+export interface ResolvedTableInput extends Omit<TableInput, "columns"> {
+  readonly columns: readonly (Omit<TableColumn, "width"> & { readonly width: number })[];
+}

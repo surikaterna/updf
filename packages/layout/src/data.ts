@@ -54,6 +54,12 @@ export function preflight(input: unknown, policy: Policy): void {
   while (tasks.length) tasks.pop()?.();
 }
 const sources = new WeakMap<LayoutOperation, Counts>();
+export function chargeSourceWork(count: number, operation: LayoutOperation, path: string): void {
+  preflightSource(null, operation, path);
+  const counts = sources.get(operation);
+  if (!counts) fail("TYPE", path, "Missing operation source budget");
+  counts.objects = checkLimit(counts.objects + count, operation.policy.nodes, path, "Source work nodes");
+}
 export function preflightSource(input: unknown, operation: LayoutOperation, path: string): void {
   const counts = sources.get(operation) ?? {
     objects: 0,

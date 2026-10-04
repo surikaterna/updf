@@ -57,9 +57,40 @@ const content = table({
 ```
 
 All input types are readonly; the factory snapshots data without freezing callers.
-Columns are positive explicit point widths; auto, weights, percentages, spans,
+Columns are positive point widths or weighted tracks; auto, percentages, spans,
 nested tables and row splitting are unsupported and diagnose rather than guess.
 Unknown fields, getters, holes, class records and present undefined reject.
+
+## Column widths (#45)
+
+`TableColumn.width` uses layout's shared `WidthTrack`: a fixed number of points or
+`{ weight: number, min?: number, max?: number }`. Weights and explicit bounds must
+be positive finite numbers; max must be at least min. Omitted min is the smallest
+positive binary64 number, omitted max is the table's available content width.
+For example, `columns={[{ width: 40 }, { width: { weight: 1, min: 30 } },
+{ width: { weight: 3, max: 150 } }]}` reserves 40pt and divides the remainder 1:3,
+redistributing after bounds clamp. Fixed widths plus minima exceeding available
+width fail `GEOMETRY` at the occurrence's `/props/columns` before cell measurement;
+invalid track parts diagnose `/columns/<index>/width/<part>`. No silent shrinking.
+
+Resolution is once per table occurrence, before measuring cells, without scanning
+content. Frozen scalar columns are reused by body, static head/foot, and deferred
+PageContext sections through their ordinary adapter-props snapshots. Deferred
+section occurrences certify those same fixed scalars; they do not redistribute
+weights. Caller arrays/objects remain mutable but are not retained by descriptors.
+Separate occurrences use their current available width, providers and resources.
+Actual column counts charge the operation source-node budget before resolver work.
+
+Rounding uses exact binary64 arithmetic, floors fractional shares, then permits one
+successor ULP in stable column order when the exact residual can pay for it and
+max allows it. No decimal quantization or epsilon. Saturated maxima and unavoidable
+representational slack remain unused; table width is the native left-to-right sum
+of allocated scalar widths, **not** the full available width. This preserves fixed
+table placement/output association. Native materialized overflow is rejected;
+existing translated-coordinate/ink certification remains authoritative. Cell
+content uses its allocated column width less local borders and effective padding.
+See [the resolver contract](../../docs/evidence/widths45-a.md) for exact rounding
+and numerical guarantees. No intrinsic/auto content scan or CSS flex semantics.
 
 Cells accept readonly stacked block content, or all-inline content (including
 finite scalar numbers) as one implicit Paragraph. Mixed naked inline/block content

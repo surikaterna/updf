@@ -17,7 +17,7 @@ get one implicit Paragraph; mixed naked inline/block content requires explicit
 Paragraphs. Finite numbers are accepted only at that implicit cell root, not as a
 global change to explicit Paragraph/Span or core text grammar.
 
-The table adapter coordinates explicit point column widths, measures cell border
+The table adapter resolves fixed/weighted/min/max column widths, measures cell border
 boxes via public `measureContent`, chooses complete atomic rows, and emits native
 content. It does not import the layout compiler, create pages, manipulate a cursor
 or switch paginator types. Head/foot rows share column widths and generic
@@ -51,7 +51,7 @@ separate, application-owned optional chunk and inline adapter: text/chart select
 does not load SVG, and core entry does not load layout/tables. Preview/download are
 the exact Node/browser bytes; source display is the actual raw JSX module.
 
-Images/#33, nested tables, row splitting, spans, CSS, weighted/auto/percentage
+Images/#33, nested tables, row splitting, spans, CSS, auto/percentage
 columns, formula evaluation and global plugin installation are not implemented.
 Rows use `keepTogether?: true`: omission stays atomic, `false` rejects unsupported
 splitting, and the obsolete `atomic` field rejects at compile time and runtime.

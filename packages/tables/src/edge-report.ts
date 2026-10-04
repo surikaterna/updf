@@ -1,6 +1,6 @@
 import type { ExpandedBorders, Insets, LocalEdgeClaim, MeasureContext } from "@updf/layout";
 import type { MeasuredRow } from "./measure.js";
-import type { TableInput } from "./types.js";
+import type { ResolvedTableInput, TableInput } from "./types.js";
 
 export function edgeInsets(borders: ExpandedBorders, grid: number): Insets {
   const width = (key: keyof ExpandedBorders): number => (key in borders ? (borders[key]?.width ?? 0) : grid);
@@ -50,7 +50,7 @@ export function cellClaims(
   });
 }
 
-export function reportEdges(output: MeasuredRow, table: TableInput, context: MeasureContext): MeasuredRow {
+export function reportEdges(output: MeasuredRow, table: ResolvedTableInput, context: MeasureContext): MeasuredRow {
   if (!output.height || !output.claims?.length) return { height: output.height, nodes: output.nodes };
   const width = table.columns.reduce((sum, column) => sum + column.width, 0);
   const claims = [...output.claims].sort((a, b) => a.axis.localeCompare(b.axis) || a.coordinate - b.coordinate);

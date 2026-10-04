@@ -1,8 +1,11 @@
 import { render } from "@updf/core";
-import { table, tableExtension } from "@updf/tables";
+import { type TableColumn, table, tableExtension } from "@updf/tables";
 import { createExtensions, layoutFlow, paragraph } from "./transitional-layout.js";
 
-export function composableInventory(title: string) {
+export function composableInventory(
+  title: string,
+  columns: readonly TableColumn[] = [{ width: 140 }, { width: 68, style: { textAlign: "right" } }],
+) {
   const defaults = {
     font: "Helvetica",
     fontSize: 10,
@@ -20,7 +23,7 @@ export function composableInventory(title: string) {
       body: [
         paragraph({ ...text, children: title }),
         table({
-          columns: [{ width: 140 }, { width: 68, style: { textAlign: "right" } }],
+          columns,
           style: { ...defaults, padding: 4 },
           grid: { width: 1, color: [0.2, 0.3, 0.4] },
           head: {

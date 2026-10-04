@@ -4,13 +4,30 @@ import { decorations } from "./decorations.js";
 import { validateFonts } from "./font-validation.js";
 import { type MeasuredRow, measureRow, paintRows } from "./measure.js";
 import { fromParts } from "./parts.js";
-import type { TableDefinition } from "./types.js";
+import type { ResolvedTableInput, TableDefinition } from "./types.js";
 import { data, validate } from "./validate.js";
+import { hasAllocation, resolveColumns, reuseAllocation } from "./widths.js";
 
-function measured(input: TableDefinition, context: MeasureContext): MeasuredBlock {
+type InternalTable = TableDefinition & { readonly allocation?: object };
+function validateOccurrence(input: unknown): InternalTable {
+  if (input && typeof input === "object" && "allocation" in input && hasAllocation(input.allocation)) {
+    const { allocation, ...props } = input;
+    return { ...validate(props), allocation };
+  }
+  return validate(input);
+}
+
+function measured(input: InternalTable, context: MeasureContext): MeasuredBlock {
   if (context.ancestors.includes("updf.table"))
     error(context.sourcePath, "Nested tables are unsupported", "VDOM_HIERARCHY");
-  const table = data(input) ? input : fromParts(input, context);
+  const resolved = {
+    ...input,
+    columns: input.allocation ? reuseAllocation(input.allocation, context) : resolveColumns(input.columns, context),
+  };
+  const table = data(resolved) ? resolved : fromParts(resolved, context);
+  return measuredResolved(table as ResolvedTableInput, context);
+}
+function measuredResolved(table: ResolvedTableInput, context: MeasureContext): MeasuredBlock {
   const width = table.columns.reduce((sum, column) => sum + column.width, 0);
   number(width, "/table/columns", true);
   if (width > context.width) error("/table/columns", "Table width exceeds available width", "GEOMETRY");
@@ -45,4 +62,8 @@ function selectRows(rows: readonly MeasuredRow[], offset: number, availableHeigh
   }
   return offset;
 }
-export const tableExtension = defineBlockAdapter<TableDefinition>({ name: "updf.table", validate, measure: measured });
+export const tableExtension = defineBlockAdapter<TableDefinition>({
+  name: "updf.table",
+  validate: validateOccurrence,
+  measure: measured,
+});

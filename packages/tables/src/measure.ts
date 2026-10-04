@@ -4,7 +4,7 @@ import { cellBorders } from "./borders.js";
 import { error, number } from "./checks.js";
 import { cellClaims, edgeInsets, reportEdges } from "./edge-report.js";
 import { cellSourcePath } from "./parts.js";
-import type { CellProps, CellStyle, TableInput, TableRow } from "./types.js";
+import type { CellProps, CellStyle, ResolvedTableInput, TableRow } from "./types.js";
 
 export interface MeasuredRow {
   readonly height: number;
@@ -80,7 +80,7 @@ function measuredCell(
   };
   return { measured: context.measureContent(children, constraints), inset };
 }
-function measureCells(row: TableRow, table: TableInput, context: MeasureContext, sourcePath: string) {
+function measureCells(row: TableRow, table: ResolvedTableInput, context: MeasureContext, sourcePath: string) {
   const grid = table.grid?.width ?? 0;
   return row.cells.map((cell, index) => {
     const column = table.columns[index];
@@ -104,7 +104,12 @@ function measureCells(row: TableRow, table: TableInput, context: MeasureContext,
     };
   });
 }
-export function measureRow(row: TableRow, table: TableInput, context: MeasureContext, sourcePath: string): MeasuredRow {
+export function measureRow(
+  row: TableRow,
+  table: ResolvedTableInput,
+  context: MeasureContext,
+  sourcePath: string,
+): MeasuredRow {
   const cells = measureCells(row, table, context, sourcePath);
   const height = cells.reduce(
     (max, cell) => Math.max(max, cell.measured.size.height + cell.inset.top + cell.inset.bottom),
@@ -136,7 +141,11 @@ export function measureRow(row: TableRow, table: TableInput, context: MeasureCon
   }
   return { height, nodes, claims };
 }
-export function paintRows(rows: readonly MeasuredRow[], table: TableInput, context: MeasureContext): MeasuredRow {
+export function paintRows(
+  rows: readonly MeasuredRow[],
+  table: ResolvedTableInput,
+  context: MeasureContext,
+): MeasuredRow {
   const nodes: NodeDefinition[] = [];
   const claims: LocalEdgeClaim[] = [];
   let height = 0;

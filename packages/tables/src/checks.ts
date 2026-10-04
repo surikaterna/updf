@@ -18,7 +18,8 @@ export function record(
     const descriptor = Object.getOwnPropertyDescriptor(value, key);
     if (typeof key !== "string" || !descriptor || !("value" in descriptor) || !descriptor.enumerable)
       error(path, "Expected own data fields");
-    if (!keys.includes(key)) error(`${path}/${key}`, "Unsupported field", "KEY");
+    if (!keys.includes(key))
+      error(`${path}/${key.replaceAll("~", "~0").replaceAll("/", "~1")}`, "Unsupported field", "KEY");
     if (descriptor.value === undefined) error(`${path}/${key}`, "Omit undefined fields");
   }
 }

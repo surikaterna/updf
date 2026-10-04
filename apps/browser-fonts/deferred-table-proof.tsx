@@ -6,7 +6,7 @@ import { Block, createExtensions, Document, Flow, FragmentContext, layout, PageC
 import { Table, table, tableExtension } from "@updf/tables";
 
 const Theme = createContext({ name: "DEFAULT" });
-const columns = [{ width: 180 }] as const;
+const columns = [{ width: { weight: 1, min: 160, max: 180 } }] as const;
 const extensions = createExtensions([tableExtension]);
 export function deferredTableProof(font: PreparedFont, mode: "data" | "jsx") {
   const contexts: string[] = [];

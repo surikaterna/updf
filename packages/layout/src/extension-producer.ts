@@ -15,7 +15,7 @@ import { measureAdapterContent } from "./adapter-content.js";
 import { reserveContentDecorations } from "./adapter-decorations.js";
 import { adapterSnapshot, readParts, scopedAdapter } from "./author-parts.js";
 import { reserveAncestors } from "./container-reservation.js";
-import { preflight, preflightSource } from "./data.js";
+import { chargeSourceWork, preflight, preflightSource } from "./data.js";
 import { decorate } from "./decorated-producer.js";
 import { isDecorationPlan } from "./decorations.js";
 import { geometryNodes, instantiateEmissionNodes, snapshotEmissionData } from "./emission-nodes.js";
@@ -49,6 +49,11 @@ function context(
       return origin.path;
     },
     ancestors: ancestors(operation),
+    chargeSourceWork: (count, sourcePath) => {
+      if (!lifetime.active) fail("MEASUREMENT_CONTEXT", origin.path, "Layout operation has closed");
+      if (!Number.isSafeInteger(count) || count < 0) fail("TYPE", origin.path, "Expected nonnegative work count");
+      chargeSourceWork(count, operation, `${origin.path}${sourcePath}`);
+    },
     edgeRegion: (input) => {
       if (!lifetime.active) fail("MEASUREMENT_CONTEXT", origin.path, "Layout operation has closed");
       return edgeRegionNode(ownEdgeRegion(input, operation, origin.path), operation, origin.path);
@@ -85,6 +90,7 @@ export function extensionProducer(
   if (previous)
     return checkedMeasured(previous.measured, width, path, operation, previous.origin, extensions, lifetime);
   const origin = { path };
+  preflightSource(value.props, operation, `${path}/props`);
   const validated = adapterCall("validate", path, () => definition.validate(value.props), origin);
   preflightSource(validated, operation, `${path}/props`);
   const props = adapterSnapshot(validated, `${path}/props`);
