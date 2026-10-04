@@ -1,4 +1,5 @@
 import type { BlockStyle } from "./container-types.js";
+import type { BlockContent } from "./content-types.js";
 import type { FlowBlock } from "./types.js";
 import type { WidthTrack } from "./width-types.js";
 
@@ -21,4 +22,10 @@ export interface RowInput {
 }
 export interface RowBlock extends RowInput {
   readonly type: "row";
+}
+export interface RowProps extends Omit<RowInput, "children"> {
+  readonly children: BlockContent;
+}
+export interface ColumnProps extends Omit<ColumnInput, "children"> {
+  readonly children: BlockContent;
 }

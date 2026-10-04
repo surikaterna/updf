@@ -49,6 +49,7 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/column-sizing.ts",
     "layout/src/row-compiler.ts",
     "layout/src/row-data.ts",
+    "layout/src/row-vdom.ts",
     "layout/src/row-producer.ts",
     "layout/src/container-data.ts",
     "layout/src/container-paint.ts",

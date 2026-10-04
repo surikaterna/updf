@@ -43,13 +43,15 @@ audit-status wording are not current instructions. Use root `readme.md` commands
 
 ## Optional packages
 
-`@updf/layout` exports native Document/Page/Flow/Block/Paragraph/Span, readonly
+`@updf/layout` exports native Document/Page/Flow/Block/Paragraph/Span/Row/Column, readonly
 data constructors, layout/measure, contexts, decorations and adapters. `layout`
 returns frozen fixed core documents and source placements; serialize explicitly
 with `render(result.document, options)`. Core owns the sole JSX runtime and renderer.
 Reserved final regions use sealed PageContext/FragmentContext. Paragraphs split at
 complete measured lines. See [full contract](../packages/layout/README.md) and
 [documents](documents.md). Root excludes tables and no general CSS engine is included.
+Atomic side-by-side Rows and standalone vertical Columns use the shared fixed/weighted
+width resolver; see [Row/Column constraints, alignment, clipping and page policy](rows.md).
 Derived flow capacities use the approved private inverse-translation/32-local-ULP
 conditioning policy, not a widened measurement tolerance. Actual materialized
 endpoints/region separation must fit; ill-conditioned templates reject even when

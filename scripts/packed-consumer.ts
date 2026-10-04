@@ -58,8 +58,17 @@ try {
     );
     if (names.includes("core")) await coreProof(directory, graphs);
     if (names.includes("layout")) {
-      await typeConsumer(directory, ["content-template.tsx", "mixed-template.tsx", "text-style-template.tsx"]);
-      await typeConsumer(directory, ["content-template.tsx", "mixed-template.tsx", "text-style-template.tsx"], true);
+      await typeConsumer(directory, [
+        "content-template.tsx",
+        "mixed-template.tsx",
+        "text-style-template.tsx",
+        "rows-template.tsx",
+      ]);
+      await typeConsumer(
+        directory,
+        ["content-template.tsx", "mixed-template.tsx", "text-style-template.tsx", "rows-template.tsx"],
+        true,
+      );
       await typeConsumer(directory, ["flow-template.tsx"]);
       await typeConsumer(directory, ["flow-template.tsx"], true);
       graphs.layout = await installedGraph(directory, "@updf/layout");

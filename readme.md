@@ -21,7 +21,7 @@ verification of the new package structure.
 | Workspace | Responsibility / entry points |
 | --- | --- |
 | `@updf/core` | Zero runtime dependencies: `.`, `/measurement`, `/fonts`, `/painting`, `/vdom`, `/jsx-runtime`, `/jsx-dev-runtime` |
-| `@updf/layout` | Native Document/Page/Flow/Block/Paragraph/Span, data constructors, layout/measure, contexts, decorations and adapters |
+| `@updf/layout` | Native Document/Page/Flow/Block/Paragraph/Span/Row/Column, data constructors, layout/measure, contexts, decorations and adapters |
 | `@updf/geometry` | Optional strict path/color/shape helpers |
 | `@updf/svg` | Optional strict SVG subset; `/tree` native VDOM adapter |
 | `@updf/fontkit` | Optional font preparation; requires optional peer `fontkit@^2.0.4` when imported |
@@ -80,6 +80,9 @@ vulnerable tooling and is nonzero. No legacy modernization is included here.
 
 The private [showcase](apps/showcase) runs native text/layout, reusable TSX,
 rich text/shared measurement, painting and optional on-demand flow/tables/SVG demos.
+The focused [Row/Column](docs/rows.md) demo composes chart/SVG/paragraphs and nested
+atomic rows with fixed/weighted tracks and all alignments; an oversize entry exposes
+the controlled diagnostic. It is not the separate #46 invoice/manifest example.
 It generates downloadable PDFs locally,
 with automatic, multi-page PDF.js canvas previews and a mobile open/download fallback.
 PDF.js and its worker are lazy, locally bundled assets; SVG remains optional.

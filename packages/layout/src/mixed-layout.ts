@@ -1,10 +1,17 @@
 import type { DocumentDefinition, NodeDefinition, PageDefinition } from "@updf/core";
-import { checkLimit, fail, type LayoutOperation, type NormalizedContent, snapshotData } from "@updf/core/internal";
+import {
+  checkLimit,
+  fail,
+  type LayoutOperation,
+  type NormalizedContent,
+  type SemanticRecipe,
+  snapshotData,
+} from "@updf/core/internal";
 import { createDrawingLayoutOperation } from "@updf/core/internal-drawing";
 import type { LowerOptions, VDOMChild } from "@updf/core/vdom";
 import { compile } from "./block-compiler.js";
 import { OutputBudget } from "./budget.js";
-import { convertBlocks, normalizeBlocks } from "./content-normalize.js";
+import { checkRole, convertBlocks, normalizeBlocks } from "./content-normalize.js";
 import { finalizeDecorations } from "./deferred-decoration.js";
 import {
   bodyIdentity,
@@ -139,7 +146,7 @@ function flowParts(node: NormalizedContent, session: Session): FlowParts {
     node.value.props.children,
     sectionRecipe,
     `${node.path}/children`,
-    undefined,
+    flowChildGuard,
     undefined,
     undefined,
     columnIdentity,
@@ -147,6 +154,15 @@ function flowParts(node: NormalizedContent, session: Session): FlowParts {
   const result: FlowParts = { body: [], bodySlot: false };
   for (const child of children) appendFlowChild(child, result, session);
   return result;
+}
+function flowChildGuard(value: string | SemanticRecipe, path: string, parent: object | undefined): void {
+  if (
+    parent === undefined &&
+    typeof value !== "string" &&
+    [headerIdentity, bodyIdentity, footerIdentity].includes(value.identity)
+  )
+    return;
+  checkRole(value, path, parent);
 }
 function appendFlowChild(child: NormalizedContent, result: FlowParts, session: Session): void {
   if (typeof child.value === "string") fail("VDOM_HIERARCHY", child.path, "Flow text requires Paragraph");

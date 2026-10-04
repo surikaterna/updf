@@ -60,7 +60,13 @@ function showSource(): void {
   element("mixed-controls", HTMLFieldSetElement).hidden = id !== "mixed";
   element("mixed-controls", HTMLFieldSetElement).disabled = id !== "mixed";
   source.textContent =
-    id === "svg" || id === "flow" || id === "tables" || id === "blocks" || id === "mixed"
+    id === "svg" ||
+    id === "flow" ||
+    id === "tables" ||
+    id === "blocks" ||
+    id === "mixed" ||
+    id === "rows" ||
+    id === "rows-overflow"
       ? `Loading optional ${id} adapter and source…`
       : demos[id].source;
 }

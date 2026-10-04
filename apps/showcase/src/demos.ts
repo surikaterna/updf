@@ -17,7 +17,7 @@ export const demos = {
   rich: { source: richSource },
 };
 
-export type DemoId = keyof typeof demos | "svg" | "flow" | "tables" | "blocks" | "mixed";
+export type DemoId = keyof typeof demos | "svg" | "flow" | "tables" | "blocks" | "mixed" | "rows" | "rows-overflow";
 
 export function demoId(value: string): DemoId {
   if (
@@ -29,6 +29,8 @@ export function demoId(value: string): DemoId {
     value === "flow" ||
     value === "blocks" ||
     value === "mixed" ||
+    value === "rows" ||
+    value === "rows-overflow" ||
     value === "tables"
   )
     return value;
@@ -48,6 +50,7 @@ export async function generate(
   if (id === "template") return templateResult(title);
   if (id === "mixed") return mixedResult(title, mixed);
   if (id === "blocks") return blockResult(title, blocks);
+  if (id === "rows" || id === "rows-overflow") return rowResult(title, id === "rows-overflow");
   if (id === "tables") {
     const { tableExample, source } = await import("./optional-tables.js");
     const visual = tables?.cellPreset === "svg" ? (await import("./optional-table-svg.js")).tableVisual : undefined;
@@ -85,6 +88,15 @@ export async function generate(
 async function templateResult(title: string) {
   const { templateDemo } = await import("./template.js");
   return { bytes: templateDemo(title), source: templateSource };
+}
+async function rowResult(title: string, oversized: boolean) {
+  const { rowExample, source } = await import("./optional-rows.js");
+  const { bytes, result } = rowExample(title, oversized);
+  return {
+    bytes,
+    source,
+    summary: `${result.pageCount} pages; atomic fixed/weighted nested rows; top/middle/bottom/stretch; explicit clip (not redaction).`,
+  };
 }
 async function mixedResult(title: string, controls?: MixedControls) {
   const { mixedExample, source } = await import("./optional-mixed.js");

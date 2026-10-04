@@ -6,7 +6,7 @@ separate `@updf/tables` package. Dated audit evidence is retained in `docs/evide
 
 ## Public surface
 
-Import `Document`, `Page`, `Flow`, `Block`, `Paragraph`, `Span`, `PageSize`,
+Import `Document`, `Page`, `Flow`, `Block`, `Paragraph`, `Span`, `Row`, `Column`, `PageSize`,
 `PageContext`, `FragmentContext`, `layout`, `measure`, data constructors,
 decorations and adapter contracts from the root. Use core's JSX runtime and renderer.
 The transitional `/vdom`, `/tables`, `/tables/vdom`, `layoutFlow`,
@@ -58,6 +58,11 @@ Prepared resources are owned handles, never font bytes or implicit fallback.
   large. JSX Fragment is syntax grouping, not an atomic layout box.
 - Hidden overflow clips an explicitly constrained Block, not arbitrary oversized
   atomic content. It is not redaction and does not bypass resource/text validation.
+- Row/Column compose ordinary block content side by side without tables or manual
+  coordinates. Fixed and bounded weighted border-box tracks resolve before Column
+  descendants; Rows are always atomic and support top/middle/bottom/stretch alignment.
+  Standalone Columns retain vertical fragmentation and optional `keepTogether`.
+  See [Row/Column](../../docs/rows.md) for the complete width, clipping and error policy.
 - Text uses `Paragraph.style`/`Span.style`: `font` is a resource ID, `fontSize`
   is points, `color` is RGB, and paragraph-only `textAlign` is left/center/right.
   `lineHeight: 1.2` is a positive font-size ratio; `pt(16)` is an absolute point

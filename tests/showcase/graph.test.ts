@@ -73,6 +73,7 @@ function layoutClosures(chunks: readonly Chunk[], entry: Chunk): void {
   assert.ok(!closure(chunks, entry).some((name) => /\/layout\//u.test(name)));
   paragraphClosure(chunks, entry);
   mixedClosure(chunks, entry);
+  rowClosure(chunks, entry);
   const template = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/template.tsx")));
   assert.ok(template && entry.dynamicImports.includes(template.fileName));
   assert.ok(closure(chunks, template).some((name) => name.endsWith("/layout/dist/mixed-layout.js")));
@@ -139,4 +140,13 @@ function paragraphClosure(chunks: readonly Chunk[], entry: Chunk): void {
   assert.ok(
     !closure(chunks, paragraph).some((name) => /\/packages\/(svg|geometry)\/|\/layout\/dist\/tables\//u.test(name)),
   );
+}
+function rowClosure(chunks: readonly Chunk[], entry: Chunk): void {
+  const rows = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-rows.ts")));
+  assert.ok(rows && entry.dynamicImports.includes(rows.fileName));
+  const modules = closure(chunks, rows);
+  assert.ok(modules.some((name) => name.endsWith("/layout/dist/row-vdom.js")));
+  assert.ok(modules.some((name) => name.endsWith("/src/chart.ts")));
+  assert.ok(modules.some((name) => name.includes("/svg/dist/")));
+  assert.ok(!modules.some((name) => /\/packages\/(tables|fontkit)\/|\/react(?:-dom)?\//u.test(name)));
 }

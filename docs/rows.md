@@ -1,6 +1,6 @@
-# Data Row and Column layout
+# Row and Column layout
 
-`@updf/layout` exports `row()` and `column()` for native side-by-side composition:
+`@updf/layout` exports semantic `Row`/`Column` and data `row()`/`column()` for native side-by-side composition:
 
 ```ts
 import { column, paragraph, row } from "@updf/layout";
@@ -37,6 +37,7 @@ height is its insets plus the tallest Column. `top` (default), `middle`, and
 `bottom` align Column border boxes within the Row content height. `stretch`
 extends Column backgrounds/borders, without child reflow or scaling; it rejects
 Column `height`, `minHeight`, and `maxHeight` constraints.
+Baseline alignment is deliberately unsupported; this is not a CSS flexbox API.
 
 Rows are always atomic: they stay on the current page when they fit, otherwise
 move whole to a fresh page, and error if too tall. There is no Row `keepTogether`
@@ -46,5 +47,35 @@ clip their own content; Row never implicitly hides an oversized Row. Standalone
 Columns resolve one track against their available width, use ordinary vertical
 fragmentation, and support `keepTogether`.
 
-This slice supplies the runnable data API. Semantic `Row`/`Column` TSX components
-and expanded browser/raster fixtures are planned for the following slice.
+The same contract is available in native TSX (`/** @jsxImportSource @updf/core */`):
+
+```tsx
+import { Row, Column, Paragraph } from "@updf/layout";
+
+const summary = <Row align="stretch" style={{ gap: 12, padding: 4 }}>
+  <Column width={120}><Paragraph>Label</Paragraph></Column>
+  <Column width={{ weight: 2, min: 80, max: 300 }} style={{ gap: 6 }}>
+    <Paragraph>Description</Paragraph>
+  </Column>
+</Row>;
+```
+
+`RowProps` and `ColumnProps` are readonly public types. A Row's normalized direct
+children must be Columns: components, Fragments and providers may produce Columns,
+but bare text, Paragraphs and native drawing nodes are rejected with structured
+diagnostics at their actual source path. Column descendants remain deferred until
+all sibling tracks, insets and stretch constraints have passed preflight. Captured
+provider scopes, selected-page deferred decorations, resource ownership and operation
+lifetime checks apply just as they do in Blocks. Standalone `<Column keepTogether>`
+uses ordinary vertical keep-together semantics, not Row's unconditional atomic policy.
+The JSX child type accommodates components and wrappers; normalized Column-only
+hierarchy is enforced at runtime, not inferred from a component's return type.
+
+The checkout showcase's **Side-by-side Row/Column** entry composes paragraphs, a
+Block with explicit clipping, an external chart, native SVG and nested Rows, with
+fixed/weighted bounded tracks, gap, borders and all four alignments. Its rows move
+whole to fresh pages. The separate intentional oversize entry reports
+`VERTICAL_OVERFLOW` and retains the previous preview; it does not truncate.
+The executed TSX and imported adapter source are displayed alongside the accessible
+PDF.js preview. These are focused layout examples, not the separate #46 invoice/
+manifest work, and are not release or deployment claims.
