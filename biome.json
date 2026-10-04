@@ -10,6 +10,7 @@
       "packages/svg/**",
       "packages/fontkit/**",
       "apps/**",
+      "examples/**",
       "scripts/**",
       "tests/**",
       "package.json",

@@ -82,7 +82,10 @@ The private [showcase](apps/showcase) runs native text/layout, reusable TSX,
 rich text/shared measurement, painting and optional on-demand flow/tables/SVG demos.
 The focused [Row/Column](docs/rows.md) demo composes chart/SVG/paragraphs and nested
 atomic rows with fixed/weighted tracks and all alignments; an oversize entry exposes
-the controlled diagnostic. It is not the separate #46 invoice/manifest example.
+the controlled diagnostic. The separate [#46-A original mock invoice](docs/business-showcases.md)
+is a runnable three-page business showcase with shared application components,
+integer-cent calculations, a Node CLI and the lazy browser/mobile demo. #46-B's
+manifest remains follow-up work; neither example is operational paperwork.
 It generates downloadable PDFs locally,
 with automatic, multi-page PDF.js canvas previews and a mobile open/download fallback.
 PDF.js and its worker are lazy, locally bundled assets; SVG remains optional.

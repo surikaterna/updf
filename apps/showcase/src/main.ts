@@ -60,6 +60,7 @@ function showSource(): void {
   element("mixed-controls", HTMLFieldSetElement).hidden = id !== "mixed";
   element("mixed-controls", HTMLFieldSetElement).disabled = id !== "mixed";
   source.textContent =
+    id === "invoice" ||
     id === "svg" ||
     id === "flow" ||
     id === "tables" ||

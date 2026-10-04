@@ -13,6 +13,8 @@
     "tests/**/*.ts",
     "tests/**/*.tsx",
     "scripts/**/*.ts",
+    "examples/**/*.ts",
+    "examples/**/*.tsx",
     "apps/**/*.ts",
     "apps/**/*.tsx",
     "eslint.config.ts"

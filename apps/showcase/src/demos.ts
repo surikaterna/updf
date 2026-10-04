@@ -17,10 +17,20 @@ export const demos = {
   rich: { source: richSource },
 };
 
-export type DemoId = keyof typeof demos | "svg" | "flow" | "tables" | "blocks" | "mixed" | "rows" | "rows-overflow";
+export type DemoId =
+  | keyof typeof demos
+  | "svg"
+  | "flow"
+  | "tables"
+  | "blocks"
+  | "mixed"
+  | "rows"
+  | "rows-overflow"
+  | "invoice";
 
 export function demoId(value: string): DemoId {
   if (
+    value === "invoice" ||
     value === "text" ||
     value === "template" ||
     value === "painting" ||
@@ -47,6 +57,7 @@ export async function generate(
   mixed?: MixedControls,
 ): Promise<{ bytes: Uint8Array; source: string; summary?: string }> {
   if (title.length > 40) throw new Error("Title must be at most 40 characters");
+  if (id === "invoice") return invoiceResult(title);
   if (id === "template") return templateResult(title);
   if (id === "mixed") return mixedResult(title, mixed);
   if (id === "blocks") return blockResult(title, blocks);
@@ -88,6 +99,15 @@ export async function generate(
 async function templateResult(title: string) {
   const { templateDemo } = await import("./template.js");
   return { bytes: templateDemo(title), source: templateSource };
+}
+async function invoiceResult(title: string) {
+  const { invoiceExample, source } = await import("./optional-invoice.js");
+  const { bytes, metadata } = invoiceExample(title);
+  return {
+    bytes,
+    source,
+    summary: `${metadata.pageCount} A4 pages; ${metadata.itemCount} original mock line items; integer-cent application totals. NOT FOR PAYMENT.`,
+  };
 }
 async function rowResult(title: string, oversized: boolean) {
   const { rowExample, source } = await import("./optional-rows.js");

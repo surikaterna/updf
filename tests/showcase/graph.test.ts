@@ -74,6 +74,7 @@ function layoutClosures(chunks: readonly Chunk[], entry: Chunk): void {
   paragraphClosure(chunks, entry);
   mixedClosure(chunks, entry);
   rowClosure(chunks, entry);
+  invoiceClosure(chunks, entry);
   const template = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/template.tsx")));
   assert.ok(template && entry.dynamicImports.includes(template.fileName));
   assert.ok(closure(chunks, template).some((name) => name.endsWith("/layout/dist/mixed-layout.js")));
@@ -115,8 +116,9 @@ test("both production HTML entries retain the /updf/ asset base", async () => {
 });
 
 function tableClosure(chunks: readonly Chunk[], entry: Chunk): void {
-  const tables = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/tables/dist/adapter.js")));
+  const tables = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-tables.ts")));
   assert.ok(tables && entry.dynamicImports.includes(tables.fileName));
+  assert.ok(closure(chunks, tables).some((name) => name.endsWith("/tables/dist/adapter.js")));
   assert.ok(closure(chunks, tables).some((name) => name.endsWith("/tables/dist/measure.js")));
   assert.ok(
     !closure(chunks, tables).some((name) => /\/packages\/(svg|geometry)\/|\/layout\/dist\/tables\//u.test(name)),
@@ -149,4 +151,14 @@ function rowClosure(chunks: readonly Chunk[], entry: Chunk): void {
   assert.ok(modules.some((name) => name.endsWith("/src/chart.ts")));
   assert.ok(modules.some((name) => name.includes("/svg/dist/")));
   assert.ok(!modules.some((name) => /\/packages\/(tables|fontkit)\/|\/react(?:-dom)?\//u.test(name)));
+}
+function invoiceClosure(chunks: readonly Chunk[], entry: Chunk): void {
+  const invoice = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-invoice.ts")));
+  assert.ok(invoice && entry.dynamicImports.includes(invoice.fileName));
+  const modules = closure(chunks, invoice);
+  assert.ok(modules.some((name) => name.endsWith("/examples/business/invoice.tsx")));
+  assert.ok(modules.some((name) => name.endsWith("/examples/business/components.tsx")));
+  assert.ok(modules.some((name) => name.endsWith("/tables/dist/adapter.js")));
+  assert.ok(!modules.some((name) => /\/packages\/(svg|geometry|fontkit)\/|node:|\/react(?:-dom)?\//u.test(name)));
+  assert.ok(!closure(chunks, entry).some((name) => name.includes("/examples/business/")));
 }
