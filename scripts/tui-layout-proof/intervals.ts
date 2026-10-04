@@ -1,6 +1,5 @@
-import { bits, dyadic } from "../../packages/layout/src/binary64.js";
-import { resolveWidths } from "../../packages/layout/src/width-resolver.js";
-import type { WidthTrack } from "../../packages/layout/src/width-types.js";
+import { resolveWidths, type WidthTrack } from "@updf/layout-kernel";
+import { bits, dyadic } from "@updf/layout-kernel/numeric";
 
 export function intervals(width: number, tracks: readonly WidthTrack[], gap = 1) {
   if (!Number.isInteger(gap) || gap < 0) throw new Error("Integer nonnegative cell gutter required");

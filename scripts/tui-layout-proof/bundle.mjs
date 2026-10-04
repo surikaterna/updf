@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { build } from "esbuild";
 
 export const revision = "4fc67c225ef9af80dd2345852df3b884e62656eb";
+export const updfBaseline = "0bf8812b6c02c9e7114b75db02468ca4fe6f6147";
 export const here = dirname(fileURLToPath(import.meta.url));
 
 export function verifyRoot() {
@@ -28,7 +29,51 @@ function sourcePath(root, specifier) {
   return join(root, "packages", name, target.replace("./dist/", "src/").replace(/\.js$/, ".ts"));
 }
 
-export async function bundle(entry, root) {
+function baselineSources(builder) {
+  builder.onResolve({ filter: /^\.\/width-(?:input|distribution)\.js$/ }, ({ path, importer }) => ({
+    path: resolve(dirname(importer), path.replace(/\.js$/, ".ts")),
+  }));
+  builder.onResolve({ filter: /^@updf\/core\/internal$/ }, () => ({
+    path: resolve(here, "../../packages/core/src/internal.ts"),
+  }));
+  const filter =
+    /(?:packages\/layout\/src\/(?:binary64|width-(?:resolver|distribution|input|types))\.ts|scripts\/tui-layout-proof\/(?:intervals\.ts|bundle\.mjs|run\.mjs))$/;
+  // Immutable Git blobs are only historical evidence, never a second production allocator.
+  builder.onLoad({ filter }, ({ path }) => ({
+    contents: execFileSync("git", ["show", `${updfBaseline}:${path.slice(resolve(here, "../..").length + 1)}`], {
+      cwd: resolve(here, "../.."),
+      encoding: "utf8",
+    }),
+    loader: path.endsWith(".ts") ? "ts" : "js",
+  }));
+}
+
+function configure(builder, root, baseline) {
+  if (baseline) baselineSources(builder);
+  builder.onResolve({ filter: /^@updf\/layout-kernel(?:\/numeric)?$/ }, ({ path }) => ({
+    path: resolve(here, `../../packages/layout-kernel/src/${path.endsWith("/numeric") ? "numeric" : "index"}.ts`),
+  }));
+  builder.onResolve({ filter: /^proof:/ }, ({ path }) => ({
+    path: join(root, "apps/demos/src", path === "proof:compile" ? "fsx/compile.ts" : "runtime/kalada-demo-install.ts"),
+  }));
+  builder.onResolve({ filter: /^@formbar\// }, ({ path }) => ({ path: sourcePath(root, path) }));
+  builder.onResolve({ filter: /^[^./]/ }, async ({ path, importer, pluginData }) => {
+    if (pluginData?.resolving) return;
+    if (builtinModules.includes(path.replace(/^node:/, ""))) return { path, external: true };
+    if (path === "esbuild") return { path, external: true };
+    if (!importer.startsWith(root)) return;
+    // Existing installed third-party dependencies stay external; no stale Formbar dist is used.
+    const resolved = await builder.resolve(path, {
+      resolveDir: root,
+      kind: "import-statement",
+      pluginData: { resolving: true },
+    });
+    if (resolved.errors.length) return { errors: resolved.errors };
+    return { path: pathToFileURL(resolved.path).href, external: true };
+  });
+}
+
+export async function bundle(entry, root, baseline = false) {
   return build({
     entryPoints: [resolve(here, entry)],
     bundle: true,
@@ -38,38 +83,7 @@ export async function bundle(entry, root) {
     format: "esm",
     target: "node24",
     minify: true,
-    plugins: [
-      {
-        name: "pinned-formbar-source",
-        setup(builder) {
-          builder.onResolve({ filter: /^@updf\/core\/internal$/ }, () => ({
-            path: resolve(here, "../../packages/core/src/internal.ts"),
-          }));
-          builder.onResolve({ filter: /^proof:/ }, ({ path }) => ({
-            path: join(
-              root,
-              "apps/demos/src",
-              path === "proof:compile" ? "fsx/compile.ts" : "runtime/kalada-demo-install.ts",
-            ),
-          }));
-          builder.onResolve({ filter: /^@formbar\// }, ({ path }) => ({ path: sourcePath(root, path) }));
-          builder.onResolve({ filter: /^[^./]/ }, async ({ path, importer, pluginData }) => {
-            if (pluginData?.resolving) return;
-            if (builtinModules.includes(path.replace(/^node:/, ""))) return { path, external: true };
-            if (path === "esbuild") return { path, external: true };
-            if (!importer.startsWith(root)) return;
-            // Existing installed third-party dependencies stay external; no stale Formbar dist is used.
-            const resolved = await builder.resolve(path, {
-              resolveDir: root,
-              kind: "import-statement",
-              pluginData: { resolving: true },
-            });
-            if (resolved.errors.length) return { errors: resolved.errors };
-            return { path: pathToFileURL(resolved.path).href, external: true };
-          });
-        },
-      },
-    ],
+    plugins: [{ name: "pinned-formbar-source", setup: (builder) => configure(builder, root, baseline) }],
   });
 }
 

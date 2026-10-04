@@ -36,9 +36,18 @@ test("internal export inventory rejects broad exports and unexpected helpers", (
 test("layout package edges reject optional/runtime leakage and core dependency inversion", () => {
   packageEdge("layout", "@updf/core/measurement");
   packageEdge("layout", "./types.js");
+  packageEdge("layout", "@updf/layout-kernel");
+  packageEdge("layout", "@updf/layout-kernel/numeric");
   assert.throws(() => packageEdge("core", "@updf/layout"));
+  assert.throws(() => packageEdge("core", "@updf/layout-kernel"));
   for (const name of ["@updf/svg", "@updf/fontkit", "@updf/geometry", "node:fs", "react", "foreign"]) {
     assert.throws(() => packageEdge("layout", name));
   }
   assert.throws(() => allowedInternal("layout/src/foreign.ts", "@updf/core/internal"));
+});
+
+test("kernel edges reject every external runtime dependency", () => {
+  packageEdge("layout-kernel", "./width-types.js");
+  for (const name of ["@updf/core", "@updf/layout", "react", "node:fs", "fontkit", "foreign"])
+    assert.throws(() => packageEdge("layout-kernel", name));
 });

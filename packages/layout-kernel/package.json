@@ -1,0 +1,25 @@
+{
+  "name": "@updf/layout-kernel",
+  "version": "2.0.0-poc.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./numeric": {
+      "types": "./dist/numeric.d.ts",
+      "import": "./dist/numeric.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
+}

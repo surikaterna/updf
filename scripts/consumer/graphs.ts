@@ -41,5 +41,7 @@ export async function installedGraph(directory: string, entry: string, optional 
   if (!entry.startsWith("@updf/svg")) assert.ok(!modules.some((path) => path.startsWith("@updf/svg/")), "SVG leaked");
   if (entry.startsWith("@updf/core"))
     assert.ok(!modules.some((path) => path.startsWith("@updf/geometry/")), "Geometry leaked");
+  if (entry.startsWith("@updf/core"))
+    assert.ok(!modules.some((path) => path.startsWith("@updf/layout-kernel/")), "Kernel leaked into core");
   return modules;
 }

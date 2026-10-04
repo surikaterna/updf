@@ -75,7 +75,7 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/paginator.ts",
     "layout/src/axis.ts",
     "layout/src/generated-interval.ts",
-    "layout/src/width-input.ts",
+    "layout/src/width-resolver.ts",
     "layout/src/tables/index.ts",
     "layout/src/tables/vdom.ts",
     "layout/src/tables/layout.ts",
@@ -139,9 +139,16 @@ export function portableGraph(modules: readonly string[], optional = false, reac
 }
 export function packageEdge(owner: string, specifier: string): void {
   if (owner === "core")
-    assert.ok(!/^@updf\/(?:layout|tables)(?:\/|$)/u.test(specifier), "Core must not depend on layout/tables");
+    assert.ok(
+      !/^@updf\/(?:layout|layout-kernel|tables)(?:\/|$)/u.test(specifier),
+      "Core must not depend on layout/kernel/tables",
+    );
+  if (owner === "layout-kernel") assert.ok(specifier.startsWith("."), "Kernel must have zero runtime dependencies");
   if (owner === "layout")
-    assert.ok(specifier.startsWith(".") || /^@updf\/core(?:\/|$)/u.test(specifier), "Layout must remain core-only");
+    assert.ok(
+      specifier.startsWith(".") || /^@updf\/(?:core|layout-kernel)(?:\/|$)/u.test(specifier),
+      "Layout must remain core/kernel-only",
+    );
   if (owner === "tables")
     assert.ok(
       specifier.startsWith(".") ||
@@ -218,7 +225,7 @@ export async function checkSeams(root: string): Promise<void> {
     "whitespace",
     "Scanner",
   ]);
-  for (const owner of ["core", "layout", "tables", "geometry", "svg", "fontkit"]) {
+  for (const owner of ["core", "layout-kernel", "layout", "tables", "geometry", "svg", "fontkit"]) {
     for (const path of await files(join(root, "packages", owner, "src"))) {
       const text = await readFile(path, "utf8");
       sourceEdges(owner, text, path, root);

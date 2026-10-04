@@ -24,6 +24,11 @@ function packedNotices(tarball: string, fontello?: string): number {
     .split("\n")
     .map((path) => path.replace(/^package\//u, ""));
   assert.ok(paths.length > 0);
+  if (/updf-layout-2/u.test(tarball))
+    assert.ok(
+      !paths.some((path) => /dist\/width-(?:input|distribution)\./u.test(path)),
+      "Moved algorithm still packed in layout",
+    );
   assert.ok(
     !paths.some((path) => /\.(?:ttf|otf|woff2?)$|liberation-sans\.json|(?:^|\/)(?:test|node_modules)\//u.test(path)),
     `Asset/test leak: ${tarball}`,
@@ -49,7 +54,7 @@ assert.match(ofl, /SIL OPEN FONT LICENSE/u);
 const destination = await mkdtemp("/tmp/opencode/updf-license-packs-");
 const reports = [];
 try {
-  for (const name of ["core", "layout", "tables", "geometry", "svg", "fontkit", "legacy"]) {
+  for (const name of ["core", "layout-kernel", "layout", "tables", "geometry", "svg", "fontkit", "legacy"]) {
     const directory = new URL(`packages/${name}/`, root);
     await validateManifest(directory, name);
     validateProjectLicense(await readFile(new URL("LICENSE", directory), "utf8"));

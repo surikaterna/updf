@@ -80,7 +80,17 @@ const svgSource = await Promise.all(
     .map((file) => readFile(new URL(`packages/svg/src/${file}`, root))),
 );
 const svgPdf = await readFile(new URL("artifacts/svg-proof.pdf", root));
+const kernelFiles = (await readdir(new URL("packages/layout-kernel/src/", root))).filter((file) =>
+  file.endsWith(".ts"),
+);
+const kernelSource = await Promise.all(
+  kernelFiles.map((file) => readFile(new URL(`packages/layout-kernel/src/${file}`, root))),
+);
+const kernelBundle = await readFile(new URL("artifacts/layout-kernel-a/standalone/bundle.mjs", root));
 const report = {
+  kernelSourceBytes: kernelSource.reduce((sum, bytes) => sum + bytes.length, 0),
+  kernelBundleBytes: kernelBundle.length,
+  kernelBundleGzipBytes: gzipSync(kernelBundle).length,
   coreSourceBytes: source.reduce((sum, bytes) => sum + bytes.length, 0),
   coreEmittedJavaScriptBytes: emitted.reduce((sum, bytes) => sum + bytes.length, 0),
   coreDeclarationBytes: declarations.reduce((sum, bytes) => sum + bytes.length, 0),

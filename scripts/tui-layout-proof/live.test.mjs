@@ -79,6 +79,24 @@ test("host disposal also occurs when the consumer throws", () => {
   assert.throws(() => capture("invalid"), /Unknown proof state/);
 });
 
+test("both live states retain the characterized exact field projection at all 137 CLI widths", () => {
+  const roundedUp = [26, 29, 32, 35, 38, 41, 44, 47, 51, 54, 57, 60, 63, 66, 69, 72];
+  for (const state of ["hidden", "shown"]) {
+    capture(state, (snapshot) => {
+      for (let width = 24; width <= 160; width++) {
+        const output = render(snapshot, width);
+        const label = width <= 73 ? Math.max(8, Math.floor((width - 1) / 3)) : 24;
+        const end = width <= 73 ? width - (roundedUp.includes(width) ? 1 : 0) : Math.min(width, 125);
+        assert.equal(output.boxes[0].width, label);
+        assert.equal(output.boxes[1].x, label + 1);
+        assert.equal(output.boxes[1].width, end - label - 1);
+        assert.equal(output.boxes.at(-1).width, width);
+        assert.ok(output.body.split("\n").every((line) => line.length === width));
+      }
+    });
+  }
+});
+
 test("invalid FSX fails closed through actual public compilation", async () => {
   const { compileFsx } = await load("compiler-test.mjs", root);
   assert.equal(compileFsx().ok, false);
