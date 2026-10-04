@@ -61,6 +61,7 @@ function showSource(): void {
   element("mixed-controls", HTMLFieldSetElement).disabled = id !== "mixed";
   source.textContent =
     id === "manifest" ||
+    id === "freight-invoice" ||
     id === "invoice" ||
     id === "svg" ||
     id === "flow" ||

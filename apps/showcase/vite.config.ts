@@ -39,8 +39,38 @@ function deliveryEvidence(): Plugin {
         fileName: "notices/LICENSE.pdfjs",
         source: readFileSync(new URL("../../node_modules/pdfjs-dist/LICENSE", import.meta.url)),
       });
+      this.emitFile({
+        type: "asset",
+        fileName: "notices/LICENSE.liberation",
+        source: readFileSync(new URL("../../tests/fixtures/fonts/LICENSE", import.meta.url)),
+      });
+      parserNotices((fileName, source) => this.emitFile({ type: "asset", fileName, source }));
     },
   };
+}
+
+function parserNotices(emit: (fileName: string, source: string) => void): void {
+  const read = (path: string) => readFileSync(new URL(`../../node_modules/${path}`, import.meta.url), "utf8");
+  const packages = [
+    "@swc/helpers",
+    "clone",
+    "fast-deep-equal",
+    "restructure",
+    "tiny-inflate",
+    "unicode-properties",
+    "unicode-trie",
+    "pako",
+    "base64-js",
+  ];
+  for (const name of packages) emit(`notices/LICENSE.${name.replace(/[@/]/gu, "-")}`, read(`${name}/LICENSE`));
+  emit("notices/LICENSE.tslib", read("tslib/LICENSE.txt"));
+  // These upstream distributions declare MIT but omit standalone license files.
+  for (const name of ["fontkit", "dfa", "brotli"]) {
+    emit(`notices/${name}.metadata.json`, read(`${name}/package.json`));
+    emit(`notices/${name}.README.md`, read(`${name}/${name === "brotli" ? "readme.md" : "README.md"}`));
+  }
+  emit("notices/brotli-decoder.txt", read("brotli/dec/decode.js").split("*/")[0] + "*/\n");
+  emit("notices/LICENSE.apache-2.0", read("pdfjs-dist/LICENSE"));
 }
 
 const base = process.env.SHOWCASE_BASE ?? "/updf/";

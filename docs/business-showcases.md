@@ -1,5 +1,67 @@
 # Runnable original business showcases (unreleased checkout)
 
+## followup46: single-shipment freight invoice (tracker N/A)
+
+Select **Original mock freight invoice** in the showcase. This is a separate
+single-page business example; the existing invoice and manifest are unchanged.
+The invented **Aster Wake Shipping** and **Copper Finch Logistics** contacts use
+`example.invalid`. Every payment field is a non-operational placeholder. The PDF
+explicitly says **MOCK - NOT FOR PAYMENT**. No private source imagery, logo,
+customer data, bank details or legal wording is distributed.
+
+```sh
+npm run build
+npx tsx scripts/freight-invoice-example.ts
+qpdf --check artifacts/freight-invoice/updf-freight-invoice.pdf
+pdffonts artifacts/freight-invoice/updf-freight-invoice.pdf
+pdftotext -bbox artifacts/freight-invoice/updf-freight-invoice.pdf -
+pdftoppm -png -r 110 artifacts/freight-invoice/updf-freight-invoice.pdf artifacts/freight-invoice/preview
+npx tsx --test tests/integration/freight-invoice.test.ts
+npm run build:showcase
+SHOWCASE_CHROMIUM=/usr/bin/chromium npm run test:showcase
+```
+
+The CLI writes the full PDF and application `validation.json`, accepting an
+optional output directory. Node >=24, qpdf and Poppler are prerequisites.
+`freight-invoice-data.ts`, `freight-invoice-calculations.ts`,
+`freight-invoice-sections.tsx`, `freight-invoice.tsx` and
+`freight-invoice-fonts.ts` own data, application arithmetic, visual sections,
+composition and optional preparation respectively. The displayed source also
+contains the real Node CLI and browser loader, with paths that must be preserved.
+
+The constant heading is **Invoice**. The shared UI title field edits a secondary
+description (maximum 40 characters, one line of input; long words wrap by code
+point). Identical inputs produce identical Node/browser/download bytes. PDF.js
+shows the full single page with an accessible label, including at 320px widths.
+
+Composition uses only existing `Document`, `Flow`, `Row/Column`, `Block` and
+`Paragraph` APIs: A4 portrait, 12pt margins, 112pt reserved header, paired billing
+panels, four equal shipment tracks and a 238pt reserved footer. A weighted empty
+column (2) beside the summary (3) places it in the right 60%. The large gap is the
+unused measured body region above a real footer, not a spacer, manual XY, table
+layout or imported background. A hard `limits.pages: 1` budget makes overfull
+input fail rather than repeating financial totals. There is no repeat shipment UI.
+
+Per-charge half-up VAT uses safe integer pence, with signed credits rounding away
+from zero at ties. Net charges £16.35 at 0%, £218.40 at 20% and £32.75 at 20%
+yield taxes £0.00, £43.68 and £6.55: net **£267.50**, VAT **£50.23**, gross
+**£317.73**. This is demonstration policy, not legal/tax advice or engine formulas.
+
+Both real Liberation Sans faces are prepared with `@updf/fontkit` and passed to
+layout **and** rendering; bold is not synthesized. See
+`tests/fixtures/fonts/FREIGHT.md` for pinned upstream provenance and OFL terms.
+The parser is loaded only by the opt-in freight closure, never core, initial UI,
+other demos or Plasma. Browser assets carry the OFL notice, installed dependency
+licenses and upstream MIT declarations/metadata for distributions omitting a
+standalone license, plus the Brotli decoder's Apache notice. Integral 14pt text
+line heights, larger integral heading heights and 1pt rules avoid the known
+fractional reservation limitation without changing the engine.
+
+Independent literals, qpdf, font embedding bytes, Poppler word bounds/no-overlap,
+raster fills/money borders/whitespace and realistic negative controls protect this
+example. Wrapped description and shipment text preserve the bottom anchor;
+overflow fails closed. See `docs/evidence/freight-invoice46.md` for executed gates.
+
 ## #46-A: invoice
 
 This is an actual three-page invoice showcase, not a library invoice API, imported

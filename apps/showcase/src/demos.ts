@@ -27,11 +27,13 @@ export type DemoId =
   | "rows"
   | "rows-overflow"
   | "invoice"
+  | "freight-invoice"
   | "manifest";
 
 export function demoId(value: string): DemoId {
   if (
     value === "manifest" ||
+    value === "freight-invoice" ||
     value === "invoice" ||
     value === "text" ||
     value === "template" ||
@@ -59,9 +61,9 @@ export async function generate(
   mixed?: MixedControls,
 ): Promise<{ bytes: Uint8Array; source: string; summary?: string }> {
   if (title.length > 40) throw new Error("Title must be at most 40 characters");
+  if (id === "freight-invoice") return freightResult(title);
   if (id === "manifest" || id === "invoice") return id === "manifest" ? manifestResult(title) : invoiceResult(title);
-  if (id === "template") return templateResult(title);
-  if (id === "mixed") return mixedResult(title, mixed);
+  if (id === "template" || id === "mixed") return id === "template" ? templateResult(title) : mixedResult(title, mixed);
   if (id === "blocks") return blockResult(title, blocks);
   if (id === "rows" || id === "rows-overflow") return rowResult(title, id === "rows-overflow");
   if (id === "tables") {
@@ -109,6 +111,16 @@ async function invoiceResult(title: string) {
     bytes,
     source,
     summary: `${metadata.pageCount} A4 pages; ${metadata.itemCount} original mock line items; integer-cent application totals. NOT FOR PAYMENT.`,
+  };
+}
+async function freightResult(title: string) {
+  const { freightExample, source } = await import("./optional-freight-invoice.js");
+  const { bytes } = await freightExample(title);
+  return {
+    bytes,
+    source,
+    summary:
+      "1 A4 page; original mock freight; per-charge integer-pence VAT. MOCK - NOT FOR PAYMENT. Title input edits the secondary description; Invoice remains the heading.",
   };
 }
 async function manifestResult(title: string) {

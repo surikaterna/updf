@@ -18,7 +18,7 @@
     "lint": "npm run lint:biome && npm run check:code-principles",
     "typecheck": "npm run build && tsc --noEmit",
     "build": "npm run build -w @updf/core && npm run build -w @updf/layout && npm run build -w @updf/tables && npm run build -w @updf/geometry && npm run build -w @updf/fontkit && npm run build -w @updf/svg && npm run build -w @updf/example-cmr && npm run build -w @updf/example-node && npm run compile -w @updf/legacy",
-    "build:showcase": "npm run build -w @updf/core && npm run build -w @updf/layout && npm run build -w @updf/tables && npm run build -w @updf/geometry && npm run build -w @updf/svg && npm run build -w @updf/showcase",
+    "build:showcase": "npm run build -w @updf/core && npm run build -w @updf/layout && npm run build -w @updf/tables && npm run build -w @updf/geometry && npm run build -w @updf/svg && npm run build -w @updf/fontkit && npm run build -w @updf/showcase",
     "test:showcase": "tsx --test --test-concurrency=1 tests/showcase/*.test.ts",
     "test": "tsx --test packages/*/test/*.test.ts tests/integration/*.test.ts tests/consumer/*.test.ts scripts/migration/migration.test.ts",
     "test:legacy": "npm test -w @updf/legacy",
