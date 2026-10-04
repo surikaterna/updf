@@ -2,6 +2,12 @@ import type { NodeDefinition } from "@updf/core";
 import { type LayoutOperation, type NormalizedContent, ownContentData, snapshotData } from "@updf/core/internal";
 import type { ExtensionLifetime } from "./extension-producer.js";
 import type { Extensions } from "./extension-types.js";
+import {
+  checkSharedEdgeOperation,
+  copySharedEdgeNode,
+  isSharedEdgeNode,
+  sharedEdgeGeometry,
+} from "./shared-edge-emission.js";
 
 export interface EmissionOrigin {
   readonly from: string;
@@ -41,7 +47,7 @@ export function ownEmissionWrapper(node: NodeDefinition, path: string): NodeDefi
   return owned;
 }
 export function snapshotEmissionData<T>(value: T, path: string): T {
-  return snapshotData(value, path, isEmissionNode);
+  return snapshotData(value, path, (node) => isEmissionNode(node) || isSharedEdgeNode(node));
 }
 export function emissionPath(path: string, origin?: EmissionOrigin): string {
   const chain: EmissionOrigin[] = [];
@@ -84,21 +90,36 @@ export function instantiateEmissionNodes(
   origin?: EmissionOrigin,
 ): readonly NodeDefinition[] {
   const owners = new Map<DecorationOwner, DecorationOwner>();
-  return mapNodes(nodes, (node) => {
-    const value = emissions.get(node);
-    if (!value) return undefined;
-    const composed = composeOrigin(value.owner.origin, origin);
-    const owner = owners.get(value.owner) ?? { ...value.owner, ...(composed ? { origin: composed } : {}) };
-    owners.set(value.owner, owner);
-    return ownEmission(node, { ...value, owner });
-  });
+  return mapNodes(
+    nodes,
+    (node) => {
+      const value = emissions.get(node);
+      if (!value) return undefined;
+      const composed = composeOrigin(value.owner.origin, origin);
+      const owner = owners.get(value.owner) ?? { ...value.owner, ...(composed ? { origin: composed } : {}) };
+      owners.set(value.owner, owner);
+      return ownEmission(node, { ...value, owner });
+    },
+    (previous, copy) => copySharedEdgeNode(previous, copy, (path) => emissionPath(path, origin)),
+  );
 }
-export function geometryNodes(nodes: readonly NodeDefinition[]): readonly NodeDefinition[] {
-  return mapNodes(nodes, (node) => (isEmissionNode(node) ? null : undefined));
+export function geometryNodes(
+  nodes: readonly NodeDefinition[],
+  operation?: LayoutOperation,
+): readonly NodeDefinition[] {
+  return mapNodes(
+    nodes,
+    (node) => {
+      if (operation) checkSharedEdgeOperation(node, operation);
+      return isEmissionNode(node) ? null : undefined;
+    },
+    sharedEdgeGeometry,
+  );
 }
 function mapNodes(
   nodes: readonly NodeDefinition[],
   replace: (node: NodeDefinition) => NodeDefinition | null | undefined,
+  copyNode: (previous: NodeDefinition, copy: NodeDefinition) => NodeDefinition = (_, copy) => copy,
 ): readonly NodeDefinition[] {
   const output: NodeDefinition[] = [],
     tasks: (() => void)[] = [];
@@ -116,7 +137,7 @@ function mapNodes(
     tasks.push(() => {
       const copy = { ...node, children };
       const path = wrappers.get(node);
-      into.push(path ? ownEmissionWrapper(copy, path) : copy);
+      into.push(copyNode(node, path ? ownEmissionWrapper(copy, path) : copy));
     });
     schedule(node.children, children);
   };

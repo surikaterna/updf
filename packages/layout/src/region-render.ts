@@ -24,6 +24,7 @@ export function renderRegion(
   outputBudget: OutputBudget,
   extensions?: Extensions,
   lifetime: ExtensionLifetime = { active: true },
+  participatingRoot = false,
 ): readonly NodeDefinition[] {
   if (nativeData(input)) return input;
   const nodes = operation.normalizeContent(input, dataRecipe, path, regionRole, (node) => ({
@@ -54,7 +55,9 @@ export function renderRegion(
           );
       },
     });
-    return finalizeDecorations(result.document.pages[0]?.children ?? [], info, operation, budget);
+    const children = result.document.pages[0]?.children ?? [];
+    const rootPath = participatingRoot && nodes.length === 1 ? `${path}/0` : undefined;
+    return finalizeDecorations(children, info, operation, budget, rootPath);
   } catch (error) {
     regionFailure(error, path);
   }

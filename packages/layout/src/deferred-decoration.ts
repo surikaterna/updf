@@ -29,6 +29,7 @@ import type { Extensions } from "./extension-types.js";
 import { type FragmentInfo, fragmentBinding, type PageInfo, pageBinding } from "./page-context.js";
 import { validateRegion } from "./region-overflow.js";
 import { renderRegion } from "./region-render.js";
+import { finishLooseSharedEdges, finishSharedEdgeNode } from "./shared-edge-finalize.js";
 
 export interface BlockRegionProps {
   readonly height: number;
@@ -140,6 +141,7 @@ export function finalizeDecorations(
   info: PageInfo,
   operation: LayoutOperation,
   budget: OutputBudget,
+  rootReportPath?: string,
 ): readonly NodeDefinition[] {
   const output: NodeDefinition[] = [];
   const tasks: (() => void)[] = [];
@@ -161,7 +163,7 @@ export function finalizeDecorations(
       const path = wrapperPath(node);
       if (path && !children.length) return;
       if (path) budget.generated(1, 0, 0, 0, path);
-      into.push({ ...node, children });
+      into.push(finishSharedEdgeNode(node, children, operation, budget, rootReportPath));
     });
     schedule(node.children, children);
   };
@@ -173,7 +175,7 @@ export function finalizeDecorations(
   };
   schedule(nodes, output);
   while (tasks.length) tasks.pop()?.();
-  return output;
+  return finishLooseSharedEdges(output, operation, budget, rootReportPath);
 }
 function resolveEmission(
   emission: DecorationEmission,
@@ -200,6 +202,7 @@ function resolveEmission(
           budget,
           owner.extensions,
           owner.lifetime,
+          true,
         ),
       ),
     ),
