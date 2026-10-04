@@ -4,11 +4,13 @@ import type { AuthorParagraph } from "./content-normalize.js";
 import type { ContentLine } from "./content-types.js";
 import type { Extensions } from "./extension-types.js";
 import { type PreparedVisual, prepareVisual } from "./inline-adapters.js";
+import { backgroundCount, inlineBackgrounds } from "./inline-background.js";
 
 export interface MeasuredParagraph {
   readonly lines: readonly ContentLine[];
   readonly height: number;
-  readonly paintLine: (index: number, x: number, y: number) => readonly NodeDefinition[];
+  readonly backgroundCount: (index: number) => number;
+  readonly paintLine: (index: number, x: number, y: number, background?: boolean) => readonly NodeDefinition[];
 }
 const caches = new WeakMap<LayoutOperation, WeakMap<AuthorParagraph, Map<number, MeasuredParagraph>>>();
 export function measureParagraph(
@@ -56,8 +58,29 @@ function measuredParagraph(
   return {
     lines: Object.freeze(lines),
     height: sum(lines.map((line) => line.height)),
-    paintLine: (index, x, y) => paintLine(measured[index], author.definition, visuals, width, x, y),
+    backgroundCount: (index) => (measured[index] ? backgroundCount(measured[index], author) : 0),
+    paintLine: (index, x, y, background = false) =>
+      background
+        ? paintBackground(measured[index], author, operation, visuals, x, y)
+        : paintLine(measured[index], author.definition, visuals, width, x, y),
   };
+}
+function paintBackground(
+  measured: InlineLine | undefined,
+  author: AuthorParagraph,
+  operation: LayoutOperation,
+  visuals: ReadonlyMap<number, PreparedVisual>,
+  x: number,
+  y: number,
+): readonly NodeDefinition[] {
+  if (!measured || !backgroundCount(measured, author)) return [];
+  return [
+    {
+      type: "paintGroup",
+      transform: [1, 0, 0, 1, x, y],
+      children: inlineBackgrounds(measured, author, operation, visuals),
+    },
+  ];
 }
 function publicLines(
   measured: readonly InlineLine[],

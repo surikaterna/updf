@@ -28,7 +28,7 @@ export function validateLineHeight(value: LineHeight, path: string): void {
   if (value.unit !== "pt") fail("VALUE", `${path}/unit`, "Expected pt line height");
   number(value.value, `${path}/value`, true);
 }
-function participant(style: TextStyle, value: LineHeight, fonts: ResolvedFonts, path: string): LineEnvelope {
+export function participant(style: TextStyle, value: LineHeight, fonts: ResolvedFonts, path: string): LineEnvelope {
   validateLineHeight(value, path);
   const font = selectedFont(style.font, fonts, path);
   const fallback = richMetrics("", style, fonts, path);

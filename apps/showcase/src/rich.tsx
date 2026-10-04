@@ -15,8 +15,10 @@ function ThemedText(props: { readonly title: string; readonly controls: RichCont
       whiteSpace={controls.whiteSpace}
       breakLongWords={controls.breakLongWords}
     >
-      <Span style={{ fontSize: controls.fontSize * 1.2, color: theme.accent }}>{`  ${props.title}`}</Span>
-      <Span style={{ color: theme.body }}>
+      <Span
+        style={{ fontSize: controls.fontSize * 1.2, color: theme.accent, backgroundColor: [1, 0.94, 0.65] }}
+      >{`  ${props.title}`}</Span>
+      <Span style={{ color: theme.body, backgroundColor: [0.85, 0.94, 1] }}>
         {"  styled text across span boundaries.\nSpaces  and hard breaks stay explicit.  "}
       </Span>
       {badge(controls.fontSize)}

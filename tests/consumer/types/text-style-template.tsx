@@ -29,7 +29,7 @@ const body: ParagraphStyle = {
   color: [0, 0, 0],
   textAlign: "left",
 };
-const emphasis: SpanStyle = { fontSize: 20, lineHeight: absolute };
+const emphasis: SpanStyle = { fontSize: 20, lineHeight: absolute, backgroundColor: [1, 1, 0] };
 const rule: BorderEdge = { width: 2, color: [0, 0, 1] };
 const heading: BorderPolicy = { borderBottom: rule, borderTop: null };
 const box: BlockStyle = {
@@ -77,8 +77,15 @@ if (measured.size.height < 0) {
   const obsoleteBox: BlockStyle = { background: [1, 1, 0] };
   // @ts-expect-error Scalar-only padding shorthand.
   const insetBox: BlockStyle = { padding: { top: 1, right: 1, bottom: 1, left: 1 } };
-  // @ts-expect-error Span backgrounds are planned separately in #43.
-  const highlighted: SpanStyle = { backgroundColor: [1, 1, 0] };
+  // @ts-expect-error Paragraph backgrounds belong on an explicit Block wrapper.
+  const highlighted: ParagraphStyle = { backgroundColor: [1, 1, 0] };
+  // @ts-expect-error Span highlights require an RGB triple, not a CSS color string.
+  const cssHighlight: SpanStyle = { backgroundColor: "yellow" };
+  // @ts-expect-error Omit optional highlight colors instead of setting undefined.
+  const undefinedHighlight: SpanStyle = { backgroundColor: undefined };
+  // @ts-expect-error The canonical property has no background alias on Spans.
+  const obsoleteHighlight: SpanStyle = { background: [1, 1, 0] };
+  void [cssHighlight, undefinedHighlight, obsoleteHighlight];
   // @ts-expect-error Border edges require a color.
   const bordered: BlockStyle = { borderLeft: { width: 1 } };
   // @ts-expect-error Omit an edge instead of setting undefined.

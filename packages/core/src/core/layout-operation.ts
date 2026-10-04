@@ -2,7 +2,7 @@ import type { ResolvedFonts } from "../fonts/resources.js";
 import type { RenderOptions } from "../fonts/types.js";
 import { type InlineLine, type InlineMetric, measureInline } from "../measurement/inline.js";
 import { ledger, type WorkLedger } from "../measurement/ledger.js";
-import type { InlineLineHeights } from "../measurement/line-height.js";
+import { type InlineLineHeights, type LineEnvelope, type LineHeight, participant } from "../measurement/line-height.js";
 import { measureInput } from "../measurement/measure.js";
 import type {
   InkBounds,
@@ -57,6 +57,7 @@ export interface LayoutOperation {
   readonly nativeInk: (nodes: readonly NodeDefinition[]) => InkBounds;
   readonly close: () => void;
   readonly validateStyle: (style: TextStyle, path: string) => void;
+  readonly lineBox: (style: TextStyle, height: LineHeight, path: string) => LineEnvelope;
 }
 const contexts = new WeakMap<object, LayoutOperation>();
 
@@ -72,6 +73,10 @@ export function layoutOperation(
   };
   return Object.freeze({
     policy: budget.policy,
+    lineBox(style: TextStyle, height: LineHeight, path: string) {
+      check();
+      return participant(style, height, fonts, path);
+    },
     ...contentMethods(state, fonts, budget, check),
     close() {
       if (!parent) state.closed = true;

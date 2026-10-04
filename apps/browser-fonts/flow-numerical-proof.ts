@@ -11,6 +11,7 @@ import {
   paragraph,
   pt,
 } from "@updf/layout";
+import { inlineBackgroundProofDefinition } from "./inline-background-proof.js";
 
 function definition(
   text: string,
@@ -69,6 +70,7 @@ export function numericalFlowProof(font: PreparedFont) {
     definition("AAAAAAAAA", 10),
     definition("A\nB\nC", 10.3, "Helvetica", false, 800.28, 800.9, true),
     definition("А\nБ\nВ", 10.3, "Demo"),
+    inlineBackgroundProofDefinition(),
   ].map((input) => success(input, font));
   const invalidAxis = (axis: "width" | "height") =>
     document({

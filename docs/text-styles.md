@@ -9,6 +9,7 @@ and `pt` from `@updf/layout`. No React/CSS runtime or types are required.
 | font | yes | yes | Registered resource ID; `Helvetica` |
 | fontSize | yes | yes | Positive finite PDF points; 10 |
 | color | yes | yes | Readonly RGB triple, finite channels in [0,1]; black |
+| backgroundColor | no: use Block | yes | Readonly RGB triple in [0,1]; omitted means no highlight |
 | lineHeight | yes | yes | Positive finite ratio, `"normal"`, or `pt(n)`; normal |
 | textAlign | yes | no | `"left"` / `"center"` / `"right"`; left |
 
@@ -77,6 +78,43 @@ boundaries; LF is a hard break in both. `breakLongWords` is `"error"` or
 CSS min-content `overflowWrap: anywhere`. Span boundaries do not split words.
 Fresh-page atomic oversize remains a strict error, not CSS break-inside fallback.
 
+## Inline backgrounds (#43)
+
+`Span.style.backgroundColor` uses the same canonical RGB property as Block and
+Cell. It is an explicit **inline text contract**: a nested Span inherits the nearest
+Span highlight when omitted, can override it with its own RGB value, and siblings
+resume their parent's value. Object spreads choose the last value for the same
+key. There is no implicit Span block, padding, border, background shorthand,
+transparent/null reset, CSS decoration model or ambient box-background cascade.
+Present undefined and invalid RGB reject at `/style/backgroundColor` (or its
+channel path), including on empty Spans and overridden nested styles.
+
+Each measured fragment paints a rectangle of its **advance**, including retained
+spaces, with that participant's resolved line height and baseline-relative leading.
+The shared line box may be taller because of other fonts/visuals or the paragraph
+strut; highlighting does not expand to that box. An inherited inline visual uses its
+declared ascent/descent box without changing its callback's text-style contract.
+All backgrounds of a placed paragraph fragment paint before all its foreground
+glyphs/visuals, including across tight overlapping lines. Glyph ink can overhang
+the rectangle horizontally or vertically with tight heights; no ink-sized fill,
+baseline shift, implicit clip, or reflow is introduced. Explicit Block clipping and
+page bounds still apply. Paragraph fragmentation does not create a continuous
+rectangle across page boundaries or reserved gaps.
+
+Wrapping and span boundaries follow existing measurement exactly. Collapsed-away
+spaces receive no fill; preserved/retained spaces do. LF has no advance and creates
+no rectangle; empty LF lines retain the paragraph strut, and empty Spans create no
+participant or highlight. Line/fragment ink bounds remain foreground ink bounds;
+aggregate content ink bounds include painted highlights just like Block/Cell fills;
+generated rectangles do count toward output nodes and path-command limits.
+
+For a paragraph-wide background, use an explicit
+`<Block style={{ backgroundColor: [1, 1, 0] }}><Paragraph>...</Paragraph></Block>`.
+`Paragraph.style.backgroundColor` deliberately rejects: there is no duplicate
+paragraph-decoration engine, and Block/Cell backgrounds do not become Span defaults.
+The rich showcase's actual `rich.tsx` source demonstrates adjacent wrapped RGB
+highlights with explicit foreground colors and preserved spaces.
+
 ## Boxes and table defaults
 
 Import `BoxStyle`/`BlockStyle` from `@updf/layout` and `TableStyle`, `RowStyle`,
@@ -88,7 +126,7 @@ support the same fields; the named schemas describe where they apply.
 | --- | --- | --- | --- |
 | font, fontSize, color, lineHeight, textAlign | no | Paragraph defaults | as above |
 | whiteSpace, breakLongWords | no | Paragraph controls | Paragraph props only |
-| backgroundColor | yes | cell-owner fill | no; Span highlights planned in #43 |
+| backgroundColor | yes | cell-owner fill | Paragraph no; Span inline highlight |
 | padding, paddingTop/Right/Bottom/Left | yes | cell-owner insets | no |
 | height, gap, overflow | yes | cell-owner constraints | no |
 | width, min/maxWidth, min/maxHeight | yes | no; columns have explicit width, rows have minHeight prop | no |
@@ -146,7 +184,7 @@ Install `tableExtension` explicitly in the containing Flow/measurement extension
 For branding, read an application-owned `Theme` via `useContext(Theme)` and apply
 its typed values to these styles explicitly, as in the mixed showcase. A provider
 alone does not restyle anything. Border policy is documented below; grid-only
-placement remains unchanged. Span backgrounds remain future #43, not box inheritance.
+placement remains unchanged. Span highlights use explicit inline inheritance, not box inheritance.
 
 ### Reusable edge-border policy (#42)
 
@@ -235,7 +273,7 @@ at the clip cut. This is a deterministic UPDF policy, **not CSS border-collapse*
 - Paragraph `defaultStyle: { fontSize: 12 }` → `style: { fontSize: 12 }`.
 - Paragraph `align: "right"` → `style: { textAlign: "right" }`.
 - Old paragraph `lineHeight: 16` → `style: { lineHeight: pt(16) }`, **not 16**.
-- Span `style` gains raw lineHeight; its other field names are unchanged.
+- Span `style` gains raw lineHeight and canonical RGB `backgroundColor`; other field names are unchanged.
 - Table/column/row/cell text defaults now use flat `font`, `fontSize`, `color`,
   `lineHeight` and `textAlign` within their existing style object. Existing
   table → column → row → cell defaults merge per key, then paragraph → nested Span
@@ -247,7 +285,7 @@ at the clip cut. This is a deterministic UPDF policy, **not CSS border-collapse*
 Fixed core `text`/`richText` and `ParagraphDefinition` are a separate low-level
 point-valued contract; do not migrate them to ratios. Legacy and historical audit
 documents are unchanged. No selectors, cascade interpreter, CSS parser, browser
-layout, full shorthand set, Span backgrounds (#43), or
+layout, full shorthand set, or
 flex are added. Any future stylesheet adapter is a distinct optional boundary.
 
 Compile-checked NodeNext/Bundler public examples live in
