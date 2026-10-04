@@ -96,6 +96,33 @@ Input snapshots never freeze the caller. Unknown fields, accessors and present
 undefined section fields reject. Serialized/copy-forged authoring descriptors
 are not library capabilities.
 
+## Explicit native page breaks
+
+Import `PageBreak` from `@updf/layout` and use `<PageBreak />` in a Flow body
+or a fragmentable Block body. The equivalent data node is exactly
+`{ type: "pageBreak" }`, for example:
+
+```ts
+layout(document({ children: flow({ pageSize: PageSize.A5, children: [
+  paragraph({ children: "Before" }),
+  { type: "pageBreak" },
+  paragraph({ children: "After" }),
+] }) }));
+```
+
+Each break advances to a new page, including at an empty/zero-height boundary.
+A leading break preserves the initial blank page; a trailing break preserves
+the final blank page; consecutive breaks preserve intermediate blank pages.
+An empty Flow has one page and a Flow containing only N breaks has N + 1 pages.
+These are native pagination controls, not CSS break properties.
+
+PageBreak accepts no props or children (including present `undefined` fields).
+It is not inline content and cannot be a direct Row child, fixed Page drawing,
+or Document section. Breaks inside kept Blocks or closed Row/Column cells reject
+under the existing atomic-content contract. Reserved header/footer and decoration
+regions cannot advance to another page and reject with `VERTICAL_OVERFLOW`.
+No fixed-page geometry or spacing defaults change.
+
 ## Page sizes and units
 
 `PageSize.A4`, `.A5`, `.Letter`, `.Legal` are individually frozen readonly point

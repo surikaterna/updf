@@ -69,8 +69,8 @@ try {
         ["content-template.tsx", "mixed-template.tsx", "text-style-template.tsx", "rows-template.tsx"],
         true,
       );
-      await typeConsumer(directory, ["flow-template.tsx"]);
-      await typeConsumer(directory, ["flow-template.tsx"], true);
+      await typeConsumer(directory, ["flow-template.tsx", "page-break-template.tsx"]);
+      await typeConsumer(directory, ["flow-template.tsx", "page-break-template.tsx"], true);
       graphs.layout = await installedGraph(directory, "@updf/layout");
       await execute(
         directory,

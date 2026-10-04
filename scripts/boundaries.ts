@@ -35,6 +35,7 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/mixed-layout.ts",
     "layout/src/page-size.ts",
     "layout/src/page-context.ts",
+    "layout/src/page-break.ts",
     "layout/src/deferred-decoration.ts",
     "layout/src/region-render.ts",
     "layout/src/region-overflow.ts",

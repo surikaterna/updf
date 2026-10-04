@@ -69,6 +69,8 @@ export { createExtensions, defineBlockAdapter, extension } from "./extensions.js
 export { defineInlineAdapter, inline } from "./inline-adapters.js";
 export type { DocumentLayoutResult } from "./mixed-layout.js";
 export { layout } from "./mixed-layout.js";
+export type { PageBreakProps } from "./page-break.js";
+export { PageBreak } from "./page-break.js";
 export type { FragmentInfo, PageInfo } from "./page-context.js";
 export { FragmentContext, PageContext } from "./page-context.js";
 export type { Orientation, PageDimensions } from "./page-size.js";

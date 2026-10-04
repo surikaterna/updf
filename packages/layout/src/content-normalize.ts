@@ -24,6 +24,7 @@ import { authorStyle, initialOrigins, type StyleSources, styleOrigins, textStyle
 import type { ParagraphProps } from "./content-types.js";
 import { blockBodyIdentity, blockFooterIdentity, blockHeaderIdentity } from "./deferred-decoration.js";
 import { backgroundColor } from "./inline-background.js";
+import { pageBreakIdentity, pageBreakProps } from "./page-break.js";
 import { columnIdentity, rowIdentity } from "./row-data.js";
 import type { FlowBlock, ParagraphBlock } from "./types.js";
 
@@ -96,6 +97,7 @@ export function checkRole(value: string | SemanticRecipe, path: string, parent: 
     if (!inline) fail("VDOM_HIERARCHY", path, "Text requires a Paragraph");
     return;
   }
+  if (value.identity === pageBreakIdentity) pageBreakProps(value.props, path);
   const slot =
     parent === blockIdentity && [blockBodyIdentity, blockHeaderIdentity, blockFooterIdentity].includes(value.identity);
   const valid =
@@ -108,6 +110,7 @@ export function checkRole(value: string | SemanticRecipe, path: string, parent: 
             value.identity === blockIdentity ||
             value.identity === rowIdentity ||
             value.identity === columnIdentity ||
+            value.identity === pageBreakIdentity ||
             value.identity === legacyIdentity ||
             isAdapterComponent(value.identity));
   if (!valid) fail("VDOM_HIERARCHY", path, inline ? "Expected inline content" : "Inline content requires a Paragraph");
@@ -122,8 +125,12 @@ export function convertBlocks(
   const visit = (node: NormalizedContent, target: FlowBlock[]): void => {
     const value = node.value;
     if (typeof value === "string") fail("VDOM_HIERARCHY", node.path, "Text requires a Paragraph");
-    if (value.identity === paragraphIdentity) {
-      target.push(normalizeParagraph(node, operation, defaults));
+    if (value.identity === paragraphIdentity || value.identity === pageBreakIdentity) {
+      target.push(
+        value.identity === pageBreakIdentity
+          ? pageBreakProps(value.props, node.path)
+          : normalizeParagraph(node, operation, defaults),
+      );
       return;
     }
     if (value.identity === blockIdentity || value.identity === rowIdentity || value.identity === columnIdentity) {
@@ -151,14 +158,22 @@ export function convertBlocks(
     target.push(scopeDataBlock(value.props.descriptor, node.scope, operation) as FlowBlock);
   };
   const schedule = (values: readonly NormalizedContent[], target: FlowBlock[]): void => {
-    for (let i = values.length - 1; i >= 0; i--) {
-      const node = values[i];
-      if (node) tasks.push(() => visit(node, target));
-    }
+    scheduleBlocks(values, target, tasks, visit);
   };
   schedule(nodes, result);
   while (tasks.length) tasks.pop()?.();
   return result;
+}
+function scheduleBlocks(
+  values: readonly NormalizedContent[],
+  target: FlowBlock[],
+  tasks: (() => void)[],
+  visit: (node: NormalizedContent, target: FlowBlock[]) => void,
+): void {
+  for (let i = values.length - 1; i >= 0; i--) {
+    const node = values[i];
+    if (node) tasks.push(() => visit(node, target));
+  }
 }
 function deferBody(
   node: NormalizedContent,
