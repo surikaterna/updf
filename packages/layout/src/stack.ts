@@ -15,6 +15,7 @@ export interface Stack {
   readonly height: number;
 }
 export interface StackPiece {
+  readonly left?: number;
   readonly fragment: PlacedFragment;
   readonly top: number;
 }

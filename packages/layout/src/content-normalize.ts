@@ -9,7 +9,9 @@ import {
   type SemanticRecipe,
 } from "@updf/core/internal";
 import type { TextRun, TextStyle } from "@updf/core/measurement";
-import { authorBlock, isAdapterComponent, scopeDataBlock, scopedContent } from "./author-parts.js";
+import { authorBlock, captureContent, isAdapterComponent, scopeDataBlock, scopedContent } from "./author-parts.js";
+import { deferColumnBody } from "./column-content.js";
+import { blockParts } from "./content-block-parts.js";
 import {
   blockIdentity,
   dataRecipe,
@@ -20,8 +22,9 @@ import {
 } from "./content-data.js";
 import { authorStyle, initialOrigins, type StyleSources, styleOrigins, textStyle } from "./content-style.js";
 import type { ParagraphProps } from "./content-types.js";
-import { blockBodyIdentity, blockFooterIdentity, blockHeaderIdentity, deferredPlan } from "./deferred-decoration.js";
+import { blockBodyIdentity, blockFooterIdentity, blockHeaderIdentity } from "./deferred-decoration.js";
 import { backgroundColor } from "./inline-background.js";
+import { columnIdentity, rowIdentity } from "./row-data.js";
 import type { FlowBlock, ParagraphBlock } from "./types.js";
 
 export interface AuthorParagraph {
@@ -56,6 +59,7 @@ export function normalizeBlocks(
       implicit ? undefined : checkRole,
       undefined,
       implicit,
+      columnIdentity,
     );
     if (
       implicit &&
@@ -95,13 +99,17 @@ export function checkRole(value: string | SemanticRecipe, path: string, parent: 
   const slot =
     parent === blockIdentity && [blockBodyIdentity, blockHeaderIdentity, blockFooterIdentity].includes(value.identity);
   const valid =
-    slot ||
-    (inline
-      ? value.identity === spanIdentity || value.identity === visualIdentity
-      : value.identity === paragraphIdentity ||
-        value.identity === blockIdentity ||
-        value.identity === legacyIdentity ||
-        isAdapterComponent(value.identity));
+    parent === rowIdentity
+      ? value.identity === columnIdentity
+      : slot ||
+        (inline
+          ? value.identity === spanIdentity || value.identity === visualIdentity
+          : value.identity === paragraphIdentity ||
+            value.identity === blockIdentity ||
+            value.identity === rowIdentity ||
+            value.identity === columnIdentity ||
+            value.identity === legacyIdentity ||
+            isAdapterComponent(value.identity));
   if (!valid) fail("VDOM_HIERARCHY", path, inline ? "Expected inline content" : "Inline content requires a Paragraph");
 }
 export function convertBlocks(
@@ -118,16 +126,20 @@ export function convertBlocks(
       target.push(normalizeParagraph(node, operation, defaults));
       return;
     }
-    if (value.identity === blockIdentity) {
+    if (value.identity === blockIdentity || value.identity === rowIdentity || value.identity === columnIdentity) {
       const children: FlowBlock[] = [];
       const props = { ...value.props };
       delete props.type;
       delete props.children;
-      const parts = blockParts(node, operation);
+      const parts =
+        value.identity === blockIdentity ? blockParts(node, operation) : { body: node.children, plan: undefined };
       if (parts.plan && props.decorations) fail("KEY", node.path, "Use slots or decorations, not both");
       if (parts.plan) props.decorations = parts.plan;
-      target.push({ ...props, type: "block", children } as FlowBlock);
-      schedule(parts.body, children);
+      const type = value.identity === rowIdentity ? "row" : value.identity === columnIdentity ? "column" : "block";
+      const block = { ...props, type, children } as FlowBlock;
+      target.push(block);
+      if (value.identity === columnIdentity) deferBody(node, block, children, operation, defaults);
+      else schedule(parts.body, children);
       return;
     }
     const authored = authorBlock(node, operation);
@@ -148,41 +160,19 @@ export function convertBlocks(
   while (tasks.length) tasks.pop()?.();
   return result;
 }
-function blockParts(node: NormalizedContent, operation: LayoutOperation) {
-  const parts: BlockParts = { body: [], decorations: [], seen: new Set(), explicitBody: false };
-  for (const child of node.children) appendBlockChild(child, parts, operation);
-  return { body: parts.body, plan: deferredPlan(parts.decorations) };
-}
-interface BlockParts {
-  body: NormalizedContent[];
-  decorations: NormalizedContent[];
-  seen: Set<object>;
-  explicitBody: boolean;
-}
-function appendBlockChild(child: NormalizedContent, parts: BlockParts, operation: LayoutOperation): void {
-  if (typeof child.value === "string") fail("VDOM_HIERARCHY", child.path, "Text requires Paragraph");
-  const identity = child.value.identity;
-  if (identity === blockHeaderIdentity || identity === blockFooterIdentity) {
-    if (parts.seen.has(identity)) fail("VDOM_HIERARCHY", child.path, "Duplicate Block slot");
-    parts.seen.add(identity);
-    parts.decorations.push(child);
-    return;
-  }
-  if (identity === blockBodyIdentity) {
-    if (parts.seen.has(identity) || parts.body.length || !child.scope)
-      fail("VDOM_HIERARCHY", child.path, "Use one Block.Body or direct body children");
-    parts.seen.add(identity);
-    parts.explicitBody = true;
-    record(child.value.props, ["children"], child.path);
-    const input = child.value.props.children;
-    const normalized = operation.scoped(child.scope, () =>
-      operation.normalizeContent(input, dataRecipe, `${child.path}/children`, checkRole),
-    );
-    for (const item of normalized) parts.body.push(item);
-    return;
-  }
-  if (parts.explicitBody) fail("VDOM_HIERARCHY", child.path, "Cannot mix Block.Body with direct children");
-  parts.body.push(child);
+function deferBody(
+  node: NormalizedContent,
+  block: FlowBlock,
+  children: FlowBlock[],
+  operation: LayoutOperation,
+  defaults?: ParagraphProps,
+): void {
+  if (typeof node.value === "string") return;
+  const content = captureContent(node.value.props.children, node, operation);
+  deferColumnBody(block, () => {
+    children.push(...normalizeBlocks(content, operation, `${node.path}/children`, defaults));
+    return children;
+  });
 }
 function normalizeParagraph(
   node: NormalizedContent,

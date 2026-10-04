@@ -8,6 +8,7 @@ import {
   sum,
 } from "@updf/core/internal";
 import { compile } from "./block-compiler.js";
+import { scheduleContainerLines } from "./content-line-containers.js";
 import { authorParagraph, normalizeBlocks } from "./content-normalize.js";
 import { measureParagraph } from "./content-paragraph.js";
 import type { Content, ContentConstraints, ContentLine, ContentMeasurement, ContentOptions } from "./content-types.js";
@@ -15,7 +16,6 @@ import type { Extensions } from "./extension-types.js";
 import { validateExtensions } from "./extensions.js";
 import { paintNatural } from "./natural-paint.js";
 import type { PreparedBlock } from "./protocol.js";
-import { sizing } from "./sizing.js";
 import type { FlowBlock } from "./types.js";
 
 /** Natural, unpaginated border-box measurement; no painting plan is returned. */
@@ -81,10 +81,7 @@ function collectLines(
       const top = y + beforeHeight(value);
       tasks.push(() => {
         for (const line of getLines(value, size.width)) output.push(translateLine(line, x, top));
-        if ("type" in value && value.type === "block") {
-          const box = sizing(value.style, size.width, "/content/style");
-          schedule(value.children, x + box.inset.left, top + box.inset.top, box.gap);
-        }
+        scheduleContainerLines(value, size, sizes, x, top, schedule);
       });
       y = sum([y, size.block.naturalSize.height, gap]);
     }

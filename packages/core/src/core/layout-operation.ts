@@ -46,6 +46,7 @@ export interface LayoutOperation {
     guard?: ContentGuard,
     native?: DataRecipe,
     numeric?: boolean,
+    deferChildren?: object,
   ) => readonly NormalizedContent[];
   readonly measureInline: (
     paragraph: ParagraphDefinition,
@@ -138,9 +139,9 @@ function contentMethods(state: State, fonts: ResolvedFonts, budget: WorkLedger, 
       check();
       return measureInline(paragraph, visuals, width, autoHeight, fonts, budget, path);
     },
-    normalizeContent: (input, resolve, path, guard, native, numeric) => {
+    normalizeContent: (input, resolve, path, guard, native, numeric, deferChildren) => {
       check();
-      return normalizeScoped(input, state, resolve, path, guard, native, numeric);
+      return normalizeScoped(input, state, resolve, path, guard, native, numeric, deferChildren);
     },
   };
 }

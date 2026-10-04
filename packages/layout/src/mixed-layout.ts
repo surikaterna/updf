@@ -25,6 +25,7 @@ import { orientedSize } from "./page-size.js";
 import { type PaginationSession, paginate } from "./paginator.js";
 import { validateRegion } from "./region-overflow.js";
 import { renderRegion } from "./region-render.js";
+import { columnIdentity } from "./row-data.js";
 import { type TemplateGeometry, template } from "./template.js";
 import type { FlowBlock, FlowPlacement } from "./types.js";
 
@@ -138,6 +139,10 @@ function flowParts(node: NormalizedContent, session: Session): FlowParts {
     node.value.props.children,
     sectionRecipe,
     `${node.path}/children`,
+    undefined,
+    undefined,
+    undefined,
+    columnIdentity,
   );
   const result: FlowParts = { body: [], bodySlot: false };
   for (const child of children) appendFlowChild(child, result, session);

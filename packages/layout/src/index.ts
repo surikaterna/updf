@@ -73,6 +73,8 @@ export type { FragmentInfo, PageInfo } from "./page-context.js";
 export { FragmentContext, PageContext } from "./page-context.js";
 export type { Orientation, PageDimensions } from "./page-size.js";
 export { PageSize, pageSize } from "./page-size.js";
+export { column, row } from "./row-data.js";
+export type { ColumnBlock, ColumnInput, ColumnStyle, RowAlignment, RowBlock, RowInput, RowStyle } from "./row-types.js";
 export type { EdgeRegionInput, LocalEdgeClaim } from "./shared-edge-types.js";
 export type { LineHeight, ParagraphStyle, PointLength, SpanStyle } from "./text-style.js";
 export { pt } from "./text-style.js";

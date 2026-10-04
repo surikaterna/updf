@@ -17,21 +17,45 @@ export interface NormalizedContent {
   readonly children: readonly NormalizedContent[];
   readonly scope?: object;
 }
-const scopes = new WeakMap<object, { state: State; environment: ProviderEnvironment }>();
+interface ContentScope {
+  readonly state: State;
+  readonly environment: ProviderEnvironment;
+  readonly continuation?: {
+    readonly depth: number;
+    readonly active: ReadonlySet<object>;
+    readonly expansions: State["expansions"];
+  };
+}
+const scopes = new WeakMap<object, ContentScope>();
+const depths = new WeakMap<State, number>();
 export function withContentScope<T>(scope: object, state: State, invoke: () => T): T {
   const captured = scopes.get(scope);
   if (!captured || captured.state !== state || state.closed) fail("MEASUREMENT_CONTEXT", "", "Invalid content scope");
   const previous = state.environment;
+  const depth = depths.get(state) ?? 0;
+  const active = new Set(state.active);
+  const expansions = state.expansions.slice();
   state.environment = scopedEnvironment(captured.environment, previous);
+  if (captured.continuation) {
+    depths.set(state, captured.continuation.depth);
+    for (const node of captured.continuation.active) state.active.add(node);
+    for (const expansion of captured.continuation.expansions) state.expansions.push(expansion);
+  }
   try {
     return invoke();
   } finally {
     state.environment = previous;
+    depths.set(state, depth);
+    state.active.clear();
+    for (const node of active) state.active.add(node);
+    state.expansions.length = 0;
+    for (const expansion of expansions) state.expansions.push(expansion);
   }
 }
 export type DataRecipe = (value: object, path: string) => SemanticRecipe;
 export type ContentGuard = (value: string | SemanticRecipe, path: string, parent: object | undefined) => void;
 interface WalkState {
+  readonly deferChildren?: object;
   readonly numeric?: boolean;
   readonly state: State;
   readonly data: DataRecipe;
@@ -47,6 +71,7 @@ export function normalizeContent(
   guard?: ContentGuard,
   native?: DataRecipe,
   numeric?: boolean,
+  deferChildren?: object,
 ): NormalizedContent[] {
   const result: NormalizedContent[] = [];
   const walk: WalkState = {
@@ -56,8 +81,9 @@ export function normalizeContent(
     ...(guard ? { guard } : {}),
     ...(native ? { native } : {}),
     ...(numeric ? { numeric } : {}),
+    ...(deferChildren ? { deferChildren } : {}),
   };
-  visit(input, path, 0, result, walk);
+  visit(input, path, depths.get(state) ?? 0, result, walk);
   while (walk.tasks.length) walk.tasks.pop()?.();
   return result;
 }
@@ -69,12 +95,13 @@ export function normalizeScoped(
   guard?: ContentGuard,
   native?: DataRecipe,
   numeric?: boolean,
+  deferChildren?: object,
 ): NormalizedContent[] {
   const environment = state.environment,
     count = state.expansions.length,
     active = new Set(state.active);
   try {
-    return normalizeContent(input, state, data, path, guard, native, numeric);
+    return normalizeContent(input, state, data, path, guard, native, numeric, deferChildren);
   } finally {
     state.environment = environment;
     state.expansions.length = count;
@@ -142,12 +169,12 @@ function descend(
     const recipe = semanticRecipe(input);
     if (recipe) {
       walk.guard?.(recipe, path, parent);
-      appendRecipe(recipe, path, target, next, walk.state, input.key);
+      appendRecipe(recipe, path, depth, target, next, walk, input.key);
       return;
     }
     if (input.kind === "native") {
       if (input.tag !== Fragment) {
-        appendDrawing(input, path, parent, target, next, walk);
+        appendDrawing(input, path, depth, parent, target, next, walk);
         return;
       }
       next(input.props.children, `${path}/children`);
@@ -158,11 +185,12 @@ function descend(
   }
   const recipe = walk.data(input, path);
   walk.guard?.(recipe, path, parent);
-  appendRecipe(recipe, path, target, next, walk.state);
+  appendRecipe(recipe, path, depth, target, next, walk);
 }
 function appendDrawing(
   input: object,
   path: string,
+  depth: number,
   parent: object | undefined,
   target: NormalizedContent[],
   next: (value: unknown, path: string, into: NormalizedContent[], parent?: object) => void,
@@ -171,20 +199,29 @@ function appendDrawing(
   if (!walk.native) fail("VDOM_HIERARCHY", path, "Expected semantic content, not a native drawing");
   const recipe = walk.native(input, path);
   walk.guard?.(recipe, path, parent);
-  appendRecipe(recipe, path, target, next, walk.state);
+  appendRecipe(recipe, path, depth, target, next, walk);
 }
 function appendRecipe(
   recipe: SemanticRecipe,
   path: string,
+  depth: number,
   target: NormalizedContent[],
   next: (value: unknown, path: string, into: NormalizedContent[], parent?: object) => void,
-  state: State,
+  walk: WalkState,
   key?: Key,
 ): void {
   const children: NormalizedContent[] = [];
   const scope = Object.freeze({});
-  scopes.set(scope, { state, environment: state.environment });
+  const continuation =
+    recipe.identity === walk.deferChildren
+      ? { depth: depth + 1, active: new Set(walk.state.active), expansions: walk.state.expansions.slice() }
+      : undefined;
+  scopes.set(scope, {
+    state: walk.state,
+    environment: walk.state.environment,
+    ...(continuation ? { continuation } : {}),
+  });
   target.push({ value: recipe, path, children, scope, ...(key === undefined ? {} : { key }) });
-  if (!recipe.opaque && "children" in recipe.props)
+  if (!recipe.opaque && recipe.identity !== walk.deferChildren && "children" in recipe.props)
     next(recipe.props.children, `${path}/children`, children, recipe.identity);
 }

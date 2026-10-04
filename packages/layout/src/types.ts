@@ -2,6 +2,7 @@ import type { Box, DocumentDefinition, NodeDefinition, ParagraphDefinition } fro
 import type { ContainerBlock } from "./container-types.js";
 import type { ParagraphContent } from "./content-types.js";
 import type { ExtensionBlock } from "./extension-types.js";
+import type { ColumnBlock, RowBlock } from "./row-types.js";
 
 export interface PageRegion {
   readonly height: number;
@@ -38,6 +39,8 @@ export type FlowBlock =
   | FixedBlock
   | ExtensionBlock
   | ContainerBlock
+  | RowBlock
+  | ColumnBlock
   | ParagraphContent;
 export interface FlowDocumentDefinition {
   readonly pageTemplate: PageTemplate;

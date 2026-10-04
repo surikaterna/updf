@@ -20,6 +20,7 @@ import type {
 import { isDecorationPlan } from "./decorations.js";
 import { BlockBody, BlockFooter, BlockHeader } from "./deferred-decoration.js";
 import { isExtensionBlock } from "./extensions.js";
+import { columnIdentity, rowIdentity } from "./row-data.js";
 
 export const paragraphIdentity = Object.freeze({});
 export const spanIdentity = Object.freeze({});
@@ -51,7 +52,11 @@ export function span(props: SpanProps): SpanContent {
   return ownContentData(contentSnapshot({ type: "contentSpan" as const, props }, "/span"));
 }
 export function dataRecipe(value: object, path: string): SemanticRecipe {
-  record(value, ["type", "props", "paragraph", "keepTogether", "height", "children", "style", "decorations"], path);
+  record(
+    value,
+    ["type", "props", "paragraph", "keepTogether", "height", "children", "style", "decorations", "width", "align"],
+    path,
+  );
   if (value.type === "contentParagraph" || value.type === "contentSpan" || value.type === "inlineVisual") {
     if (!isContentData(value)) fail("TYPE", path, "Expected an owned authoring descriptor");
     const identity =
@@ -66,5 +71,7 @@ export function dataRecipe(value: object, path: string): SemanticRecipe {
     };
   }
   if (value.type === "block") return { identity: blockIdentity, props: value };
+  if (value.type === "row") return { identity: rowIdentity, props: value };
+  if (value.type === "column") return { identity: columnIdentity, props: value };
   return { identity: legacyIdentity, props: { descriptor: value } };
 }

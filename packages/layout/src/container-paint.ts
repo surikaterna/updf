@@ -46,7 +46,7 @@ export function* paintContainerSteps(
     const nodes = yield {
       fragment: piece.fragment,
       context: {
-        x: box.inset.left,
+        x: sum([box.inset.left, piece.left ?? 0]),
         y,
         budget: context.budget,
         start: (offset, extent) => {

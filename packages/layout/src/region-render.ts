@@ -11,6 +11,7 @@ import type { Extensions } from "./extension-types.js";
 import { type PageInfo, pageBinding } from "./page-context.js";
 import { paginate } from "./paginator.js";
 import { regionFailure } from "./region-overflow.js";
+import { columnIdentity } from "./row-data.js";
 import { fixedRootReportPath } from "./shared-edge-finalize.js";
 import { template } from "./template.js";
 
@@ -28,11 +29,7 @@ export function renderRegion(
   participatingRoot = false,
 ): readonly NodeDefinition[] {
   if (nativeData(input)) return input;
-  const nodes = operation.normalizeContent(input, dataRecipe, path, regionRole, (node) => ({
-    identity: nativeIdentity,
-    props: { descriptor: node },
-    opaque: true,
-  }));
+  const nodes = normalizeRegion(input, operation, path);
   const drawings = nodes.filter((node) => typeof node.value !== "string" && node.value.identity === nativeIdentity);
   if (drawings.length) return renderDrawings(drawings, nodes.length, width, height, path, operation, info);
   const geometry = template({ width, height, margins: { top: 0, right: 0, bottom: 0, left: 0 } }, operation);
@@ -62,6 +59,17 @@ export function renderRegion(
   } catch (error) {
     regionFailure(error, path);
   }
+}
+function normalizeRegion(input: unknown, operation: LayoutOperation, path: string): readonly NormalizedContent[] {
+  return operation.normalizeContent(
+    input,
+    dataRecipe,
+    path,
+    regionRole,
+    (node) => ({ identity: nativeIdentity, props: { descriptor: node }, opaque: true }),
+    undefined,
+    columnIdentity,
+  );
 }
 function participatingPath(
   root: NormalizedContent | undefined,
