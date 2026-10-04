@@ -1,12 +1,14 @@
 import { DocumentError, type PreparedFont, render } from "@updf/core";
 import { h, lower } from "@updf/core/vdom";
 import {
+  Block,
   Document,
   type DocumentContentData,
   document,
   flow,
   flowFooter,
   flowHeader,
+  type LineHeight,
   layout,
   paragraph,
   pt,
@@ -63,6 +65,18 @@ function failure(input: DocumentContentData) {
     throw new Error("Expected numerical geometry rejection");
   });
 }
+function fractionalParagraph(lineHeight: LineHeight, height = 37.2): DocumentContentData {
+  return document({
+    children: flow({
+      pageSize: { width: 37, height },
+      margins: { top: 0, right: 0, bottom: 0, left: 0 },
+      children: h(Block, {
+        style: { padding: 6, paddingBottom: height === 31.2 ? 0 : 6 },
+        children: paragraph({ style: { font: "Helvetica", fontSize: 9, lineHeight }, children: "hello hello" }),
+      }),
+    }),
+  });
+}
 export function numericalFlowProof(font: PreparedFont) {
   const successes = [
     definition("A\nB\nC", 10.3),
@@ -71,6 +85,8 @@ export function numericalFlowProof(font: PreparedFont) {
     definition("A\nB\nC", 10.3, "Helvetica", false, 800.28, 800.9, true),
     definition("А\nБ\nВ", 10.3, "Demo"),
     inlineBackgroundProofDefinition(),
+    fractionalParagraph(pt(12.6)),
+    fractionalParagraph(1.4),
   ].map((input) => success(input, font));
   const invalidAxis = (axis: "width" | "height") =>
     document({
@@ -90,6 +106,7 @@ export function numericalFlowProof(font: PreparedFont) {
     definition("A\nB\nC", 10.3, "Helvetica", true, 760.03, 730.9 - 1e-10),
     invalidAxis("width"),
     invalidAxis("height"),
+    fractionalParagraph(1.4, 31.2),
   ].map(failure);
   return { successes, failures };
 }

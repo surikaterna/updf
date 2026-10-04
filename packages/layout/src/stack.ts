@@ -1,6 +1,7 @@
 import { checkLimit, exceeds, fail, MetricSum, sum } from "@updf/core/internal";
 import { bits, dyadic, floorDyadic, value } from "./binary64.js";
 import { offsetReservation, reserveAncestors } from "./container-reservation.js";
+import { certifyGeneratedFragment, type GeneratedInterval, generatedIntervals } from "./generated-interval.js";
 import type { FragmentCall, FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
 
 export interface StackEntry {
@@ -18,6 +19,7 @@ export interface StackPiece {
   readonly left?: number;
   readonly fragment: PlacedFragment;
   readonly top: number;
+  readonly interval?: GeneratedInterval;
 }
 export interface StackSelection {
   readonly pieces: readonly StackPiece[];
@@ -94,8 +96,9 @@ export function* selectStackSteps(
   stack: Stack,
   request: FragmentRequest,
 ): Generator<FragmentCall, StackSelection | undefined, PlacedFragment | undefined> {
-  const pieces: StackPiece[] = [];
-  const height = new MetricSum();
+  const pieces: StackPiece[] = [],
+    height = new MetricSum();
+  const sequence = generatedIntervals();
   let offset = request.offset,
     advance = false;
   while (offset < stack.extent) {
@@ -119,13 +122,8 @@ export function* selectStackSteps(
     if (!fragment) break;
     if (local.budget) request.budget?.adopt(local.budget);
     if (local.state) request.state?.adopt(local.state);
-    if (
-      !Number.isSafeInteger(fragment.nextOffset) ||
-      fragment.nextOffset <= local.offset ||
-      fragment.nextOffset > entry.end - entry.start
-    )
-      fail("TYPE", "", "Child fragment must advance within its extent");
-    pieces.push({ fragment, top: height.value });
+    checkProgress(fragment, local.offset, entry.end - entry.start);
+    pieces.push(stackPiece(fragment, height.value, sequence));
     height.add(fragment.height);
     offset = entry.start + fragment.nextOffset;
     if (fragment.advance) {
@@ -134,4 +132,17 @@ export function* selectStackSteps(
     }
   }
   return offset === request.offset ? undefined : { pieces, nextOffset: offset, height: height.value, advance };
+}
+function checkProgress(fragment: PlacedFragment, offset: number, extent: number): void {
+  if (!Number.isSafeInteger(fragment.nextOffset) || fragment.nextOffset <= offset || fragment.nextOffset > extent)
+    fail("TYPE", "", "Child fragment must advance within its extent");
+}
+function stackPiece(
+  fragment: PlacedFragment,
+  top: number,
+  sequence: ReturnType<typeof generatedIntervals>,
+): StackPiece {
+  if (fragment.height <= 0) return { fragment, top };
+  const interval = sequence.append(fragment.height, "");
+  return certifyGeneratedFragment({ fragment, top, interval }, [interval]);
 }

@@ -91,6 +91,23 @@ with `GEOMETRY`, even for empty bodies. Actual materialized endpoints and region
 separation must fit independently. Font sizes, advances, line heights and explicit
 reservations are never shrunk or shifted. There is no public precision certificate.
 
+Generated paragraph parts and stack pieces privately own endpoints from the same
+`MetricSum` sequence. Container reservation comparisons admit these source edges
+strictly before translating them. When native addition of the semantic extent
+disagrees with the shared edge, only the **comparison allocation** uses a certified
+native-fitting capacity, with an exact dyadic residual bounded by 32 local ULPs.
+This is a conditioning/rejection ceiling, not overflow tolerance. Certificates
+are bound to their actual fragment or stack piece; copied/foreign records and
+mismatched semantic extents cannot borrow the allocation. Painted line heights,
+transforms, glyph baselines, clips and source reservations remain unchanged.
+
+Native page geometry still has to fit independently. In particular, two 12.6pt
+lines inside 6pt padding fit a 37 × 37.2pt zero-margin page. Removing bottom
+padding on a 37 × 31.2pt page leaves the second native transformed clip ending at
+`18.6 + 12.6 = 31.200000000000003`; strict core `BOUNDS` rejection is retained.
+This native-materialization constraint means not every mathematical fit is a
+renderable fit. No clips, page dimensions or core bounds comparisons are adjusted.
+
 See [content](../../docs/inline.md), [blocks](../../docs/blocks.md),
 [documents](../../docs/documents.md), [tables](../../docs/tables.md) and
 [historical flow evidence](../../docs/evidence/flow.md) for detailed contracts.

@@ -1,6 +1,7 @@
 import type { NodeDefinition } from "@updf/core";
 import type { OutputBudget } from "./budget.js";
 import type { FragmentState } from "./fragment-state.js";
+import type { GeneratedInterval } from "./generated-interval.js";
 
 /** Private producer seam. Public callback results are checked before reaching this seam. */
 export interface FragmentRequest {
@@ -22,7 +23,7 @@ export interface FragmentPaintContext {
   readonly x: number;
   readonly y: number;
   readonly budget: OutputBudget;
-  readonly start: (offset: number, height: number) => number;
+  readonly start: (offset: number, height: number, certificate?: GeneratedInterval) => number;
 }
 export interface PlacedFragment {
   readonly nextOffset: number;
