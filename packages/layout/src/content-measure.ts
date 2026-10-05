@@ -21,7 +21,13 @@ import { closeParagraphFragments } from "./paragraph-fragments.js";
 import type { PreparedBlock } from "./protocol.js";
 import type { FlowBlock } from "./types.js";
 
-/** Natural, unpaginated border-box measurement; no painting plan is returned. */
+/**
+ * Natural, unpaginated border-box measurement in points; no painting plan is returned.
+ * Width must be positive finite; optional nonnegative finite height is a ceiling,
+ * not a requested size (excess throws VERTICAL_OVERFLOW). Options select resources,
+ * policy and installed extensions. Returns a deeply frozen report and closes all
+ * operation-owned measurement handles, including on failure. Does not paginate.
+ */
 export function measure(
   content: Content,
   constraints: ContentConstraints,

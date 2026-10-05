@@ -1,4 +1,5 @@
 import type { BlockControls } from "./blocks.js";
+import type { BrandingControls } from "./branding-controls.js";
 import type { FlowControls } from "./flow.js";
 import type { MixedControls } from "./mixed.js";
 import { paintingDemo } from "./painting.js";
@@ -20,6 +21,7 @@ export const demos = {
 export type DemoId =
   | keyof typeof demos
   | "svg"
+  | "branding"
   | "flow"
   | "tables"
   | "blocks"
@@ -41,6 +43,7 @@ export function demoId(value: string): DemoId {
     value === "template" ||
     value === "painting" ||
     value === "svg" ||
+    value === "branding" ||
     value === "rich" ||
     value === "flow" ||
     value === "blocks" ||
@@ -61,8 +64,10 @@ export async function generate(
   tables?: TableControls,
   blocks?: BlockControls,
   mixed?: MixedControls,
+  branding?: BrandingControls,
 ): Promise<{ bytes: Uint8Array; source: string; summary?: string }> {
   if (title.length > 40) throw new Error("Title must be at most 40 characters");
+  if (id === "branding") return brandingResult(title, branding);
   if (isFreight(id)) return freightResult(title, id === "freight-invoice-extended");
   if (id === "manifest" || id === "invoice") return id === "manifest" ? manifestResult(title) : invoiceResult(title);
   if (id === "template" || id === "mixed") return id === "template" ? templateResult(title) : mixedResult(title, mixed);
@@ -96,15 +101,24 @@ export async function generate(
       summary: `${result.measurement.lines.length} lines, ${result.measurement.size.height} points consumed height. Policy: ${result.policy}.`,
     };
   }
-  if (id === "svg") {
-    const { svgDemo, source } = await import("./optional.js");
-    return { bytes: svgDemo(title), source };
-  }
+  if (id === "svg") return svgResult(title);
   return { bytes: demos[id].render(title), source: demos[id].source };
 }
 async function templateResult(title: string) {
   const { templateDemo } = await import("./template.js");
   return { bytes: templateDemo(title), source: templateSource };
+}
+async function svgResult(title: string) {
+  const { svgDemo, source } = await import("./optional.js");
+  return { bytes: svgDemo(title), source };
+}
+async function brandingResult(title: string, controls?: BrandingControls) {
+  const { brandingDemo, source } = await import("./optional-branding.js");
+  return {
+    bytes: brandingDemo(title, controls),
+    source,
+    summary: "Letter letterhead; original sample logo; vector SVG, no raster images.",
+  };
 }
 async function invoiceResult(title: string) {
   const { invoiceExample, source } = await import("./optional-invoice.js");

@@ -1,12 +1,11 @@
 // Test-only access preserves renderer regression coverage without a public facade.
 import type { RenderOptions } from "@updf/core";
 import { createDrawingLayoutOperation } from "@updf/core/internal-drawing";
-import type { Extensions } from "../../packages/layout/src/extension-types.js";
-import { layout } from "../../packages/layout/src/layout.js";
-import type { FlowDocumentDefinition, FlowResult } from "../../packages/layout/src/types.js";
+import type { Extensions, FlowDocumentDefinition, FlowResult } from "@updf/layout";
+import { layout } from "../../packages/layout/dist/cjs/layout.js";
 
 export * from "@updf/layout";
-export { Flow as LegacyFlow } from "../../packages/layout/src/transitional-vdom.js";
+export { Flow as LegacyFlow } from "../../packages/layout/dist/cjs/transitional-vdom.js";
 
 export function layoutFlow(
   input: FlowDocumentDefinition,

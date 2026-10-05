@@ -12,7 +12,7 @@ import {
   Paragraph,
   paragraph,
 } from "../../../tests/fixtures/transitional-layout.js";
-import { Document, Flow } from "../src/transitional-vdom.js";
+import { Document, Flow } from "../dist/cjs/transitional-vdom.js";
 import { flow } from "./fixtures.js";
 
 const pageTemplate = flow().pageTemplate;

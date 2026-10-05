@@ -11,6 +11,12 @@ export function ownDecorationPlan(entries: readonly StaticDecoration[]): Decorat
 export function isDecorationPlan(value: unknown): value is DecorationPlan {
   return !!value && typeof value === "object" && plans.has(value);
 }
+/**
+ * Snapshot static before/after reservations into an owned frozen plan.
+ * Heights are nonnegative finite points; nonempty nodes require positive height.
+ * first/all/last controls fragment repetition. Geometry is validated on emission;
+ * this plan is not a final PageContext callback and cannot be forged by serialization.
+ */
 export function createDecorationPlan(entries: readonly StaticDecoration[]): DecorationPlan {
   array(entries, Number.MAX_SAFE_INTEGER, "/decorations");
   for (const [index, entry] of entries.entries()) {

@@ -14,10 +14,10 @@ import {
   PageContext,
   Paragraph,
 } from "../../../tests/fixtures/transitional-layout.js";
-import { instantiateEmissionNodes } from "../src/emission-nodes.js";
-import type { BlockContent, EdgeRegionInput, LocalEdgeClaim, MeasureContext } from "../src/index.js";
-import { edgeRegionNode, sharedEdgeEmission } from "../src/shared-edge-emission.js";
-import { ownEdgeRegion, requireEdgeRegion } from "../src/shared-edge-regions.js";
+import { instantiateEmissionNodes } from "../dist/cjs/emission-nodes.js";
+import type { BlockContent, EdgeRegionInput, LocalEdgeClaim, MeasureContext } from "@updf/layout";
+import { edgeRegionNode, sharedEdgeEmission } from "../dist/cjs/shared-edge-emission.js";
+import { ownEdgeRegion, requireEdgeRegion } from "../dist/cjs/shared-edge-regions.js";
 import { flow } from "./fixtures.js";
 
 const top: LocalEdgeClaim = {

@@ -88,6 +88,7 @@ export async function rendered(page: Page, count = 1): Promise<number[]> {
 }
 
 export async function source(page: Page, name: string): Promise<void> {
+  await page.locator('#demo-form[aria-busy="false"]').waitFor();
   const expected = await readFile(new URL(`../../apps/showcase/src/${name}`, import.meta.url), "utf8");
   assert.equal(await page.locator("#source").textContent(), expected);
 }

@@ -20,6 +20,7 @@ export const flowIdentity = Object.freeze({});
 export const headerIdentity = Object.freeze({});
 export const bodyIdentity = Object.freeze({});
 export const footerIdentity = Object.freeze({});
+/** Fixed native drawing section, exported as Page from `@updf/layout`; children do not flow. */
 export const Page = semanticComponent<Record<string, unknown>>(
   pageIdentity,
   true,
@@ -45,24 +46,30 @@ export function documentComponent(resolve: BlockComponent<DocumentProps>): Block
     resolve(props as DocumentProps, context),
   ) as unknown as BlockComponent<DocumentProps>;
 }
+/** Snapshot ordered sections into a frozen owned descriptor; caller records are not frozen. */
 export function document(props: DocumentProps): DocumentContentData {
   validateDataObject(props, ["children"], "/document");
   return ownContentData(contentSnapshot({ type: "mixedDocument" as const, props }, "/document"));
 }
+/** Snapshot a fixed page; dimensions and native bounds are checked when layout runs. */
 export function page(props: PageProps): PageContent {
   validateDataObject(props, ["size", "orientation", "children"], "/page");
   return ownContentData(contentSnapshot({ type: "fixedPage" as const, props }, "/page"));
 }
+/** Snapshot a paginated section with point dimensions/margins and local extensions. */
 export function flow(props: FlowProps): FlowContent {
   validateDataObject(props, ["pageSize", "orientation", "margins", "children", "extensions"], "/flow");
   return ownContentData(contentSnapshot({ type: "flowSection" as const, props }, "/flow"));
 }
+/** Snapshot a repeated header with a positive point reservation, finalized after pagination. */
 export function flowHeader(props: RegionProps): RegionContent {
   return region("flowHeader", props);
 }
+/** Snapshot a repeated footer with a positive point reservation, finalized after pagination. */
 export function flowFooter(props: RegionProps): RegionContent {
   return region("flowFooter", props);
 }
+/** Snapshot the explicit body slot; do not mix it with direct Flow body children. */
 export function flowBody(props: BodyProps): RegionContent {
   return region("flowBody", props);
 }

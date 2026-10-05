@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { hex, literal, name, value } from "../dist/core/pdf-values.js";
-import { type PdfDictionary, PdfWriter } from "../dist/core/pdf-writer.js";
+import { hex, literal, name, value } from "../dist/cjs/core/pdf-values.js";
+import { type PdfDictionary, PdfWriter } from "../dist/cjs/core/pdf-writer.js";
 
 const raw = (bytes: Uint8Array) => Array.from(bytes, (byte) => String.fromCharCode(byte)).join("");
 

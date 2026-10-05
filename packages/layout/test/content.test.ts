@@ -16,7 +16,7 @@ import {
   Span,
   span,
 } from "../../../tests/fixtures/transitional-layout.js";
-import { Document } from "../src/transitional-vdom.js";
+import { Document } from "../dist/cjs/transitional-vdom.js";
 
 const pageTemplate = { width: 120, height: 120, margins: { top: 10, right: 10, bottom: 10, left: 10 } };
 function reject(callback: () => unknown, code: string, path?: RegExp): void {

@@ -3,6 +3,9 @@
 Private, unreleased `2.0.0-poc.0`. Portable immutable declarative PDF data,
 prepared fonts, native painting, VDOM and native JSX runtimes. Zero runtime
 dependencies. See repository `docs/native-api.md` for contracts and limitations.
+See [API inventory and compiled examples](API.md) for entry-point coverage,
+imports, units, defaults, lifecycle and trust boundaries. Public declarations carry
+JSDoc into generated types; optional sibling packages are not covered by this inventory.
 No example CMR types, React, parser or filesystem APIs are part of core.
 `/measurement` exposes frozen plain/rich measurements; `RichTextNode` and native
 `<richText>` use typed paragraphs/runs, with font/size/RGB styles. Components receive

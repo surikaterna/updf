@@ -1,11 +1,14 @@
 import { DocumentError } from "@updf/core";
 import { blockControls } from "./block-controls.js";
-import { demoId, demos, generate } from "./demos.js";
+import { brandingControls, showBrandLogo } from "./branding-controls.js";
+import { demoId, generate } from "./demos.js";
 import { flowControls } from "./flow-controls.js";
 import { mixedControls } from "./mixed-controls.js";
 import { richControls } from "./rich-controls.js";
 import { tableControls } from "./table-controls.js";
+import { commitSource, failed, pending, showMetadata, titleError, validateForm } from "./result-ui.js";
 import "./style.css";
+import "./workspace.css";
 
 function element<T extends HTMLElement>(id: string, type: new (...args: never[]) => T): T {
   const found = document.getElementById(id);
@@ -16,7 +19,6 @@ function element<T extends HTMLElement>(id: string, type: new (...args: never[])
 const form = element("demo-form", HTMLFormElement);
 const selection = element("example", HTMLSelectElement);
 const title = element("title", HTMLInputElement);
-const source = element("source", HTMLElement);
 const status = element("status", HTMLElement);
 const output = element("output", HTMLElement);
 const preview = element("preview", HTMLElement);
@@ -47,8 +49,9 @@ function invalidate(): number {
   return generation;
 }
 
-function showSource(): void {
+function showDemo(): void {
   const id = demoId(selection.value);
+  showMetadata(id);
   element("rich-controls", HTMLFieldSetElement).hidden = id !== "rich";
   element("rich-controls", HTMLFieldSetElement).disabled = id !== "rich";
   element("flow-controls", HTMLFieldSetElement).hidden = id !== "flow";
@@ -59,20 +62,24 @@ function showSource(): void {
   element("block-controls", HTMLFieldSetElement).disabled = id !== "blocks";
   element("mixed-controls", HTMLFieldSetElement).hidden = id !== "mixed";
   element("mixed-controls", HTMLFieldSetElement).disabled = id !== "mixed";
-  source.textContent =
-    id === "manifest" ||
-    id === "freight-invoice" ||
-    id === "freight-invoice-extended" ||
-    id === "invoice" ||
-    id === "svg" ||
-    id === "flow" ||
-    id === "tables" ||
-    id === "blocks" ||
-    id === "mixed" ||
-    id === "rows" ||
-    id === "rows-overflow"
-      ? `Loading optional ${id} adapter and source…`
-      : demos[id].source;
+  element("branding-controls", HTMLFieldSetElement).hidden = id !== "branding";
+  element("branding-controls", HTMLFieldSetElement).disabled = id !== "branding";
+  if (id === "branding") showBrandLogo();
+}
+
+function captureArguments(): Parameters<typeof generate> {
+  validateForm(form);
+  const id = demoId(selection.value);
+  return [
+    id,
+    title.value,
+    id === "rich" ? richControls(form) : undefined,
+    id === "flow" ? flowControls(form) : undefined,
+    id === "tables" ? tableControls(form) : undefined,
+    id === "blocks" ? blockControls(form) : undefined,
+    id === "mixed" ? mixedControls(form) : undefined,
+    id === "branding" ? brandingControls(form) : undefined,
+  ];
 }
 
 function readableError(error: unknown): string {
@@ -86,25 +93,19 @@ async function renderExample(): Promise<void> {
   if (disposed) return;
   const current = invalidate();
   form.setAttribute("aria-busy", "true");
-  status.textContent = blobUrl ? "Updating… Previous PDF remains shown and linked." : "Generating…";
+  pending(!!blobUrl);
   output.hidden = false;
   try {
-    const id = demoId(selection.value);
-    const result = await generate(
-      id,
-      title.value,
-      id === "rich" ? richControls(form) : undefined,
-      id === "flow" ? flowControls(form) : undefined,
-      id === "tables" ? tableControls(form) : undefined,
-      id === "blocks" ? blockControls(form) : undefined,
-      id === "mixed" ? mixedControls(form) : undefined,
-    );
+    const args = captureArguments();
+    const result = await generate(...args);
     if (current !== generation) return;
-    source.textContent = result.source;
-    await renderOutput(current, id, result.bytes, result.summary);
+    await renderOutput(current, args, result);
   } catch (error) {
     if (current === generation) {
-      status.textContent = `${readableError(error)}${blobUrl ? " Previous PDF remains shown and linked." : ""}`;
+      if (error instanceof DocumentError && error.diagnostics.some(({ code }) => code === "CHARACTER")) {
+        titleError(readableError(error));
+      }
+      failed(readableError(error), !!blobUrl);
       output.hidden = !blobUrl;
     }
   } finally {
@@ -114,7 +115,12 @@ async function renderExample(): Promise<void> {
   }
 }
 
-async function renderOutput(current: number, id: string, bytes: Uint8Array, summary?: string): Promise<void> {
+async function renderOutput(
+  current: number,
+  args: Parameters<typeof generate>,
+  result: Awaited<ReturnType<typeof generate>>,
+): Promise<void> {
+  const { bytes, source, summary } = result;
   let pages: DocumentFragment | undefined;
   let failure = false;
   try {
@@ -127,12 +133,18 @@ async function renderOutput(current: number, id: string, bytes: Uint8Array, summ
   }
   if (current !== generation) return;
   if (!pages && !failure) return;
-  publishPdf(id, bytes);
+  publishPdf(args[0], bytes);
   preview.replaceChildren(pages ?? "Canvas preview unavailable. Open or download this PDF instead.");
   status.textContent = failure
     ? "PDF generated locally, but preview failed. Open or download the new PDF below."
-    : `Generated ${bytes.length.toLocaleString()} bytes locally. ${preview.childElementCount} page(s) previewed. Download or open the PDF below.`;
+    : `Generated ${bytes.length.toLocaleString()} bytes locally. ${preview.childElementCount} page(s) previewed. Download or open this PDF.`;
   if (summary) status.textContent += ` ${summary}`;
+  commitSource(
+    args[0],
+    source,
+    args,
+    `${bytes.length.toLocaleString()} bytes · ${failure ? "Preview unavailable" : `${preview.childElementCount} page(s)`}${summary ? ` · ${summary}` : ""}`,
+  );
 }
 
 function publishPdf(id: string, bytes: Uint8Array): void {
@@ -148,7 +160,7 @@ function publishPdf(id: string, bytes: Uint8Array): void {
 function scheduleUpdate(): void {
   invalidate();
   form.setAttribute("aria-busy", "true");
-  status.textContent = blobUrl ? "Updating… Previous PDF remains shown and linked." : "Waiting for input…";
+  pending(!!blobUrl);
   timer = setTimeout(() => void renderExample(), 300);
 }
 
@@ -157,16 +169,32 @@ form.addEventListener("submit", (event) => {
   void renderExample();
 });
 selection.addEventListener("change", () => {
-  showSource();
+  showDemo();
   void renderExample();
 });
 title.addEventListener("input", scheduleUpdate);
-for (const id of ["rich-controls", "flow-controls", "table-controls", "block-controls", "mixed-controls"]) {
+for (const id of [
+  "rich-controls",
+  "flow-controls",
+  "table-controls",
+  "block-controls",
+  "mixed-controls",
+  "branding-controls",
+]) {
   element(id, HTMLFieldSetElement).addEventListener("input", scheduleUpdate);
 }
 element("reset-demo", HTMLButtonElement).addEventListener("click", () => {
-  form.reset();
-  showSource();
+  for (const field of Array.from(form.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input, select"))) {
+    if (field.closest("fieldset")?.disabled) continue;
+    if (field instanceof HTMLInputElement) {
+      field.value = field.defaultValue;
+      field.checked = field.defaultChecked;
+    } else {
+      field.selectedIndex = Array.from(field.options).findIndex((option) => option.defaultSelected);
+      if (field.selectedIndex < 0) field.selectedIndex = 0;
+    }
+  }
+  showDemo();
   void renderExample();
 });
 window.addEventListener("pagehide", () => {
@@ -188,7 +216,7 @@ const resize = new ResizeObserver(() => {
   if (previous && !disposed) scheduleUpdate();
 });
 resize.observe(preview);
-showSource();
+showDemo();
 void renderExample();
 
 for (const link of Array.from(document.querySelectorAll<HTMLAnchorElement>("[data-local]"))) {

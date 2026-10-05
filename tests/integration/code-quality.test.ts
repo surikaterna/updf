@@ -4,7 +4,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { ESLint } from "eslint";
+import { checkSource, checkWorktree, isPrinciplePath } from "../../scripts/check-code-principles.js";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const biome = join(root, "node_modules/.bin/biome");
@@ -39,7 +39,7 @@ const included = [
   "scripts/probe.ts",
   "tests/probe.test.ts",
   "apps/browser-fonts/probe.d.ts",
-  "eslint.config.ts",
+  "examples/probe.tsx",
 ];
 const excluded = [
   "packages/legacy/probe.ts",
@@ -83,8 +83,7 @@ test("Biome includes native code, tests, declarations and configs but excludes p
   }
 });
 
-test("ESLint rejects 401-line files, 50-line functions and fourth-level nesting without blanket exemptions", async () => {
-  const eslint = new ESLint({ cwd: root });
+test("AST checker rejects 401-line files, 50-line functions and fourth-level nesting without blanket exemptions", () => {
   const cases = [
     { rule: "max-lines", code: Array.from({ length: 401 }, (_, i) => `export const value${i} = ${i};`).join("\n") },
     { rule: "max-lines-per-function", code: `export function probe() {\n${"  void 0;\n".repeat(48)}}` },
@@ -101,11 +100,123 @@ test("ESLint rejects 401-line files, 50-line functions and fourth-level nesting 
     "tests/probe.test.ts",
   ]) {
     for (const item of cases) {
-      const results = await eslint.lintText(item.code, { filePath });
+      assert.ok(isPrinciplePath(filePath));
+      const results = checkSource(item.code, filePath);
       assert.ok(
-        results[0]?.messages.some((message) => message.ruleId === item.rule),
+        results.some((message) => message.rule === item.rule),
         `${filePath}: ${item.rule}`,
       );
     }
+  }
+});
+
+test("AST checker accepts exact boundaries and counts comments, blanks and line endings", () => {
+  for (const newline of ["\n", "\r\n", "\r", "\u2028", "\u2029"]) {
+    const file = Array.from({ length: 400 }, () => "// comment").join(newline);
+    assert.deepEqual(checkSource(file), []);
+    assert.deepEqual(checkSource(file + newline), []);
+    assert.ok(checkSource(`${file}${newline}${newline}`).some((item) => item.rule === "max-lines"));
+    const body = Array.from({ length: 47 }, (_, i) => (i % 2 ? "" : "// comment")).join(newline);
+    assert.deepEqual(checkSource(`function probe() {${newline}${body}${newline}}`), []);
+    assert.ok(checkSource(`function probe() {${newline}${body}${newline}${newline}}`).length);
+  }
+  assert.deepEqual(checkSource("if (x) { while (x) { for (;;) { void 0; } } }"), []);
+  assert.deepEqual(checkSource(`export\ndefault\nfunction probe() {\n${"void 0;\n".repeat(47)}}`), []);
+  assert.deepEqual(checkSource("export declare function probe(): void;"), []);
+  assert.deepEqual(checkSource("const probe = () => <div>{'if(x) {'}</div>;", "probe.tsx"), []);
+});
+
+test("Biome enforces mapped rules and keeps the JSX namespace exception file-local", async () => {
+  const directory = await mkdtemp("/tmp/opencode/updf-biome-rules-");
+  try {
+    await mkdir(join(directory, ".git"));
+    await fixture(directory, "biome.json", await readFile(join(root, "biome.json"), "utf8"));
+    const namespace = "export declare namespace JSX { export type Element = string; }\n";
+    await fixture(directory, ".gitignore", "node_modules/\n");
+    await fixture(directory, "packages/core/src/jsx-runtime.ts", namespace);
+    const allowed = spawnSync(biome, ["lint", "--diagnostic-level=error", "."], { cwd: directory, encoding: "utf8" });
+    assert.equal(allowed.status, 0, allowed.stdout + allowed.stderr);
+    await fixture(directory, "scripts/probe.ts", namespace);
+    await fixture(
+      directory,
+      "scripts/unsafe.ts",
+      "export const probe: any = 1;\nexport const unused = () => { 1; };\n",
+    );
+    const result = spawnSync(biome, ["lint", "--diagnostic-level=error", "."], { cwd: directory, encoding: "utf8" });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /noNamespace/);
+    assert.match(result.stderr, /noExplicitAny/);
+    assert.match(result.stderr, /noUnusedExpressions/);
+    assert.ok(!result.stderr.includes("jsx-runtime.ts"));
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("AST checker handles function forms, nested functions and the historical IIFE exception", () => {
+  const body = `\n${"// comment\n".repeat(48)}}`;
+  for (const code of [
+    `const probe = function () {${body};`,
+    `const probe = () => {${body};`,
+    `class Probe { method() {${body} }`,
+    `class Probe { constructor() {${body} }`,
+    `class Probe { get value() {${body} }`,
+    `class Probe { set value(x) {${body} }`,
+    `const probe = { method() {${body} };`,
+    `const probe = (\n${"x,\n".repeat(48)}) => x;`,
+  ])
+    assert.ok(
+      checkSource(code).some((item) => item.rule === "max-lines-per-function"),
+      code,
+    );
+  assert.deepEqual(checkSource(`(() => {${body})();`), []);
+  assert.deepEqual(checkSource(`(function () {${body})();`), []);
+  assert.deepEqual(checkSource("if(x) { if(x) { if(x) { const f = () => { if(x) {} }; } } }"), []);
+  assert.deepEqual(checkSource("if(x) {} else if(x) {} else if(x) {} else if(x) {}"), []);
+  assert.deepEqual(checkSource("if(x) { if(x) { if(x) { class C { static { if(x) {} } } } } }"), []);
+});
+
+test("AST depth counts control flow, not braces, literals, strings or comments", () => {
+  for (const nested of [
+    "if(x) {}",
+    "switch(x) { case 1: break; }",
+    "try {} catch {} finally {}",
+    "do {} while(x);",
+    "while(x) {}",
+    "for (;;) {}",
+    "for (const key in x) {}",
+    "for (const value of x) {}",
+    "with(x) {}",
+  ])
+    assert.ok(checkSource(`if(x) { if(x) { if(x) { ${nested} } } }`).some((item) => item.rule === "max-depth"));
+  assert.deepEqual(checkSource('const x = { a: { b: { c: {} } } }; "if(x) {"; /* if(x) { */ {{{{}}}}'), []);
+});
+
+test("AST path selection preserves native scope and historical/generated exclusions", () => {
+  for (const path of included) assert.ok(isPrinciplePath(path), path);
+  for (const path of excluded.filter((path) => path !== "tests/ignored/probe.ts")) {
+    assert.equal(isPrinciplePath(path), false, path);
+  }
+  assert.equal(isPrinciplePath("biome.json"), false);
+  assert.equal(isPrinciplePath("tests/probe.js"), false);
+});
+
+test("AST worktree gate checks untracked files and respects gitignored fixtures", async () => {
+  const directory = await mkdtemp("/tmp/opencode/updf-principles-");
+  try {
+    assert.equal(spawnSync("git", ["init", "--quiet", directory]).status, 0);
+    await fixture(directory, ".gitignore", "tests/ignored/\n");
+    await fixture(directory, "tests/ignored/probe.ts", "// comment\n".repeat(401));
+    await fixture(directory, "packages/legacy/probe.ts", "// comment\n".repeat(401));
+    assert.equal(checkWorktree(directory), 0);
+    await fixture(directory, "scripts/probe.ts", "// comment\n".repeat(401));
+    const result = spawnSync(join(root, "node_modules/.bin/tsx"), [join(root, "scripts/check-code-principles.ts")], {
+      cwd: directory,
+      encoding: "utf8",
+    });
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /scripts\/probe\.ts:401: max-lines/);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
   }
 });

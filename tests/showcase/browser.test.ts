@@ -88,7 +88,7 @@ test("mobile keyboard, automatic updates, validation retains previous PDF, URL c
       .waitFor();
     assert.equal(await page.locator("#output").isVisible(), true);
     assert.deepEqual(await pdf(page), textDemo(title));
-    await page.getByRole("button", { name: "Reset", exact: true }).click();
+    await page.getByRole("button", { name: "Reset demo", exact: true }).click();
     await pdf(page);
     await page.getByLabel("PDF title", { exact: true }).fill("Automatic mobile title");
     assert.deepEqual(await pdf(page), textDemo("Automatic mobile title"));
@@ -111,7 +111,7 @@ async function activeUrls(page: import("playwright").Page): Promise<number> {
   });
 }
 
-test("optional load failure is readable and core remains usable; reset cancels pending SVG generation", async () => {
+test("optional load failure is readable and core remains usable; switching cancels pending SVG generation", async () => {
   const app = await site();
   try {
     const page = await app.browser.newPage();
@@ -137,7 +137,7 @@ test("optional load failure is readable and core remains usable; reset cancels p
     const request = slow.waitForRequest("**/assets/optional-*.js");
     await slow.getByLabel("Example", { exact: true }).selectOption("svg");
     const requested = await request;
-    await slow.getByRole("button", { name: "Reset", exact: true }).click();
+    await slow.getByLabel("Example", { exact: true }).selectOption("text");
     release?.();
     await slow.evaluate(async (url) => {
       await import(url);

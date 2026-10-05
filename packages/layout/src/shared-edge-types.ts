@@ -1,5 +1,6 @@
 import type { NodeDefinition, RGB } from "@updf/core";
 
+/** Local point-valued boundary interval and paint claim; not CSS border-collapse or a reflow reservation. */
 export interface LocalEdgeClaim {
   readonly axis: "horizontal" | "vertical";
   readonly interval: readonly [number, number];
@@ -16,6 +17,7 @@ export interface LocalEdgeClaim {
   readonly endInset?: number;
 }
 
+/** Local point box, native nodes and edge reports for MeasureContext.edgeRegion; ownership is operation-local. */
 export interface EdgeRegionInput {
   readonly width: number;
   readonly height: number;

@@ -10,7 +10,7 @@ import { observeUrls, pdf, rendered, retained, screenshot, settledModule, site, 
 
 async function tableSource(page: Page) {
   await source(page, "tables.tsx");
-  const displayed = await page.locator("#source").innerText();
+  const displayed = (await page.locator("#source").textContent()) ?? "";
   assert.match(displayed, /borderRight:[\s\S]*borderLeft: null/u);
   assert.match(displayed, /width: \{ weight: wide \? 270 : 140, min: 100 \}/u);
 }

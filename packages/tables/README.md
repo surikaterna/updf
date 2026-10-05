@@ -11,6 +11,11 @@ No SVG, Fontkit, React, Node, private layout import or table-specific paginator.
 SVG/charts are application-owned public block/inline adapters. Images remain future
 backend work (#33), not an implemented cell feature.
 
+See the grouped [API inventory](API.md) for declaration owners and honest hover
+coverage, and the compiled
+[`layout-documentation-examples.ts`](../../tests/integration/layout-documentation-examples.ts)
+for a data table paged through an ordinary Flow with a local extension set.
+
 ```tsx
 /** @jsxImportSource @updf/core */
 import { render } from "@updf/core";

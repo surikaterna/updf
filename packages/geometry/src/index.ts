@@ -1,3 +1,4 @@
+/** Optional SVG-style geometry normalization for native painting; no DOM or SVG renderer. */
 export type { PathCommand } from "@updf/core/painting";
 export { arc } from "./arc.js";
 export type { ParsedColor } from "./color.js";

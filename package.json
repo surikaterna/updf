@@ -13,8 +13,8 @@
   "scripts": {
     "format": "biome format --write .",
     "format:check": "biome format .",
-    "lint:biome": "biome check --diagnostic-level=error .",
-    "check:code-principles": "eslint packages apps tests scripts examples eslint.config.ts",
+    "lint:biome": "biome lint --diagnostic-level=error .",
+    "check:code-principles": "tsx scripts/check-code-principles.ts",
     "lint": "npm run lint:biome && npm run check:code-principles",
     "typecheck": "npm run build && tsc --noEmit",
     "build": "npm run build -w @updf/layout-kernel && npm run build -w @updf/core && npm run build -w @updf/layout && npm run build -w @updf/tables && npm run build -w @updf/geometry && npm run build -w @updf/fontkit && npm run build -w @updf/svg && npm run build -w @updf/example-cmr && npm run build -w @updf/example-node && npm run compile -w @updf/legacy",
@@ -33,12 +33,9 @@
   "devDependencies": {
     "@biomejs/biome": "2.4.13",
     "@types/node": "24.19.0",
-    "eslint": "10.11.0",
-    "jiti": "2.7.0",
     "playwright": "1.55.1",
     "tsx": "4.23.15",
     "typescript": "5.9.3",
-    "typescript-eslint": "8.71.0",
     "vite": "7.3.6"
   }
 }

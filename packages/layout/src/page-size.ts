@@ -1,10 +1,13 @@
 import { number, validateDataObject } from "@updf/core/internal";
 
+/** Positive finite dimensions in PDF points (72pt per inch). */
 export interface PageDimensions {
   readonly width: number;
   readonly height: number;
 }
+/** Order short/long sides; omitting orientation preserves caller dimension order. */
 export type Orientation = "portrait" | "landscape";
+/** Convert positive finite dimensions to a frozen point pair; default pt, invalid units/overflow reject. */
 export function pageSize(width: number, height: number, unit: "pt" | "mm" | "in" = "pt"): PageDimensions {
   number(width, "/size/width", true);
   number(height, "/size/height", true);
@@ -14,6 +17,7 @@ export function pageSize(width: number, height: number, unit: "pt" | "mm" | "in"
   number(height * scale, "/size/height", true);
   return Object.freeze({ width: width * scale, height: height * scale });
 }
+/** Frozen portrait point presets A4, A5, Letter and Legal; apply orientation on Page/Flow props. */
 export const PageSize = Object.freeze({
   A4: pageSize(210, 297, "mm"),
   A5: pageSize(148, 210, "mm"),

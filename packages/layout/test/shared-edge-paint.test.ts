@@ -13,9 +13,9 @@ import {
   extension,
   layoutFlow,
 } from "../../../tests/fixtures/transitional-layout.js";
-import { paintSharedEdges } from "../src/shared-edge-paint.js";
-import { ownEdgeRegion, ownSharedEdgeGroup } from "../src/shared-edge-regions.js";
-import type { LocalEdgeClaim } from "../src/shared-edge-types.js";
+import { paintSharedEdges } from "../dist/cjs/shared-edge-paint.js";
+import { ownEdgeRegion, ownSharedEdgeGroup } from "../dist/cjs/shared-edge-regions.js";
+import type { LocalEdgeClaim } from "@updf/layout";
 import { flow } from "./fixtures.js";
 
 const edge: LocalEdgeClaim = {

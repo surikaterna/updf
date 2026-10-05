@@ -47,6 +47,7 @@ interface PlannedPage {
   readonly flow?: NonNullable<PageInfo["flow"]>;
   readonly extensions?: Extensions;
 }
+/** Deeply frozen fixed core document and zero-based flow placement reports; not PDF bytes. */
 export interface DocumentLayoutResult {
   readonly document: DocumentDefinition;
   readonly pageCount: number;
@@ -58,6 +59,14 @@ interface Session extends PaginationSession {
   readonly placements: FlowPlacement[];
   readonly lifetime: { active: boolean };
 }
+/**
+ * Paginate exactly one layout Document containing ordered Page/Flow sections.
+ * Each section starts a new page; even an empty Flow has one page. Options are
+ * core LowerOptions (resources, policy, local registry/metadata); pass matching
+ * resources/policy to render. The synchronous operation closes on return or throw.
+ * Throws core errors for invalid hierarchy, geometry, bounds or exhausted limits;
+ * atomic content that cannot fit a fresh body fails LAYOUT_OVERSIZED.
+ */
 export function layout(content: DocumentContentData | VDOMChild, options?: LowerOptions): DocumentLayoutResult;
 export function layout(content: unknown, options: LowerOptions = {}): DocumentLayoutResult {
   const operation = createDrawingLayoutOperation(options);

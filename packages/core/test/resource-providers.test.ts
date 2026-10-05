@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { render } from "@updf/core";
 import { fixtureFont, fontDocument, fontText } from "../../../tests/fixtures/fonts/font-fixture.js";
-import { defaultResources } from "../dist/core/default-resources.js";
-import { measure } from "../dist/core/measure.js";
-import { serialize } from "../dist/core/serialize.js";
-import { fontAt } from "../dist/fonts/provider.js";
-import { resolveResources } from "../dist/fonts/resources.js";
-import { alphaAt } from "../dist/painting/alpha.js";
+import { defaultResources } from "../dist/cjs/core/default-resources.js";
+import { measure } from "../dist/cjs/core/measure.js";
+import { serialize } from "../dist/cjs/core/serialize.js";
+import { fontAt } from "../dist/cjs/fonts/provider.js";
+import { resolveResources } from "../dist/cjs/fonts/resources.js";
+import { alphaAt } from "../dist/cjs/painting/alpha.js";
 
 test("final lines use alias identity, include later-page CIDs and exclude discarded measurements", async () => {
   const font = await fixtureFont(),

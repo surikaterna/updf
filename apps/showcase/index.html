@@ -8,40 +8,49 @@
   </head>
   <body>
     <a class="skip" href="#demos">Skip to demos</a>
-    <header>
-      <p class="badge">Unreleased checkout showcase · private 2.0.0-poc.0</p>
-      <h1>Small engine.<br />Reusable PDF ideas.</h1>
-      <p>UPDF is a micro, portable TypeScript PDF engine: immutable declarative data, typed reusable components and native TSX. The synchronous core returns Uint8Array bytes in Node and browsers, without React or a server.</p>
-      <nav aria-label="Primary"><a href="#demos">Try the engine</a> · <a href="#limits">Know the limits</a> · <a href="#roadmap">Roadmap</a> · <a href="https://github.com/surikaterna/updf">Source checkout</a></nav>
+    <header class="site-header">
+      <a class="wordmark" href="#demos" aria-label="UPDF showcase">u<span>pdf</span><small> / playground</small></a>
+      <nav aria-label="Primary"><a href="#limits">Engine &amp; limits</a><a href="#roadmap">Roadmap</a><a href="https://github.com/surikaterna/updf">GitHub ↗</a></nav>
     </header>
     <main>
-      <p><a href="./plasma.html">Amiga-style plasma: animated SVG → PDF → PDF.js</a></p>
       <section id="demos" aria-labelledby="demo-heading">
-        <h2 id="demo-heading">Generate a real PDF, right here</h2>
-        <p>Predefined examples only, no code execution or editor. The title is bounded to 40 printable ASCII characters. All generation stays in this browser. Displayed source is the actual compiled example module; your title is passed as its argument.</p>
-        <div class="grid">
-          <form id="demo-form">
+        <div class="intro"><div><p class="eyebrow">PORTABLE TYPESCRIPT · NATIVE TSX</p><h1 id="demo-heading">From an idea to a real PDF.</h1><p>Explore the examples. Adjust the inputs. See the document update, live.</p></div><span class="badge">Unreleased · local preview</span></div>
+        <div class="demo-navigation">
+          <div class="demo-picker">
             <label for="example">Example</label>
             <select id="example" name="example">
+              <optgroup label="Start here · core &amp; components">
               <option value="text">Natively positioned text</option>
               <option value="template">Typed reusable components with measured flow</option>
+              <option value="rich">Rich text &amp; shared measurement</option>
+              </optgroup><optgroup label="Business documents · mock data">
               <option value="invoice">Original mock invoice: reusable business flow (36 items)</option>
               <option value="freight-invoice">Original mock freight invoice: 3 charges (not for payment)</option>
               <option value="freight-invoice-extended">Extended mock freight invoice: 8 charges (not for payment)</option>
               <option value="manifest">Original mock manifest: mixed-page logistics flow (48 consignments)</option>
-              <option value="rich">Rich text &amp; shared measurement</option>
+              </optgroup><optgroup label="Layout · flow, tables &amp; composition">
               <option value="flow">Optional measured flow &amp; repeated page regions</option>
               <option value="mixed">Mixed fixed pages &amp; flow with final page counts</option>
               <option value="tables">Optional paged inventory table &amp; mixed prose</option>
               <option value="blocks">Optional generic blocks &amp; external chart</option>
               <option value="rows">Side-by-side Row/Column: chart, SVG &amp; nested rows</option>
               <option value="rows-overflow">Row/Column: intentional atomic oversize diagnostic</option>
+              </optgroup><optgroup label="Drawing · native &amp; optional SVG">
               <option value="painting">Native painting: paths, colors, clips &amp; transforms</option>
               <option value="svg">Advanced: native SVG adapter (loaded on demand)</option>
+              <option value="branding">Vector brand letterhead: original sample SVG logo</option>
+              </optgroup>
             </select>
+          </div><a class="plasma-link" href="./plasma.html"><span class="eyebrow">EXPERIMENT</span>Animated plasma ↗<small>SVG → PDF → PDF.js</small></a>
+        </div>
+        <div class="demo-context"><div><h2 id="active-demo">Positioned text</h2><p id="demo-purpose">A minimal document with explicit coordinates and built-in Helvetica.</p></div><div id="demo-badges" class="badges"></div></div>
+        <div class="workspace">
+          <form id="demo-form" novalidate>
+            <div class="panel-heading"><h3><span class="step">01</span> Inputs</h3><span class="live-indicator">Live · 300 ms</span></div>
             <label for="title">PDF title</label>
             <input id="title" name="title" value="Hello portable PDF" maxlength="40" aria-describedby="title-help" />
-            <p id="title-help">Helvetica accepts printable ASCII only. Unsupported characters produce readable engine diagnostics, not silent replacement.</p>
+            <p id="title-help" class="help">Up to 40 characters. Built-in Helvetica supports printable ASCII; freight examples use prepared fonts.</p>
+            <p id="input-error" class="input-error" hidden></p>
             <fieldset id="rich-controls" hidden>
               <legend>Bounded rich text controls (PDF points)</legend>
               <label for="rich-width">Width</label>
@@ -76,7 +85,7 @@
               <select id="mixed-theme" name="mixedTheme"><option value="ocean">Ocean</option><option value="amber">Amber</option></select>
               <label for="mixed-header"><input id="mixed-header" name="mixedHeader" type="checkbox" checked /> Reserved flow header</label>
               <label for="mixed-footer"><input id="mixed-footer" name="mixedFooter" type="checkbox" checked /> Final Page N/total footer on every page</label>
-              <p>Footer components run once per page after all sections paginate. Changing controls invalidates the previous PDF; preview and download share the same bytes.</p>
+              <p>Footer components run once per page after all sections paginate. Previous output stays available while edits render; preview and download share the same bytes.</p>
             </fieldset>
             <fieldset id="table-controls" hidden>
               <legend>Bounded table controls</legend>
@@ -101,18 +110,29 @@
               <label for="block-hidden"><input id="block-hidden" name="blockHidden" type="checkbox" /> Clip constrained overflow (hidden)</label>
               <p>Unchecked overflow errors; hidden uses a native padding-edge clip without continuation pages. Borders remain outside the clip. Clipping is not redaction: hidden PDF text can still be extracted.</p>
             </fieldset>
-            <button id="generate" type="submit">Generate PDF</button>
-            <button id="reset-demo" type="button">Reset</button>
-            <p id="status" role="status" aria-live="polite" aria-atomic="true">Ready. Generate a PDF; nothing leaves this browser.</p>
+            <fieldset id="branding-controls" hidden>
+              <legend>Original sample branding</legend>
+              <img id="brand-logo" width="80" height="80" alt="Original Northstar Studio sample logo: a white compass star in a colored circle" />
+              <label for="brand-logo-size">Header logo size (PDF points)</label>
+              <input id="brand-logo-size" name="brandLogoSize" type="number" min="32" max="80" step="1" value="56" required aria-describedby="brand-size-help" />
+              <p id="brand-size-help" class="help">32–80 pt; 72 points = 1 inch. The card mark stays 56 pt.</p>
+              <label for="brand-palette">Brand palette</label>
+              <select id="brand-palette" name="brandPalette"><option value="ocean">Ocean teal</option><option value="plum">Studio plum</option><option value="ember">Warm ember</option></select>
+              <p class="help">Same vector artwork in the UI and PDF. Original MIT-licensed sample, not an official corporate logo. Edit the PDF title above to personalize the letter.</p>
+            </fieldset>
+            <div class="form-actions"><button id="generate" type="submit">Generate PDF</button><button id="reset-demo" class="secondary" type="button">Reset demo</button></div>
+            <p class="privacy-note">Rendered in your browser. No uploads, no server.<br />Predefined examples only — no code execution.</p>
           </form>
-          <div><h3>Executed TypeScript / TSX</h3><p>Uppercase TSX names are imported or reusable components such as Document, Flow, Block and Paragraph. Lowercase names such as text and rect are native renderer intrinsics, used deliberately for fixed-position drawing. The mixed example includes its native fixed-page helper below the main source; chart and SVG adapters are advanced application examples, not built-in Chart or Svg APIs.</p><pre tabindex="0" aria-label="Example source"><code id="source"></code></pre></div>
-        </div>
-        <div id="output" hidden>
-          <h3>Your PDF</h3>
+          <div class="preview-panel">
+          <div class="panel-heading"><h3><span class="step">02</span> PDF preview</h3><span class="badge">PDF.js</span></div>
           <p id="pdf-actions" class="actions" hidden><a id="download">Download PDF</a><a id="open" target="_blank" rel="noopener">Open PDF in a new tab</a></p>
-          <p>Preview updates automatically as you edit. Generate PDF updates immediately. Open and Download always refer to the shown PDF, or the new PDF if preview fails.</p>
-          <div id="preview" aria-label="Generated PDF preview"></div>
+          <p id="result-state">Preparing your first document…</p>
+          <p id="output-summary" hidden></p>
+          <div id="output" hidden><div id="preview" aria-label="Generated PDF preview"></div></div>
+          <p id="status" role="status" aria-live="polite" aria-atomic="true">Ready. Nothing leaves this browser.</p>
+          </div>
         </div>
+        <details id="example-code" class="source-panel"><summary>View example code <span>Actual TypeScript / TSX source</span></summary><div class="source-content"><p id="source-state">Source will appear with the generated result.</p><p id="source-files"></p><h3>Arguments for this result</h3><pre class="arguments" tabindex="0" aria-label="Result arguments"><code id="source-arguments"></code></pre><p>Source is shown verbatim, not rewritten with your inputs. Uppercase TSX names are imported components; lowercase names are native drawing intrinsics. Included helpers are labeled below; chart and SVG adapters are application examples, not built-in Chart or Svg APIs.</p><pre tabindex="0" aria-label="Example source"><code id="source"></code></pre></div></details>
       </section>
       <section id="limits" aria-labelledby="limits-heading">
         <h2 id="limits-heading">Core first. Optional means optional.</h2>
