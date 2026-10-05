@@ -3,6 +3,8 @@ import type { MeasuredPage } from "./plan.js";
 import type {
   DocumentResources,
   PageResources,
+  PaintingBinding,
+  PaintingSlot,
   Resource,
   ResourceCollection,
   ResourcePhase,
@@ -12,6 +14,7 @@ import type {
 import { descendants } from "./traversal.js";
 
 type Bindings = Map<object, Map<object, Resource<unknown>>>;
+type Paintings = Map<object, Map<object, PaintingBinding<unknown>>>;
 
 export function documentResources(
   pages: readonly MeasuredPage[],
@@ -19,11 +22,15 @@ export function documentResources(
 ): DocumentResources {
   const collection = new Collection(providers);
   const bindings = new Map<MeasuredPage, Bindings>();
+  const paintings = new Map<MeasuredPage, Paintings>();
+  const finished = new WeakMap<PaintingBinding<unknown>, { key: string; payload: unknown }>();
   for (const provider of providers) provider.initialize?.(collection);
   for (const page of pages) {
     const current = bindings.get(page) ?? new Map();
     bindings.set(page, current);
     collection.current = current;
+    collection.paintings = paintings.get(page) ?? new Map();
+    paintings.set(page, collection.paintings);
     for (const node of descendants(page.children, (node) => (node.type === "paintGroup" ? node.children : [])))
       for (const provider of providers) provider.collect(node, collection);
   }
@@ -39,6 +46,17 @@ export function documentResources(
           if (!resource) throw new Error("Missing page resource binding");
           return resource as Resource<T>;
         },
+        painting<T>(site: object, slot: PaintingSlot<T>) {
+          const binding = paintings.get(page)?.get(site)?.get(slot);
+          if (!binding) throw new Error("Missing page painting binding");
+          let result = finished.get(binding);
+          if (!result) {
+            // Lazy completion retains output-budget early rejection; all pages are already collected.
+            result = Object.freeze({ key: binding.resource.key, payload: Object.freeze(binding.finish()) });
+            finished.set(binding, result);
+          }
+          return result as { readonly key: string; readonly payload: T };
+        },
       });
     },
     open: (writer: PdfWriter) => reservations(writer, resources),
@@ -49,6 +67,7 @@ class Collection implements ResourceCollection {
   readonly interned: Map<object, Map<unknown, Resource<unknown>>>;
   private readonly owned = new Map<Resource<unknown>, object>();
   current: Bindings | undefined;
+  paintings: Paintings | undefined;
   closed = false;
 
   constructor(providers: readonly ResourceProvider[]) {
@@ -80,6 +99,20 @@ class Collection implements ResourceCollection {
     const previous = slots.get(slot);
     if (previous && previous !== resource) throw new Error("Conflicting resource binding");
     slots.set(slot, resource);
+  }
+
+  bindPainting<T>(site: object, slot: PaintingSlot<T>, binding: PaintingBinding<T>): void {
+    if (this.closed) throw new Error("Resource collection is closed");
+    if (!this.paintings || !this.owned.has(binding.resource) || binding.resource.category !== slot.category)
+      throw new Error("Foreign painting resource or category");
+    let slots = this.paintings.get(site);
+    if (!slots) {
+      slots = new Map();
+      this.paintings.set(site, slots);
+    }
+    const previous = slots.get(slot);
+    if (previous && previous !== binding) throw new Error("Conflicting painting binding");
+    slots.set(slot, Object.freeze(binding));
   }
 }
 

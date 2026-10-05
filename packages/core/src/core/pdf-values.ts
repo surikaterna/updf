@@ -12,7 +12,8 @@ interface PdfHex {
   readonly [scalarBrand]: "hex";
   readonly value: string;
 }
-export type PdfScalar = PdfName | PdfLiteral | PdfHex;
+export type PdfString = PdfLiteral | PdfHex;
+export type PdfScalar = PdfName | PdfString;
 export const name = (value: string): PdfName => ({ [scalarBrand]: "name", value });
 export const literal = (value: string): PdfLiteral => ({ [scalarBrand]: "literal", value });
 export const hex = (value: string): PdfHex => ({ [scalarBrand]: "hex", value });

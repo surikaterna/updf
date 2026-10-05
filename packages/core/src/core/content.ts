@@ -1,28 +1,10 @@
-import { fontAt } from "../fonts/provider.js";
 import { painted } from "../painting/pdf.js";
-import { decimal as n, value } from "./pdf-values.js";
-import type {
-  MeasuredLine,
-  MeasuredNode,
-  MeasuredPage,
-  MeasuredPaintGroup,
-  MeasuredRichText,
-  MeasuredText,
-} from "./plan.js";
+import { decimal as n } from "./pdf-values.js";
+import type { MeasuredNode, MeasuredPage, MeasuredPaintGroup, MeasuredRichText } from "./plan.js";
 import { checkLimit } from "./policy.js";
 import type { PageResources } from "./resource-types.js";
+import { textCommand } from "./text-paint.js";
 
-function textCommand(
-  node: MeasuredText,
-  line: MeasuredLine,
-  height: number,
-  local: boolean,
-  resources: PageResources,
-): string {
-  const { key, encoded } = fontAt(resources, line);
-  const position = local ? `1 0 0 -1 ${n(line.x)} ${n(line.y)}` : `1 0 0 1 ${n(line.x)} ${n(height - line.y)}`;
-  return `BT /${key} ${n(node.fontSize)} Tf ${position} Tm ${value(encoded)} Tj ET\n`;
-}
 type Push = (chunk: string) => void;
 function richCommands(
   node: MeasuredRichText,
@@ -33,12 +15,10 @@ function richCommands(
 ): void {
   push("q\n");
   for (const fragment of node.fragments) {
-    const { key, encoded } = fontAt(resources, fragment);
     const x = node.x + fragment.x;
     const y = node.y + fragment.baseline;
-    const position = local ? `1 0 0 -1 ${n(x)} ${n(y)}` : `1 0 0 1 ${n(x)} ${n(height - y)}`;
     push(`${fragment.style.color.map(n).join(" ")} rg\n`);
-    push(`BT /${key} ${n(fragment.style.fontSize)} Tf ${position} Tm ${value(encoded)} Tj ET\n`);
+    push(textCommand(fragment, x, y, fragment.style.fontSize, height, local, resources));
   }
   push("Q\n");
 }
@@ -97,7 +77,7 @@ function leaf(
   }
   if (node.type === "text") {
     if (local) push("q\n0 0 0 rg\n");
-    for (const line of node.lines) push(textCommand(node, line, height, local, resources));
+    for (const line of node.lines) push(textCommand(line, line.x, line.y, node.fontSize, height, local, resources));
     if (local) push("Q\n");
   } else if (node.type === "rect") {
     push(

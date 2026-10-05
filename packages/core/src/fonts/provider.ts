@@ -1,33 +1,27 @@
 import { fail } from "../core/error.js";
-import { hex, literal, name, type PdfScalar } from "../core/pdf-values.js";
+import { hex, literal, name, type PdfString } from "../core/pdf-values.js";
 import type { MeasuredLine } from "../core/plan.js";
 import {
-  type PageResources,
+  type PaintingBinding,
   type Resource,
   type ResourceCollection,
   type ResourceProvider,
   resourceSlot,
 } from "../core/resource-types.js";
+import { textSlot } from "../core/text-paint.js";
 import type { PrivateFragment } from "../measurement/lines.js";
 import { addGlyph, encodeRun, type FontUsage } from "./cids.js";
 import { defineFont, reserveFont } from "./pdf.js";
 import type { PreparedFont } from "./types.js";
 
 type FontSite = MeasuredLine | PrivateFragment;
-interface FontPayload {
-  readonly encode: (site: FontSite) => PdfScalar;
-}
-const fontSlot = resourceSlot<FontPayload>();
-
-export function fontAt(resources: PageResources, site: FontSite): { key: string; encoded: PdfScalar } {
-  const resource = resources.resolve(site, fontSlot);
-  return { key: resource.key, encoded: resource.payload.encode(site) };
-}
+const fontSlot = resourceSlot<undefined>();
 
 export function fontProvider(): ResourceProvider {
   let next = 2;
-  let helvetica: Resource<FontPayload>;
-  const usages = new WeakMap<Resource<FontPayload>, FontUsage>();
+  let helvetica: Resource<undefined>;
+  let usages = new WeakMap<Resource<undefined>, FontUsage>();
+  let bindings = new WeakMap<FontSite, PaintingBinding<PdfString>>();
   const bind = (site: FontSite, font: PreparedFont | undefined, collection: ResourceCollection): void => {
     const resource = font
       ? collection.intern(fontSlot, font, () => {
@@ -38,17 +32,23 @@ export function fontProvider(): ResourceProvider {
         })
       : helvetica;
     if (font) {
-      if (!site.glyphs) fail("FONT_DATA", "", "Missing measured glyph run");
-      // Encoding is deferred until the committed traversal has registered every page's CIDs.
-      const usage = usages.get(resource);
-      if (!usage) throw new Error("Missing font usage");
-      for (const glyph of site.glyphs) addGlyph(usage, glyph);
+      register(site, usages.get(resource));
     }
-    collection.bind(site, fontSlot, resource);
+    let binding = bindings.get(site);
+    if (binding && binding.resource !== resource) throw new Error("Conflicting font painting binding");
+    if (!binding) {
+      const usage = usages.get(resource);
+      binding = { resource, finish: () => encoded(site, usage) };
+      bindings.set(site, binding);
+    }
+    collection.bindPainting(site, textSlot, binding);
   };
   return {
     slot: fontSlot,
     initialize(collection) {
+      next = 2;
+      usages = new WeakMap();
+      bindings = new WeakMap();
       helvetica = collection.intern(fontSlot, "Helvetica", builtin);
     },
     collect(node, collection) {
@@ -59,29 +59,37 @@ export function fontProvider(): ResourceProvider {
   };
 }
 
-function prepared(usage: FontUsage): Resource<FontPayload> {
+function register(site: FontSite, usage: FontUsage | undefined): void {
+  if (!site.glyphs) fail("FONT_DATA", "", "Missing measured glyph run");
+  if (!usage) throw new Error("Missing font usage");
+  // Encoding waits until the committed traversal has registered every page's CIDs.
+  for (const glyph of site.glyphs) addGlyph(usage, glyph);
+}
+
+function encoded(site: FontSite, usage: FontUsage | undefined): PdfString {
+  if (!usage) return literal(site.text);
+  if (!site.glyphs) fail("FONT_DATA", "", "Missing measured glyph run");
+  return hex(encodeRun(usage, site.glyphs));
+}
+
+function prepared(usage: FontUsage): Resource<undefined> {
   return {
     category: "Font",
     key: usage.key,
     phase: "content",
-    payload: Object.freeze({
-      encode(site: FontSite) {
-        if (!site.glyphs) fail("FONT_DATA", "", "Missing measured glyph run");
-        return hex(encodeRun(usage, site.glyphs));
-      },
-    }),
+    payload: undefined,
     reserve(writer) {
       const refs = reserveFont(writer);
       return { ref: refs.font, define: () => defineFont(writer, usage, refs) };
     },
   };
 }
-function builtin(): Resource<FontPayload> {
+function builtin(): Resource<undefined> {
   return {
     category: "Font",
     key: "F1",
     phase: "bootstrap",
-    payload: Object.freeze({ encode: (site: FontSite) => literal(site.text) }),
+    payload: undefined,
     reserve(writer) {
       const ref = writer.reserve();
       return {
