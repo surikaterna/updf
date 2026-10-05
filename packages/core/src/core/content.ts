@@ -1,8 +1,6 @@
-import { encodeRun, type FontUsage } from "../fonts/cids.js";
-import type { Alpha } from "../painting/alpha.js";
+import { fontAt } from "../fonts/provider.js";
 import { painted } from "../painting/pdf.js";
-import { fail } from "./error.js";
-import { hex, literal, decimal as n, value } from "./pdf-values.js";
+import { decimal as n, value } from "./pdf-values.js";
 import type {
   MeasuredLine,
   MeasuredNode,
@@ -12,48 +10,35 @@ import type {
   MeasuredText,
 } from "./plan.js";
 import { checkLimit } from "./policy.js";
+import type { PageResources } from "./resource-types.js";
 
 function textCommand(
   node: MeasuredText,
   line: MeasuredLine,
   height: number,
   local: boolean,
-  fonts: readonly FontUsage[],
+  resources: PageResources,
 ): string {
-  let key = "F1";
-  let encoded: string;
-  if (node.preparedFont) {
-    const font = fonts.find((item) => item.font === node.preparedFont);
-    if (!font || !line.glyphs) fail("FONT_DATA", "", "Unregistered measured font/run");
-    key = font.key;
-    encoded = value(hex(encodeRun(font, line.glyphs)));
-  } else encoded = value(literal(line.text));
+  const { key, encoded } = fontAt(resources, line);
   const position = local ? `1 0 0 -1 ${n(line.x)} ${n(line.y)}` : `1 0 0 1 ${n(line.x)} ${n(height - line.y)}`;
-  return `BT /${key} ${n(node.fontSize)} Tf ${position} Tm ${encoded} Tj ET\n`;
+  return `BT /${key} ${n(node.fontSize)} Tf ${position} Tm ${value(encoded)} Tj ET\n`;
 }
 type Push = (chunk: string) => void;
 function richCommands(
   node: MeasuredRichText,
   height: number,
   local: boolean,
-  fonts: readonly FontUsage[],
+  resources: PageResources,
   push: Push,
 ): void {
   push("q\n");
   for (const fragment of node.fragments) {
-    let key = "F1";
-    let encoded: string;
-    if (fragment.preparedFont) {
-      const font = fonts.find((item) => item.font === fragment.preparedFont);
-      if (!font || !fragment.glyphs) fail("FONT_DATA", "", "Unregistered rich font/run");
-      key = font.key;
-      encoded = value(hex(encodeRun(font, fragment.glyphs)));
-    } else encoded = value(literal(fragment.text));
+    const { key, encoded } = fontAt(resources, fragment);
     const x = node.x + fragment.x;
     const y = node.y + fragment.baseline;
     const position = local ? `1 0 0 -1 ${n(x)} ${n(y)}` : `1 0 0 1 ${n(x)} ${n(height - y)}`;
     push(`${fragment.style.color.map(n).join(" ")} rg\n`);
-    push(`BT /${key} ${n(fragment.style.fontSize)} Tf ${position} Tm ${encoded} Tj ET\n`);
+    push(`BT /${key} ${n(fragment.style.fontSize)} Tf ${position} Tm ${value(encoded)} Tj ET\n`);
   }
   push("Q\n");
 }
@@ -67,8 +52,7 @@ function emit(
   nodes: readonly MeasuredNode[],
   height: number,
   local: boolean,
-  fonts: readonly FontUsage[],
-  alphas: readonly Alpha[],
+  resources: PageResources,
   push: Push,
 ): void {
   const tasks: ({ node: MeasuredNode; local: boolean } | "close")[] = [];
@@ -88,7 +72,7 @@ function emit(
     }
     const { node, local } = task;
     if (node.type === "richText") {
-      richCommands(node, height, local, fonts, push);
+      richCommands(node, height, local, resources, push);
       continue;
     }
     if (node.type === "paintGroup") {
@@ -97,24 +81,23 @@ function emit(
       schedule(node.children, true);
       continue;
     }
-    leaf(node, height, local, fonts, alphas, push);
+    leaf(node, height, local, resources, push);
   }
 }
 function leaf(
   node: Exclude<MeasuredNode, MeasuredPaintGroup | MeasuredRichText>,
   height: number,
   local: boolean,
-  fonts: readonly FontUsage[],
-  alphas: readonly Alpha[],
+  resources: PageResources,
   push: Push,
 ): void {
   if (node.type !== "text" && node.painting) {
-    painted(node.painting, height, local, alphas).forEach(push);
+    painted(node.painting, height, local, resources).forEach(push);
     return;
   }
   if (node.type === "text") {
     if (local) push("q\n0 0 0 rg\n");
-    for (const line of node.lines) push(textCommand(node, line, height, local, fonts));
+    for (const line of node.lines) push(textCommand(node, line, height, local, resources));
     if (local) push("Q\n");
   } else if (node.type === "rect") {
     push(
@@ -133,8 +116,7 @@ function leaf(
 export function commands(
   page: MeasuredPage,
   budget: { length: number; maximum: number },
-  fonts: readonly FontUsage[],
-  alphas: readonly Alpha[],
+  resources: PageResources,
 ): string[] {
   const result: string[] = [];
   const push: Push = (chunk) => {
@@ -142,6 +124,6 @@ export function commands(
     result.push(chunk);
   };
   push("0.5 w\n");
-  emit(page.children, page.height, false, fonts, alphas, push);
+  emit(page.children, page.height, false, resources, push);
   return result;
 }

@@ -26,6 +26,9 @@ no TS paths apply to native builds. Build order is kernel → core → layout/ta
 
 ## Narrow internal seams
 
+For the current private PDF resource pipeline and its remaining font/default
+coupling, see [resource providers: current seam and extraction target](resource-providers.md).
+
 `core/internal` exports only existing shared validators/error identity:
 DocumentError, fail, array, finite, number, record, matrix, commands, paint,
 byteLength, scalar, and the existing ResolvedPaint type. Public affine helpers
