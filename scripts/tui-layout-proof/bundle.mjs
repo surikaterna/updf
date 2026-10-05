@@ -4,9 +4,11 @@ import { builtinModules } from "node:module";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { build } from "esbuild";
+import { updfBaseline, verifyBaseline } from "./baseline.mjs";
+
+export { updfBaseline } from "./baseline.mjs";
 
 export const revision = "4fc67c225ef9af80dd2345852df3b884e62656eb";
-export const updfBaseline = "0bf8812b6c02c9e7114b75db02468ca4fe6f6147";
 export const here = dirname(fileURLToPath(import.meta.url));
 
 export function verifyRoot() {
@@ -74,6 +76,7 @@ function configure(builder, root, baseline) {
 }
 
 export async function bundle(entry, root, baseline = false) {
+  if (baseline) verifyBaseline();
   return build({
     entryPoints: [resolve(here, entry)],
     bundle: true,

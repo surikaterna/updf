@@ -2,10 +2,12 @@ import assert from "node:assert/strict";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { gzipSync } from "node:zlib";
+import { verifyBaseline } from "./baseline.mjs";
 import { bundle, here, updfBaseline, verifyRoot } from "./bundle.mjs";
 
-const root = verifyRoot();
 const baseline = process.argv.includes("--baseline");
+if (baseline) verifyBaseline();
+const root = verifyRoot();
 const scopes = {
   allocator: baseline ? "../../packages/layout/src/width-resolver.ts" : "allocator.ts",
   formbarBridge: "bridge.mjs",

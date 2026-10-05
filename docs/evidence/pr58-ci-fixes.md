@@ -380,3 +380,78 @@ lint/typecheck/tests pass. No approved/new exception. No Changeset: project does
 not use Changesets. Both acceptance slices implemented, ready for independent
 audit, not verified. Remaining host action: parent audit and authorized delivery;
 new hosted CI status is unknown. No unrelated contract or feature changes.
+
+## 2026-10-05: explicit TUI historical prerequisite and integration location
+
+PR #58 review follow-up; issue ID N/A. Same worktree/branch, clean starting
+base/HEAD `8d606ef0715f34df60359e73ccebea767c39929b`. This slice remains
+unstaged/uncommitted, ready for independent audit, not verified.
+
+`scripts/tui-layout-proof/baseline.mjs` checks the actual uPDF Git toplevel,
+historical commit `0bf8812b6c02c9e7114b75db02468ca4fe6f6147`, and all nine blobs
+used by the existing historical loader. `profile.mjs --baseline` checks before
+Formbar validation, any esbuild callbacks, or artifact writes; exported
+`bundle(..., true)` also checks before building. No automatic fetch, current-code
+substitution, vendored allocator, or silent skip. Linked worktrees are accepted;
+accidental discovery of a Git parent from an archive is rejected.
+
+Current live CLI/tests/profiling still require only the pinned clean Formbar
+checkout and installed dependencies, not historical uPDF Git. The new
+[TUI README](../../scripts/tui-layout-proof/README.md), linked from root readme,
+locates the FSX → app-private install → host snapshot → public kernel → terminal
+pipeline, runnable 32/80 hidden/shown examples, and separate kernel-only fragment
+CLI/type proof. It explicitly limits the claim to static ASCII cell layouts,
+not interactive widgets, a production Formbar package, or a web preset. Local
+ignored artifacts and external installed dependencies are not public screenshots
+or full installed-size measurements.
+
+### Fresh checks
+
+All commands below ran from `/home/sprawl/projects/updf/trees/layout-kernel`
+unless the archive cwd is explicitly named:
+
+- `node --test scripts/tui-layout-proof/baseline.test.mjs`: **3/3**, covering no
+  repository, missing revision, and nested archive/parent-repository rejection;
+  no Formbar dependency or global Git configuration changes.
+- With `FORMBAR_ROOT=/home/sprawl/projects/formbar`:
+  `node scripts/tui-layout-proof/run.mjs --widths=32,80 --states=hidden,shown`,
+  `node --test scripts/tui-layout-proof/live.test.mjs` (**4/4**, 274 width/state
+  projections), and `node scripts/tui-layout-proof/profile.mjs` with and without
+  `--baseline`: pass. Formbar remains clean at the exact pinned
+  `4fc67c225ef9af80dd2345852df3b884e62656eb`; read-only reuse, no install/build.
+- `./node_modules/.bin/tsx scripts/tui-layout-proof/fragment-cli.ts` with and
+  without `--two-regions`: pass, no Formbar environment variable needed.
+- `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test`:
+  pass, **694/694** native tests, zero failures/skips. Initial format/import-order
+  diagnostics were fixed; final gates pass. Typecheck builds root packages, not
+  active playground/app dist. Logs: `/tmp/opencode/pr58-tui-{typecheck,native}.log`.
+- `git diff --check`: pass.
+
+Historyless reproduction: archive starting HEAD to
+`/tmp/opencode/pr58-tui-historyless`, overlay only `baseline.mjs`, `bundle.mjs`,
+and `profile.mjs`, and symlink existing dependencies. From that archive cwd,
+`GIT_CEILING_DIRECTORIES=/tmp/opencode git rev-parse --show-toplevel` fails.
+With the same Formbar root, `node scripts/tui-layout-proof/profile.mjs --baseline`
+fails with the exact root/revision prerequisite **before any artifacts directory
+exists**. Explicit current profiling then succeeds; all four runtime raw/gzip
+sizes match the full checkout and both leak lists are empty. Reproduction/assertion
+driver: `node /tmp/opencode/pr58-tui-proof.mjs` (run before artifacts exist).
+
+`node /tmp/opencode/pr58-tui-preservation.mjs` compares starting-HEAD scripts and
+delivered scripts in that disposable archive. All four current runtime scope
+sizes are identical: allocator **4553/1975**, Formbar bridge **198549/58329**,
+terminal **18537/6939**, combined CLI **217730/65067** raw/gzip bytes.
+Current bootstrap alone grows **3109/1580 → 4257/2038** (+1148/+458) for the
+explicit prerequisite code; this is not a kernel/terminal layout cost increase.
+Historical runtime scopes are **5428/2355**, **198549/58329**, **9069/3791**,
+**208195/61981**; immutable historical bootstrap remains **2349/1234**.
+Reports: `/tmp/opencode/pr58-tui-{current,baseline}.json`.
+
+Code-principles checklist passes: fail-closed correctness and proportional
+portable/live/archive coverage; cohesive source files below 400 lines; new/changed
+functions below 50 lines, nesting at most three; intent-only comment; lint/tests
+pass. No exception or Changeset (repository does not use Changesets; tooling/docs
+only). No public kernel/production allocator, Formbar, workflow, service, SVG
+threshold, active 4318 app dist, other owner, tracker or Git delivery mutation.
+Parent owns independent audit and any authorized commit/push/review response;
+no new hosted-CI claim is made.

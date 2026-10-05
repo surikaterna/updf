@@ -36,6 +36,9 @@ implemented, unreleased branch work through `da0b23f`, not yet merged into `deve
 The [authoritative current kernel contract](docs/architecture/layout-kernel.md)
 consolidates ownership, API limits, evidence provenance and non-deploying PR gates;
 dated A–D evidence logs are not API authority.
+The [static TUI integration proof](scripts/tui-layout-proof/README.md) shows the
+Formbar host-snapshot → public kernel → terminal pipeline and runnable commands;
+it is not a production interactive TUI package.
 See [package architecture](docs/architecture/packages.md),
 [native contracts](docs/native-api.md) and [legacy migration](docs/migration/legacy.md).
 
