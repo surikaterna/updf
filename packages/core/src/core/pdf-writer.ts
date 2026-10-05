@@ -19,8 +19,18 @@ export class PdfWriter {
   private readonly bodies: (readonly Chunk[] | undefined)[] = [];
   private length = header.length;
   private sealed = false;
+  private rootId: number | undefined;
 
   constructor(private readonly maximum = Number.MAX_SAFE_INTEGER) {}
+
+  /** Select an owned root once, before definitions can snapshot data. Reservations may precede selection. */
+  setRoot(ref: PdfRef): void {
+    this.open();
+    if (this.rootId !== undefined) throw new Error("PDF root already selected");
+    const id = this.id(ref);
+    this.check(this.length, this.bodies.length + 1, id);
+    this.rootId = id;
+  }
 
   reserve(): PdfRef {
     this.open();
@@ -34,7 +44,10 @@ export class PdfWriter {
     return ref;
   }
 
+  /** Lifecycle rejection is mutation-free; definition errors after reservation require discarding this writer. */
   add(input: PdfValue): PdfRef {
+    this.open();
+    this.root();
     const ref = this.reserve();
     this.define(ref, input);
     return ref;
@@ -59,9 +72,9 @@ export class PdfWriter {
     this.store(ref, [prefix, ...owned, "endstream"]);
   }
 
-  seal(root: PdfRef): Uint8Array<ArrayBuffer> {
+  seal(): Uint8Array<ArrayBuffer> {
     this.open();
-    const rootId = this.id(root);
+    this.root();
     if (this.bodies.some((body) => body === undefined)) throw new Error("Unresolved PDF reference");
     const chunks: Chunk[] = [header];
     const offsets: number[] = [];
@@ -72,7 +85,7 @@ export class PdfWriter {
       for (const part of parts) chunks.push(part);
       cursor += parts.reduce((sum, chunk) => sum + size(chunk), 0);
     });
-    chunks.push(this.tail(cursor, rootId, offsets));
+    chunks.push(this.tail(cursor, offsets));
     const length = chunks.reduce((sum, chunk) => sum + size(chunk), 0);
     this.limit(length);
     this.sealed = true;
@@ -91,6 +104,7 @@ export class PdfWriter {
 
   private available(ref: PdfRef): number {
     this.open();
+    this.root();
     const index = this.id(ref) - 1;
     if (this.bodies[index] !== undefined) throw new Error("Duplicate PDF definition");
     return index;
@@ -108,15 +122,25 @@ export class PdfWriter {
     checkLimit(length, Math.min(this.maximum, 0xffffffff), "", "PDF output bytes");
   }
 
-  private check(length: number, count = this.bodies.length + 1): void {
-    const framing = `xref\n0 ${count}\n0000000000 65535 f \ntrailer\n<< /Size ${count} /Root 1 0 R >>\nstartxref\n${length}\n%%EOF\n`;
+  private root(): number {
+    if (this.rootId === undefined) throw new Error("PDF root must be selected before definitions or seal");
+    return this.rootId;
+  }
+
+  private check(length: number, count = this.bodies.length + 1, root = this.rootId): void {
+    // Before root selection only empty reservations exist; selection checks the complete framing.
+    if (root === undefined) {
+      this.limit(length);
+      return;
+    }
+    const framing = `xref\n0 ${count}\n0000000000 65535 f \ntrailer\n<< /Size ${count} /Root ${root} 0 R >>\nstartxref\n${length}\n%%EOF\n`;
     this.limit(length + framing.length + (count - 1) * 20);
   }
 
-  private tail(start: number, root: number, offsets: readonly number[]): string {
+  private tail(start: number, offsets: readonly number[]): string {
     const count = this.bodies.length + 1;
     const entries = offsets.map((offset) => `${String(offset).padStart(10, "0")} 00000 n \n`).join("");
-    return `xref\n0 ${count}\n0000000000 65535 f \n${entries}trailer\n<< /Size ${count} /Root ${root} 0 R >>\nstartxref\n${start}\n%%EOF\n`;
+    return `xref\n0 ${count}\n0000000000 65535 f \n${entries}trailer\n<< /Size ${count} /Root ${this.root()} 0 R >>\nstartxref\n${start}\n%%EOF\n`;
   }
 
   private encode(input: PdfValue, active: Set<object>, depth: number): string {

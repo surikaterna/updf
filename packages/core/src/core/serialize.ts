@@ -10,6 +10,7 @@ import { type Policy, policy } from "./policy.js";
 export function serialize(pages: readonly MeasuredPage[], limits: Policy = policy()): Uint8Array<ArrayBuffer> {
   const writer = new PdfWriter(limits.outputBytes);
   const catalog = writer.reserve();
+  writer.setRoot(catalog);
   const tree = writer.reserve();
   const helvetica = writer.reserve();
   const pageRefs = pages.map(() => ({ page: writer.reserve(), content: writer.reserve() }));
@@ -46,7 +47,7 @@ export function serialize(pages: readonly MeasuredPage[], limits: Policy = polic
       CA: alpha.stroke,
     });
   });
-  return writer.seal(catalog);
+  return writer.seal();
 }
 
 function defineHelvetica(writer: PdfWriter, ref: PdfRef): void {
