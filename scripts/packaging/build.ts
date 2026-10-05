@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import ts from "typescript";
+import { commonJSOutputPath } from "./commonjs-path.js";
 
 interface Entry {
   browser: { types: string; default: string };
@@ -9,8 +10,7 @@ interface Entry {
   require: { types: string; default: string };
 }
 
-async function emitCommonJS(source: ts.SourceFile, root: string, out: string): Promise<void> {
-  const path = join(out, "cjs", relative(root, source.fileName).replace(/\.ts$/u, ".js"));
+async function emitCommonJS(source: ts.SourceFile, path: string): Promise<void> {
   const result = ts.transpileModule(source.text, {
     fileName: source.fileName,
     compilerOptions: {
@@ -84,10 +84,10 @@ async function build(): Promise<void> {
     }
   });
   await Promise.all(emitted);
-  for (const source of program
-    .getSourceFiles()
-    .filter((file) => file.fileName.startsWith(`${root}/`) && !file.isDeclarationFile))
-    await emitCommonJS(source, root, out);
+  for (const source of program.getSourceFiles()) {
+    const path = commonJSOutputPath(source, root, out);
+    if (path) await emitCommonJS(source, path);
+  }
   await writeFile(join(out, "cjs", "package.json"), '{"type":"commonjs"}\n');
   const manifest: { exports: Record<string, Entry> } = JSON.parse(await readFile("package.json", "utf8"));
   for (const entry of Object.values(manifest.exports)) await facade(program, entry, out, root);
