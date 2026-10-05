@@ -1,6 +1,7 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
-import { type Component, lower } from "@updf/core/vdom";
+
+import type { Component } from "@updf/core/vdom";
+import { lower, render } from "./text-options.js";
 
 const Heading: Component<{ readonly title: string }> = ({ title }) => (
   <text x={0} y={0} width={200} height={24} fontSize={10} lineHeight={12} align="left">

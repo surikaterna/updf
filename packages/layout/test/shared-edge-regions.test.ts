@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, type NodeDefinition } from "@updf/core";
-import { createLayoutOperation } from "@updf/core/internal";
-import { ownEmissionWrapper } from "../src/emission-nodes.js";
+import { createLayoutOperation } from "../../../tests/fixtures/text-options.js";
+import { ownEmissionWrapper } from "../dist/emission-nodes.js";
 import {
   ownEdgeRegion,
   ownSharedEdgeGroup,
   requireEdgeRegion,
   requireSharedEdgeGroup,
-} from "../src/shared-edge-regions.js";
-import type { EdgeRegionInput, LocalEdgeClaim, SharedEdgeGroupInput } from "../src/shared-edge-types.js";
+} from "../dist/shared-edge-regions.js";
+import type { EdgeRegionInput, LocalEdgeClaim, SharedEdgeGroupInput } from "../dist/shared-edge-types.js";
 
 const path = "/table/edges";
 const edge: LocalEdgeClaim = {

@@ -1,5 +1,5 @@
-import { render } from "@updf/core";
 import { type TableColumn, table, tableExtension } from "@updf/tables";
+import { render } from "./text-options.js";
 import { createExtensions, layoutFlow, paragraph } from "./transitional-layout.js";
 
 export function composableInventory(

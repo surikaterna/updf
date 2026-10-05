@@ -1,7 +1,7 @@
 /** @jsxImportSource @updf/core */
 
-import { render } from "@updf/core";
-import { type Component, definePrimitive, Fragment, h, lower, type VDOMChild } from "@updf/core/vdom";
+import { type Component, definePrimitive, Fragment, h, type VDOMChild } from "@updf/core/vdom";
+import { lower, render } from "./text-options.js";
 
 const bounds = { x: 0, y: 0, width: 80, height: 24, fontSize: 10, lineHeight: 12, align: "left" } as const;
 interface LabelProps {

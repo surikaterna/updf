@@ -4,9 +4,8 @@ import {
   type LineHeight,
   validateDataObject as record,
   snapshotData,
-  validateLineHeight,
 } from "@updf/core/internal";
-import type { TextStyle } from "@updf/core/measurement";
+import { type TextStyle, validateLineHeight } from "@updf/text";
 import { backgroundColor } from "./inline-background.js";
 export type StyleSources = Readonly<Record<keyof TextStyle, string>>;
 export function initialOrigins(path: string): StyleSources {
@@ -19,7 +18,12 @@ export function styleOrigins(base: StyleSources, override: unknown, path: string
   return result;
 }
 
-export function textStyle(base: TextStyle, override: unknown, path: string, operation: LayoutOperation): TextStyle {
+export function textStyle(
+  base: Omit<TextStyle, "font"> & { readonly font?: string },
+  override: unknown,
+  path: string,
+  operation: LayoutOperation,
+): TextStyle {
   const value = override as Readonly<Record<string, unknown>>;
   const result = snapshotData(
     {
@@ -29,9 +33,8 @@ export function textStyle(base: TextStyle, override: unknown, path: string, oper
       ...("color" in value ? { color: value.color } : {}),
     },
     path,
-  ) as TextStyle;
-  operation.validateStyle(result, path);
-  return result;
+  ) as Omit<TextStyle, "font"> & { readonly font?: string };
+  return operation.resolveStyle(result, path);
 }
 export function authorStyle(override: unknown, path: string, paragraph = false): Readonly<Record<string, unknown>> {
   const value = override === undefined ? {} : override;

@@ -3,11 +3,11 @@ import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { render } from "@updf/core";
 import { cmrFixture, createCmrDocument } from "@updf/example-cmr/cmr";
 import { bytes as heading } from "../../apps/node/dist/heading.js";
 import { bytes as hello } from "../../apps/node/dist/hello.js";
 import { fontBytes, svgBytes } from "../../apps/node/dist/optional.js";
+import { render } from "../fixtures/text-options.js";
 
 test("README complete TS/TSX sources stay synchronized and produce actual PDFs", async () => {
   const readme = await readFile(new URL("../../readme.md", import.meta.url), "utf8");

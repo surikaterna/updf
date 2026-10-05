@@ -1,6 +1,6 @@
 import { render } from "@updf/core";
-import type { PreparedFont } from "@updf/core/fonts";
 import { createContext, h, lower, useContext } from "@updf/core/vdom";
+import type { PreparedFont } from "@updf/fonts";
 import {
   Block,
   Document,
@@ -14,6 +14,7 @@ import {
   Paragraph,
   pageSize,
 } from "@updf/layout";
+import { textOptions } from "./text-options.js";
 
 const Theme = createContext({ name: "default" });
 export function mixedProof(font: PreparedFont) {
@@ -41,7 +42,7 @@ export function mixedProof(font: PreparedFont) {
       section("two", [footer]),
     ],
   });
-  const options = { resources: { Proof: font } };
+  const options = textOptions({ resources: { Proof: font } });
   const result = layout(tree, options);
   const native = render(result.document, options);
   const info = {

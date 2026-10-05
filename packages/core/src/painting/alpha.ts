@@ -13,9 +13,7 @@ export function alphaProvider(): ResourceProvider {
   let next = 1;
   return {
     slot: alphaSlot,
-    collect(node, collection) {
-      if (node.type === "paintGroup" || node.type === "text" || node.type === "richText" || !node.painting) return;
-      const drawing = node.painting;
+    collectDrawing(drawing, collection) {
       const paint = drawing.paint;
       const fill = paint.fill ? paint.fillOpacity : 1;
       const stroke = paint.stroke && paint.width ? paint.strokeOpacity : 1;

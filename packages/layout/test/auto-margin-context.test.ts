@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
+import { DocumentError } from "@updf/core";
 import { createContext, h, useContext } from "@updf/core/vdom";
 import {
   Block,
@@ -13,12 +13,11 @@ import {
   Flow,
   FragmentContext,
   flow,
-  layout,
-  measure,
   PageContext,
   paragraph,
   Row,
 } from "@updf/layout";
+import { layout, measure, render } from "../../../tests/fixtures/text-options.js";
 
 const margins = { top: 0, right: 0, bottom: 0, left: 0 };
 const Theme = createContext("default");

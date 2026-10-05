@@ -1,15 +1,14 @@
 import { defaultResources } from "./core/default-resources.js";
 import { measure } from "./core/measure.js";
 import { operation } from "./core/operation.js";
+import type { OperationOptions as RenderOptions } from "./core/policy.js";
 import { serialize } from "./core/serialize.js";
 import { validate } from "./core/validate.js";
-import type { RenderOptions } from "./fonts/types.js";
 import type { DocumentDefinition } from "./types.js";
 
 export { DocumentError } from "./core/error.js";
-export type { Limits, OperationOptions } from "./core/policy.js";
+export type { Limits, OperationOptions, OperationOptions as RenderOptions } from "./core/policy.js";
 export { SERVICE_LIMITS } from "./core/policy.js";
-export type { FontResources, PreparedFont, RenderOptions } from "./fonts/types.js";
 export type {
   Box,
   ClipRect,
@@ -47,8 +46,8 @@ export function render(document: DocumentDefinition, options: RenderOptions = {}
 
 /** JSON/untrusted data boundary with the same structured diagnostics as render. */
 export function renderUnknown(document: unknown, options: RenderOptions = {}): Uint8Array<ArrayBuffer> {
-  const { fonts, budget } = operation(options, [], false);
+  const { fonts, providers, budget } = operation(options, [], false);
   validate(document, fonts, budget);
   const pages = measure(document, fonts, budget);
-  return serialize(pages, defaultResources(pages), budget.policy);
+  return serialize(pages, defaultResources(pages, providers, fonts.bindings), budget.policy);
 }

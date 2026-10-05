@@ -4,6 +4,7 @@ import test from "node:test";
 import { type DiagnosticCode, DocumentError, render } from "@updf/core";
 import { prepareFont } from "@updf/fontkit";
 import { fontDocument, fontText } from "../../../tests/fixtures/fonts/font-fixture.js";
+import { fontOptions } from "../../../tests/fixtures/fonts/font-options.js";
 
 const fixture = async () =>
   new Uint8Array(await readFile(new URL("../../../tests/fixtures/fonts/LiberationSans-Regular.ttf", import.meta.url)));
@@ -28,9 +29,10 @@ test("public Fontkit preparation is owned, deterministic, uses actual glyph metr
   backing.set(original, 10);
   const font = prepareFont(backing.subarray(10, -10));
   const document = fontDocument([fontText("Москва - Latin ABC")]);
-  const before = render(document, { resources: { Demo: font } });
+  const options = fontOptions({ resources: { Demo: font } });
+  const before = render(document, options);
   backing.fill(0);
-  assert.deepEqual(render(document, { resources: { Demo: font } }), before);
+  assert.deepEqual(render(document, options), before);
   assert.deepEqual(font.metadata, prepareFont(original).metadata);
   assert.equal(font.metadata.embeddingRights, "installable");
   assert.equal(font.metadata.descriptor.postscriptName, "LiberationSans");

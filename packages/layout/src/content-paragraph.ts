@@ -1,5 +1,6 @@
 import type { NodeDefinition, ParagraphDefinition } from "@updf/core";
-import { DocumentError, type InlineLine, type LayoutOperation, paintInlineText, sum } from "@updf/core/internal";
+import { DocumentError, type InlineLine, type LayoutOperation, sum } from "@updf/core/internal";
+import { paintInlineText } from "@updf/text";
 import type { BudgetTotals } from "./budget.js";
 import type { AuthorParagraph } from "./content-normalize.js";
 import type { ContentLine } from "./content-types.js";

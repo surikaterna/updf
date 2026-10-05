@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError } from "@updf/core";
 import { createContext, h, useContext } from "@updf/core/vdom";
-import { measure } from "@updf/layout";
 import { type CellProps, Table, table, tableExtension } from "@updf/tables";
+import { measure } from "../../../tests/fixtures/text-options.js";
 import { createExtensions, Document, Flow, layout, layoutFlow } from "../../../tests/fixtures/transitional-layout.js";
 
 const columns = [{ width: 180 }] as const;

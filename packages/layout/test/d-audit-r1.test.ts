@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { type DocumentDefinition, type NodeDefinition, render } from "@updf/core";
-import { measureText, type ParagraphDefinition } from "@updf/core/measurement";
-import { createContext, h, lower, useContext } from "@updf/core/vdom";
+import type { DocumentDefinition, NodeDefinition } from "@updf/core";
+import { createContext, h, useContext } from "@updf/core/vdom";
+import type { ParagraphDefinition } from "@updf/text";
+import { lower, measureText, render } from "../../../tests/fixtures/text-options.js";
 import {
   block,
   type Content,
@@ -14,7 +15,7 @@ import {
   paragraph,
   span,
 } from "../../../tests/fixtures/transitional-layout.js";
-import { Document } from "../src/transitional-vdom.js";
+import { Document } from "../dist/transitional-vdom.js";
 
 const template = (height: number) => ({ width: 100, height, margins: { top: 0, right: 0, bottom: 0, left: 0 } });
 const near = (actual: number, expected: number) =>

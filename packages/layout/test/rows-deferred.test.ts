@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
+import { DocumentError } from "@updf/core";
 import { type ComponentContext, createContext, h, useContext } from "@updf/core/vdom";
 import {
   Block,
@@ -12,12 +12,12 @@ import {
   type FlowBlock,
   FragmentContext,
   flow,
-  layout,
   type MeasureContext,
   PageContext,
   Paragraph,
   row,
 } from "@updf/layout";
+import { layout, render } from "../../../tests/fixtures/text-options.js";
 
 test("#44 Rows retain measured deferred recipes until selected page/fragment and provider contexts finalize", () => {
   const Theme = createContext("NONE");

@@ -1,4 +1,5 @@
 import type { ContentHandle } from "../core/content-ownership.js";
+import type { OwnedResource } from "../core/owned-resource.js";
 import type { OperationOptions } from "../core/policy.js";
 import type { TextMeasurement, TextMeasurementInput } from "../measurement/types.js";
 import type { LineNode, PaintingGroupNode, PathNode, RectangleNode, RichTextNode, TextNode } from "../types.js";
@@ -8,12 +9,12 @@ export type Key = string | number;
 export type NativeTag = keyof NativeProps;
 export type VDOMChild = VNode | string | null | undefined | boolean | readonly VDOMChild[];
 
-type ReadonlyData<T> = T extends ContentHandle
+type ReadonlyData<T> = T extends ContentHandle | OwnedResource
   ? T
   : T extends object
     ? { readonly [K in keyof T]: DeepReadonly<T[K]> }
     : T;
-export type DeepReadonly<T> = [T] extends [ContentHandle]
+export type DeepReadonly<T> = [T] extends [ContentHandle | OwnedResource]
   ? T
   : [T] extends [VNode]
     ? T

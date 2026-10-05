@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { fontsProof } from "./consumer/fonts.js";
 import { installedGraph } from "./consumer/graphs.js";
 import { absent, execute, install, pack, root } from "./consumer/install.js";
 import { kernelProof } from "./consumer/kernel.js";
@@ -11,12 +12,12 @@ import { smokeFixture } from "./migration/legacy-smoke-fixture.js";
 
 async function coreProof(directory: string, graphs: Record<string, readonly string[]>): Promise<void> {
   await execute(directory, coreRuntime);
-  await typeConsumer(directory, ["measurement-template.tsx", "fonts-template.ts"]);
-  await typeConsumer(directory, ["measurement-template.tsx", "fonts-template.ts"], true);
+  await typeConsumer(directory, ["runtime-template.ts"]);
+  await typeConsumer(directory, ["runtime-template.ts"], true);
   for (const entry of [
     "@updf/core",
-    "@updf/core/fonts",
-    "@updf/core/measurement",
+    "@updf/core/resources",
+    "@updf/core/pdf",
     "@updf/core/painting",
     "@updf/core/vdom",
     "@updf/core/jsx-runtime",
@@ -31,17 +32,30 @@ const directories: string[] = [];
 const graphs: Record<string, readonly string[]> = {};
 try {
   const tarballs = new Map<string, string>();
-  for (const name of ["layout-kernel", "core", "layout", "tables", "geometry", "svg", "fontkit", "legacy"])
+  for (const name of [
+    "layout-kernel",
+    "core",
+    "fonts",
+    "text",
+    "layout",
+    "tables",
+    "geometry",
+    "svg",
+    "fontkit",
+    "legacy",
+  ])
     tarballs.set(name, await pack(`packages/${name}`, packs));
   tarballs.set("cmr", await pack("apps/cmr", packs));
   for (const names of [
     ["layout-kernel"],
-    ["layout-kernel", "core", "cmr"],
-    ["core", "layout-kernel", "layout"],
-    ["core", "layout-kernel", "layout", "tables"],
+    ["layout-kernel", "core"],
+    ["layout-kernel", "core", "text"],
+    ["layout-kernel", "core", "fonts", "text", "cmr"],
+    ["core", "layout-kernel", "fonts", "text", "layout"],
+    ["core", "layout-kernel", "fonts", "text", "layout", "tables"],
     ["layout-kernel", "core", "geometry"],
-    ["layout-kernel", "core", "geometry", "svg", "cmr"],
-    ["layout-kernel", "core", "fontkit"],
+    ["layout-kernel", "core", "fonts", "text", "geometry", "svg", "cmr"],
+    ["layout-kernel", "core", "fonts", "text", "fontkit"],
     ["legacy"],
   ]) {
     const paths = names.map((name) => {
@@ -54,11 +68,22 @@ try {
     await absent(directory, ["fontkit", "react", "react-dom"]);
     await absent(
       directory,
-      ["layout-kernel", "tables", "geometry", "svg", "fontkit", "legacy"]
+      ["layout-kernel", "fonts", "text", "tables", "geometry", "svg", "fontkit", "legacy"]
         .filter((name) => !names.includes(name))
         .map((name) => `@updf/${name}`),
     );
     if (names.includes("core")) await coreProof(directory, graphs);
+    if (names.includes("text")) graphs.text = await installedGraph(directory, "@updf/text");
+    if (names.includes("text") && !names.includes("fonts")) {
+      await typeConsumer(directory, ["host-metrics-template.ts"]);
+      await typeConsumer(directory, ["host-metrics-template.ts"], true);
+    }
+    if (names.includes("fonts")) {
+      await fontsProof(directory);
+      graphs.fonts = await installedGraph(directory, "@updf/fonts");
+      await typeConsumer(directory, ["measurement-template.tsx", "fonts-template.ts"]);
+      await typeConsumer(directory, ["measurement-template.tsx", "fonts-template.ts"], true);
+    }
     if (names.length === 1 && names.includes("layout-kernel")) graphs.kernel = await kernelProof(directory);
     if (names.includes("layout")) {
       await typeConsumer(directory, [
@@ -87,9 +112,12 @@ try {
         `
         import assert from 'node:assert/strict';
         const layout = await import('@updf/layout');
+        const { createHelvetica, fontRuntime } = await import('@updf/fonts');
+        const { createTextService } = await import('@updf/text');
+        const options = { resources: { Helvetica: createHelvetica() }, text: createTextService({runtime: fontRuntime(), defaultFont: 'Helvetica'}) };
         assert.deepEqual(layout.pt(16), { unit: 'pt', value: 16 });
         assert.ok(Object.isFrozen(layout.pt(16)));
-        assert.ok(Math.abs(layout.measure(layout.paragraph({ style: { fontSize: 12, lineHeight: 1.2 }, children: 'A' }), { width: 200 }).size.height - 14.4) < 1e-12);
+        assert.ok(Math.abs(layout.measure(layout.paragraph({ style: { fontSize: 12, lineHeight: 1.2 }, children: 'A' }), { width: 200 }, options).size.height - 14.4) < 1e-12);
         for (const key of ['align', 'lineHeight', 'defaultStyle'])
           assert.throws(() => layout.paragraph({ [key]: 16 }));
         for (const name of ['layoutFlow', 'layoutFlowUnknown']) assert.equal(name in layout, false);
@@ -129,7 +157,7 @@ try {
       await typeConsumer(directory, types);
       await typeConsumer(directory, types, true);
     }
-    if (names.length === 3 && names.includes("core") && names.includes("cmr")) {
+    if (!names.includes("svg") && names.includes("cmr")) {
       await absent(directory, ["@updf/geometry", "@updf/svg", "@updf/fontkit", "@updf/legacy"]);
     }
     if (names.includes("fontkit")) {
@@ -161,7 +189,7 @@ try {
   await mkdir(join(root, "artifacts"), { recursive: true });
   await writeFile(join(root, "artifacts/installed-graphs.json"), `${JSON.stringify(graphs, null, 2)}\n`);
   console.log(
-    "Eight clean external tarball closures passed: kernel-only, core-only, layout/VDOM, composable tables, geometry, SVG/tree, Fontkit absent/present, legacy; NodeNext/Bundler types and runtime ownership.",
+    "Ten clean external tarball closures passed: kernel, drawing-only core, host-metrics text, fonts/text/CMR, layout, tables, geometry, SVG, Fontkit absent/present, legacy; NodeNext/Bundler declarations without source aliases.",
   );
 } finally {
   for (const directory of directories) await rm(directory, { recursive: true, force: true });

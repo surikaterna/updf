@@ -1,6 +1,6 @@
-import type { ResolvedFonts } from "../fonts/resources.js";
+import type { ResolvedTextResources as ResolvedFonts } from "../core/text-resources.js";
+import { textService } from "../core/text-resources.js";
 import type { WorkLedger } from "../measurement/ledger.js";
-import { rich } from "../measurement/measure.js";
 import type { DocumentDefinition, NodeDefinition } from "../types.js";
 
 function visit(nodes: readonly NodeDefinition[], fonts: ResolvedFonts, budget: WorkLedger, path: string): void {
@@ -11,10 +11,9 @@ function visit(nodes: readonly NodeDefinition[], fonts: ResolvedFonts, budget: W
         const at = `${pointer}/${i}`;
         if (node.type === "paintGroup") schedule(node.children, `${at}/children`);
         else if (node.type === "richText")
-          rich(
+          textService(fonts, at).rich(
             { kind: "rich", width: node.width, height: node.height, paragraphs: node.paragraphs },
-            fonts,
-            budget,
+            { bindings: fonts.bindings, budget },
             at,
           );
       });

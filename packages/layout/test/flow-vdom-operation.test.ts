@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
-import { type ComponentContext, createContext, h, lower, useContext, type VDOMChild } from "@updf/core/vdom";
+import { DocumentError } from "@updf/core";
+import { type ComponentContext, createContext, h, useContext, type VDOMChild } from "@updf/core/vdom";
+import { lower, render } from "../../../tests/fixtures/text-options.js";
 import {
   createExtensions,
   defineBlockAdapter,
@@ -12,7 +13,7 @@ import {
   Paragraph,
   paragraph,
 } from "../../../tests/fixtures/transitional-layout.js";
-import { Document, Flow } from "../src/transitional-vdom.js";
+import { Document, Flow } from "../dist/transitional-vdom.js";
 import { flow } from "./fixtures.js";
 
 const pageTemplate = flow().pageTemplate;

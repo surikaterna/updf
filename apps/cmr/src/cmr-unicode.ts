@@ -1,6 +1,9 @@
 import type { DocumentDefinition } from "@updf/core";
-import type { PreparedFont } from "@updf/core/fonts";
+import { render } from "@updf/core";
 import { lower } from "@updf/core/vdom";
+import type { PreparedFont } from "@updf/fonts";
+import { fontProvider, fontRuntime } from "@updf/fonts";
+import { createTextService } from "@updf/text";
 import { cmrFixture } from "./cmr.js";
 import { createCmrTree } from "./cmr-tree.js";
 import type { CmrData } from "./cmr-types.js";
@@ -21,5 +24,19 @@ export const unicodeCmrFixture = Object.freeze({
 
 /** All labels/data use one explicitly selected font; source CMR geometry is unchanged. */
 export function createUnicodeCmrDocument(font: PreparedFont): DocumentDefinition {
-  return lower(createCmrTree(unicodeCmrFixture, "CmrFont"), { resources: { CmrFont: font } });
+  return lower(createCmrTree(unicodeCmrFixture, "CmrFont"), unicodeCmrOptions(font));
+}
+
+export function unicodeCmrOptions(font: PreparedFont) {
+  const runtime = fontRuntime();
+  return {
+    resources: { CmrFont: font },
+    text: createTextService({ runtime, defaultFont: "CmrFont" }),
+    providers: [fontProvider(runtime)],
+  };
+}
+
+export function renderUnicodeCMR(font: PreparedFont): Uint8Array<ArrayBuffer> {
+  const options = unicodeCmrOptions(font);
+  return render(lower(createCmrTree(unicodeCmrFixture, "CmrFont"), options), options);
 }

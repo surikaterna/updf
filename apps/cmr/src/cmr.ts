@@ -1,7 +1,13 @@
 import type { DocumentDefinition, NodeDefinition, TextAlign, TextNode } from "@updf/core";
+import { type OperationOptions, render } from "@updf/core";
 import type { CmrData, CmrGoodsRow } from "./cmr-types.js";
+import { cmrTextOptions } from "./text-options.js";
 
 export type { CmrData, CmrGoodsRow } from "./cmr-types.js";
+
+export function renderCMR(document: DocumentDefinition, options: OperationOptions = {}): Uint8Array<ArrayBuffer> {
+  return render(document, cmrTextOptions(options));
+}
 
 const text = (
   x: number,

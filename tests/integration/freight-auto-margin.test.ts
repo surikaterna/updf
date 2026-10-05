@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
-import { type DocumentDefinition, render } from "@updf/core";
+import type { DocumentDefinition } from "@updf/core";
 import { h } from "@updf/core/vdom";
-import { Block, Document, Flow, layout, PageSize } from "@updf/layout";
+import { Block, Document, Flow, PageSize } from "@updf/layout";
 import { freightInvoiceExample } from "../../examples/business/freight-invoice.js";
 import {
   extendedFreightInvoice,
@@ -18,6 +18,7 @@ import {
   FreightSummary,
 } from "../../examples/business/freight-invoice-sections.js";
 import { freightFonts } from "../fixtures/fonts/freight-fonts.js";
+import { layout, render } from "../fixtures/text-options.js";
 import { freightGeometry, freightMultipageGeometry, freightRaster } from "./freight-pdf-checks.js";
 import { eraseRegion } from "./manifest-pdf-checks.js";
 

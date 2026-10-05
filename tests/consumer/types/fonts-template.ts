@@ -1,10 +1,18 @@
 import { type DocumentDefinition, render } from "@updf/core";
-import { createPreparedFont, type FontResources, type PreparedFont, type PreparedFontInput } from "@updf/core/fonts";
+import type { OwnedResource } from "@updf/core/resources";
 import { h, lower } from "@updf/core/vdom";
+import { createPreparedFont, fontProvider, fontRuntime, type PreparedFont, type PreparedFontInput } from "@updf/fonts";
+import { createTextService } from "@updf/text";
 
 export function preparedConsumer(input: PreparedFontInput): Uint8Array {
   const font = createPreparedFont(input);
-  const resources = { Demo: font } satisfies FontResources;
+  const resources = { Demo: font } satisfies Readonly<Record<string, OwnedResource>>;
+  const runtime = fontRuntime();
+  const options = {
+    resources,
+    text: createTextService({ runtime, defaultFont: "Demo" }),
+    providers: [fontProvider(runtime)],
+  };
   const text = h("text", {
     x: 10,
     y: 10,
@@ -17,7 +25,7 @@ export function preparedConsumer(input: PreparedFontInput): Uint8Array {
     text: "Москва",
   });
   const tree = h("document", { version: 1, children: h("page", { width: 595, height: 842, children: text }) });
-  return render(lower(tree, { resources }), { resources });
+  return render(lower(tree, options), options);
 }
 
 export function negativeFonts(font: PreparedFont, input: PreparedFontInput, document: DocumentDefinition): void {

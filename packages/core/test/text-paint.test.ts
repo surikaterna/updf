@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createHelvetica, fontRuntime } from "@updf/fonts";
 import { commands } from "../dist/core/content.js";
 import { documentResources } from "../dist/core/document-resources.js";
 import { hex, literal, name } from "../dist/core/pdf-values.js";
@@ -8,8 +9,22 @@ import { paintingSlot, type ResourceCollection, resourceSlot } from "../dist/cor
 import { serialize } from "../dist/core/serialize.js";
 import { textSlot } from "../dist/core/text-paint.js";
 
-const first = { text: "ignored", x: 10, y: 20 };
-const second = { text: "also ignored", x: 30, y: 40 };
+const runtime = fontRuntime();
+const font = createHelvetica();
+const first = {
+  text: "ignored",
+  x: 10,
+  y: 20,
+  run: runtime.measure(font, "ignored", 12, "fixed", "/first").run,
+  path: "/first",
+};
+const second = {
+  text: "also ignored",
+  x: 30,
+  y: 40,
+  run: runtime.measure(font, "also ignored", 12, "fixed", "/second").run,
+  path: "/second",
+};
 const page: MeasuredPage = {
   width: 100,
   height: 100,
@@ -50,7 +65,7 @@ test("non-font provider supplies literal and hex to real content, lazily once ac
   const bindings = [literal("(\\)"), hex("0041")].map((payload) => ({
     resource: owned,
     finish() {
-      assert.equal(visits, 2);
+      assert.equal(visits, 4);
       count++;
       return payload;
     },
@@ -60,15 +75,13 @@ test("non-font provider supplies literal and hex to real content, lazily once ac
     [
       {
         slot,
-        collect(_node, collection) {
+        collectText(site, collection) {
           visits++;
           collection.intern(slot, "synthetic", () => owned);
-          [first, second].forEach((site, i) => {
-            const binding = bindings[i];
-            assert.ok(binding);
-            collection.bindPainting(site, textSlot, binding);
-            collection.bindPainting(site, textSlot, binding);
-          });
+          const binding = bindings[site.identity === first ? 0 : 1];
+          assert.ok(binding);
+          collection.bindPainting(site.identity, textSlot, binding);
+          collection.bindPainting(site.identity, textSlot, binding);
         },
       },
     ],
@@ -99,7 +112,7 @@ test("painting ownership/category/conflicts and every closed mutation path inclu
     [
       {
         slot,
-        collect(_node, collection) {
+        collectText(site, collection) {
           captured = collection;
           const owned = collection.intern(slot, "ok", resource);
           const binding = {
@@ -117,8 +130,8 @@ test("painting ownership/category/conflicts and every closed mutation path inclu
           );
           const wrong = collection.intern(slot, "wrong", () => resource("Example"));
           assert.throws(() => collection.bindPainting(first, textSlot, { ...binding, resource: wrong }), /category/);
-          collection.bindPainting(first, textSlot, binding);
-          assert.throws(() => collection.bindPainting(first, textSlot, { ...binding }), /Conflicting/);
+          collection.bindPainting(site.identity, textSlot, binding);
+          assert.throws(() => collection.bindPainting(site.identity, textSlot, { ...binding }), /Conflicting/);
         },
       },
     ],
@@ -134,9 +147,9 @@ test("completion failure aborts serialization without returning a partial docume
     [
       {
         slot,
-        collect(_node, collection) {
+        collectText(site, collection) {
           const owned = collection.intern(slot, "ok", resource);
-          collection.bindPainting(first, textSlot, {
+          collection.bindPainting(site.identity, textSlot, {
             resource: owned,
             finish() {
               throw new Error("paint failure");

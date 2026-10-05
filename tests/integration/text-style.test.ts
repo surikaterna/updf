@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
-import { render } from "@updf/core";
-import { document, flow, layout, paragraph, pt } from "@updf/layout";
+import { document, flow, paragraph, pt } from "@updf/layout";
+import { layout, render } from "../fixtures/text-options.js";
 
 function pdf(height: number, top: number, text = "A") {
   return render(

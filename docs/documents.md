@@ -15,6 +15,12 @@ Import `Document`, `Page`, `Flow`, `Block`, `Paragraph`, `Span`, `PageSize`,
 import { render } from "@updf/core";
 import { lower, useContext } from "@updf/core/vdom";
 import { Document, Page, Flow, Paragraph, PageSize, PageContext } from "@updf/layout";
+import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
+import { createTextService } from "@updf/text";
+
+const runtime = fontRuntime();
+const options = { resources: { Helvetica: createHelvetica() },
+  text: createTextService({ runtime, defaultFont: "Helvetica" }), providers: [fontProvider(runtime)] };
 
 function ReportFooter() {
   const page = useContext(PageContext);
@@ -32,7 +38,7 @@ const content = <Document>
   </Flow>
   <Page size={PageSize.A4} />
 </Document>;
-const bytes = render(lower(content));
+const bytes = render(lower(content, options), options);
 ```
 
 `layout(content, options?)` accepts the existing core LowerOptions (including a
@@ -41,7 +47,9 @@ local primitive registry and resource metadata) and returns an owned, deeply fro
 the same bytes as ordinary `render(lower(content, options), renderOptions)`.
 RenderOptions is the resources/budget subset, not the lowering-only registry or
 metadata fields. Output-byte limits apply at serialization, so pass resources and
-budget options to `render` too.
+budget options to `render` too, together with the paired text service and providers.
+Text-bearing data examples below also require these options; see
+[explicit composition](migration/fonts-text.md). Constructors themselves do not select a default font.
 Fixed pages do not produce flow placements. Placement `pageIndex` is zero-based
 in the **whole document**, and source paths identify the originating section.
 

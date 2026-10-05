@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "@updf/core": "2.0.0-poc.0",
-    "@updf/layout-kernel": "2.0.0-poc.0"
+    "@updf/layout-kernel": "2.0.0-poc.0",
+    "@updf/text": "2.0.0-poc.0"
   },
   "scripts": {
     "build": "node --input-type=module -e \"import { rm } from 'node:fs/promises'; await rm('dist', { recursive: true, force: true });\" && tsc -p tsconfig.json"

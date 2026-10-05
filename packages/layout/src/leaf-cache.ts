@@ -1,4 +1,4 @@
-import type { TextMeasurement } from "@updf/core/measurement";
+import type { TextMeasurement } from "@updf/text";
 import type { AdapterOrigin } from "./adapter-call.js";
 import type { ExtensionLifetime } from "./extension-producer.js";
 import type { MeasuredBlock } from "./extension-types.js";

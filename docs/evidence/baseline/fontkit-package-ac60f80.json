@@ -1,0 +1,34 @@
+{
+  "name": "@updf/fontkit",
+  "version": "2.0.0-poc.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@updf/core": "2.0.0-poc.0"
+  },
+  "peerDependencies": {
+    "fontkit": "^2.0.4"
+  },
+  "peerDependenciesMeta": {
+    "fontkit": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "fontkit": "2.0.4"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
+}

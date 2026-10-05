@@ -6,7 +6,7 @@ and `pt` from `@updf/layout`. No React/CSS runtime or types are required.
 
 | Field | Paragraph.style | Span.style | Units/default |
 | --- | --- | --- | --- |
-| font | yes | yes | Registered resource ID; `Helvetica` |
+| font | yes | yes | Registered resource ID; omitted selects only the injected service's explicit default |
 | fontSize | yes | yes | Positive finite PDF points; 10 |
 | color | yes | yes | Readonly RGB triple, finite channels in [0,1]; black |
 | backgroundColor | no: use Block | yes | Readonly RGB triple in [0,1]; omitted means no highlight |

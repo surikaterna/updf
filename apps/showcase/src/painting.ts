@@ -1,4 +1,5 @@
-import { type DocumentDefinition, type PathCommand, render } from "@updf/core";
+import type { DocumentDefinition, PathCommand } from "@updf/core";
+import { render } from "./text-options.js";
 
 const triangle: readonly PathCommand[] = Object.freeze([
   { type: "move", x: 0, y: 0 },

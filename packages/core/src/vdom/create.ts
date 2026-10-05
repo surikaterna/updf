@@ -1,6 +1,4 @@
 import { fail } from "../core/error.js";
-import { ledger } from "../measurement/ledger.js";
-import { validateParagraphs } from "../measurement/validate.js";
 import { providerNode } from "./context.js";
 import { dataRecord, snapshot } from "./data.js";
 import { ownNode } from "./ownership.js";
@@ -49,7 +47,6 @@ export function createNode<P extends object>(
     const recipe = recipeNode(type, props, key);
     if (recipe) return recipe;
   }
-  if (type === "richText") validateParagraphs(props.paragraphs, ledger(), "/props/paragraphs");
   const owned = snapshot<P>(props, "/props");
   const metadata = key === undefined ? {} : { key };
   if (type === Fragment) {

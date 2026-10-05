@@ -1,8 +1,9 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
-import { lower } from "@updf/core/vdom";
-import { createExtensions, Document, document, Flow, flow, layout } from "@updf/layout";
+
+import { createExtensions, Document, document, Flow, flow } from "@updf/layout";
 import { Table, type TableInput, table, tableExtension } from "@updf/tables";
+import { layout } from "./layout-options.js";
+import { lower, render } from "./text-options.js";
 
 const input: TableInput = {
   columns: [{ width: 100 }],

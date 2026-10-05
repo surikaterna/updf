@@ -1,6 +1,5 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
-import { lower } from "@updf/core/vdom";
+
 import {
   Block,
   createExtensions,
@@ -13,14 +12,14 @@ import {
   flow,
   type InlineContent,
   inline,
-  layout,
   type MeasuredContent,
-  measure,
   Paragraph,
   paragraph,
   Span,
   span,
 } from "@updf/layout";
+import { layout, measure } from "./layout-options.js";
+import { lower, render } from "./text-options.js";
 
 const adapter = defineInlineAdapter<{ height: number }>({
   name: "consumer.visual",

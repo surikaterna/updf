@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { DocumentError } from "@updf/core";
-import type { PreparedBlock } from "../src/protocol.js";
-import { rowProducer } from "../src/row-producer.js";
-import { sizing } from "../src/sizing.js";
+import type { PreparedBlock } from "../dist/protocol.js";
+import { rowProducer } from "../dist/row-producer.js";
+import { sizing } from "../dist/sizing.js";
 
 function column(height: number, selectedHeight = height): PreparedBlock {
   return {

@@ -5,8 +5,9 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { DocumentError, render, type TextNode } from "@updf/core";
+import { DocumentError, type TextNode } from "@updf/core";
 import { cmrFixture, createCmrDocument } from "@updf/example-cmr/cmr";
+import { render } from "../fixtures/text-options.js";
 
 test("CMR named subset dimensions, exact anchors and supplied goods total", () => {
   const ast = createCmrDocument(cmrFixture);

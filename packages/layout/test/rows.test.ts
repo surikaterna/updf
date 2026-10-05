@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, type NodeDefinition, render } from "@updf/core";
+import { DocumentError, type NodeDefinition } from "@updf/core";
 import {
   block,
   column,
@@ -10,12 +10,11 @@ import {
   extension,
   type FlowBlock,
   flow,
-  layout,
-  measure,
   paragraph,
   type RowAlignment,
   row,
 } from "@updf/layout";
+import { layout, measure, render } from "../../../tests/fixtures/text-options.js";
 
 const spacer = (height: number): FlowBlock => ({ type: "spacer", height });
 const margins = { top: 0, right: 0, bottom: 0, left: 0 };

@@ -1,4 +1,4 @@
-import type { TableFlowDefinition } from "../../packages/layout/src/tables/index.js";
+import type { TableFlowDefinition } from "../../packages/layout/dist/tables/index.js";
 
 export function tableProofDefinition(): TableFlowDefinition {
   const defaults = {

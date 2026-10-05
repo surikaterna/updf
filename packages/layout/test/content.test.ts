@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
-import { type ComponentContext, createContext, h, lower, useContext } from "@updf/core/vdom";
+import { DocumentError } from "@updf/core";
+import { type ComponentContext, createContext, h, useContext } from "@updf/core/vdom";
 import { badge, badgeAdapter } from "../../../apps/showcase/src/inline-badge.js";
+import { lower, render } from "../../../tests/fixtures/text-options.js";
 import {
   Block,
   block,
@@ -16,7 +17,7 @@ import {
   Span,
   span,
 } from "../../../tests/fixtures/transitional-layout.js";
-import { Document } from "../src/transitional-vdom.js";
+import { Document } from "../dist/transitional-vdom.js";
 
 const pageTemplate = { width: 120, height: 120, margins: { top: 10, right: 10, bottom: 10, left: 10 } };
 function reject(callback: () => unknown, code: string, path?: RegExp): void {

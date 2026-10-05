@@ -1,8 +1,9 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
+import type { OperationOptions } from "@updf/core";
 import { useContext } from "@updf/core/vdom";
-import { Column, createExtensions, Document, Flow, layout, PageContext, PageSize, Paragraph, Row } from "@updf/layout";
+import { Column, createExtensions, Document, Flow, PageContext, PageSize, Paragraph, Row } from "@updf/layout";
 import { Table, tableExtension } from "@updf/tables";
+import { layout, render } from "../text-options.js";
 import { AddressBlock, businessTheme, LabelValue, Section, SignatureArea, Theme, Totals } from "./components.js";
 import { calculateInvoice, money } from "./invoice-calculations.js";
 import { type InvoiceData, mockInvoice } from "./invoice-data.js";
@@ -103,9 +104,33 @@ function InvoiceClosing({ data }: { readonly data: InvoiceData }) {
     </Section>
   );
 }
-export function invoiceExample(title = "Studio equipment supply", data: InvoiceData = mockInvoice) {
+export function invoiceExample(
+  title = "Studio equipment supply",
+  data: InvoiceData = mockInvoice,
+  options: OperationOptions = {},
+) {
   const totals = calculateInvoice(data);
-  const result = layout(
+  const result = layout(invoiceContent(data, title), options);
+  return {
+    bytes: render(result.document, options),
+    result,
+    totals,
+    metadata: {
+      kind: "original-mock-invoice",
+      number: data.number,
+      issued: data.issued,
+      reference: data.reference,
+      due: data.due,
+      currency: "GBP",
+      title,
+      itemCount: data.items.length,
+      pageCount: result.pageCount,
+      totals,
+    },
+  };
+}
+function invoiceContent(data: InvoiceData, title: string) {
+  return (
     <Theme.Provider value={businessTheme}>
       <Document>
         <Flow
@@ -128,23 +153,6 @@ export function invoiceExample(title = "Studio equipment supply", data: InvoiceD
           </Flow.Footer>
         </Flow>
       </Document>
-    </Theme.Provider>,
+    </Theme.Provider>
   );
-  return {
-    bytes: render(result.document),
-    result,
-    totals,
-    metadata: {
-      kind: "original-mock-invoice",
-      number: data.number,
-      issued: data.issued,
-      reference: data.reference,
-      due: data.due,
-      currency: "GBP",
-      title,
-      itemCount: data.items.length,
-      pageCount: result.pageCount,
-      totals,
-    },
-  };
 }

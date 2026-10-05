@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError } from "@updf/core";
 import { resolveWidths, type WidthTrack } from "@updf/layout";
-import { bits, dyadic, spacing } from "../src/binary64.js";
+import { bits, dyadic, spacing } from "../dist/binary64.js";
 
 const exact = (value: number) => dyadic(bits(value));
 function rejects(input: unknown, path: string, code = "GEOMETRY") {

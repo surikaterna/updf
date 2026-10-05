@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { render } from "@updf/core";
 import { PdfWriter } from "../../packages/core/dist/core/pdf-writer.js";
 import { fixtureFont, fontDocument, fontText } from "../fixtures/fonts/font-fixture.js";
+import { render } from "../fixtures/text-options.js";
 
 test("production font, page, painting and stream consumers use the one typed writer", async (context) => {
   const definitions = context.mock.method(PdfWriter.prototype, "define");
@@ -28,9 +28,11 @@ test("production font, page, painting and stream consumers use the one typed wri
   const types = definitions.mock.calls.map((call) => (call.arguments[1] as { Type?: { value: string } }).Type?.value);
   assert.deepEqual(
     types.filter(Boolean).sort(),
-    ["Catalog", "Pages", "Font", "Page", "Font", "Font", "FontDescriptor", "ExtGState"].sort(),
+    ["Catalog", "Pages", "Page", "Font", "Font", "FontDescriptor", "ExtGState"].sort(),
   );
   assert.equal(streams.mock.callCount(), 4);
+  // The explicit but unused Helvetica binding must not allocate a PDF font object.
+  assert.doesNotMatch(Buffer.from(bytes).toString("latin1"), /\/BaseFont \/Helvetica/);
   const writer = seal.mock.calls[0]?.this;
   assert.equal(roots.mock.calls[0]?.this, writer);
   for (const call of [...definitions.mock.calls, ...streams.mock.calls]) assert.equal(call.this, writer);

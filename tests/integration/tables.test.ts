@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
-import { tableProof } from "../../apps/browser-fonts/table-proof.js";
 import { fixtureFont } from "../fixtures/fonts/font-fixture.js";
 import { legacyInventory as tableExample } from "../fixtures/legacy-inventory.js";
+import { tableProof } from "../fixtures/table-proof.js";
 import {
   assertInventoryBackgrounds,
   assertInventoryContent,

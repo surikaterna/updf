@@ -10,8 +10,8 @@ import {
   flow,
   flowBody,
   type LocalEdgeClaim,
-  layout,
 } from "@updf/layout";
+import { layout } from "../../../tests/fixtures/text-options.js";
 
 const edge: LocalEdgeClaim = {
   axis: "horizontal",

@@ -1,13 +1,15 @@
 /** @jsxImportSource @updf/core */
 import { type OperationOptions, type RichTextNode, render, SERVICE_LIMITS } from "@updf/core";
+import { type Component, createContext, lower, useContext } from "@updf/core/vdom";
+import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
 import {
+  createTextService,
   measureText,
   measureTextUnknown,
   type ParagraphDefinition,
   type TextMeasurement,
   type TextStyle,
-} from "@updf/core/measurement";
-import { type Component, createContext, lower, useContext } from "@updf/core/vdom";
+} from "@updf/text";
 
 const style: TextStyle = { font: "Helvetica", fontSize: 10, color: [0, 0, 0] };
 const paragraphs: readonly ParagraphDefinition[] = [
@@ -21,10 +23,16 @@ const paragraphs: readonly ParagraphDefinition[] = [
   },
 ];
 const input = { kind: "rich", width: 100, paragraphs } as const;
-const result: TextMeasurement = measureText(input);
+const runtime = fontRuntime();
+const composition = {
+  resources: { Helvetica: createHelvetica() },
+  text: createTextService({ runtime, defaultFont: "Helvetica" }),
+  providers: [fontProvider(runtime)],
+};
+const result: TextMeasurement = measureText(input, composition);
 const node: RichTextNode = { type: "richText", x: 0, y: 0, width: 100, height: result.consumedHeight, paragraphs };
 const Theme = createContext({ heading: { height: 100 } });
-const options: OperationOptions = { profile: "service", limits: { ...SERVICE_LIMITS, pages: 21 } };
+const options: OperationOptions = { ...composition, profile: "service", limits: { ...SERVICE_LIMITS, pages: 21 } };
 const Heading: Component<object> = (_props, context) => {
   const theme = useContext(Theme);
   if (theme.heading.height !== 100) throw new Error("context");
@@ -44,7 +52,7 @@ const bytes = render(
   ),
   options,
 );
-if (!bytes.length || measureTextUnknown(input).lineCount !== 1 || node.type !== "richText")
+if (!bytes.length || measureTextUnknown(input, options).lineCount !== 1 || node.type !== "richText")
   throw new Error("measurement");
 if (bytes.length === 0) {
   // @ts-expect-error Hook values are deeply readonly snapshots.
@@ -68,7 +76,7 @@ if (bytes.length === 0) {
   );
   void children;
   // @ts-expect-error Optional undefined is not accepted.
-  measureText({ ...input, height: undefined });
+  measureText({ ...input, height: undefined }, options);
   // @ts-expect-error No raw font bytes or trusted plans are exposed.
   void result.lines[0].fragments[0].glyphs;
   // @ts-expect-error DOM-like spans are not a native tag.

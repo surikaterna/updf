@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { type DocumentDefinition, render } from "@updf/core";
 import { prepareFont } from "@updf/fontkit";
 import { renderSVG } from "@updf/svg";
+import { textOptions } from "./text-options.js";
 
 const painting = renderSVG('<svg viewBox="0 0 10 10"><rect width="10" height="10" fill="red"/></svg>', {
   x: 10,
@@ -37,4 +38,4 @@ const document: DocumentDefinition = {
     },
   ],
 };
-export const fontBytes = render(document, { resources: { Demo: font } });
+export const fontBytes = render(document, textOptions({ resources: { Demo: font } }));

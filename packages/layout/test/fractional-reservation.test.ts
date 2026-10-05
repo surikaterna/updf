@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
+import { DocumentError } from "@updf/core";
 import { h } from "@updf/core/vdom";
-import { Block, document, flow, layout, measure, paragraph, pt } from "@updf/layout";
+import { Block, document, flow, paragraph, pt } from "@updf/layout";
 import { businessTheme } from "../../../examples/business/components.js";
 import { invoiceExample } from "../../../examples/business/invoice.js";
+import { layout, measure, render, textOptions } from "../../../tests/fixtures/text-options.js";
 
 for (const lineHeight of [pt(12.6), 1.4]) {
   test(`#51 public wrapped paragraph retains its fractional reservation (${JSON.stringify(lineHeight)})`, () => {
@@ -80,8 +81,9 @@ test("#51 ordinary invoice with mocked ratio theme renders deterministically", (
   const original = businessTheme.text.lineHeight;
   try {
     Reflect.set(businessTheme.text, "lineHeight", 1.4);
-    const first = invoiceExample();
-    assert.deepEqual(invoiceExample().bytes, first.bytes);
+    const options = textOptions({});
+    const first = invoiceExample(undefined, undefined, options);
+    assert.deepEqual(invoiceExample(undefined, undefined, options).bytes, first.bytes);
     assert.ok(first.bytes.length > 0);
   } finally {
     businessTheme.text.lineHeight = original;

@@ -5,8 +5,7 @@
     "types": ["node", "react", "react-dom"],
     "noEmit": true,
     "declaration": false,
-    "declarationMap": false,
-    "paths": { "@updf/layout": ["./packages/layout/src/index.ts"] }
+    "declarationMap": false
   },
   "include": [
     "packages/*/test/**/*.ts",

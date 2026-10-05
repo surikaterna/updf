@@ -1,5 +1,7 @@
+import { fail } from "./error.js";
+import type { OwnedResource } from "./owned-resource.js";
 import type { PdfRef, PdfWriter } from "./pdf-writer.js";
-import type { MeasuredPage } from "./plan.js";
+import type { MeasuredNode, MeasuredPage } from "./plan.js";
 import type {
   DocumentResources,
   PageResources,
@@ -11,6 +13,7 @@ import type {
   ResourceProvider,
   ResourceSlot,
 } from "./resource-types.js";
+import { textSlot } from "./text-paint.js";
 import { descendants } from "./traversal.js";
 
 type Bindings = Map<object, Map<object, Resource<unknown>>>;
@@ -19,12 +22,13 @@ type Paintings = Map<object, Map<object, PaintingBinding<unknown>>>;
 export function documentResources(
   pages: readonly MeasuredPage[],
   providers: readonly ResourceProvider[],
+  bindingsContext: ReadonlyMap<string, OwnedResource> = new Map(),
 ): DocumentResources {
   const collection = new Collection(providers);
   const bindings = new Map<MeasuredPage, Bindings>();
   const paintings = new Map<MeasuredPage, Paintings>();
   const finished = new WeakMap<PaintingBinding<unknown>, { key: string; payload: unknown }>();
-  for (const provider of providers) provider.initialize?.(collection);
+  for (const provider of providers) provider.initialize?.(collection, { bindings: bindingsContext });
   for (const page of pages) {
     const current = bindings.get(page) ?? new Map();
     bindings.set(page, current);
@@ -32,7 +36,7 @@ export function documentResources(
     collection.paintings = paintings.get(page) ?? new Map();
     paintings.set(page, collection.paintings);
     for (const node of descendants(page.children, (node) => (node.type === "paintGroup" ? node.children : [])))
-      for (const provider of providers) provider.collect(node, collection);
+      collectNode(node, providers, collection);
   }
   collection.closed = true;
   const resources = [...collection.interned.values()].flatMap((entries) => [...entries.values()]);
@@ -61,6 +65,21 @@ export function documentResources(
     },
     open: (writer: PdfWriter) => reservations(writer, resources),
   });
+}
+
+function collectNode(node: MeasuredNode, providers: readonly ResourceProvider[], collection: Collection): void {
+  if (node.type === "text" || node.type === "richText") {
+    const sites = node.type === "text" ? node.lines : node.fragments;
+    for (const site of sites) {
+      if (!site.run) fail("FONT_RESOURCE", site.path, "Missing text run");
+      for (const provider of providers)
+        provider.collectText?.({ identity: site, run: site.run, path: site.path }, collection);
+      if (!collection.paintings?.get(site)?.has(textSlot))
+        fail("FONT_RESOURCE", site.path, "No provider bound the text run");
+    }
+  } else if (node.type !== "paintGroup" && node.painting) {
+    for (const provider of providers) provider.collectDrawing?.(node.painting, collection);
+  }
 }
 
 class Collection implements ResourceCollection {

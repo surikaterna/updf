@@ -1,6 +1,6 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
-import { createContext, h, lower, useContext } from "@updf/core/vdom";
+
+import { createContext, h, useContext } from "@updf/core/vdom";
 import {
   Block,
   Document,
@@ -9,7 +9,6 @@ import {
   Flow,
   FragmentContext,
   flow,
-  layout,
   Page,
   PageContext,
   type PageInfo,
@@ -18,6 +17,8 @@ import {
   page,
   pageSize,
 } from "@updf/layout";
+import { layout } from "./layout-options.js";
+import { lower, render } from "./text-options.js";
 
 const Theme = createContext({ label: "report" });
 function Footer() {

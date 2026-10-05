@@ -1,5 +1,5 @@
 import type { RGB, TextAlign } from "@updf/core";
-import { validateLineHeight } from "@updf/core/internal";
+import { validateLineHeight } from "@updf/text";
 
 export interface PointLength {
   readonly unit: "pt";

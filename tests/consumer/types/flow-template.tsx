@@ -1,10 +1,10 @@
 /** @jsxImportSource @updf/core */
 
 import * as Core from "@updf/core";
-import { render } from "@updf/core";
-import { lower } from "@updf/core/vdom";
 import * as Layout from "@updf/layout";
-import { Document, document, Flow, flow, layout, paragraph, pt } from "@updf/layout";
+import { Document, document, Flow, flow, paragraph, pt } from "@updf/layout";
+import { layout } from "./layout-options.js";
+import { lower, render } from "./text-options.js";
 
 const margins = { top: 10, right: 10, bottom: 10, left: 10 };
 const pageSize = { width: 200, height: 100 };

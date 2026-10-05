@@ -2,9 +2,10 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
-import { type DocumentDefinition, render } from "@updf/core";
+import type { DocumentDefinition } from "@updf/core";
 import { h, useContext } from "@updf/core/vdom";
-import { Document, Flow, layout, Page, PageContext, Paragraph, pageSize } from "@updf/layout";
+import { Document, Flow, Page, PageContext, Paragraph, pageSize } from "@updf/layout";
+import { layout, render } from "../fixtures/text-options.js";
 
 const directory = new URL("../../artifacts/mixed/", import.meta.url);
 function label(text: string) {

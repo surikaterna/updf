@@ -1,9 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
-import { h, lower } from "@updf/core/vdom";
-import { layoutTable, layoutTableFlow, layoutTableUnknown, type TableDefinition } from "../src/tables/index.js";
-import { Tables } from "../src/tables/vdom.js";
+import { DocumentError } from "@updf/core";
+import { h } from "@updf/core/vdom";
+import {
+  layoutTable,
+  layoutTableFlow,
+  layoutTableUnknown,
+  lower,
+  render,
+} from "../../../tests/fixtures/text-options.js";
+import type { TableDefinition } from "../dist/tables/index.js";
+import { Tables } from "../dist/tables/vdom.js";
 
 const pageTemplate = { width: 120, height: 60, margins: { top: 0, right: 0, bottom: 0, left: 0 } };
 function table(count = 4): TableDefinition {

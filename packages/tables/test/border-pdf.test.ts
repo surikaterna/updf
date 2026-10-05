@@ -4,8 +4,9 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { type DocumentDefinition, type NodeDefinition, render } from "@updf/core";
+import type { DocumentDefinition, NodeDefinition } from "@updf/core";
 import { table, tableExtension } from "@updf/tables";
+import { render } from "../../../tests/fixtures/text-options.js";
 import { block, createExtensions, layoutFlow } from "../../../tests/fixtures/transitional-layout.js";
 import { bands, base, blue, red, row, run } from "./border-fixtures.js";
 

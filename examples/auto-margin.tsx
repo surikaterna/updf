@@ -1,5 +1,5 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
+
 import {
   Block,
   block,
@@ -9,10 +9,10 @@ import {
   flow,
   flowFooter,
   flowHeader,
-  layout,
   Paragraph,
   paragraph,
 } from "@updf/layout";
+import { layout, render } from "./text-options.js";
 
 const margins = { top: 10, right: 10, bottom: 10, left: 10 };
 const pageSize = { width: 120, height: 160 };

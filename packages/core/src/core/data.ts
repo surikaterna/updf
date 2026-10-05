@@ -1,8 +1,15 @@
-import { isPreparedFont } from "../fonts/prepare.js";
 import { fail } from "./error.js";
 import { isExecutableNode } from "./node-ownership.js";
+import { isOwnedResource } from "./owned-resource.js";
 
 export const pointer = (key: PropertyKey): string => String(key).replaceAll("~", "~0").replaceAll("/", "~1");
+
+export function ownDataValue<T extends object, K extends keyof T>(value: T, key: K, path: string): T[K] | undefined {
+  const descriptor = Object.getOwnPropertyDescriptor(value, key);
+  if (!descriptor) return undefined;
+  if (!("value" in descriptor) || !descriptor.enumerable) fail("TYPE", path, "Expected enumerable own data field");
+  return descriptor.value;
+}
 
 export function dataRecord(value: unknown, path: string): asserts value is Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) fail("TYPE", path, "Expected ordinary data props");
@@ -75,7 +82,7 @@ function copyTask(
   opaque: (value: unknown, path: string) => boolean,
 ): void {
   const { value, path, assign } = task;
-  if (isPreparedFont(value) || opaque(value, path)) {
+  if (isOwnedResource(value) || opaque(value, path)) {
     assign(value);
     return;
   }

@@ -1,7 +1,6 @@
 import {
   fail,
   isContentData,
-  isPreparedFont,
   isVNode,
   type LayoutOperation,
   type NormalizedContent,
@@ -10,6 +9,7 @@ import {
   snapshotData,
 } from "@updf/core/internal";
 import { Fragment } from "@updf/core/jsx-runtime";
+import { isOwnedResource } from "@updf/core/resources";
 import type { BlockComponent, BlockContent } from "./content-types.js";
 import { currentEmissionPath } from "./emission-nodes.js";
 import type {
@@ -74,7 +74,7 @@ function needsScope(input: unknown): boolean {
   while (pending.length) {
     const value = pending.pop();
     if (isVNode(value) || (value && typeof value === "object" && captures.has(value))) return true;
-    if (!value || typeof value !== "object" || isPreparedFont(value) || seen.has(value)) continue;
+    if (!value || typeof value !== "object" || isOwnedResource(value) || seen.has(value)) continue;
     seen.add(value);
     for (const child of Object.values(value)) pending.push(child);
   }

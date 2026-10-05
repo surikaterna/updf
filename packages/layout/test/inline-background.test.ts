@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, type NodeDefinition, type RenderOptions, render } from "@updf/core";
-import { createLayoutOperation } from "@updf/core/internal";
+import { DocumentError, type NodeDefinition, type RenderOptions } from "@updf/core";
 import { h } from "@updf/core/vdom";
 import {
   Block,
@@ -11,8 +10,6 @@ import {
   type Extensions,
   flow,
   inline,
-  layout,
-  measure,
   Paragraph,
   paragraph,
   pt,
@@ -21,8 +18,9 @@ import {
 } from "@updf/layout";
 import { badge, badgeAdapter } from "../../../apps/showcase/src/inline-badge.js";
 import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
-import { OutputBudget } from "../src/budget.js";
-import { contentProducer } from "../src/content-producer.js";
+import { createLayoutOperation, layout, measure, render } from "../../../tests/fixtures/text-options.js";
+import { OutputBudget } from "../dist/budget.js";
+import { contentProducer } from "../dist/content-producer.js";
 
 const yellow = [1, 1, 0] as const;
 const blue = [0, 0, 1] as const;

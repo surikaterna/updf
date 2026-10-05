@@ -3,10 +3,21 @@ import { test } from "node:test";
 import { build } from "esbuild";
 import { arithmeticControl, arithmeticSource, certifyArithmetic } from "../../scripts/layout-kernel-control.js";
 
-async function probe(source: string, entry = "@updf/core/measurement") {
+async function probe(source: string, entry = "@updf/text") {
   const control = arithmeticControl(source);
   const result = await build({
-    stdin: { contents: `export * from '${entry}';`, resolveDir: process.cwd() },
+    stdin: {
+      contents: `export * from '${entry}';${
+        entry === "@updf/layout-kernel/arithmetic"
+          ? ""
+          : `
+      import {createHelvetica,fontProvider,fontRuntime} from '@updf/fonts';
+      import {createTextService} from '${entry}';
+      const runtime=fontRuntime();
+      export const options={resources:{Helvetica:createHelvetica()},text:createTextService({runtime,defaultFont:'Helvetica'}),providers:[fontProvider(runtime)]};`
+      }`,
+      resolveDir: process.cwd(),
+    },
     bundle: true,
     write: false,
     metafile: true,
@@ -18,16 +29,16 @@ async function probe(source: string, entry = "@updf/core/measurement") {
   return import(`data:text/javascript;base64,${Buffer.from(result.outputFiles[0]!.contents).toString("base64")}`);
 }
 
-test("historical arithmetic certificate rejects source bytes and hook requires the real core input", async () => {
+test("historical arithmetic certificate rejects source bytes and hook requires the real text input", async () => {
   const source = await arithmeticSource();
   assert.throws(() => certifyArithmetic(`${source} `), /pre-kernel source certificate/);
   await probe(source);
-  await probe(source, "./packages/core/src/measurement/index.ts");
-  await assert.rejects(probe(source, "@updf/layout-kernel/arithmetic"), /exactly one core arithmetic input/);
+  await probe(source, "./packages/text/src/index.ts");
+  await assert.rejects(probe(source, "@updf/layout-kernel/arithmetic"), /exactly one text arithmetic input/);
   await assert.rejects(probe("export const = ;"), /arithmetic\.js.*Expected/s);
 });
 
-test("public core measurement executes the replaced arithmetic body", async () => {
+test("public text measurement executes the replaced arithmetic body", async () => {
   const source = await arithmeticSource();
   const needle = "add(value: number): number {";
   assert.equal(source.split(needle).length, 2);
@@ -46,6 +57,7 @@ test("public core measurement executes the replaced arithmetic body", async () =
       },
     ],
   };
-  assert.equal((await probe(source)).measureText(input).lineCount, 1);
-  assert.throws(() => runtime.measureText(input), { message: "PRE_KERNEL_ARITHMETIC_EXECUTED" });
+  const current = await probe(source);
+  assert.equal(current.measureText(input, current.options).lineCount, 1);
+  assert.throws(() => runtime.measureText(input, runtime.options), { message: "PRE_KERNEL_ARITHMETIC_EXECUTED" });
 });

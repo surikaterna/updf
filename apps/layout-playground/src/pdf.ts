@@ -1,11 +1,18 @@
 import { type DocumentDefinition, render, type TextNode } from "@updf/core";
-import { measureText, type TextLineMeasurement } from "@updf/core/measurement";
+import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
+import { createTextService, measureText, type TextLineMeasurement } from "@updf/text";
 import { PlaygroundError } from "./error.js";
 import type { Projection } from "./projection.js";
 
 export const FONT_SIZE = 14;
 export const LINE_HEIGHT = 18;
 export const MARGIN = 20;
+const runtime = fontRuntime();
+const textOptions = {
+  resources: { Helvetica: createHelvetica() },
+  text: createTextService({ runtime, defaultFont: "Helvetica" }),
+  providers: [fontProvider(runtime)],
+};
 
 export interface PreparedParagraph {
   readonly text: string;
@@ -18,15 +25,18 @@ export function prepareParagraph(text: string, width: number): PreparedParagraph
   if (text.length > 8000 || /[^\x20-\x7e\n]/u.test(text)) {
     throw new PlaygroundError("CHARACTER", "/text", "use at most 8000 ASCII printable characters plus LF");
   }
-  const measured = measureText({
-    kind: "plain",
-    text,
-    width,
-    font: "Helvetica",
-    fontSize: FONT_SIZE,
-    lineHeight: LINE_HEIGHT,
-    align: "left",
-  });
+  const measured = measureText(
+    {
+      kind: "plain",
+      text,
+      width,
+      font: "Helvetica",
+      fontSize: FONT_SIZE,
+      lineHeight: LINE_HEIGHT,
+      align: "left",
+    },
+    textOptions,
+  );
   return Object.freeze({ text, width, height: measured.consumedHeight, lines: measured.lines });
 }
 
@@ -66,7 +76,7 @@ export function lowerLine(accepted: AcceptedLine): TextNode | undefined {
 }
 
 export function exportNative(document: DocumentDefinition): Uint8Array<ArrayBuffer> {
-  return render(document);
+  return render(document, textOptions);
 }
 
 export function exportProjection(projection: Projection): Uint8Array<ArrayBuffer> {

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
+import { DocumentError } from "@updf/core";
 import { createContext, h, useContext } from "@updf/core/vdom";
 import {
   Block,
@@ -12,13 +12,13 @@ import {
   document,
   extension,
   flow,
-  layout,
   PageContext,
   Paragraph,
   resolveWidths,
   type WidthTrack,
 } from "@updf/layout";
 import { Table, type TableInput, table, tableExtension } from "@updf/tables";
+import { layout, render } from "../../../tests/fixtures/text-options.js";
 
 const extensions = createExtensions([tableExtension]);
 const margins = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -318,8 +318,9 @@ test("fractional fixed and max-saturated allocations survive deferred head AND f
   assert.deepEqual(render(weighted.result.document), render(fixed.result.document));
   assert.equal(
     createHash("sha256").update(render(fixed.result.document)).digest("hex"),
-    "279b9a6d06e175aa1989bb46ac0540c7f0bd853c9a4701a9626ad4a0f480d34e",
+    "0f4b04eca320b119d9be51fd70b713ed60ad9fe1404b45bfb4a94cba24d7c432",
   );
+  assert.doesNotMatch(new TextDecoder().decode(render(fixed.result.document)), /\/Type \/Font/u);
   assert.ok(fixed.result.placements.every((placement) => placement.box.width === 20.1 + 30.2));
   for (const page of [1, 2])
     for (const edge of ["head", "foot"])

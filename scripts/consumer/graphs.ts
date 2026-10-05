@@ -38,6 +38,10 @@ export async function installedGraph(directory: string, entry: string, optional 
   }
   const modules = [...visited].map((path) => path.replace(`${directory}/node_modules/`, ""));
   portableGraph(modules, optional);
+  if (/^@updf\/(?:core|text)(?:\/|$)/u.test(entry))
+    assert.ok(!modules.some((path) => path.startsWith("@updf/fonts/")), "Font implementation leaked");
+  if (entry.startsWith("@updf/core") || entry === "@updf/fonts")
+    assert.ok(!modules.some((path) => path.startsWith("@updf/text/")), "Text implementation leaked");
   if (!entry.startsWith("@updf/svg")) assert.ok(!modules.some((path) => path.startsWith("@updf/svg/")), "SVG leaked");
   if (entry.startsWith("@updf/core"))
     assert.ok(!modules.some((path) => path.startsWith("@updf/geometry/")), "Geometry leaked");

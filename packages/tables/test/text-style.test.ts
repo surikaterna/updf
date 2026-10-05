@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
-import { createExtensions, document, flow, layout, paragraph, pt, span } from "@updf/layout";
+import { DocumentError } from "@updf/core";
+import { createExtensions, document, flow, paragraph, pt, span } from "@updf/layout";
 import { table, tableExtension } from "@updf/tables";
+import { layout, render } from "../../../tests/fixtures/text-options.js";
 
 const extensions = createExtensions([tableExtension]);
 test("#49-B text defaults preserve raw ratios through cells, paragraph overrides and shared descriptors", () => {

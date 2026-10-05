@@ -9,6 +9,8 @@ From the workspace root:
 ```sh
 npm run build -w @updf/layout-kernel
 npm run build -w @updf/core
+npm run build -w @updf/fonts
+npm run build -w @updf/text
 npm run test -w @updf/layout-playground
 npm run build -w @updf/layout-playground
 npm run test:browser -w @updf/layout-playground
@@ -32,7 +34,7 @@ The static build includes the complete project MIT notice in `dist/notices/LICEN
   minimum canvas height or the finite page region height, not a CSS geometry trick.
   Column alignment is start only; its alignment control is disabled and explained.
 - The PDF preset lazily loads `src/pdf.ts`, which alone imports public core
-  measurement/render APIs. It measures ASCII printable + LF text once per computation
+  render plus optional fonts/text APIs with explicit paired composition. It measures ASCII printable + LF text once per computation
   at its selected width: Helvetica 14pt, line height 18pt, left aligned. Measurement
   lines/fragments/baselines and original UTF-16 spans remain available in read-only JSON.
   No row labels are painted in PDF (therefore no unmeasured text is invented).

@@ -4,9 +4,9 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { type DocumentDefinition, DocumentError, type NodeDefinition, render, type TextNode } from "@updf/core";
-import { createLayoutOperation, paintInlineText } from "@updf/core/internal";
-import type { ParagraphDefinition } from "@updf/core/measurement";
+import { type DocumentDefinition, DocumentError, type NodeDefinition, type TextNode } from "@updf/core";
+import { type ParagraphDefinition, paintInlineText } from "@updf/text";
+import { createLayoutOperation, render } from "../fixtures/text-options.js";
 
 const text = (value: string, overrides: Partial<TextNode> = {}): TextNode => ({
   type: "text",

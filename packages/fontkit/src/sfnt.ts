@@ -1,5 +1,5 @@
-import type { FontMetadata } from "@updf/core/fonts";
 import { fail } from "@updf/core/internal";
+import type { FontMetadata } from "@updf/fonts";
 import { checkCmap } from "./cmap.js";
 
 interface Table {

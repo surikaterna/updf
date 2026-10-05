@@ -1,5 +1,5 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
+
 import {
   Block,
   type BlockStyle,
@@ -8,8 +8,6 @@ import {
   Document,
   Flow,
   type LineHeight,
-  layout,
-  measure,
   mergeBorders,
   Paragraph,
   type ParagraphStyle,
@@ -19,6 +17,8 @@ import {
   Span,
   type SpanStyle,
 } from "@updf/layout";
+import { layout, measure } from "./layout-options.js";
+import { render } from "./text-options.js";
 
 const absolute: PointLength = pt(16);
 const ratio: LineHeight = 1.2;

@@ -21,7 +21,9 @@ verification of the new package structure.
 | Workspace | Responsibility / entry points |
 | --- | --- |
 | `@updf/layout-kernel` | Zero dependencies; allocation, atomic boxes, fragment selection and shared arithmetic; [current contract](docs/architecture/layout-kernel.md) |
-| `@updf/core` | PDF bytes; depends on kernel with arithmetic-only runtime retention: `.`, `/measurement`, `/fonts`, `/painting`, `/vdom`, `/jsx-runtime`, `/jsx-dev-runtime` |
+| `@updf/core` | Generic PDF bytes/resources/text contracts: `.`, `/resources`, `/pdf`, `/painting`, `/vdom`, `/jsx-runtime`, `/jsx-dev-runtime`; no font implementation |
+| `@updf/fonts` | Prepared fonts, explicit Helvetica, opaque text runs and paired PDF font provider |
+| `@updf/text` | Text service, measurement, wrapping, line envelopes and inline text painting |
 | `@updf/layout` | Native Document/Page/Flow/Block/Paragraph/Span/Row/Column, data constructors, layout/measure, contexts, decorations and adapters |
 | `@updf/geometry` | Optional strict path/color/shape helpers |
 | `@updf/svg` | Optional strict SVG subset; `/tree` native VDOM adapter |
@@ -40,7 +42,8 @@ The [static TUI integration proof](scripts/tui-layout-proof/README.md) shows the
 Formbar host-snapshot → public kernel → terminal pipeline and runnable commands;
 it is not a production interactive TUI package.
 See [package architecture](docs/architecture/packages.md),
-[native contracts](docs/native-api.md) and [legacy migration](docs/migration/legacy.md).
+[native contracts](docs/native-api.md), [fonts/text breaking migration](docs/migration/fonts-text.md)
+and [legacy migration](docs/migration/legacy.md).
 
 ## Run the checkout
 
@@ -59,16 +62,18 @@ npm run test:browser
 npm run test:consumer
 npm run check:graphs
 npm run check:licenses
+npm run sizes
 ```
 
-`typecheck` builds in explicit kernel → core → layout/tables/geometry/Fontkit → SVG → examples order,
+`typecheck` builds in explicit kernel → core → fonts/text → layout/tables/geometry/Fontkit → SVG → examples order,
 then compiles repository tooling/tests. Legacy compilation uses its scoped old
 toolchain. Native declarations use ES2022 only, no ambient DOM/Node/React or TS
 path aliases. Clean tarball consumers check NodeNext and bundler resolution.
 
 The npm monorepo uses `packages/*` for libraries, five private `apps/*`
 workspaces for runnable examples, and `scripts/*` for repository automation.
-Package names and public exports are unchanged; native JSX remains in the core
+Fonts/text are separate optional packages; removed core fonts/measurement exports
+have no facade. Native JSX remains in the core
 subpaths rather than a separate package.
 
 `npm run format` applies Biome 2.4.13 formatting to maintained native code,
@@ -124,10 +129,14 @@ See [implementation and reproducible measurements](docs/evidence/plasma-showcase
 ## Small typed PDF
 
 Complete source: [`apps/node/src/hello.ts`](apps/node/src/hello.ts).
+The application-owned [`text-options.ts`](apps/node/src/text-options.ts) composes
+an explicit Helvetica resource, text service and provider sharing one runtime.
+No default font or font implementation is supplied by core.
 The engine does not write files or require a TS runtime after building.
 
 ```ts
-import { type DocumentDefinition, render } from "@updf/core";
+import type { DocumentDefinition } from "@updf/core";
+import { render } from "./text-options.js";
 
 const document: DocumentDefinition = {
   version: 1,
@@ -162,8 +171,9 @@ The module-local JSX namespace does not augment React or global JSX.
 
 ```tsx
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
-import { type Component, lower } from "@updf/core/vdom";
+
+import type { Component } from "@updf/core/vdom";
+import { lower, render } from "./text-options.js";
 
 const Heading: Component<{ readonly title: string }> = ({ title }) => (
   <text x={0} y={0} width={200} height={24} fontSize={10} lineHeight={12} align="left">
@@ -203,9 +213,16 @@ const painting = renderSVG('<svg viewBox="0 0 10 10"><rect width="10" height="10
 
 ```ts
 import { prepareFont } from '@updf/fontkit';
+import { fontRuntime, fontProvider } from '@updf/fonts';
+import { createTextService } from '@updf/text';
 const font = prepareFont(trustedStaticTrueTypeBytes); // ordinary Uint8Array
-// Set font: 'Demo' on text nodes and pass { resources: { Demo: font } } to render.
-// For TSX, pass the same resources to lower(tree, { resources }) and render.
+const runtime = fontRuntime();
+const options = {
+  resources: { Demo: font },
+  text: createTextService({ runtime, defaultFont: 'Demo' }),
+  providers: [fontProvider(runtime)],
+};
+// Set font: 'Demo' on text nodes; pass options to both lower and render.
 ```
 
 Those fragments explain requirements; the linked complete optional example
@@ -222,6 +239,10 @@ npm run sizes
 ```
 
 The CMR is a fixed upper-form demonstration, **not operational freight paperwork**
+(`renderCMR(createCmrDocument(data))` from `@updf/example-cmr/cmr` opts into the
+application's explicit Helvetica composition). Unicode callers can use
+`renderUnicodeCMR(font)` or pass `unicodeCmrOptions(font)` to core when rendering
+`createUnicodeCmrDocument(font)`; resources are never embedded in the document.
 or general paged tables. `node apps/node/dist/server.js` serves a fixed
 loopback GET `/cmr.pdf` on port 3001, not arbitrary request-body rendering.
 
@@ -255,8 +276,10 @@ available for supported adapter contracts, not as a compatibility authoring faca
 [#26 rich text and measurement](docs/measurement.md) is implemented locally,
 independently verified per the #27 assignment, not released. The separate `richText` AST/native TSX
 variant supports paragraph runs with actual font/size/RGB styles. Public
-`@updf/core/measurement` and operation-scoped component measurement share rendering
-truth; fixed text wrapping/baselines and both CMR PDF digests remain unchanged.
+`@updf/text` and operation-scoped component measurement share rendering
+truth with explicit composition. Fixed wrapping/baselines and ASCII CMR bytes remain
+unchanged; prepared-only CMR drops unused Helvetica while retaining extraction and raster.
+See [integrated extraction evidence](docs/evidence/font-package-extraction.md).
 
 - Optional [#27 bounded flow](packages/layout/README.md) is implemented locally,
   independently verified per #28 assignment, not released. Explicit templates reserve repeated header/footer

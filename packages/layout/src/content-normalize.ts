@@ -7,7 +7,7 @@ import {
   type NormalizedContent,
   validateDataObject as record,
 } from "@updf/core/internal";
-import type { TextRun, TextStyle } from "@updf/core/measurement";
+import type { TextRun, TextStyle } from "@updf/text";
 import { authorBlock, captureContent, scopeDataBlock, scopedContent } from "./author-parts.js";
 import { checkAutoBody, rememberAutoOrigin } from "./auto-margin.js";
 import { deferColumnBody } from "./column-content.js";
@@ -175,7 +175,7 @@ function normalizeParagraph(
   if (typeof node.value === "string") fail("TYPE", node.path, "Expected paragraph");
   const props = inheritedParagraph(node.value.props, defaults, node.path);
   const style = authorStyle(props.style, `${node.path}/style`, true);
-  const base = textStyle({ font: "Helvetica", fontSize: 10, color: [0, 0, 0] }, style, `${node.path}/style`, operation);
+  const base = textStyle({ fontSize: 10, color: [0, 0, 0] }, style, `${node.path}/style`, operation);
   const runs: TextRun[] = [],
     sources: string[] = [];
   const styleSources: StyleSources[] = [];

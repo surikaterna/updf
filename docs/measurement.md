@@ -7,9 +7,10 @@ this document is not a tracker transition, release or deployment claim.
 
 ## Portable public boundary
 
-`@updf/core/measurement` exports `measureText(input, options?)` and
-`measureTextUnknown(unknown, options?)`. Options use the existing readonly
-`RenderOptions` resource mapping. Each independent call has a fresh ledger.
+`@updf/text` exports `measureText(input, options)` and
+`measureTextUnknown(unknown, options)`. Required options bind resources and an
+explicit text service; see [composition and migration](migration/fonts-text.md).
+Each independent call has a fresh ledger.
 Results are deeply frozen ordinary readonly data, in top-left PDF points:
 `width`, `consumedHeight`, `lineCount`, ordered `lines`. Every line gives
 `paragraphIndex`, `top`, `height`, `baseline`, complete `advance`, `inkBounds`,

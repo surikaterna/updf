@@ -2,11 +2,12 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
-import { type ComponentContext, createContext, Fragment, h, lower, useContext } from "@updf/core/vdom";
+import { DocumentError } from "@updf/core";
+import { type ComponentContext, createContext, Fragment, h, useContext } from "@updf/core/vdom";
 import { flow, paragraph } from "../../packages/layout/test/fixtures.js";
 import { chart, chartAdapter } from "../fixtures/chart.js";
 import { fixtureFont } from "../fixtures/fonts/font-fixture.js";
+import { lower, render } from "../fixtures/text-options.js";
 import {
   Block,
   blockComponent,
@@ -102,7 +103,10 @@ test("atomic grouping preserves component context, callbacks and render resource
   let calls = 0;
   function Headline(_props: Record<never, never>, context: ComponentContext) {
     calls++;
-    assert.deepEqual(context.resources, [{ id: "Demo", kind: "font" }]);
+    assert.deepEqual(context.resources, [
+      { id: "Helvetica", kind: "resource" },
+      { id: "Demo", kind: "resource" },
+    ]);
     assert.equal(useContext(Theme).text, "captured");
     return h(Paragraph, {
       children: useContext(Theme).text,

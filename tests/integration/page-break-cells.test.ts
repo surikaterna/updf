@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError } from "@updf/core";
 import { h } from "@updf/core/vdom";
-import { createExtensions, document, flow, layout, PageBreak } from "@updf/layout";
+import { createExtensions, document, flow, PageBreak } from "@updf/layout";
 import { Table, table, tableExtension } from "@updf/tables";
+import { layout } from "../fixtures/text-options.js";
 
 test("PageBreak and native data reject in closed table cells with the same diagnostic contract", () => {
   const extensions = createExtensions([tableExtension]);

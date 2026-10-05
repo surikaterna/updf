@@ -3,12 +3,12 @@ import {
   checkLimit,
   codePoints,
   fail,
-  isPreparedFont,
   type LayoutOperation,
   type Policy,
   snapshotData,
   validateDataObject,
 } from "@updf/core/internal";
+import { isOwnedResource } from "@updf/core/resources";
 
 interface Counts {
   objects: number;
@@ -20,7 +20,7 @@ interface Counts {
 function scan(value: unknown, path: string, depth: number, counts: Counts, tasks: (() => void)[]): void {
   checkLimit(depth, counts.policy.depth, path, "Source depth");
   if (!value || typeof value !== "object") return;
-  if (isPreparedFont(value)) return;
+  if (isOwnedResource(value)) return;
   if (counts.active.has(value)) fail("TYPE", path, "Cyclic flow data");
   if (counts.seen.has(value)) return;
   counts.objects = checkLimit(counts.objects + 1, counts.policy.nodes, path, "Source nodes");

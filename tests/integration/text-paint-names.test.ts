@@ -4,6 +4,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import { createHelvetica, fontRuntime } from "@updf/fonts";
 import { commands } from "../../packages/core/dist/core/content.js";
 import { documentResources } from "../../packages/core/dist/core/document-resources.js";
 import { literal, name } from "../../packages/core/dist/core/pdf-values.js";
@@ -12,7 +13,13 @@ import { resourceSlot } from "../../packages/core/dist/core/resource-types.js";
 import { serialize } from "../../packages/core/dist/core/serialize.js";
 import { textSlot } from "../../packages/core/dist/core/text-paint.js";
 
-const site = { text: "provider-owned", x: 10, y: 20 };
+const site = {
+  text: "provider-owned",
+  x: 10,
+  y: 20,
+  run: fontRuntime().measure(createHelvetica(), "provider-owned", 12, "fixed", "/synthetic").run,
+  path: "/synthetic",
+};
 const page: MeasuredPage = {
   width: 200,
   height: 100,
@@ -39,7 +46,7 @@ function syntheticDocument(key: string) {
     [
       {
         slot,
-        collect(_node, collection) {
+        collectText(text, collection) {
           const resource = collection.intern(slot, key, () => ({
             category: "Font",
             key,
@@ -59,7 +66,7 @@ function syntheticDocument(key: string) {
               };
             },
           }));
-          collection.bindPainting(site, textSlot, { resource, finish: () => literal("Expected text") });
+          collection.bindPainting(text.identity, textSlot, { resource, finish: () => literal("Expected text") });
         },
       },
     ],

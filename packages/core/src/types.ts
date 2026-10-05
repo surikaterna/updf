@@ -16,7 +16,7 @@ export interface TextNode extends Box {
   /** Absolute points, at least fontSize. No implicit defaults or shrinking. */
   readonly lineHeight: number;
   readonly align: TextAlign;
-  /** Omitted or Helvetica uses the built-in font; other ids require host resources. */
+  /** Resource id; omission requires the selected text service's explicit defaultFont. */
   readonly font?: string;
 }
 

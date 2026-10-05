@@ -1,7 +1,9 @@
-import { type PreparedFont, render } from "@updf/core";
+import { render } from "@updf/core";
 import { h, lower } from "@updf/core/vdom";
+import type { PreparedFont } from "@updf/fonts";
 import { createExtensions, Document, document, flow, layout, paragraph, span } from "@updf/layout";
 import { table, tableExtension } from "@updf/tables";
+import { textOptions } from "./text-options.js";
 
 export function tableProofDefinition() {
   const defaults = {
@@ -53,7 +55,7 @@ export function tableProofDefinition() {
   });
 }
 export function tableProof(font: PreparedFont) {
-  const options = { resources: { Demo: font } };
+  const options = textOptions({ resources: { Demo: font } });
   const input = tableProofDefinition();
   const result = layout(input, options);
   const bytes = render(result.document, options);

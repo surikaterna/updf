@@ -1,7 +1,7 @@
 import type { NodeDefinition } from "@updf/core";
 import type { ContentHandle } from "@updf/core/internal";
-import type { TextMeasurement, TextMeasurementInput } from "@updf/core/measurement";
 import type { VNode } from "@updf/core/vdom";
+import type { TextMeasurement, TextMeasurementInput } from "@updf/text";
 import type { BlockStyle } from "./container-types.js";
 import type {
   BlockComponent,

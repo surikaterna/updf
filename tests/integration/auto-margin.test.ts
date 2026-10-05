@@ -4,9 +4,10 @@ import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { type DocumentDefinition, type NodeDefinition, render } from "@updf/core";
-import { block, document, flow, flowFooter, flowHeader, layout, paragraph } from "@updf/layout";
+import type { DocumentDefinition, NodeDefinition } from "@updf/core";
+import { block, document, flow, flowFooter, flowHeader, paragraph } from "@updf/layout";
 import { autoMarginData, autoMarginExample } from "../../examples/auto-margin.js";
+import { layout, render } from "../fixtures/text-options.js";
 
 function fixedSummary(input: DocumentDefinition, y: number): DocumentDefinition {
   return {

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, type NodeDefinition, render } from "@updf/core";
-import { createLayoutOperation } from "@updf/core/internal";
+import { DocumentError, type NodeDefinition } from "@updf/core";
 import { h, useContext } from "@updf/core/vdom";
+import { createLayoutOperation, render } from "../../../tests/fixtures/text-options.js";
 import {
   Block,
   blockComponent,
@@ -14,10 +14,10 @@ import {
   PageContext,
   Paragraph,
 } from "../../../tests/fixtures/transitional-layout.js";
-import { instantiateEmissionNodes } from "../src/emission-nodes.js";
-import type { BlockContent, EdgeRegionInput, LocalEdgeClaim, MeasureContext } from "../src/index.js";
-import { edgeRegionNode, sharedEdgeEmission } from "../src/shared-edge-emission.js";
-import { ownEdgeRegion, requireEdgeRegion } from "../src/shared-edge-regions.js";
+import { instantiateEmissionNodes } from "../dist/emission-nodes.js";
+import type { BlockContent, EdgeRegionInput, LocalEdgeClaim, MeasureContext } from "../dist/index.js";
+import { edgeRegionNode, sharedEdgeEmission } from "../dist/shared-edge-emission.js";
+import { ownEdgeRegion, requireEdgeRegion } from "../dist/shared-edge-regions.js";
 import { flow } from "./fixtures.js";
 
 const top: LocalEdgeClaim = {

@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
+import { DocumentError } from "@updf/core";
 import { chart, chartAdapter } from "../../../tests/fixtures/chart.js";
 import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
+import { render } from "../../../tests/fixtures/text-options.js";
 import {
   type BlockContent,
   block,

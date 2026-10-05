@@ -20,14 +20,20 @@ interface CostReport {
 const phase = process.argv[2];
 assert.ok(phase === "before" || phase === "after");
 const output = new URL(`../artifacts/${process.argv[3] ?? "style49"}/`, import.meta.url);
+const composition = `import { render as coreRender } from '@updf/core';
+import { createHelvetica, fontRuntime, fontProvider } from '@updf/fonts';
+import { createTextService } from '@updf/text';
+const runtime = fontRuntime();
+const options = {resources: {Helvetica: createHelvetica()}, text: createTextService({runtime, defaultFont: 'Helvetica'}), providers: [fontProvider(runtime)]};
+const render = document => coreRender(document, options);`;
 const inputs = {
-  textOnly: `import { render } from '@updf/core';
-export const pdf = (text) => render({pages:[{width:200,height:200,children:[{type:'text',x:10,y:10,width:180,height:20,text,font:'Helvetica',fontSize:12,lineHeight:16}]}]});`,
-  paragraphFlow: `import { render } from '@updf/core';
+  textOnly: `${composition}
+export const pdf = (text) => render({version:1,pages:[{width:200,height:200,children:[{type:'text',x:10,y:10,width:180,height:20,text,font:'Helvetica',fontSize:12,lineHeight:16,align:'left'}]}]});`,
+  paragraphFlow: `${composition}
 import { document, flow, paragraph, layout, pageSize } from '@updf/layout';
-export const pdf = (text) => render(layout(document({children:flow({pageSize:pageSize(200,200),children:paragraph({children:text})})})).document);`,
-  fixedGeometry: `import { render } from '@updf/core';
-export const pdf = (text) => render({pages:[{width:200,height:200,children:[{type:'rect',x:10,y:10,width:180,height:180,paint:{fill:[0.9,0.9,0.9],stroke:null}},{type:'text',x:20,y:20,width:160,height:20,text,font:'Helvetica',fontSize:12,lineHeight:16}]}]});`,
+export const pdf = (text) => render(layout(document({children:flow({pageSize:pageSize(200,200),children:paragraph({children:text})})}), options).document);`,
+  fixedGeometry: `${composition}
+export const pdf = (text) => render({version:1,pages:[{width:200,height:200,children:[{type:'rect',x:10,y:10,width:180,height:180,paint:{fill:[0.9,0.9,0.9],stroke:null}},{type:'text',x:20,y:20,width:160,height:20,text,font:'Helvetica',fontSize:12,lineHeight:16,align:'left'}]}]});`,
 };
 await mkdir(output, { recursive: true });
 for (const [scope, contents] of Object.entries(inputs)) {

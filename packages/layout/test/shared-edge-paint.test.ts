@@ -4,8 +4,8 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { type DocumentDefinition, DocumentError, render } from "@updf/core";
-import { createLayoutOperation } from "@updf/core/internal";
+import { type DocumentDefinition, DocumentError } from "@updf/core";
+import { createLayoutOperation, render } from "../../../tests/fixtures/text-options.js";
 import {
   block,
   createExtensions,
@@ -13,9 +13,9 @@ import {
   extension,
   layoutFlow,
 } from "../../../tests/fixtures/transitional-layout.js";
-import { paintSharedEdges } from "../src/shared-edge-paint.js";
-import { ownEdgeRegion, ownSharedEdgeGroup } from "../src/shared-edge-regions.js";
-import type { LocalEdgeClaim } from "../src/shared-edge-types.js";
+import { paintSharedEdges } from "../dist/shared-edge-paint.js";
+import { ownEdgeRegion, ownSharedEdgeGroup } from "../dist/shared-edge-regions.js";
+import type { LocalEdgeClaim } from "../dist/shared-edge-types.js";
 import { flow } from "./fixtures.js";
 
 const edge: LocalEdgeClaim = {

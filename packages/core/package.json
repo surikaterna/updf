@@ -9,17 +9,17 @@
     "README.md"
   ],
   "exports": {
+    "./resources": {
+      "types": "./dist/resources.d.ts",
+      "import": "./dist/resources.js"
+    },
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./fonts": {
-      "types": "./dist/fonts/index.d.ts",
-      "import": "./dist/fonts/index.js"
-    },
-    "./measurement": {
-      "types": "./dist/measurement/index.d.ts",
-      "import": "./dist/measurement/index.js"
+    "./pdf": {
+      "types": "./dist/pdf.d.ts",
+      "import": "./dist/pdf.js"
     },
     "./painting": {
       "types": "./dist/painting/index.d.ts",
@@ -50,6 +50,6 @@
     "@updf/layout-kernel": "2.0.0-poc.0"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "node --input-type=module -e \"import { rm } from 'node:fs/promises'; await rm('dist', { recursive: true, force: true });\" && tsc -p tsconfig.json"
   }
 }

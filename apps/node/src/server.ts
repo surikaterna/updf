@@ -1,7 +1,7 @@
 import { createServer, type Server } from "node:http";
 import { pathToFileURL } from "node:url";
-import { render } from "@updf/core";
 import { cmrFixture, createCmrDocument } from "@updf/example-cmr/cmr";
+import { render } from "./text-options.js";
 
 export function createCmrServer(): Server {
   const bytes = render(createCmrDocument(cmrFixture));

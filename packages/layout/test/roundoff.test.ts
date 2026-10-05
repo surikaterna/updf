@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
-import { h, lower } from "@updf/core/vdom";
+import { DocumentError } from "@updf/core";
+import { h } from "@updf/core/vdom";
+import { lower, render } from "../../../tests/fixtures/text-options.js";
 import { LegacyFlow as Flow, layoutFlow } from "../../../tests/fixtures/transitional-layout.js";
 import { flow, paragraph } from "./fixtures.js";
 

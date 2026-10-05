@@ -1,11 +1,9 @@
-import type { ResolvedFonts } from "../fonts/resources.js";
 import { ledger, type WorkLedger } from "../measurement/ledger.js";
-import { rich } from "../measurement/measure.js";
 import { matrix } from "../painting/affine.js";
 import { clip, drawing } from "../painting/read.js";
 import type { DocumentDefinition, NodeDefinition } from "../types.js";
-import { measureFixedText } from "./fixed-text.js";
 import type { MeasuredNode, MeasuredPage } from "./plan.js";
+import { emptyTextResources, type ResolvedTextResources as ResolvedFonts, textService } from "./text-resources.js";
 
 function measuredNode(
   node: NodeDefinition,
@@ -15,14 +13,13 @@ function measuredNode(
   tasks: (() => void)[],
 ): MeasuredNode {
   if (node.type === "text") {
-    const result = measureFixedText(node, `${path}/text`, fonts, budget);
-    return result;
+    const result = textService(fonts, path).fixed(node, { bindings: fonts.bindings, budget }, `${path}/text`);
+    return { ...node, lines: result.lines };
   }
   if (node.type === "richText") {
-    const plan = rich(
+    const plan = textService(fonts, path).rich(
       { kind: "rich", width: node.width, height: node.height, paragraphs: node.paragraphs },
-      fonts,
-      budget,
+      { bindings: fonts.bindings, budget },
       path,
     );
     return { ...node, fragments: plan.fragments };
@@ -62,7 +59,7 @@ function schedule(
 
 export function measure(
   document: DocumentDefinition,
-  fonts: ResolvedFonts = new Map(),
+  fonts: ResolvedFonts = emptyTextResources,
   budget: WorkLedger = ledger(),
 ): readonly MeasuredPage[] {
   return document.pages.map((page, i) => {

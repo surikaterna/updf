@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
-import { type DocumentDefinition, type NodeDefinition, render } from "@updf/core";
-import { document, flow, layout, paragraph, pt, span } from "@updf/layout";
+import type { DocumentDefinition, NodeDefinition } from "@updf/core";
+import { document, flow, paragraph, pt, span } from "@updf/layout";
+import { layout, render } from "../fixtures/text-options.js";
 
 const yellow = [1, 1, 0] as const;
 const cyan = [0, 1, 1] as const;

@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
+import { DocumentError } from "@updf/core";
 import { type CellStyle, table } from "@updf/tables";
+import { render } from "../../../tests/fixtures/text-options.js";
 import { block } from "../../../tests/fixtures/transitional-layout.js";
-import { paragraphDefaults } from "../src/measure.js";
+import { paragraphDefaults } from "../dist/measure.js";
 import { bands, base, blue, geometry, red, row, run } from "./border-fixtures.js";
 
 test("#42-B2 expands table/column/row/cell border layers before merging, independently of key order", () => {

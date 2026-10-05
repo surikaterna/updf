@@ -9,7 +9,7 @@ export const arithmeticProvenance = {
   path: "packages/core/src/measurement/arithmetic.ts",
   sha256: "6c99483a778c69420c73b74c4745247479d484c4d6d0eacce1be1ed28b0dd620",
 };
-const arithmeticPath = /packages\/core\/(?:src\/measurement\/arithmetic\.ts|dist\/measurement\/arithmetic\.js)$/;
+const arithmeticPath = /packages\/text\/(?:src\/arithmetic\.ts|dist\/arithmetic\.js)$/;
 
 export function certifyArithmetic(source: string): void {
   assert.equal(
@@ -43,7 +43,7 @@ export function arithmeticControl(source: string) {
     plugin,
     assertApplied(metafile: Metafile) {
       const inputs = Object.keys(metafile.inputs).filter((path) => arithmeticPath.test(path));
-      assert.equal(inputs.length, 1, "exactly one core arithmetic input");
+      assert.equal(inputs.length, 1, "exactly one text arithmetic input");
       assert.equal(hits.length, 1, "exactly one historical arithmetic replacement required");
       assert.equal(resolve(inputs[0]!), hits[0]);
       return { ...arithmeticProvenance, resolvedInput: inputs[0]!, replacements: hits.length };

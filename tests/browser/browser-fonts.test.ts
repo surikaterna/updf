@@ -1,8 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdir, readFile } from "node:fs/promises";
 import test from "node:test";
-import { render } from "@updf/core";
-import { createUnicodeCmrDocument } from "@updf/example-cmr/cmr-unicode";
+import { renderUnicodeCMR } from "@updf/example-cmr/cmr-unicode";
 import { prepareFont } from "@updf/fontkit";
 import { chromium } from "playwright";
 import { preview } from "vite";
@@ -32,7 +31,7 @@ test("actual Chromium public Fontkit browser export prepares Unicode CMR exactly
     const font = prepareFont(
       new Uint8Array(await readFile(new URL("../fixtures/fonts/LiberationSans-Regular.ttf", import.meta.url))),
     );
-    const expected = render(createUnicodeCmrDocument(font), { resources: { CmrFont: font } });
+    const expected = renderUnicodeCMR(font);
     assert.deepEqual(new Uint8Array(bytes), expected);
     assert.equal(await page.evaluate(() => typeof Buffer), "undefined");
     assert.equal(await page.evaluate(() => typeof process), "undefined");

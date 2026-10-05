@@ -1,7 +1,7 @@
 import type { NodeDefinition, RenderOptions, RGB } from "@updf/core";
 import type { ContentHandle } from "@updf/core/internal";
-import type { InkBounds, TextStyle } from "@updf/core/measurement";
 import type { ComponentContext, VDOMChild, VNode } from "@updf/core/vdom";
+import type { InkBounds, TextStyle } from "@updf/text";
 import type { BlockInput, ContainerBlock } from "./container-types.js";
 import type { Extensions, ReadonlyProps, ScopedContent } from "./extension-types.js";
 import type { ParagraphStyle, SpanStyle } from "./text-style.js";

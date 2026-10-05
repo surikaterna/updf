@@ -1,7 +1,9 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
+
 import { useContext } from "@updf/core/vdom";
-import { Block, Document, Flow, layout, PageContext, PageSize, Paragraph, pageSize, pt } from "@updf/layout";
+import { Block, Document, Flow, PageContext, PageSize, Paragraph, pageSize, pt } from "@updf/layout";
+import { layout } from "./layout-options.js";
+import { render } from "./text-options.js";
 
 export interface FlowControls {
   readonly count: number;

@@ -21,9 +21,10 @@ layout is introduced. Install local table adapters with
 `createExtensions([tableExtension])` on the containing Flow.
 
 `layout` returns frozen `{ document, pageCount, placements }`. It accepts core
-LowerOptions including registry/metadata. Pass resources/profile/limits to both
-layout/lower and render; output-byte limits apply during serialization. No CMR
-renderer, fixed-output fixture, resource callback or numeric policy is changed.
+LowerOptions including registry/metadata. Pass resources/text/providers/profile/limits to both
+layout/lower and render; output-byte limits apply during serialization.
+See [fonts/text migration](migration/fonts-text.md) for explicit composition and
+application-owned CMR defaults. No numeric policy is changed.
 
 `Block` and `Paragraph` share `keepTogether`: true means intact placement or a fresh
 `LAYOUT_OVERSIZED` error, never automatic clipping/shrinking. Table rows are always

@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
+import { DocumentError } from "@updf/core";
 import { h } from "@updf/core/vdom";
-import { block, createExtensions, document, flow, layout, measure, paragraph, span } from "@updf/layout";
+import { block, createExtensions, document, flow, paragraph, span } from "@updf/layout";
 import { Table, table, tableExtension } from "@updf/tables";
+import { layout, measure, render } from "../../../tests/fixtures/text-options.js";
 
 const extensions = createExtensions([tableExtension]);
 function placed(content: ReturnType<typeof table>) {

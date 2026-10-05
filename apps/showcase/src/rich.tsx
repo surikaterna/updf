@@ -1,9 +1,11 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
-import type { ParagraphDefinition } from "@updf/core/measurement";
-import { createContext, lower, useContext } from "@updf/core/vdom";
-import { createExtensions, Document, Flow, measure, Paragraph, pageSize, Span } from "@updf/layout";
+
+import { createContext, useContext } from "@updf/core/vdom";
+import { createExtensions, Document, Flow, Paragraph, pageSize, Span } from "@updf/layout";
+import type { ParagraphDefinition } from "@updf/text";
 import { badge, badgeAdapter } from "./inline-badge.js";
+import { measure } from "./layout-options.js";
+import { lower, render } from "./text-options.js";
 
 const Theme = createContext({ accent: [0.75, 0.12, 0.08] as const, body: [0.08, 0.2, 0.65] as const });
 function ThemedText(props: { readonly title: string; readonly controls: RichControls }) {

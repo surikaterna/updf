@@ -1,7 +1,7 @@
-import { isPreparedFont } from "../fonts/prepare.js";
 import { dataArray, dataRecord } from "./data.js";
 import { fail } from "./error.js";
 import { isExecutableNode } from "./node-ownership.js";
+import { isOwnedResource } from "./owned-resource.js";
 
 const content = new WeakSet<object>();
 declare const contentBrand: unique symbol;
@@ -40,7 +40,7 @@ function immutableData(value: unknown): void {
 }
 function opaqueOrPrimitive(item: unknown): boolean {
   return (
-    isPreparedFont(item) ||
+    isOwnedResource(item) ||
     isContentData(item) ||
     isExecutableNode(item) ||
     item == null ||

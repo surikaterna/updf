@@ -1,5 +1,5 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
+
 import { Fragment } from "@updf/core/jsx-runtime";
 import { createContext } from "@updf/core/vdom";
 import {
@@ -8,8 +8,6 @@ import {
   column,
   Document,
   Flow,
-  layout,
-  measure,
   Paragraph,
   paragraph,
   Row,
@@ -17,6 +15,8 @@ import {
   row,
   type WidthTrack,
 } from "@updf/layout";
+import { layout, measure } from "./layout-options.js";
+import { render } from "./text-options.js";
 
 const Theme = createContext("blue");
 const track: WidthTrack = { weight: 2, min: 20, max: 80 };

@@ -24,6 +24,15 @@ function packedNotices(tarball: string, fontello?: string): number {
     .split("\n")
     .map((path) => path.replace(/^package\//u, ""));
   assert.ok(paths.length > 0);
+  if (/updf-core-2/u.test(tarball))
+    assert.ok(
+      !paths.some((path) =>
+        /dist\/(?:fonts\/|core\/(?:fixed-text|metrics)\.|measurement\/(?:index|inline-paint|measure|source|validate|wrap)\.)/u.test(
+          path,
+        ),
+      ),
+      "Removed font/text implementation still packed in core",
+    );
   if (/updf-layout-2/u.test(tarball))
     assert.ok(
       !paths.some((path) => /dist\/width-(?:input|distribution)\./u.test(path)),
@@ -54,7 +63,18 @@ assert.match(ofl, /SIL OPEN FONT LICENSE/u);
 const destination = await mkdtemp("/tmp/opencode/updf-license-packs-");
 const reports = [];
 try {
-  for (const name of ["core", "layout-kernel", "layout", "tables", "geometry", "svg", "fontkit", "legacy"]) {
+  for (const name of [
+    "core",
+    "fonts",
+    "text",
+    "layout-kernel",
+    "layout",
+    "tables",
+    "geometry",
+    "svg",
+    "fontkit",
+    "legacy",
+  ]) {
     const directory = new URL(`packages/${name}/`, root);
     await validateManifest(directory, name);
     validateProjectLicense(await readFile(new URL("LICENSE", directory), "utf8"));

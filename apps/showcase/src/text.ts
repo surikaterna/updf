@@ -1,4 +1,5 @@
-import { type DocumentDefinition, render } from "@updf/core";
+import type { DocumentDefinition } from "@updf/core";
+import { render } from "./text-options.js";
 
 export function textDemo(title: string): Uint8Array {
   const document: DocumentDefinition = {

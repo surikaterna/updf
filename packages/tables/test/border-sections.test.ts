@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
+import { DocumentError } from "@updf/core";
 import { h, useContext } from "@updf/core/vdom";
 import { Table, table, tableExtension } from "@updf/tables";
+import { render } from "../../../tests/fixtures/text-options.js";
 import {
   block,
   createExtensions,

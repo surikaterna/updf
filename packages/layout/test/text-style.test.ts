@@ -1,22 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
+import { DocumentError } from "@updf/core";
 import { createContext, h, useContext } from "@updf/core/vdom";
-import {
-  block,
-  createExtensions,
-  document,
-  flow,
-  layout,
-  measure,
-  Paragraph,
-  paragraph,
-  pt,
-  Span,
-  span,
-} from "@updf/layout";
+import { block, createExtensions, document, flow, Paragraph, paragraph, pt, Span, span } from "@updf/layout";
 import { badge, badgeAdapter } from "../../../apps/showcase/src/inline-badge.js";
 import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
+import { layout, measure, render } from "../../../tests/fixtures/text-options.js";
 
 const near = (value: number, expected: number) =>
   assert.ok(Math.abs(value - expected) < 1e-12, `${value} != ${expected}`);

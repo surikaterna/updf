@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
+import { DocumentError } from "@updf/core";
+import { render } from "../../../tests/fixtures/text-options.js";
 import {
   type BlockStyle,
   block,

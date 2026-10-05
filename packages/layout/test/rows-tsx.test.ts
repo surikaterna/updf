@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
+import { DocumentError } from "@updf/core";
 import { Fragment } from "@updf/core/jsx-runtime";
 import { type ComponentContext, createContext, h, useContext } from "@updf/core/vdom";
 import {
@@ -11,14 +11,13 @@ import {
   document,
   Flow,
   flow,
-  layout,
-  measure,
   PageContext,
   Paragraph,
   paragraph,
   Row,
   row,
 } from "@updf/layout";
+import { layout, measure, render } from "../../../tests/fixtures/text-options.js";
 
 const margins = { top: 0, right: 0, bottom: 0, left: 0 };
 const options = { pageSize: { width: 100, height: 40 }, margins };

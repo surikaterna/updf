@@ -1,7 +1,6 @@
 export const coreRuntime = `
 import assert from 'node:assert/strict';
 import { render, DocumentError } from '@updf/core';
-import { createPreparedFont } from '@updf/core/fonts';
 import { point, identity } from '@updf/core/painting';
 import { lower } from '@updf/core/vdom';
 import { jsx } from '@updf/core/jsx-runtime';
@@ -10,8 +9,10 @@ const page = jsx('page', { width: 100, height: 100 });
 const tree = jsxDEV('document', { version: 1, children: page });
 assert.ok(render(lower(tree)) instanceof Uint8Array);
 assert.deepEqual(point(identity, 2, 3), [2, 3]);
-assert.equal(typeof createPreparedFont, 'function');
+assert.ok(!Buffer.from(render(lower(tree))).toString('latin1').includes('/Type /Font'));
 assert.throws(() => render({version: 2, pages: []}), DocumentError);
+for (const entry of ['@updf/core/fonts', '@updf/core/measurement'])
+  await assert.rejects(import(entry), {code: 'ERR_PACKAGE_PATH_NOT_EXPORTED'});
 `;
 
 export const geometryRuntime = `
@@ -41,11 +42,15 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { render, DocumentError } from '@updf/core';
 import { prepareFont } from '@updf/fontkit';
+import { fontProvider, fontRuntime } from '@updf/fonts';
+import { createTextService } from '@updf/text';
 import { h, lower } from '@updf/core/vdom';
 const font = prepareFont(new Uint8Array(readFileSync('fixture.ttf')));
-const bytes = render({version: 1, pages: [{width: 100, height: 100, children: [{type: 'text', x: 10, y: 10, width: 80, height: 20, text: 'Привет', font: 'Demo', fontSize: 10, lineHeight: 12, align: 'left'}]}]}, {resources: {Demo: font}});
+const runtime = fontRuntime();
+const options = { resources: {Demo: font}, text: createTextService({runtime, defaultFont: 'Demo'}), providers: [fontProvider(runtime)] };
+const bytes = render({version: 1, pages: [{width: 100, height: 100, children: [{type: 'text', x: 10, y: 10, width: 80, height: 20, text: 'Привет', font: 'Demo', fontSize: 10, lineHeight: 12, align: 'left'}]}]}, options);
 assert.ok(bytes.length > 400000);
 const tree = h('document', {version: 1, children: h('page', {width: 100, height: 100, children: h('text', {x: 10, y: 10, width: 80, height: 20, text: 'Привет', font: 'Demo', fontSize: 10, lineHeight: 12, align: 'left'})})});
-assert.deepEqual(render(lower(tree, {resources: {Demo: font}}), {resources: {Demo: font}}), bytes);
+assert.deepEqual(render(lower(tree, options), options), bytes);
 assert.throws(() => prepareFont(new Uint8Array()), DocumentError);
 `;

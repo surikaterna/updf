@@ -1,6 +1,6 @@
 import type { ParagraphDefinition, RGB } from "@updf/core";
 import { DocumentError, fail, type LayoutOperation, MetricSum, sum } from "@updf/core/internal";
-import type { TextMeasurement } from "@updf/core/measurement";
+import type { TextMeasurement } from "@updf/text";
 import { derivedAxis } from "../axis.js";
 import type { TemplateGeometry } from "../template.js";
 import type { TableDefinition, TableRow } from "./types.js";

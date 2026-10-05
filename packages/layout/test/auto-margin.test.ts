@@ -3,7 +3,8 @@ import test from "node:test";
 import { DocumentError } from "@updf/core";
 import { Fragment } from "@updf/core/jsx-runtime";
 import { h } from "@updf/core/vdom";
-import { Block, Column, document, Flow, flow, layout, measure, pageSize, paragraph, Row } from "@updf/layout";
+import { Block, Column, document, Flow, flow, pageSize, paragraph, Row } from "@updf/layout";
+import { layout, measure } from "../../../tests/fixtures/text-options.js";
 import { block, layoutFlowUnknown } from "../../../tests/fixtures/transitional-layout.js";
 
 const margins = { top: 0, right: 0, bottom: 0, left: 0 };

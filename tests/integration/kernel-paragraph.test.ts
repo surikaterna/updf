@@ -6,17 +6,21 @@ import { certifyControlSource, controlSource, paragraphFixture } from "./kernel-
 
 const fixture = `
 import {render} from '@updf/core';
+import {createHelvetica,fontProvider,fontRuntime} from '@updf/fonts';
+import {createTextService} from '@updf/text';
 import {h} from '@updf/core/vdom';
 import {document,flow,paragraph,span,layout,Paragraph,Span} from '@updf/layout';
 const style={fontSize:10,lineHeight:1.2};
+const runtime=fontRuntime();
+const options={resources:{Helvetica:createHelvetica()},text:createTextService({runtime,defaultFont:'Helvetica'}),providers:[fontProvider(runtime)]};
 const text='FIRST\\nSECOND\\nTHIRD\\nFOURTH\\nFIFTH\\nSIXTH';
 const highlight={backgroundColor:[1,1,0]};
 const data=paragraph({style,whiteSpace:'preserve',children:span({style:highlight,children:text})});
 const jsx=h(Paragraph,{style,whiteSpace:'preserve',children:h(Span,{style:highlight,children:text})});
 const wrap=children=>document({children:flow({pageSize:{width:100,height:36},margins:{top:6,right:6,bottom:6,left:6},children})});
-export const result=layout(wrap(data));
-export const bytes=render(result.document);
-export const jsxBytes=render(layout(wrap(jsx)).document);
+export const result=layout(wrap(data),options);
+export const bytes=render(result.document,options);
+export const jsxBytes=render(layout(wrap(jsx),options).document,options);
 `;
 test("C production multipage authored paragraph matches pre-C paint/fit bytes, TSX and real PDF line order", async () => {
   const current = await paragraphFixture(fixture),

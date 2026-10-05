@@ -9,7 +9,7 @@ export default defineConfig({
     outDir: "dist-measurement",
     minify: "esbuild",
     lib: {
-      entry: fileURLToPath(new URL("../../packages/core/dist/measurement/index.js", import.meta.url)),
+      entry: fileURLToPath(new URL("../../packages/text/dist/index.js", import.meta.url)),
       formats: ["es"],
       fileName: () => "measurement.mjs",
     },

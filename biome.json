@@ -10,6 +10,8 @@
       "packages/geometry/**",
       "packages/svg/**",
       "packages/fontkit/**",
+      "packages/fonts/**",
+      "packages/text/**",
       "apps/**",
       "examples/**",
       "scripts/**",
