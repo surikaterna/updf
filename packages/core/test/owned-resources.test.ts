@@ -3,8 +3,8 @@ import test from "node:test";
 import { snapshotData } from "@updf/core/internal";
 import { createOwnedResource, isOwnedResource, type OwnedResource, ownedResourceBytes } from "@updf/core/resources";
 import { h, lower } from "@updf/core/vdom";
-import { operation } from "../dist/core/operation.js";
-import { sameData as equivalent } from "../dist/vdom/equality.js";
+import { operation } from "../dist/cjs/core/operation.js";
+import { sameData as equivalent } from "../dist/cjs/vdom/equality.js";
 
 test("owned resources snapshot deeply frozen data and preserve identity through source snapshots", () => {
   const input = { kind: "example", values: [{ size: 1 }] };

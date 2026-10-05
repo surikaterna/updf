@@ -1,3 +1,4 @@
+/** `@updf/layout-kernel/fragmentation`: bounded source-unit selection across host regions, without painting or pages. */
 import { fail } from "./error.js";
 import { type CursorState, flowRegion } from "./fragment-regions.js";
 import { selectRange } from "./fragment-select.js";
@@ -19,6 +20,15 @@ import { record } from "./width-validation.js";
 export type * from "./fragment-types.js";
 export { fragmentDefaults } from "./fragment-work.js";
 
+/**
+ * Create a frozen synchronous operation with cumulative budgets (fragmentDefaults).
+ * Prepared sources/cursors belong to this operation; each fragment call consumes
+ * its cursor. Close explicitly when finished. Any guarded failure, reentrancy or
+ * expired provider work use poisons the operation; it cannot be resumed.
+ * Structural outputs are frozen, generic descriptors/content are not cloned or
+ * frozen. Throws LayoutInputError for invalid contracts or exhausted budgets;
+ * provider exceptions propagate. Callbacks are trusted code, not a CPU sandbox.
+ */
 export function createFragmentOperation<D, C>(
   providerInput: FragmentProvider<D, C>,
   limits?: FragmentLimits,

@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { documentResources } from "../dist/core/document-resources.js";
-import { PdfWriter } from "../dist/core/pdf-writer.js";
-import type { MeasuredPage } from "../dist/core/plan.js";
-import { type Resource, type ResourceCollection, resourceSlot } from "../dist/core/resource-types.js";
-import { drawing as resolveDrawing } from "../dist/painting/read.js";
+import { documentResources } from "../dist/cjs/core/document-resources.js";
+import { PdfWriter } from "../dist/cjs/core/pdf-writer.js";
+import type { MeasuredPage } from "../dist/cjs/core/plan.js";
+import { type Resource, type ResourceCollection, resourceSlot } from "../dist/cjs/core/resource-types.js";
+import { drawing as resolveDrawing } from "../dist/cjs/painting/read.js";
 
 const drawing = resolveDrawing({ type: "rect", x: 0, y: 0, width: 10, height: 10 }, "");
 const node = { type: "rect", x: 0, y: 0, width: 10, height: 10, painting: drawing } as const;

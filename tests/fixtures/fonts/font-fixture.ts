@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import type { DocumentDefinition, TextNode } from "@updf/core";
 import { createPreparedFont, type PreparedFont } from "@updf/fonts";
-import { record } from "../../../packages/fonts/dist/checks.js";
+import { record } from "../../../packages/fonts/dist/cjs/checks.js";
 
 export async function fontInput(): Promise<Record<string, unknown>> {
   const root = new URL("./", import.meta.url);

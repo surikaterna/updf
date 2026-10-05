@@ -1,4 +1,10 @@
-# Optional fonts/text extraction — integrated implementation evidence
+# Optional fonts/text extraction — historical extraction evidence
+
+> **Historical only:** all revisions, qualifications, costs and audit results below
+> describe the original extraction against `ba487704`, not current develop integration.
+> They are preserved without rewriting prior audit outcomes. Current pending-merge
+> results and the fresh `f347be43` comparison belong to
+> [develop integration evidence](font-package-develop-integration.md).
 
 Issue N/A. **Implementation reviewed; browser validation passes under an explicitly
 software-rendered environment; default-GPU failure unresolved/CI risk.** Not published. Worktree

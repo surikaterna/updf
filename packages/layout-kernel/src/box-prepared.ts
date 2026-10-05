@@ -3,6 +3,7 @@ import { type BoxPlacement, placeResolved, type ResolvedBoxSize } from "./box-pl
 import { fail } from "./error.js";
 import { number, record } from "./width-validation.js";
 
+/** Explicit prepared row lengths/alignment with up to 100000 indexed children; no option defaults. */
 export interface PreparedBoxView {
   readonly width: number;
   readonly height: number;
@@ -16,7 +17,12 @@ export interface PreparedBoxView {
   readonly childAt: (index: number) => ResolvedBoxSize;
   readonly path: string;
 }
-/** Does not allocate tracks or measure: input sizes are prepared, certified host sizes. */
+/**
+ * Place already-certified host sizes in a row; does not allocate tracks or measure.
+ * Nonnegative finite lengths and horizontal/vertical fit are checked; violations
+ * throw LayoutInputError. Returns frozen offsets relative to the content origin,
+ * not including padding. The host remains responsible for native materialization.
+ */
 export function viewBox(input: PreparedBoxView): BoxPlacement {
   const data = preparedInput(input);
   const sizes: ResolvedBoxSize[] = [];

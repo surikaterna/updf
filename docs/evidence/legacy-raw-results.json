@@ -1,0 +1,11 @@
+{
+  "passed": [],
+  "pending": [],
+  "failed": [
+    {
+      "title": "container should put absolute position",
+      "name": "TypeError",
+      "message": "Cannot read properties of undefined (reading 'toString')"
+    }
+  ]
+}

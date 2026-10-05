@@ -6,15 +6,15 @@ import { fontProvider, fontRuntime } from "@updf/fonts";
 import { createTextService } from "@updf/text";
 import { fixtureFont, fontDocument, fontText } from "../../../tests/fixtures/fonts/font-fixture.js";
 import { fontOptions } from "../../../tests/fixtures/fonts/font-options.js";
-import { defaultResources } from "../dist/core/default-resources.js";
-import { documentResources } from "../dist/core/document-resources.js";
-import { measure } from "../dist/core/measure.js";
-import { operation } from "../dist/core/operation.js";
-import type { MeasuredPage } from "../dist/core/plan.js";
-import { serialize } from "../dist/core/serialize.js";
-import { textSlot } from "../dist/core/text-paint.js";
-import type { ResolvedTextResources } from "../dist/core/text-resources.js";
-import { alphaAt } from "../dist/painting/alpha.js";
+import { defaultResources } from "../dist/cjs/core/default-resources.js";
+import { documentResources } from "../dist/cjs/core/document-resources.js";
+import { measure } from "../dist/cjs/core/measure.js";
+import { operation } from "../dist/cjs/core/operation.js";
+import type { MeasuredPage } from "../dist/cjs/core/plan.js";
+import { serialize } from "../dist/cjs/core/serialize.js";
+import { textSlot } from "../dist/cjs/core/text-paint.js";
+import type { ResolvedTextResources } from "../dist/cjs/core/text-resources.js";
+import { alphaAt } from "../dist/cjs/painting/alpha.js";
 
 test("provider capabilities retain the original mutable receiver but not later method replacements", () => {
   const original = {

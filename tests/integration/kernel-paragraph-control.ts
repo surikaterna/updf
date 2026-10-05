@@ -7,7 +7,7 @@ import { build, type Plugin } from "esbuild";
 // Exact bytes from cb719c2e709f0d2ee2dc79773fb093c9ce17650a:packages/layout/src/content-producer.ts.
 // Keep the certificate independent of the fixture so refreshing it is an explicit review decision.
 const controlDigest = "eb2c1c642e0eaf4f384e78edd84d169a5a6fc7d3b3402b6f9cfeb829d06db32c";
-const producerPath = /packages\/layout\/(?:src\/content-producer\.ts|dist\/content-producer\.js)$/;
+const producerPath = /packages\/layout\/(?:src\/content-producer\.ts|dist\/cjs\/content-producer\.js)$/;
 
 export function certifyControlSource(source: string): void {
   assert.equal(createHash("sha256").update(source).digest("hex"), controlDigest, "pre-C source certificate");
@@ -25,9 +25,8 @@ function replacement(source: string, hits: string[]): Plugin {
     setup(builder) {
       builder.onLoad({ filter: producerPath }, ({ path }) => {
         hits.push(path);
-        // Historical relative imports belong to layout source, even if exports resolve to dist.
-        const resolveDir = path.endsWith(".ts") ? dirname(path) : resolve(dirname(path), "../src");
-        return { contents: source, loader: "ts", resolveDir };
+        // Keep historical relative imports in the same source or canonical Node graph as the producer.
+        return { contents: source, loader: "ts", resolveDir: dirname(path) };
       });
     },
   };

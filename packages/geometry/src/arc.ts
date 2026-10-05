@@ -3,6 +3,13 @@ import { fail, finite } from "@updf/core/internal";
 import type { PathCommand } from "@updf/core/painting";
 import { arcCenter, unitArc } from "./arc-center.js";
 
+/**
+ * Convert an SVG endpoint arc to cubic commands, without a leading move command.
+ * Coordinates/radii use the caller's painting units; rotation is degrees and flags
+ * must be 0 or 1. Negative radii become absolute, undersized radii expand to fit.
+ * Coincident endpoints yield no commands; zero radii yield a line. Invalid or
+ * nonfinite geometry throws DocumentError. Readonly typing does not imply freezing.
+ */
 export function arc(
   x1: number,
   y1: number,

@@ -5,7 +5,7 @@ import { createOwnedResource, ownedResourceBytes, type TextRun } from "@updf/cor
 import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
 import { createTextService } from "@updf/text";
 import { fixtureFont, fontDocument, fontText } from "../../../tests/fixtures/fonts/font-fixture.js";
-import { resolveRun } from "../dist/runtime.js";
+import { resolveRun } from "../dist/cjs/runtime.js";
 
 test("runtime-private runs join only matching owner, resource, size and mode, retaining singleton identity", () => {
   const runtime = fontRuntime(),

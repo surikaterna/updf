@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, type RenderOptions } from "@updf/core";
 import { renderUnknown as render, textOptions } from "../../../tests/fixtures/text-options.js";
-import { measure as measureValidated } from "../dist/core/measure.js";
-import { decimal, literal, value } from "../dist/core/pdf-values.js";
-import { policy } from "../dist/core/policy.js";
-import { resolveResources } from "../dist/core/text-resources.js";
-import { validate } from "../dist/core/validate.js";
+import { measure as measureValidated } from "../dist/cjs/core/measure.js";
+import { decimal, literal, value } from "../dist/cjs/core/pdf-values.js";
+import { policy } from "../dist/cjs/core/policy.js";
+import { resolveResources } from "../dist/cjs/core/text-resources.js";
+import { validate } from "../dist/cjs/core/validate.js";
 
 const text = (overrides: Record<string, unknown> = {}) => ({
   type: "text",

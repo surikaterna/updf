@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { PdfWriter } from "../../packages/core/dist/core/pdf-writer.js";
+import { PdfWriter } from "../../packages/core/dist/cjs/core/pdf-writer.js";
 import { fixtureFont, fontDocument, fontText } from "../fixtures/fonts/font-fixture.js";
 import { render } from "../fixtures/text-options.js";
 

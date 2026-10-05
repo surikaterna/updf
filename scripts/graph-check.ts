@@ -36,6 +36,10 @@ for (const build of builds) {
     "Must inspect emitted package JS",
   );
   assert.ok(!modules.some((id) => /\/packages\/[^/]+\/src\//u.test(id)), "Source alias bypassed package exports");
+  assert.ok(
+    !modules.some((id) => /\/packages\/[^/]+\/dist\/(?:cjs|node)\//u.test(id)),
+    "Node packaging leaked into browser graph",
+  );
   if (build !== "dist-geometry" && build !== "dist-svg" && build !== "font-browser")
     assert.ok(
       !modules.some((id) => /\/geometry\/dist\/(scanner|normalize)\.js|\/svg\/dist\//u.test(id)),

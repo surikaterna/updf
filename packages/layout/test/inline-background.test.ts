@@ -19,8 +19,8 @@ import {
 import { badge, badgeAdapter } from "../../../apps/showcase/src/inline-badge.js";
 import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
 import { createLayoutOperation, layout, measure, render } from "../../../tests/fixtures/text-options.js";
-import { OutputBudget } from "../dist/budget.js";
-import { contentProducer } from "../dist/content-producer.js";
+import { OutputBudget } from "../dist/cjs/budget.js";
+import { contentProducer } from "../dist/cjs/content-producer.js";
 
 const yellow = [1, 1, 0] as const;
 const blue = [0, 0, 1] as const;

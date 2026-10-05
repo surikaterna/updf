@@ -9,7 +9,7 @@ const overrides: Readonly<Record<string, string>> = {
   "package.json": "docs/evidence/baseline/legacy-package.json",
   "readme.md": "docs/migration/legacy-readme.md",
   "experimental/declarative/README.md": "docs/evidence/native-poc-readme.md",
-  "experimental/declarative/eslint.config.ts": "eslint.config.ts",
+  "experimental/declarative/eslint.config.ts": "docs/evidence/baseline/retired-root-eslint.config.ts.txt",
 };
 const hash = (bytes: Uint8Array): string => createHash("sha256").update(bytes).digest("hex");
 let restored = 0;

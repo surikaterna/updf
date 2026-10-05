@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { textWidth } from "../dist/helvetica-metrics.js";
+import { textWidth } from "../dist/cjs/helvetica-metrics.js";
 
 test("Helvetica width units retain no-kerning arithmetic and numeric extremes", () => {
   assert.equal(textWidth("Hello", 10), 22.78);

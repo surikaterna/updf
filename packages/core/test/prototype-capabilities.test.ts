@@ -9,8 +9,8 @@ import { createOwnedResource } from "@updf/core/resources";
 import { ownedResourceBytes } from "@updf/core/resources";
 import { fontRuntime } from "@updf/fonts";
 import { createTextService } from "@updf/text";
-import { operation } from "./packages/core/dist/core/operation.js";
-import { documentResources } from "./packages/core/dist/core/document-resources.js";
+import { operation } from "./packages/core/dist/cjs/core/operation.js";
+import { documentResources } from "./packages/core/dist/cjs/core/document-resources.js";
 let calls = 0;
 function contaminated(key, descriptor, run) {
   const previous = Object.getOwnPropertyDescriptor(Object.prototype, key);

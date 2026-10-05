@@ -1,7 +1,9 @@
+/** `@updf/layout-kernel/geometry`: native binary64 endpoint certification in consistent host units, not shape drawing. */
 import { sum } from "./arithmetic.js";
 import { bits, dyadic, floorDyadic, spacing, successor, value } from "./binary64.js";
 import { fail } from "./error.js";
 
+/** Frozen certified nonnegative axis; capacity may differ from nominal extent within a 32-local-ULP conditioning budget. */
 export interface DerivedAxis {
   readonly start: number;
   readonly end: number;
@@ -15,6 +17,11 @@ function illConditioned(path: string): never {
     "Derived region is numerically ill-conditioned: coordinate rounding exceeds the local precision budget.",
   );
 }
+/**
+ * Certify finite 0 ≤ start < end and greatest native-fitting positive capacity.
+ * Throws LayoutInputError GEOMETRY at path for invalid or ill-conditioned axes;
+ * this rejects unstable coordinates, not an overflow allowance or quantization.
+ */
 export function derivedAxis(start: number, end: number, path: string): DerivedAxis {
   const nominalExtent = end - start;
   if (
@@ -45,6 +52,7 @@ export function derivedAxis(start: number, end: number, path: string): DerivedAx
   if (capacity <= 0 || start + capacity > end) illConditioned(path);
   return Object.freeze({ start, end, nominalExtent, capacity });
 }
+/** Check native (start + offset) + extent stays in axis; GEOMETRY on overflow. Host must validate metric signs. */
 export function materializedStart(axis: DerivedAxis, offset: number, extent: number, path: string): number {
   const start = axis.start + offset;
   const end = start + extent;
@@ -52,6 +60,11 @@ export function materializedStart(axis: DerivedAxis, offset: number, extent: num
     fail("GEOMETRY", path, "Materialized geometry exceeds its derived region under native coordinate association.");
   return start;
 }
+/**
+ * Compute center/end offset inside a prepared vertical region; start/stretch return
+ * zero. Host supplies validated compatible lengths, vertical is total insets.
+ * Native endpoint conditioning may throw GEOMETRY; this does not clip or shrink extent.
+ */
 export function alignedTop(
   insetTop: number,
   insetBottom: number,

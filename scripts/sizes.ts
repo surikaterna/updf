@@ -22,6 +22,7 @@ for (const [profile, contents] of Object.entries(inputs)) {
     minify: true,
     target: "es2022",
     platform: "browser",
+    conditions: ["browser"],
     format: "esm",
     metafile: true,
     write: false,
@@ -30,6 +31,10 @@ for (const [profile, contents] of Object.entries(inputs)) {
   assert.ok(bytes);
   const modules = Object.keys(result.metafile.inputs);
   assert.ok(!modules.some((path) => /packages\/[^/]+\/src\//u.test(path)), "Source alias in cost profile");
+  assert.ok(
+    !modules.some((path) => /packages\/[^/]+\/dist\/(?:cjs|node)\//u.test(path)),
+    "Non-browser package condition in cost profile",
+  );
   if (!historical && profile === "drawing")
     assert.ok(!modules.some((path) => /packages\/(?:fonts|text)\//u.test(path)), "Drawing imported fonts/text");
   if (profile === "measurementHost")

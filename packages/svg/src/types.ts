@@ -1,15 +1,18 @@
 import type { DocumentDiagnostic, PaintingGroupNode, SourceSpan } from "@updf/core";
 
+/** Point viewport: finite x/y and strictly positive finite w/h. */
 export interface SVGTarget {
   readonly x: number;
   readonly y: number;
   readonly w: number;
   readonly h: number;
 }
+/** Recoverable CSS warning; span uses half-open UTF-16 offsets into the original source. */
 export interface SVGDiagnostic extends DocumentDiagnostic {
   readonly span: SourceSpan;
   readonly severity: "warning";
 }
+/** Frozen native painting tree and warning list; no DOM or external resources retained. */
 export interface SVGCompilation {
   readonly node: PaintingGroupNode;
   readonly diagnostics: readonly SVGDiagnostic[];

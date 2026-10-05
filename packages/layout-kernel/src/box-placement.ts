@@ -4,14 +4,17 @@ import { fail } from "./error.js";
 import { alignedTop } from "./geometry.js";
 import { number } from "./width-validation.js";
 
+/** Prepared nonnegative finite host lengths; no intrinsic measurement is performed. */
 export interface ResolvedBoxSize {
   readonly width: number;
   readonly height: number;
 }
+/** Offset relative to parent content origin, excluding its padding; y increases downwards. */
 export interface BoxOffset extends ResolvedBoxSize {
   readonly left: number;
   readonly top: number;
 }
+/** Frozen prepared placement with child offsets and retained host box height. */
 export interface BoxPlacement {
   readonly height: number;
   readonly children: readonly BoxOffset[];

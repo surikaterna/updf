@@ -9,8 +9,8 @@ import { render as coreRender, type DocumentDefinition, DocumentError, type Oper
 import { type Component, h, lower } from "@updf/core/vdom";
 import { createPreparedFont } from "@updf/fonts";
 import { cmrFixture, createCmrDocument } from "../../apps/cmr/src/cmr.js";
-import { measure } from "../../packages/core/dist/core/measure.js";
-import { operation } from "../../packages/core/dist/core/operation.js";
+import { measure } from "../../packages/core/dist/cjs/core/measure.js";
+import { operation } from "../../packages/core/dist/cjs/core/operation.js";
 import { fixtureFont, fontDocument, fontInput, fontText } from "../fixtures/fonts/font-fixture.js";
 import { fontOptions } from "../fixtures/fonts/font-options.js";
 

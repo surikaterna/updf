@@ -1,6 +1,7 @@
 import type { NodeDefinition } from "@updf/core";
 
 declare const planBrand: unique symbol;
+/** Local native nodes in a point-height reservation; first/all/last applies to block fragments. */
 export interface StaticDecoration {
   readonly edge: "before" | "after";
   readonly repeat: "all" | "first" | "last";

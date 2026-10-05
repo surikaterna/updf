@@ -3,11 +3,17 @@ import { error, number, record } from "./checks.js";
 import type { CellProps, RowProps, SectionProps, TableInput, TableProps, TableRow, TableSection } from "./types.js";
 import { cell, row, rowOptions } from "./validate.js";
 
+/** Table.Head author slot; defaults to first fragment, optionally repeated or explicitly height-reserved. */
 export const Head = defineBlockPart<SectionProps>("table.head");
+/** Table.Body author slot containing atomic Table.Row parts; cannot repeat or reserve section height. */
 export const Body = defineBlockPart<{ readonly children?: BlockContent }>("table.body");
+/** Table.Foot author slot; defaults to last fragment, optionally repeated or explicitly height-reserved. */
 export const Foot = defineBlockPart<SectionProps>("table.foot");
+/** Table.Row author slot; cells must match column count and the row never splits across pages. */
 export const Row = defineBlockPart<RowProps>("table.row");
+/** Table.Cell author slot accepting blocks or one all-inline implicit paragraph. */
 export const Cell = defineBlockPart<CellProps>("table.cell");
+/** Table.HeaderCell author slot accepted in Head only; same cell style/content schema as Cell. */
 export const HeaderCell = defineBlockPart<CellProps>("table.header-cell");
 const deferred = new WeakMap<TableSection, BlockContent>();
 const cellPaths = new WeakMap<object, string>();

@@ -1,3 +1,8 @@
+/**
+ * `@updf/core/internal-drawing`: unstable sibling-package drawing coordinator bridge.
+ * Not a supported consumer API; no compatibility guarantee is introduced by these docs.
+ * @module
+ */
 import { layoutOperation } from "./core/layout-operation.js";
 import { operation } from "./core/operation.js";
 import { lowerDrawing } from "./vdom/lower.js";

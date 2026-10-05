@@ -2,13 +2,13 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { paragraph } from "@updf/layout";
 import { createLayoutOperation } from "../../../tests/fixtures/text-options.js";
-import { prepareLeaf } from "../dist/blocks.js";
-import { OutputBudget } from "../dist/budget.js";
-import { authorParagraph, normalizeBlocks } from "../dist/content-normalize.js";
-import { measureParagraph } from "../dist/content-paragraph.js";
-import { contentProducer } from "../dist/content-producer.js";
-import type { ExtensionLifetime } from "../dist/extension-producer.js";
-import { closeParagraphFragments } from "../dist/paragraph-fragments.js";
+import { prepareLeaf } from "../dist/cjs/blocks.js";
+import { OutputBudget } from "../dist/cjs/budget.js";
+import { authorParagraph, normalizeBlocks } from "../dist/cjs/content-normalize.js";
+import { measureParagraph } from "../dist/cjs/content-paragraph.js";
+import { contentProducer } from "../dist/cjs/content-producer.js";
+import type { ExtensionLifetime } from "../dist/cjs/extension-producer.js";
+import { closeParagraphFragments } from "../dist/cjs/paragraph-fragments.js";
 
 const request = { availableHeight: 12, atFreshRegion: true, offset: 0, width: 80, freshHeight: 12, usedHeight: 0 };
 test("production authored paragraphs and repeated candidate trials share one nonforked work ledger", () => {

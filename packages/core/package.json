@@ -10,46 +10,136 @@
   ],
   "exports": {
     "./resources": {
-      "types": "./dist/resources.d.ts",
-      "import": "./dist/resources.js"
+      "browser": {
+        "types": "./dist/node/resources.d.mts",
+        "default": "./dist/resources.js"
+      },
+      "import": {
+        "types": "./dist/node/resources.d.mts",
+        "default": "./dist/node/resources.mjs"
+      },
+      "require": {
+        "types": "./dist/node/resources.d.cts",
+        "default": "./dist/cjs/resources.js"
+      }
     },
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "browser": {
+        "types": "./dist/node/index.d.mts",
+        "default": "./dist/index.js"
+      },
+      "import": {
+        "types": "./dist/node/index.d.mts",
+        "default": "./dist/node/index.mjs"
+      },
+      "require": {
+        "types": "./dist/node/index.d.cts",
+        "default": "./dist/cjs/index.js"
+      }
     },
     "./pdf": {
-      "types": "./dist/pdf.d.ts",
-      "import": "./dist/pdf.js"
+      "browser": {
+        "types": "./dist/node/pdf.d.mts",
+        "default": "./dist/pdf.js"
+      },
+      "import": {
+        "types": "./dist/node/pdf.d.mts",
+        "default": "./dist/node/pdf.mjs"
+      },
+      "require": {
+        "types": "./dist/node/pdf.d.cts",
+        "default": "./dist/cjs/pdf.js"
+      }
     },
     "./painting": {
-      "types": "./dist/painting/index.d.ts",
-      "import": "./dist/painting/index.js"
+      "browser": {
+        "types": "./dist/node/painting/index.d.mts",
+        "default": "./dist/painting/index.js"
+      },
+      "import": {
+        "types": "./dist/node/painting/index.d.mts",
+        "default": "./dist/node/painting/index.mjs"
+      },
+      "require": {
+        "types": "./dist/node/painting/index.d.cts",
+        "default": "./dist/cjs/painting/index.js"
+      }
     },
     "./vdom": {
-      "types": "./dist/vdom/index.d.ts",
-      "import": "./dist/vdom/index.js"
+      "browser": {
+        "types": "./dist/node/vdom/index.d.mts",
+        "default": "./dist/vdom/index.js"
+      },
+      "import": {
+        "types": "./dist/node/vdom/index.d.mts",
+        "default": "./dist/node/vdom/index.mjs"
+      },
+      "require": {
+        "types": "./dist/node/vdom/index.d.cts",
+        "default": "./dist/cjs/vdom/index.js"
+      }
     },
     "./jsx-runtime": {
-      "types": "./dist/jsx-runtime.d.ts",
-      "import": "./dist/jsx-runtime.js"
+      "browser": {
+        "types": "./dist/node/jsx-runtime.d.mts",
+        "default": "./dist/jsx-runtime.js"
+      },
+      "import": {
+        "types": "./dist/node/jsx-runtime.d.mts",
+        "default": "./dist/node/jsx-runtime.mjs"
+      },
+      "require": {
+        "types": "./dist/node/jsx-runtime.d.cts",
+        "default": "./dist/cjs/jsx-runtime.js"
+      }
     },
     "./jsx-dev-runtime": {
-      "types": "./dist/jsx-dev-runtime.d.ts",
-      "import": "./dist/jsx-dev-runtime.js"
+      "browser": {
+        "types": "./dist/node/jsx-dev-runtime.d.mts",
+        "default": "./dist/jsx-dev-runtime.js"
+      },
+      "import": {
+        "types": "./dist/node/jsx-dev-runtime.d.mts",
+        "default": "./dist/node/jsx-dev-runtime.mjs"
+      },
+      "require": {
+        "types": "./dist/node/jsx-dev-runtime.d.cts",
+        "default": "./dist/cjs/jsx-dev-runtime.js"
+      }
     },
     "./internal": {
-      "types": "./dist/internal.d.ts",
-      "import": "./dist/internal.js"
+      "browser": {
+        "types": "./dist/node/internal.d.mts",
+        "default": "./dist/internal.js"
+      },
+      "import": {
+        "types": "./dist/node/internal.d.mts",
+        "default": "./dist/node/internal.mjs"
+      },
+      "require": {
+        "types": "./dist/node/internal.d.cts",
+        "default": "./dist/cjs/internal.js"
+      }
     },
     "./internal-drawing": {
-      "types": "./dist/internal-drawing.d.ts",
-      "import": "./dist/internal-drawing.js"
+      "browser": {
+        "types": "./dist/node/internal-drawing.d.mts",
+        "default": "./dist/internal-drawing.js"
+      },
+      "import": {
+        "types": "./dist/node/internal-drawing.d.mts",
+        "default": "./dist/node/internal-drawing.mjs"
+      },
+      "require": {
+        "types": "./dist/node/internal-drawing.d.cts",
+        "default": "./dist/cjs/internal-drawing.js"
+      }
     }
   },
   "dependencies": {
     "@updf/layout-kernel": "2.0.0-poc.0"
   },
   "scripts": {
-    "build": "node --input-type=module -e \"import { rm } from 'node:fs/promises'; await rm('dist', { recursive: true, force: true });\" && tsc -p tsconfig.json"
+    "build": "tsx ../../scripts/packaging/build.ts"
   }
 }

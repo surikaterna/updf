@@ -39,6 +39,11 @@ const names = [
   "fontkit-template.ts",
 ];
 
+function assertCanonicalDeclarations(files: string, root: string, name: string, entry: string): void {
+  assert.ok(files.includes(join(root, `packages/${name}/dist/node/${entry}.d.mts`)));
+  assert.ok(files.includes(join(root, `packages/${name}/dist/cjs/${entry}.d.ts`)));
+}
+
 test("temporary strict consumer resolves emitted declarations, DX negatives and executable compositions", async () => {
   const directory = await mkdtemp("/tmp/opencode/updf-declarations-");
   const root = fileURLToPath(new URL("../../", import.meta.url));
@@ -65,10 +70,10 @@ test("temporary strict consumer resolves emitted declarations, DX negatives and 
       cwd: directory,
       encoding: "utf8",
     });
-    assert.ok(files.includes(join(root, "packages/core/dist/index.d.ts")));
-    assert.ok(files.includes(join(root, "packages/svg/dist/tree.d.ts")));
+    assertCanonicalDeclarations(files, root, "core", "index");
+    assertCanonicalDeclarations(files, root, "svg", "tree");
     assert.ok(!files.includes("/src/") && !files.includes("@types/react") && !files.includes("@types/node"));
-    const declarations = await readFile(join(root, "packages/core/dist/index.d.ts"), "utf8");
+    const declarations = await readFile(join(root, "packages/core/dist/cjs/index.d.ts"), "utf8");
     assert.match(declarations, /render\(document: DocumentDefinition, options\?: RenderOptions\)/);
     assert.match(declarations, /renderUnknown\(document: unknown, options\?: RenderOptions\)/);
     assert.ok(!declarations.includes("CmrData"));

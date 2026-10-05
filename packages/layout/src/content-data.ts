@@ -27,11 +27,14 @@ export const spanIdentity = Object.freeze({});
 export const blockIdentity = Object.freeze({});
 export const visualIdentity = Object.freeze({});
 export const legacyIdentity = Object.freeze({});
+/** JSX flowing text block; ParagraphProps controls whitespace, wrapping and atomic placement. */
 export const Paragraph = semanticComponent<Record<string, unknown>>(paragraphIdentity) as unknown as BlockComponent;
+/** JSX inline text style layer; use only inside inline content. */
 export const Span = semanticComponent<Record<string, unknown>>(spanIdentity) as unknown as InlineComponent;
 const BlockRoot = semanticComponent<Record<string, unknown>>(
   blockIdentity,
 ) as unknown as BlockComponent<ContentBlockProps>;
+/** JSX vertical box with Header/Body/Footer reservations; explicit hidden overflow clips, not redacts. */
 export const Block = Object.freeze(
   Object.assign(BlockRoot, { Header: BlockHeader, Body: BlockBody, Footer: BlockFooter }),
 );
@@ -43,10 +46,12 @@ export function contentSnapshot<T>(value: T, path: string): T {
     (item) => isContentData(item) || isVNode(item) || isExtensionBlock(item) || isDecorationPlan(item),
   );
 }
+/** Frozen owned paragraph snapshot; caller data remains mutable, semantic validation occurs in measurement. */
 export function paragraph(props: ParagraphProps): ParagraphContent {
   record(props, ["children", "style", "whiteSpace", "breakLongWords", "keepTogether"], "/paragraph");
   return ownContentData(contentSnapshot({ type: "contentParagraph" as const, props }, "/paragraph"));
 }
+/** Frozen owned inline style snapshot; serialized copies are not owned Span descriptors. */
 export function span(props: SpanProps): SpanContent {
   record(props, ["children", "style"], "/span");
   return ownContentData(contentSnapshot({ type: "contentSpan" as const, props }, "/span"));

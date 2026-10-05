@@ -1,3 +1,8 @@
+/**
+ * `@updf/fonts`: own validated prepared TrueType data without importing a font parser.
+ * Install handles, a font runtime and its provider explicitly; font bytes remain private.
+ * @module
+ */
 export { byteLength } from "./checks.js";
 export { createPreparedFont, isPreparedFont } from "./prepare.js";
 export { scalar } from "./profile.js";

@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { checkCoreArtifacts } from "./core-artifacts.js";
 
 export const root = fileURLToPath(new URL("../../", import.meta.url));
 
@@ -17,6 +18,10 @@ export async function pack(directory: string, destination: string): Promise<stri
   assert.ok(Array.isArray(result));
   const first: unknown = result[0];
   assert.ok(first && typeof first === "object" && "filename" in first && typeof first.filename === "string");
+  if (directory === "packages/core") {
+    assert.ok("files" in first && Array.isArray(first.files));
+    checkCoreArtifacts(first.files.map((file: { path: string }) => file.path));
+  }
   return join(destination, first.filename);
 }
 

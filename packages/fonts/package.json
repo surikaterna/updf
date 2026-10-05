@@ -11,14 +11,24 @@
   ],
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "browser": {
+        "types": "./dist/node/index.d.mts",
+        "default": "./dist/index.js"
+      },
+      "import": {
+        "types": "./dist/node/index.d.mts",
+        "default": "./dist/node/index.mjs"
+      },
+      "require": {
+        "types": "./dist/node/index.d.cts",
+        "default": "./dist/cjs/index.js"
+      }
     }
   },
   "dependencies": {
     "@updf/core": "2.0.0-poc.0"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsx ../../scripts/packaging/build.ts"
   }
 }

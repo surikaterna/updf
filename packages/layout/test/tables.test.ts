@@ -9,8 +9,8 @@ import {
   lower,
   render,
 } from "../../../tests/fixtures/text-options.js";
-import type { TableDefinition } from "../dist/tables/index.js";
-import { Tables } from "../dist/tables/vdom.js";
+import type { TableDefinition } from "../dist/cjs/tables/index.js";
+import { Tables } from "../dist/cjs/tables/vdom.js";
 
 const pageTemplate = { width: 120, height: 60, margins: { top: 0, right: 0, bottom: 0, left: 0 } };
 function table(count = 4): TableDefinition {

@@ -1,3 +1,8 @@
+/**
+ * Optional document authoring from `@updf/layout`: fixed Page and paginated Flow
+ * sections, point-valued boxes, text measurement and local adapter capabilities.
+ * Use core's JSX runtime; serialize layout results with `@updf/core` render.
+ */
 export { blockComponent, defineBlockPart } from "./author-parts.js";
 export type { BorderEdge, BorderLayer, BorderPolicy, ExpandedBorders } from "./borders.js";
 export { expandBorders, mergeBorders } from "./borders.js";

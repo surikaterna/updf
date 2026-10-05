@@ -18,7 +18,6 @@
       "tests/**",
       "package.json",
       "tsconfig*.json",
-      "eslint.config.ts",
       "biome.json",
       "!**/dist",
       "!**/dist-*",
@@ -51,20 +50,43 @@
       "recommended": true,
       "style": {
         "noDefaultExport": "error",
+        "noCommonJs": "error",
+        "noNamespace": "error",
         "useConst": "error",
+        "useArrayLiterals": "error",
+        "useAsConstAssertion": "error",
         "useImportType": "error",
         "noNonNullAssertion": "warn"
       },
-      "suspicious": { "noExplicitAny": "error", "noArrayIndexKey": "warn" },
+      "suspicious": {
+        "noExplicitAny": "error",
+        "noArrayIndexKey": "warn",
+        "noEmptyInterface": "error",
+        "noExtraNonNullAssertion": "error",
+        "noMisleadingInstantiator": "error",
+        "noNonNullAssertedOptionalChain": "error",
+        "noTsIgnore": "error",
+        "noUnsafeDeclarationMerging": "error",
+        "noUnusedExpressions": "error",
+        "useNamespaceKeyword": "error"
+      },
+      "nursery": { "noDuplicateEnumValues": "error" },
       "complexity": {
         "noExcessiveCognitiveComplexity": { "level": "warn", "options": { "maxAllowedComplexity": 15 } },
         "noForEach": "warn",
+        "noBannedTypes": "error",
+        "noUselessThisAlias": "error",
+        "noUselessTypeConstraint": "error",
         "useLiteralKeys": "off"
       },
       "correctness": { "noUnusedImports": "error", "noUnusedVariables": "error" }
     }
   },
   "overrides": [
+    {
+      "includes": ["packages/core/src/jsx-runtime.ts"],
+      "linter": { "rules": { "style": { "noNamespace": "off" } } }
+    },
     {
       "includes": [
         "apps/browser-react/vite.config.ts",
@@ -79,8 +101,7 @@
         "apps/browser-react/vite.svg.config.ts",
         "apps/browser-react/vite.fontkit.config.ts",
         "apps/browser-fonts/vite.config.ts",
-        "apps/showcase/vite.config.ts",
-        "eslint.config.ts"
+        "apps/showcase/vite.config.ts"
       ],
       "linter": { "rules": { "style": { "noDefaultExport": "off" } } }
     }

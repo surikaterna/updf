@@ -1,5 +1,19 @@
 # @updf/layout-kernel — allocation, boxes and fragmentation (A/B/C)
 
+## Root API inventory (documentation slice)
+
+| Exports | Declaration owner | Contract |
+| --- | --- | --- |
+| `resolveWidths` (typed and unknown overloads) | `src/width-resolver.ts` | Validated point allocation, frozen output, stable binary64 rounding |
+| `WidthTrack`, `WeightedWidth`, `WidthResolutionInput`, `WidthResolution` | `src/width-types.ts` | Fixed or bounded weighted tracks and allocation snapshots |
+| `LayoutInputError`, `LayoutInputErrorCode` | `src/error.ts` | Input errors with code/path; host exceptions retain identity |
+
+This inventory and new declaration JSDoc cover the **root allocator only**, not
+every field or subpath. Existing boxes/numeric/arithmetic/geometry/fragmentation
+contracts remain below and in the linked architecture document; their declaration
+owners are not part of this documentation slice. Width allocation does not page,
+clip, paint or select an overflow policy. Capped shares can leave unused width.
+
 Private MIT `2.0.0-poc.0` package: the canonical binary64 fixed/weighted bounded
 width allocator, independent of PDF, fonts, VDOM, DOM, React, Node and `@updf/core`.
 No runtime dependencies or ambient declaration dependencies.
@@ -173,3 +187,25 @@ capped at `Number.MAX_SAFE_INTEGER`, matching existing internal-work compatibili
 policy pending issue **#25**'s budget design. PDF node/text/path/page caps remain
 separate, unchanged and candidate-forked. This mapping does not weaken standalone
 defaults and is not a practical CPU or hostile-sandbox guarantee.
+
+## Nonroot declaration documentation inventory (remaining S5 slice)
+
+The earlier root-only documentation note above describes the prior slice. This
+append adds defining-declaration JSDoc for the nonroot public surface without
+changing that slice's text or allocator code. Grouped coverage is not per-field
+exhaustiveness. The compiled
+[`layout-documentation-examples.ts`](../../tests/integration/layout-documentation-examples.ts)
+uses all five subpaths; its companion test checks behavior and emitted comments.
+
+| Import path / exports | Owners under `src/` | Hover coverage |
+| --- | --- | --- |
+| `@updf/layout-kernel/boxes`: `layoutBoxes`, `viewBox`, `BoxStyle`, `BoxView`, `BoxAllocation`, `BoxLimits`, `LayoutBoxesInput`, `BoxRecord`, `BoxLayout`, `PreparedBoxView`, `ResolvedBoxSize`, `BoxOffset`, `BoxPlacement` | `box-layout.ts`, `box-prepared.ts`, `box-types.ts`, `box-placement.ts`; barrel `boxes.ts` | Host units, defaults/budgets, tree/measurement roles, offsets, fit errors and shallow payload ownership; not every dimension/index member |
+| `@updf/layout-kernel/fragmentation`: `createFragmentOperation`, `fragmentDefaults`, `FragmentOperation`, `FragmentSource`, `FragmentView`, `FragmentProvider`, `ProviderWork`, `FragmentLimits`, `FragmentCounts`, `FragmentUnit`, `SelectedRange`, `RangeRequest`, `PreparedSource`, `FragmentCursor`, `FragmentRegion`, `FragmentPlacement`, `RegionResult` | `fragmentation.ts`, `fragment-types.ts`, `fragment-work.ts` | Source versus physical units, default caps, lazy readers, progress/status, single-use cursor and poisoned lifecycle; most repeated numeric fields use grouped comments |
+| `@updf/layout-kernel/numeric`: `bits`, `value`, `dyadic`, `spacing`, `floorDyadic`, `successor` | `binary64.ts`; barrel `numeric.ts` | Unchecked finite/nonnegative preconditions, encoding bounds, dyadic units and undefined boundaries |
+| `@updf/layout-kernel/arithmetic`: `MetricSum`, `sum`, `exceeds` | `arithmetic.ts` | Mutable accumulation, nonfinite propagation, default scale and relative comparison, no implicit units |
+| `@updf/layout-kernel/geometry`: `DerivedAxis`, `derivedAxis`, `materializedStart`, `alignedTop` | `geometry.ts` | Frozen axis/conditioning, native association, required host validation, fit errors and alignment roles |
+
+These are host primitives, not the shape-drawing `@updf/geometry` package. They
+do not create pages, choose fresh-page oversize policy, paint, redact or clip.
+Kernel errors are `LayoutInputError` from the root; arbitrary host exceptions
+propagate. Structural freezing does not deep-freeze generic host payloads.

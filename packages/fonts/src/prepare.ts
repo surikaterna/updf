@@ -55,7 +55,12 @@ function glyphs(value: unknown, glyphCount: number, fontBox: FontDescriptor["bou
   );
 }
 
-/** Validates prepared data, not the TTF program or metric/program correspondence. */
+/**
+ * Validate prepared metadata and copy bytes into a frozen, reusable owned font handle.
+ * Does not parse the TTF program, verify metric/program correspondence or infer embedding rights.
+ * Hosts must supply trustworthy preparation; the supported text profile is simple LTR Latin/Cyrillic.
+ * @throws {DocumentError} For invalid prepared data or exceeded font-byte budgets.
+ */
 export function createPreparedFont(input: unknown, options: OperationOptions = {}): PreparedFont {
   const maximum = policy(options).resourceBytes;
   record(input, "/font", [

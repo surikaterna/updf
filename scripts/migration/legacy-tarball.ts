@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdtempSync, readFileSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
+import ts from "typescript";
+import { compileLegacyCopy } from "./legacy-compile.js";
 import { smokeFixture } from "./legacy-smoke-fixture.js";
 
 const root = process.cwd();
@@ -26,6 +28,7 @@ function copy(): string {
     ".babelrc",
     ".eslintrc",
     ".npmignore",
+    "tsconfig.build.json",
   ]) {
     cpSync(join(legacy, name), join(dir, name), { recursive: true });
   }
@@ -35,11 +38,21 @@ function copy(): string {
   return dir;
 }
 
-function smoke(dir: string, entry: string, deepPrefix: string, register = false): unknown {
+function smoke(dir: string, entry: string, deepPrefix: string): unknown {
   const filename = join(dir, "smoke.cjs");
   writeFileSync(filename, smokeFixture(entry, deepPrefix));
-  const args = register ? ["-r", "babel-register", filename] : [filename];
-  return JSON.parse(run(dir, process.execPath, args)) as unknown;
+  return JSON.parse(run(dir, process.execPath, [filename])) as unknown;
+}
+
+function sourceShim(): string {
+  const dir = mkdtempSync("/tmp/opencode/updf-legacy-shim-");
+  compileLegacyCopy(legacy, dir);
+  writeFileSync(join(dir, "package.json"), '{"private":true,"type":"commonjs"}\n');
+  const shim = ts.transpileModule(readFileSync(join(legacy, "index.js"), "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true },
+  });
+  writeFileSync(join(dir, "index.js"), shim.outputText);
+  return dir;
 }
 
 const dir = copy();
@@ -49,7 +62,11 @@ assert.equal(typeof manifest.name, "string");
 assert.equal(manifest.main, "lib/index.js");
 const name = String(manifest.name);
 const generated = smoke(dir, "./lib/index.js", "./lib");
-const shim = smoke(dir, "./index.js", "./src", true);
+const baseline: { generated: unknown } = JSON.parse(
+  readFileSync(join(root, "docs/evidence/legacy-tarball-baseline.json"), "utf8"),
+);
+assert.deepEqual(generated, baseline.generated, "Packed smoke changed from the historical compiler baseline");
+const shim = smoke(sourceShim(), "./index.js", "./src");
 assert.deepEqual(generated, shim);
 run(dir, "npm", ["run", "compile"]);
 const rebuilt = smoke(dir, "./lib/index.js", "./lib");
@@ -72,7 +89,7 @@ run(consumer, "npm", [
 const installed = smoke(consumer, name, `${name}/lib`);
 assert.deepEqual(generated, installed);
 const result = {
-  status: "baseline tarball smoke passed; migration not performed",
+  status: "TypeScript rebuild, source shim and installed tarball smoke equivalent",
   legacy,
   package: name,
   main: manifest.main,

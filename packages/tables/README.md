@@ -17,6 +17,11 @@ The following example uses that `options` object for both lowering and rendering
 tables do not install Helvetica or any fallback font, and empty/overridden cell
 styles still validate against the selected service.
 
+See the grouped [API inventory](API.md) for declaration owners and honest hover
+coverage, and the compiled
+[`layout-documentation-examples.ts`](../../tests/integration/layout-documentation-examples.ts)
+for a data table paged through an ordinary Flow with a local extension set.
+
 ```tsx
 /** @jsxImportSource @updf/core */
 import { render } from "@updf/core";

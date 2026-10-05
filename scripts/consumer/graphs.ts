@@ -7,12 +7,12 @@ async function publicFile(directory: string, specifier: string): Promise<string>
   const [scope, name, ...subpath] = specifier.split("/");
   assert.ok(scope && name);
   const packageRoot = join(directory, "node_modules", scope, name);
-  const manifest: { exports: Record<string, { import: string }> } = JSON.parse(
+  const manifest: { exports: Record<string, { browser: { default: string } }> } = JSON.parse(
     await readFile(join(packageRoot, "package.json"), "utf8"),
   );
   const entry = manifest.exports[subpath.length ? `./${subpath.join("/")}` : "."];
   assert.ok(entry, `Missing explicit export: ${specifier}`);
-  return join(packageRoot, entry.import);
+  return join(packageRoot, entry.browser.default);
 }
 
 export async function installedGraph(directory: string, entry: string, optional = false): Promise<readonly string[]> {

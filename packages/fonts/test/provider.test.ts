@@ -3,7 +3,7 @@ import test from "node:test";
 import { render } from "@updf/core";
 import { createTextService } from "@updf/text";
 import { fixtureFont, fontDocument, fontText } from "../../../tests/fixtures/fonts/font-fixture.js";
-import { createHelvetica, fontProvider, fontRuntime } from "../dist/index.js";
+import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
 
 test("installed provider and bound fonts produce no Font objects for drawing-only pages", async () => {
   const runtime = fontRuntime();

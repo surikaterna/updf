@@ -11,7 +11,7 @@ import {
 import { createPreparedFont } from "@updf/fonts";
 import { fixtureFont, fontDocument, fontInput, fontText } from "../../../tests/fixtures/fonts/font-fixture.js";
 import { fontOptions } from "../../../tests/fixtures/fonts/font-options.js";
-import { record } from "../dist/checks.js";
+import { record } from "../dist/cjs/checks.js";
 
 const render = (document: DocumentDefinition, options: OperationOptions = {}) =>
   coreRender(document, fontOptions(options));

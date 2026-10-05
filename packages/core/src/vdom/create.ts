@@ -65,13 +65,21 @@ export function createNode<P extends object>(
   return ownNode({ kind: "native", tag: type, props: owned, ...metadata });
 }
 
+/**
+ * Construct an owned frozen node from snapshotted data props; components execute only during lowering.
+ * Key is separate metadata. Functions/accessors and unsupported data props are rejected.
+ * @throws {DocumentError} For invalid constructors, keys or unsnapshotable props.
+ */
 export function h<Tag extends NativeTag>(type: Tag, props: NativeProps[Tag], key?: Key): VNode;
+/** Construct a transparent owned fragment with snapshotted children. */
 export function h(type: typeof Fragment, props: { readonly children?: VDOMChild }, key?: Key): VNode;
+/** Construct a deferred trusted component invocation with snapshotted props. */
 export function h<P extends object>(
   type: (props: Readonly<P>, context: ComponentContext) => VDOMChild,
   props: P,
   key?: Key,
 ): VNode;
+/** Construct a deferred component invocation with a deeply readonly data view. */
 export function h<P extends object>(type: Component<P>, props: P, key?: Key): VNode;
 export function h<P extends object>(type: NativeTag | typeof Fragment | Component<P>, props: P, key?: Key): VNode {
   return createNode(type, props, key);

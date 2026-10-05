@@ -8,9 +8,9 @@ import {
   type FlowDocumentDefinition,
   layoutFlow,
 } from "../../../tests/fixtures/transitional-layout.js";
-import { Paginator } from "../dist/paginator.js";
-import { Tables } from "../dist/tables/vdom.js";
-import { template } from "../dist/template.js";
+import { Paginator } from "../dist/cjs/paginator.js";
+import { Tables } from "../dist/cjs/tables/vdom.js";
+import { template } from "../dist/cjs/template.js";
 import { flow } from "./fixtures.js";
 
 const rectangle: NodeDefinition = { type: "rect", x: 5, y: 5, width: 1, height: 1 };

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -48,8 +49,9 @@ assert.deepEqual(after.measure("Hello"), before.measure("Hello"));
 await writeFile(resolve(output, "pdf-proof.json"), `${JSON.stringify(reports, null, 2)}\n`);
 async function cmrProof(phase: string, source: string) {
   const load = (path: string) => import(pathToFileURL(resolve(source, path)).href);
-  const core = await load("packages/core/dist/index.js");
-  const fonts = await load(phase === "baseline" ? "packages/core/dist/fonts/index.js" : "packages/fonts/dist/index.js");
+  const require = createRequire(resolve(source, "package.json"));
+  const core = require("@updf/core");
+  const fonts = require(phase === "baseline" ? "@updf/core/fonts" : "@updf/fonts");
   const cmr = await load("apps/cmr/dist/cmr.js");
   const unicode = await load("apps/cmr/dist/cmr-unicode.js");
   const font = fonts.createPreparedFont(input);

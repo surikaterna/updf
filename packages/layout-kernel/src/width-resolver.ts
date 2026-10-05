@@ -10,7 +10,17 @@ function ceil(integer: bigint): number {
   const lower = floor(integer);
   return dyadic(bits(lower)) === integer ? lower : value(bits(lower) + 1n);
 }
+/**
+ * Allocate positive point widths after reserving uniform gaps, without mutating input.
+ * Weighted tracks share remaining space subject to min/max bounds; capped tracks may
+ * leave unused space. Results and width arrays are frozen. Binary64 rounding never
+ * overallocates; residual ULPs are assigned in stable input order.
+ * @param path Diagnostic JSON-pointer prefix; defaults to `/widths`.
+ * @throws LayoutInputError for invalid data, exceeded track budgets or infeasible minima.
+ * Host proxy exceptions propagate unchanged; validation is not a sandbox.
+ */
 export function resolveWidths(input: WidthResolutionInput, path?: string): WidthResolution;
+/** Runtime-validation overload for untrusted data; same allocation contract as the typed overload. */
 export function resolveWidths(input: unknown, path?: string): WidthResolution;
 export function resolveWidths(input: unknown, path = "/widths"): WidthResolution {
   const { available, gap, gaps, tracks } = widthInput(input, path);

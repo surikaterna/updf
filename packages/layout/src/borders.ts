@@ -1,10 +1,12 @@
 import type { RGB } from "@updf/core";
 import { array, fail, number, validateDataObject as record, snapshotData } from "@updf/core/internal";
 
+/** Nonnegative finite point width and RGB channels in [0,1]; zero explicitly suppresses a border. */
 export interface BorderEdge {
   readonly width: number;
   readonly color: RGB;
 }
+/** Per-layer border shorthand; edge overrides win, null differs from omission and suppresses fallback. */
 export interface BorderPolicy {
   readonly border?: BorderEdge | null;
   readonly borderTop?: BorderEdge | null;
@@ -12,6 +14,7 @@ export interface BorderPolicy {
   readonly borderBottom?: BorderEdge | null;
   readonly borderLeft?: BorderEdge | null;
 }
+/** Edge-only layer after shorthand expansion, preserving omitted versus explicitly suppressed edges. */
 export type ExpandedBorders = Omit<BorderPolicy, "border">;
 export const borderKeys = ["border", "borderTop", "borderRight", "borderBottom", "borderLeft"] as const;
 
@@ -27,7 +30,7 @@ function validateEdge(value: unknown, path: string): asserts value is BorderEdge
       fail("GEOMETRY", `${path}/color/${index}`, "RGB must be in [0,1]");
 }
 
-/** Expand a validated layer before merging; omission and explicit null remain distinct. */
+/** Validate and expand one layer into a frozen snapshot; omission and explicit null remain distinct. */
 export function expandBorders(input: BorderPolicy, path = "/style"): ExpandedBorders {
   record(input, borderKeys, path);
   for (const key of borderKeys) if (key in input) validateEdge(input[key], `${path}/${key}`);
@@ -42,11 +45,12 @@ export function expandBorders(input: BorderPolicy, path = "/style"): ExpandedBor
   return snapshotData(result, path);
 }
 
+/** Border layer with its diagnostic source path; merge in low-to-high priority order. */
 export interface BorderLayer {
   readonly style: BorderPolicy;
   readonly path: string;
 }
-/** Each layer is checked even when a later layer replaces its values. */
+/** Each layer is checked even when replaced; later edges win. Returned outer record is not runtime-frozen. */
 export function mergeBorders(layers: readonly BorderLayer[]): ExpandedBorders {
   const result: ExpandedBorders = {};
   for (const { style, path } of layers) Object.assign(result, expandBorders(style, path));

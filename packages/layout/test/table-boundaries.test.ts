@@ -11,8 +11,8 @@ import {
   render,
 } from "../../../tests/fixtures/text-options.js";
 import { tableProofDefinition } from "../../../tests/fixtures/transitional-table-proof.js";
-import type { TableDocumentDefinition } from "../dist/tables/index.js";
-import { Tables } from "../dist/tables/vdom.js";
+import type { TableDocumentDefinition } from "../dist/cjs/tables/index.js";
+import { Tables } from "../dist/cjs/tables/vdom.js";
 
 function failure(run: () => unknown, code: string, path?: string): void {
   assert.throws(run, (error: unknown) => {

@@ -15,8 +15,7 @@
     "examples/**/*.ts",
     "examples/**/*.tsx",
     "apps/**/*.ts",
-    "apps/**/*.tsx",
-    "eslint.config.ts"
+    "apps/**/*.tsx"
   ],
   "exclude": ["**/node_modules", "**/dist", "**/dist-*", "packages/legacy", "docs", "artifacts"]
 }

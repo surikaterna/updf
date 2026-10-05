@@ -4,6 +4,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fontsProof } from "./consumer/fonts.js";
 import { installedGraph } from "./consumer/graphs.js";
+import { dualProof } from "./consumer/dual.js";
 import { absent, execute, install, pack, root } from "./consumer/install.js";
 import { kernelProof } from "./consumer/kernel.js";
 import { coreRuntime, fontkitRuntime, geometryRuntime, svgRuntime } from "./consumer/runtime.js";
@@ -161,7 +162,14 @@ try {
       await absent(directory, ["@updf/geometry", "@updf/svg", "@updf/fontkit", "@updf/legacy"]);
     }
     if (names.includes("fontkit")) {
-      await assert.rejects(execute(directory, "await import('@updf/fontkit');"), /ERR_MODULE_NOT_FOUND/u);
+      await assert.rejects(execute(directory, "await import('@updf/fontkit');"), /MODULE_NOT_FOUND/u);
+      await assert.rejects(
+        execute(
+          directory,
+          "import {createRequire} from 'node:module'; createRequire(import.meta.url)('@updf/fontkit');",
+        ),
+        /MODULE_NOT_FOUND/u,
+      );
       await typeConsumer(directory, ["fontkit-template.ts"], false, false);
       await typeConsumer(directory, ["fontkit-template.ts"], true, false);
       execFileSync("npm", ["install", "fontkit@2.0.4", "--ignore-scripts", "--omit=dev", "--no-audit", "--no-fund"], {
@@ -175,6 +183,7 @@ try {
       await execute(directory, fontkitRuntime);
       graphs.fontkit = await installedGraph(directory, "@updf/fontkit", true);
     }
+    await dualProof(directory, names);
     if (names.includes("legacy")) {
       await writeFile(join(directory, "legacy.cjs"), smokeFixture("@updf/legacy", "@updf/legacy/lib"));
       const result: unknown = JSON.parse(

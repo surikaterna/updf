@@ -4,8 +4,8 @@ import { type DocumentDefinition, DocumentError, render } from "@updf/core";
 import { createOwnedResource } from "@updf/core/resources";
 import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
 import { createTextService } from "@updf/text";
-import { measure } from "../../core/dist/core/measure.js";
-import { operation } from "../../core/dist/core/operation.js";
+import { measure } from "../../core/dist/cjs/core/measure.js";
+import { operation } from "../../core/dist/cjs/core/operation.js";
 
 const text = {
   type: "text",

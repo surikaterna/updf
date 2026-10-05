@@ -35,11 +35,13 @@ export const adapterSnapshot = <T>(value: T, path: string): T =>
     (item) => isContentData(item) || (isVNode(item) && (item.kind !== "native" || item.tag === Fragment)),
   );
 
+/** JSX component for an adapter identity; use core's JSX runtime and install the adapter locally. */
 export function blockComponent<P extends object>(adapter: BlockAdapter<P>): BlockComponent<P> {
   const identity = Object.freeze({});
   adapters.set(identity, adapter);
   return semanticComponent<P>(identity, true) as BlockComponent<P>;
 }
+/** Define an opaque JSX slot read through MeasureContext.readParts; invalid identifier names throw TYPE. */
 export function defineBlockPart<P extends object>(name: string): BlockPartComponent<P> {
   if (!/^[A-Za-z][A-Za-z0-9.-]*$/u.test(name)) fail("TYPE", "/part/name", "Expected part name");
   const identity = Object.freeze({});

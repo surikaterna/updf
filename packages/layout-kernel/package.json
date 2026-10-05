@@ -11,31 +11,91 @@
   ],
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "browser": {
+        "types": "./dist/node/index.d.mts",
+        "default": "./dist/index.js"
+      },
+      "import": {
+        "types": "./dist/node/index.d.mts",
+        "default": "./dist/node/index.mjs"
+      },
+      "require": {
+        "types": "./dist/node/index.d.cts",
+        "default": "./dist/cjs/index.js"
+      }
     },
     "./arithmetic": {
-      "types": "./dist/arithmetic.d.ts",
-      "import": "./dist/arithmetic.js"
+      "browser": {
+        "types": "./dist/node/arithmetic.d.mts",
+        "default": "./dist/arithmetic.js"
+      },
+      "import": {
+        "types": "./dist/node/arithmetic.d.mts",
+        "default": "./dist/node/arithmetic.mjs"
+      },
+      "require": {
+        "types": "./dist/node/arithmetic.d.cts",
+        "default": "./dist/cjs/arithmetic.js"
+      }
     },
     "./geometry": {
-      "types": "./dist/geometry.d.ts",
-      "import": "./dist/geometry.js"
+      "browser": {
+        "types": "./dist/node/geometry.d.mts",
+        "default": "./dist/geometry.js"
+      },
+      "import": {
+        "types": "./dist/node/geometry.d.mts",
+        "default": "./dist/node/geometry.mjs"
+      },
+      "require": {
+        "types": "./dist/node/geometry.d.cts",
+        "default": "./dist/cjs/geometry.js"
+      }
     },
     "./boxes": {
-      "types": "./dist/boxes.d.ts",
-      "import": "./dist/boxes.js"
+      "browser": {
+        "types": "./dist/node/boxes.d.mts",
+        "default": "./dist/boxes.js"
+      },
+      "import": {
+        "types": "./dist/node/boxes.d.mts",
+        "default": "./dist/node/boxes.mjs"
+      },
+      "require": {
+        "types": "./dist/node/boxes.d.cts",
+        "default": "./dist/cjs/boxes.js"
+      }
     },
     "./fragmentation": {
-      "types": "./dist/fragmentation.d.ts",
-      "import": "./dist/fragmentation.js"
+      "browser": {
+        "types": "./dist/node/fragmentation.d.mts",
+        "default": "./dist/fragmentation.js"
+      },
+      "import": {
+        "types": "./dist/node/fragmentation.d.mts",
+        "default": "./dist/node/fragmentation.mjs"
+      },
+      "require": {
+        "types": "./dist/node/fragmentation.d.cts",
+        "default": "./dist/cjs/fragmentation.js"
+      }
     },
     "./numeric": {
-      "types": "./dist/numeric.d.ts",
-      "import": "./dist/numeric.js"
+      "browser": {
+        "types": "./dist/node/numeric.d.mts",
+        "default": "./dist/numeric.js"
+      },
+      "import": {
+        "types": "./dist/node/numeric.d.mts",
+        "default": "./dist/node/numeric.mjs"
+      },
+      "require": {
+        "types": "./dist/node/numeric.d.cts",
+        "default": "./dist/cjs/numeric.js"
+      }
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsx ../../scripts/packaging/build.ts"
   }
 }

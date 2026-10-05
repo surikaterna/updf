@@ -13,15 +13,15 @@ interface Entry {
 const overrides: Readonly<Record<string, string>> = {
   "package.json": "docs/evidence/baseline/legacy-package.json",
   "readme.md": "docs/migration/legacy-readme.md",
-  "experimental/declarative/eslint.config.ts": "eslint.config.ts",
+  "experimental/declarative/eslint.config.ts": "docs/evidence/baseline/retired-root-eslint.config.ts.txt",
   "experimental/declarative/README.md": "docs/evidence/native-poc-readme.md",
   "experimental/declarative/core/bytes.ts": "packages/core/src/core/pdf-writer.ts",
 };
 
 function immutable(entry: Entry): boolean {
+  // Ignored compiler output is rebuildable; original source/tests and recorded hashes remain protected.
   return (
     entry.kind === "preserved-roadmap" ||
-    entry.kind === "ignored-generated-legacy" ||
     /^(?:src|test)\//u.test(entry.old) ||
     /(?:LICENSE|LiberationSans-Regular\.ttf|liberation-sans\.json|REUSE\.md|EVIDENCE\.md|package-lock\.json)$/u.test(
       entry.old,

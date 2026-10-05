@@ -9,7 +9,7 @@ import {
   layoutTableFlowUnknown as tableFlowUnknown,
   layoutTable as tableLayout,
   layoutTableUnknown as tableUnknown,
-} from "../../packages/layout/dist/tables/index.js";
+} from "../../packages/layout/dist/cjs/tables/index.js";
 
 // A single explicit test composition keeps lower/layout and final render on the same runtime.
 const runtime = fontRuntime();

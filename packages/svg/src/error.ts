@@ -1,6 +1,7 @@
 import type { DiagnosticCode, DocumentDiagnostic, SourceSpan } from "@updf/core";
 import { DocumentError } from "@updf/core";
 
+/** Fatal SVG failure with frozen diagnostics and original-source UTF-16 spans. */
 export class SVGError extends DocumentError {
   override readonly diagnostics: readonly DocumentDiagnostic[];
   constructor(code: DiagnosticCode, path: string, message: string, span: SourceSpan) {
