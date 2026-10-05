@@ -8,6 +8,16 @@ export interface ResourceSlot<T> {
 export function resourceSlot<T>(): ResourceSlot<T> {
   return Object.freeze({ [slotBrand]: (payload: T) => payload });
 }
+export interface PaintingSlot<T> extends ResourceSlot<T> {
+  readonly category: string;
+}
+export function paintingSlot<T>(category: string): PaintingSlot<T> {
+  return Object.freeze({ ...resourceSlot<T>(), category });
+}
+export interface PaintingBinding<T> {
+  readonly resource: Resource<unknown>;
+  readonly finish: () => T;
+}
 export type ResourcePhase = "bootstrap" | "content";
 export interface Resource<T> {
   readonly category: string;
@@ -18,10 +28,12 @@ export interface Resource<T> {
 }
 export interface PageResources {
   resolve<T>(site: object, slot: ResourceSlot<T>): Resource<T>;
+  painting<T>(site: object, slot: PaintingSlot<T>): { readonly key: string; readonly payload: T };
 }
 export interface ResourceCollection {
   intern<T>(slot: ResourceSlot<T>, identity: unknown, create: () => Resource<T>): Resource<T>;
   bind<T>(site: object, slot: ResourceSlot<T>, resource: Resource<T>): void;
+  bindPainting<T>(site: object, slot: PaintingSlot<T>, binding: PaintingBinding<T>): void;
 }
 export interface ResourceProvider {
   readonly slot: object;
