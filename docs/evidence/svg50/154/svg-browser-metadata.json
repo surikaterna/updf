@@ -1,0 +1,10 @@
+{
+  "browser": "154.0.8037.0",
+  "executablePath": "/home/sprawl/.cache/ms-playwright/chromium-1246/chrome-linux64/chrome",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "devicePixelRatio": 1,
+  "raster": "Poppler Cairo, 144 DPI, white background, no resize"
+}

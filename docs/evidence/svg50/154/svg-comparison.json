@@ -1,0 +1,112 @@
+[
+  {
+    "name": "logo",
+    "interiorMismatchRatio": 0,
+    "interiorMismatches": 0,
+    "compared": 231173,
+    "bboxDelta": 0,
+    "foregroundMismatchRatio": 0.0003166918367133302,
+    "inkMassDeltaRatio": 0.0019769302733361354,
+    "foregroundMass": 43414.50588222373
+  },
+  {
+    "name": "signature",
+    "interiorMismatchRatio": 0,
+    "interiorMismatches": 0,
+    "compared": 242681,
+    "bboxDelta": 0,
+    "foregroundMismatchRatio": 0,
+    "inkMassDeltaRatio": 0.010837226098800412,
+    "foregroundMass": 6732.784313725351
+  },
+  {
+    "name": "aspect-0",
+    "interiorMismatchRatio": 0,
+    "interiorMismatches": 0,
+    "compared": 98015,
+    "bboxDelta": 0,
+    "foregroundMismatchRatio": 0,
+    "inkMassDeltaRatio": 0,
+    "foregroundMass": 51200
+  },
+  {
+    "name": "aspect-1",
+    "interiorMismatchRatio": 0,
+    "interiorMismatches": 0,
+    "compared": 100565,
+    "bboxDelta": 0,
+    "foregroundMismatchRatio": 0.000107421875,
+    "inkMassDeltaRatio": 0,
+    "foregroundMass": 102400
+  },
+  {
+    "name": "aspect-2",
+    "interiorMismatchRatio": 0,
+    "interiorMismatches": 0,
+    "compared": 99623,
+    "bboxDelta": 0,
+    "foregroundMismatchRatio": 0.00009765625,
+    "inkMassDeltaRatio": 0,
+    "foregroundMass": 102400
+  },
+  {
+    "name": "quoted-none",
+    "interiorMismatchRatio": 0,
+    "interiorMismatches": 0,
+    "compared": 37124,
+    "bboxDelta": 0,
+    "foregroundMismatchRatio": 0,
+    "inkMassDeltaRatio": 0,
+    "foregroundMass": 1888.2666666665539
+  },
+  {
+    "name": "nested-viewport",
+    "interiorMismatchRatio": 0,
+    "interiorMismatches": 0,
+    "compared": 101761,
+    "bboxDelta": 0,
+    "foregroundMismatchRatio": 0,
+    "inkMassDeltaRatio": 0,
+    "foregroundMass": 6400
+  },
+  {
+    "name": "root-translate",
+    "interiorMismatchRatio": 0,
+    "interiorMismatches": 0,
+    "compared": 39522,
+    "bboxDelta": 0,
+    "foregroundMismatchRatio": 0,
+    "inkMassDeltaRatio": 0,
+    "foregroundMass": 1600
+  },
+  {
+    "name": "root-rotate-aligned",
+    "interiorMismatchRatio": 0,
+    "interiorMismatches": 0,
+    "compared": 100582,
+    "bboxDelta": 0,
+    "foregroundMismatchRatio": 0,
+    "inkMassDeltaRatio": 0.00036983045006752505,
+    "foregroundMass": 11653.458823529392
+  },
+  {
+    "name": "root-scale",
+    "interiorMismatchRatio": 0,
+    "interiorMismatches": 0,
+    "compared": 38404,
+    "bboxDelta": 0,
+    "foregroundMismatchRatio": 0,
+    "inkMassDeltaRatio": 0,
+    "foregroundMass": 10000
+  },
+  {
+    "name": "root-rotation-position",
+    "interiorMismatchRatio": 0,
+    "interiorMismatches": 0,
+    "compared": 157703,
+    "bboxDelta": 0,
+    "foregroundMismatchRatio": 0,
+    "inkMassDeltaRatio": 0.00036983045006752505,
+    "foregroundMass": 11653.458823529392
+  }
+]
