@@ -167,3 +167,14 @@ exceptions or Changeset required (test harness and evidence only). Auditor shoul
 verify the backend correction against the analytic matrix, unchanged PDF golden,
 unchanged comparator and original negative controls, then independently run the
 browser gates, ideally also under hosted Chrome 154.0.8037.57 and CI Poppler.
+
+## PR #60 retained Splash integrity
+
+Review comment `4181471360` identified the missing retained Splash digest. The
+generator now hashes `signature-splash.png` from its generated destination, and
+`svg50/152/manifest.json` and `svg50/154/manifest.json` include its existing-byte
+SHA-256 `a1b617fc952c088b7650f48b397baec80779431bcc479e2f40bc1a91cabc2b17`.
+No images or PDFs were regenerated; capture metadata and all prior hashes are
+unchanged. `npx tsx --test tests/integration/svg50-evidence.test.ts` checks complete
+artifact coverage (excluding the manifest itself), exact snapshot digests, and
+Splash corruption detection without browser capture or rasterization.
