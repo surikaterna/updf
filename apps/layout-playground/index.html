@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Microkernel playground</title></head>
+<body>
+<main>
+  <h1>Microkernel playground</h1>
+  <p>Inspect boxes / canvas or PDF / pagination. Geometry is authoritative; SVG glyphs are illustrative. Units are PDF points.</p>
+  <form id="controls">
+    <fieldset><legend>Source and host mode</legend>
+      <label>Preset <select name="preset" aria-label="Preset"><option value="boxes">Box row / columns</option><option value="pdf">PDF Helvetica paragraph + atomic row</option></select></label>
+      <label><input name="paginate" type="checkbox">Finite pages (optional fragmentation module)</label>
+      <label>Direction <select name="direction" aria-label="Direction"><option value="row">Row</option><option value="column">Column</option></select></label>
+      <label>Row cross alignment <select name="align" aria-label="Row cross alignment" aria-describedby="align-help"><option>start</option><option>center</option><option>end</option><option>stretch</option></select></label>
+      <p id="align-help">Column alignment supports start only; PDF row always uses row alignment.</p>
+    </fieldset>
+    <fieldset><legend>Bounded geometry (integer points, no rounding)</legend>
+      <label>Width <input name="width" type="number" min="120" max="800" step="1" value="260"></label>
+      <label>Region / minimum canvas height <input name="height" type="number" min="18" max="1200" step="1" value="108"></label>
+      <label>Gap <input name="gap" type="number" min="0" max="40" step="1" value="8"></label>
+      <label>Padding <input name="padding" type="number" min="0" max="30" step="1" value="8"></label>
+      <label>Page cap (default 8, hard max 20) <input name="pageCap" type="number" min="1" max="20" step="1" value="8"></label>
+    </fieldset>
+    <label>Paragraph source (ASCII printable + LF, at most 8000 UTF-16 units)
+      <textarea name="text" maxlength="8000" rows="6">The real kernel allocates boxes. This paragraph is measured once at the selected width, then its prepared lines become legal fragmentation units.
+
+An atomic row follows the paragraph. It moves as one unit, never splitting its children.</textarea>
+    </label>
+  </form>
+  <p>Canvas grows to the full B natural height (height is a minimum). Pages have finite region height plus a 20-point outer margin on each side. No automatic headers or final page contexts (#55).</p>
+  <p id="status" role="status" aria-live="polite">Computing…</p>
+  <button id="download" type="button" disabled>Download accepted PDF</button>
+  <section aria-label="Inspection"><h2>Accepted geometry</h2>
+    <p>Solid: allocated boxes. Dashed: content after explicit padding (not painted borders). Amber: selected source. Dotted: accepted text line geometry.</p>
+    <div id="canvas" tabindex="0" role="region" aria-label="Geometry canvas; scroll to pan"></div>
+    <h3>Source / accepted fragments (keyboard-selectable)</h3><div id="selection"></div>
+    <h3>Result metadata</h3><pre id="metadata"></pre>
+    <h3>Generated source JSON (read-only)</h3><pre id="source"></pre>
+    <h3>Public API usage (data, not JSX)</h3><pre>import { layoutBoxes } from "@updf/layout-kernel/boxes";
+const result = layoutBoxes({ root, view, width });
+// Optional only when finite pages are selected:
+const { createFragmentOperation } = await import("@updf/layout-kernel/fragmentation");
+const operation = createFragmentOperation(provider, limits);
+try { /* start(view), fragment(cursor, region); accepted prefix only */ }
+finally { operation.close(); }</pre>
+  </section>
+</main><script type="module" src="/src/main.ts"></script>
+</body></html>

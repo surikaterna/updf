@@ -24,6 +24,7 @@ import {
 import { type ExtensionLifetime, extensionProducer } from "./extension-producer.js";
 import type { Extensions } from "./extension-types.js";
 import type { LeafCache } from "./leaf-cache.js";
+import { paragraphFragments } from "./paragraph-fragments.js";
 import { paragraphProducer } from "./paragraph-producer.js";
 import type { PreparedBlock } from "./protocol.js";
 import type { FlowBlock, FlowDocumentDefinition } from "./types.js";
@@ -81,6 +82,7 @@ export function prepareLeaf(
         width,
         block.keepTogether === true,
         path,
+        paragraphFragments(lifetime),
       );
     const measurement = measured(block, width, path, operation, cache);
     return paragraphProducer(block, measurement, width, path);

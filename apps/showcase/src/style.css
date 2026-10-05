@@ -89,6 +89,7 @@ pre {
 }
 #status {
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
   min-height: 3em;
 }
 #preview {

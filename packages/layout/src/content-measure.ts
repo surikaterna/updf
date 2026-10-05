@@ -17,6 +17,7 @@ import type { Content, ContentConstraints, ContentLine, ContentMeasurement, Cont
 import type { Extensions } from "./extension-types.js";
 import { validateExtensions } from "./extensions.js";
 import { paintNatural } from "./natural-paint.js";
+import { closeParagraphFragments } from "./paragraph-fragments.js";
 import type { PreparedBlock } from "./protocol.js";
 import type { FlowBlock } from "./types.js";
 
@@ -64,6 +65,7 @@ export function measure(
     );
   } finally {
     lifetime.active = false;
+    closeParagraphFragments(lifetime);
     operation.close();
   }
 }

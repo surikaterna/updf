@@ -42,6 +42,18 @@ for (const build of builds) {
       `${build} must not import SVG/scanner`,
     );
   if (build === "dist-core") assert.ok(!modules.some((id) => /\/layout\//u.test(id)), "Layout leaked into core");
+  if (build === "dist-core")
+    assert.ok(
+      modules
+        .filter((id) => /\/packages\/layout-kernel\//u.test(id))
+        .every((id) => id.endsWith("/layout-kernel/dist/arithmetic.js")),
+      "Non-arithmetic kernel code leaked into core",
+    );
+  if (["dist-flow", "dist-tables", "dist-composable-tables"].includes(build))
+    assert.ok(
+      modules.some((id) => /\/layout-kernel\/dist\/width-resolver\.js$/u.test(id)),
+      "Kernel allocation missing",
+    );
   if (build === "font-browser") {
     assert.ok(
       modules.some((id) => id.endsWith("/showcase/src/optional-inline-svg.ts")),

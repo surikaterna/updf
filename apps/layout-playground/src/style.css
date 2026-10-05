@@ -1,0 +1,84 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color: #182435;
+  background: #f2f5f8;
+}
+body {
+  margin: 0;
+}
+main {
+  max-width: 1000px;
+  margin: auto;
+  padding: 16px;
+}
+fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 12px 0;
+  min-width: 0;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-width: 100%;
+}
+label:has(input[type="checkbox"]) {
+  flex-direction: row;
+  align-items: center;
+}
+input,
+select,
+textarea,
+button {
+  font: inherit;
+  padding: 7px;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+input[type="number"] {
+  width: 180px;
+}
+textarea {
+  width: 100%;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+:focus-visible {
+  outline: 3px solid #a45e00;
+  outline-offset: 2px;
+}
+pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: white;
+  padding: 12px;
+}
+#canvas {
+  overflow: auto;
+  max-width: 100%;
+  border: 1px solid #53687d;
+  padding: 8px;
+}
+#canvas svg {
+  display: block;
+  background: white;
+  margin-bottom: 12px;
+}
+#selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+[aria-pressed="true"] {
+  background: #ffdda4;
+}
+#status {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}

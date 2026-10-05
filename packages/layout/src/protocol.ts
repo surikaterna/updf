@@ -1,4 +1,5 @@
 import type { NodeDefinition } from "@updf/core";
+import type { BoxPlacement } from "@updf/layout-kernel/boxes";
 import type { OutputBudget } from "./budget.js";
 import type { FragmentState } from "./fragment-state.js";
 import type { GeneratedInterval } from "./generated-interval.js";
@@ -46,6 +47,7 @@ export interface PaintCall {
   readonly context: FragmentPaintContext;
 }
 export interface PreparedBlock {
+  readonly rowPlacement?: BoxPlacement;
   readonly autoMargin?: boolean;
   readonly contentAlignment?: { readonly height: number; readonly capacity: number };
   readonly containsAutoAlignment?: boolean;

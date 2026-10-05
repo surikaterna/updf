@@ -1,0 +1,16 @@
+{
+  "name": "@updf/layout-playground",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 4318 --strictPort",
+    "build": "vite build",
+    "test": "tsx --test test/*.test.ts",
+    "test:browser": "tsx --test test/browser/*.test.ts"
+  },
+  "dependencies": {
+    "@updf/core": "2.0.0-poc.0",
+    "@updf/layout-kernel": "2.0.0-poc.0"
+  }
+}

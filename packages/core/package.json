@@ -46,6 +46,9 @@
       "import": "./dist/internal-drawing.js"
     }
   },
+  "dependencies": {
+    "@updf/layout-kernel": "2.0.0-poc.0"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json"
   }

@@ -29,6 +29,7 @@ import { ownEdgeRegion } from "./shared-edge-regions.js";
 
 export interface ExtensionLifetime {
   active: boolean;
+  paragraphFragments?: import("./paragraph-fragments.js").ParagraphFragments;
 }
 
 function progress(value: unknown, min: number, max: number, path: string): number {

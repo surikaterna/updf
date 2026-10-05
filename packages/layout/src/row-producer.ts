@@ -1,9 +1,10 @@
-import { exceeds, fail, MetricSum, sum } from "@updf/core/internal";
-import { derivedAxis } from "./axis.js";
+import { exceeds, fail, sum } from "@updf/core/internal";
+import type { BoxPlacement } from "@updf/layout-kernel/boxes";
 import { paintContainerSteps } from "./container-paint.js";
 import { containerReservation, reserveAncestors } from "./container-reservation.js";
 import type { FragmentCall, FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
 import { resolveFragment, resolvePaint } from "./protocol-runtime.js";
+import { rowPlacement } from "./row-placement.js";
 import type { RowAlignment } from "./row-types.js";
 import { clamp, type Sizing } from "./sizing.js";
 import type { StackPiece } from "./stack.js";
@@ -22,20 +23,22 @@ export function rowProducer(
   height: number,
   path: string,
 ): PreparedBlock {
+  const placement = rowPlacement(box, columns, align, height, path);
   const prepared: PreparedBlock = {
+    rowPlacement: placement,
     ...(columns.some((column) => column.containsAutoAlignment) ? { containsAutoAlignment: true } : {}),
     fragmentation: "atomic",
     naturalSize: { width: box.width, height },
     extent: 1,
     fragment: (request) => resolveFragment(prepared, request),
-    fragmentSteps: (request) => selectRow(box, columns, align, height, request, path),
+    fragmentSteps: (request) => selectRow(box, columns, placement, height, request, path),
   };
   return prepared;
 }
 function* selectRow(
   box: Sizing,
   columns: readonly PreparedBlock[],
-  align: RowAlignment,
+  placement: BoxPlacement,
   height: number,
   request: FragmentRequest,
   path: string,
@@ -45,8 +48,10 @@ function* selectRow(
   const reserve = containerReservation(box, request, path, { height, hidden: false });
   reserveAncestors(reserve, request.budget, request.state, 0);
   const pieces: StackPiece[] = [];
-  const horizontal = new MetricSum();
-  for (const column of columns) {
+  for (let i = 0; i < columns.length; i++) {
+    const column = columns[i];
+    const offset = placement.children[i];
+    if (!column || !offset) fail("TYPE", path, "Missing prepared Row placement");
     const capacity = Math.max(1, column.naturalSize.height);
     const fragment = yield {
       block: column,
@@ -63,28 +68,15 @@ function* selectRow(
     };
     if (!fragment || fragment.nextOffset !== column.extent || fragment.advance)
       fail("TYPE", path, "Row Columns must be complete and cannot contain page advance controls");
+    if (fragment.height !== column.naturalSize.height)
+      fail("TYPE", path, "Complete Row Column must match its prepared height");
     pieces.push({
       fragment,
-      left: horizontal.value,
-      top: alignedTop(box, height, fragment.height, align, path),
+      left: offset.left,
+      top: offset.top,
     });
-    horizontal.add(column.naturalSize.width);
-    horizontal.add(box.gap);
   }
   return paintedRow(box, pieces, height, path);
-}
-export function alignedTop(box: Sizing, height: number, extent: number, align: RowAlignment, path: string): number {
-  if (align !== "bottom" && align !== "middle") return 0;
-  const end = height - box.inset.bottom;
-  const nominal = Math.max(0, sum([height, -box.vertical, -extent]));
-  const offset = align === "bottom" ? nominal : nominal / 2;
-  if (sum([box.inset.top, offset]) + extent <= end) return offset;
-  if (box.inset.top + extent >= end) return 0;
-  // Invert both native additions: (inset + offset) + extent must fit the content endpoint.
-  const lastStart = derivedAxis(extent, end, path).capacity;
-  if (lastStart <= box.inset.top) return 0;
-  const free = Math.min(nominal, derivedAxis(box.inset.top, lastStart, path).capacity);
-  return align === "bottom" ? free : free / 2;
 }
 function paintedRow(box: Sizing, pieces: readonly StackPiece[], height: number, path: string): PlacedFragment {
   const selection = { pieces, height: height - box.vertical, nextOffset: 1, advance: false };

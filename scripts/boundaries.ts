@@ -46,6 +46,8 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/template.ts",
     "layout/src/blocks.ts",
     "layout/src/paragraph-producer.ts",
+    "layout/src/paragraph-emission.ts",
+    "layout/src/paragraph-fragments.ts",
     "layout/src/extensions.ts",
     "layout/src/extension-producer.ts",
     "layout/src/block-compiler.ts",
@@ -54,6 +56,7 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/row-data.ts",
     "layout/src/row-vdom.ts",
     "layout/src/row-producer.ts",
+    "layout/src/row-placement.ts",
     "layout/src/container-data.ts",
     "layout/src/container-paint.ts",
     "layout/src/container-producer.ts",
@@ -75,7 +78,7 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/paginator.ts",
     "layout/src/axis.ts",
     "layout/src/generated-interval.ts",
-    "layout/src/width-input.ts",
+    "layout/src/width-resolver.ts",
     "layout/src/tables/index.ts",
     "layout/src/tables/vdom.ts",
     "layout/src/tables/layout.ts",
@@ -139,9 +142,17 @@ export function portableGraph(modules: readonly string[], optional = false, reac
 }
 export function packageEdge(owner: string, specifier: string): void {
   if (owner === "core")
-    assert.ok(!/^@updf\/(?:layout|tables)(?:\/|$)/u.test(specifier), "Core must not depend on layout/tables");
+    assert.ok(
+      specifier === "@updf/layout-kernel/arithmetic" ||
+        !/^@updf\/(?:layout|layout-kernel|tables)(?:\/|$)/u.test(specifier),
+      "Core may depend only on kernel arithmetic, not boxes/layout/tables",
+    );
+  if (owner === "layout-kernel") assert.ok(specifier.startsWith("."), "Kernel must have zero runtime dependencies");
   if (owner === "layout")
-    assert.ok(specifier.startsWith(".") || /^@updf\/core(?:\/|$)/u.test(specifier), "Layout must remain core-only");
+    assert.ok(
+      specifier.startsWith(".") || /^@updf\/(?:core|layout-kernel)(?:\/|$)/u.test(specifier),
+      "Layout must remain core/kernel-only",
+    );
   if (owner === "tables")
     assert.ok(
       specifier.startsWith(".") ||
@@ -152,6 +163,8 @@ export function packageEdge(owner: string, specifier: string): void {
 function sourceEdges(owner: string, text: string, path: string, root: string): void {
   for (const match of text.matchAll(/(?:from\s+|import\s*\()['"]([^'"]+)['"]/gu)) {
     if (match[1]) packageEdge(owner, match[1]);
+    if (owner === "core" && match[1] === "@updf/layout-kernel/arithmetic")
+      assert.equal(path.slice(join(root, "packages").length + 1), "core/src/measurement/arithmetic.ts");
   }
   for (const match of text.matchAll(/from ['"](@updf\/[^'"]+\/internal(?:-drawing)?)['"]/gu)) {
     const specifier = match[1];
@@ -218,7 +231,7 @@ export async function checkSeams(root: string): Promise<void> {
     "whitespace",
     "Scanner",
   ]);
-  for (const owner of ["core", "layout", "tables", "geometry", "svg", "fontkit"]) {
+  for (const owner of ["core", "layout-kernel", "layout", "tables", "geometry", "svg", "fontkit"]) {
     for (const path of await files(join(root, "packages", owner, "src"))) {
       const text = await readFile(path, "utf8");
       sourceEdges(owner, text, path, root);

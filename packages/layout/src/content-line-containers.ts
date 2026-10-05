@@ -1,6 +1,5 @@
-import { MetricSum, sum } from "@updf/core/internal";
+import { fail, sum } from "@updf/core/internal";
 import type { PreparedBlock } from "./protocol.js";
-import { alignedTop } from "./row-producer.js";
 import { sizing } from "./sizing.js";
 import type { FlowBlock } from "./types.js";
 
@@ -28,19 +27,14 @@ export function scheduleContainerLines(
     schedule(value.children, x + box.inset.left, y + box.inset.top, box.gap, size.block.contentAlignment);
     return;
   }
-  const horizontal = new MetricSum();
-  for (const column of value.children) {
+  const placement = size.block.rowPlacement;
+  if (!placement) fail("TYPE", "/content", "Missing prepared Row placement");
+  for (let i = 0; i < value.children.length; i++) {
+    const column = value.children[i];
+    const offset = placement.children[i];
+    if (!column || !offset) fail("TYPE", "/content", "Missing prepared Column placement");
     const prepared = sizes.get(column)?.block;
-    if (!prepared) continue;
-    const offset = alignedTop(
-      box,
-      size.block.naturalSize.height,
-      prepared.naturalSize.height,
-      value.align ?? "top",
-      "/content",
-    );
-    schedule([column], sum([x, box.inset.left, horizontal.value]), sum([y, box.inset.top, offset]), 0);
-    horizontal.add(prepared.naturalSize.width);
-    horizontal.add(box.gap);
+    if (!prepared) fail("TYPE", "/content", "Missing prepared Column source");
+    schedule([column], sum([x, box.inset.left, offset.left]), sum([y, box.inset.top, offset.top]), 0);
   }
 }

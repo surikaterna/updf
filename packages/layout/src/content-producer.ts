@@ -1,9 +1,11 @@
 import type { NodeDefinition } from "@updf/core";
-import { exceeds, MetricSum, sum } from "@updf/core/internal";
+import { MetricSum, sum } from "@updf/core/internal";
 import type { OutputBudget } from "./budget.js";
 import { reserveAncestors } from "./container-reservation.js";
 import type { MeasuredParagraph } from "./content-paragraph.js";
 import { certifyGeneratedFragment, type GeneratedInterval, generatedIntervals } from "./generated-interval.js";
+import { chargeParagraphEmission } from "./paragraph-emission.js";
+import { type ParagraphFragments, paragraphFragments, selectParagraph } from "./paragraph-fragments.js";
 import type { FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
 
 export function contentProducer(
@@ -11,14 +13,35 @@ export function contentProducer(
   width: number,
   keep: boolean,
   path: string,
+  fragments: ParagraphFragments = paragraphFragments(),
 ): PreparedBlock {
+  const source = fragments.operation.prepare({
+    id: String(fragments.nextId++),
+    path,
+    descriptor: Object.freeze({ measured, keep }),
+    extent: keep ? 1 : measured.lines.length,
+    mode: keep ? "atomic" : "splittable",
+    width: { mode: "fixed", value: width },
+  });
   return {
     naturalSize: { width, height: measured.height },
     fragmentation: keep ? "atomic" : "splittable",
     extent: keep ? 1 : measured.lines.length,
     fragment(request) {
-      if (keep && exceeds(sum([request.usedHeight, measured.height]), request.freshHeight)) return undefined;
-      return fragment(measured, keep ? { ...request, offset: 0 } : request, path, keep);
+      const selected = selectParagraph(fragments, source, {
+        offset: request.offset,
+        width: request.width,
+        usedHeight: request.usedHeight,
+        height: request.freshHeight,
+      });
+      if (!selected || !selected.units.length) return undefined;
+      return fragment(
+        measured,
+        keep ? { ...request, offset: 0 } : request,
+        path,
+        keep,
+        keep ? measured.lines.length : selected.end,
+      );
     },
   };
 }
@@ -27,20 +50,18 @@ function fragment(
   request: FragmentRequest,
   path: string,
   keep: boolean,
+  end: number,
 ): PlacedFragment | undefined {
   const height = new MetricSum();
   const sequence = generatedIntervals();
   const intervals: GeneratedInterval[] = [];
-  let end = request.offset;
-  while (end < measured.lines.length) {
-    const line = measured.lines[end];
-    if (!line || exceeds(sum([request.usedHeight, height.value, line.height]), request.freshHeight)) break;
+  for (let index = request.offset; index < end; index++) {
+    const line = measured.lines[index]!;
     reserveAncestors(request.reserve, request.budget, request.state, sum([height.value, line.height]));
-    chargeBackground(measured, end, request.budget, path);
-    request.budget?.charge(measured.paintLine(end, 0, 0), path);
+    chargeBackground(measured, index, request.budget, path);
+    if (request.budget) request.budget.apply(measured.emissionCounts(index), path);
     height.add(line.height);
     intervals.push(sequence.append(line.height, path));
-    end++;
   }
   if (end === request.offset) return undefined;
   return certifyGeneratedFragment<PlacedFragment>(
@@ -60,7 +81,7 @@ function fragment(
           chargeBackground(measured, index, context.budget, path);
           for (const node of measured.paintLine(index, context.x, y, true)) backgrounds.push(node);
           const output = measured.paintLine(index, context.x, y);
-          context.budget.charge(output, path);
+          chargeParagraphEmission(output, measured.emissionCounts(index), context.budget, path);
           for (const node of output) nodes.push(node);
           offset.add(line.height);
         }

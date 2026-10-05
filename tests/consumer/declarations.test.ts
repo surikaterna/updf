@@ -24,7 +24,7 @@ test("separate temporary strict consumer resolves emitted package declarations a
   const root = fileURLToPath(new URL("../../", import.meta.url));
   try {
     await mkdir(join(directory, "node_modules/@updf"), { recursive: true });
-    for (const name of ["core", "layout", "tables", "geometry", "svg", "fontkit"]) {
+    for (const name of ["core", "layout-kernel", "layout", "tables", "geometry", "svg", "fontkit"]) {
       await symlink(join(root, "packages", name), join(directory, "node_modules/@updf", name), "dir");
     }
     await symlink(join(root, "apps/cmr"), join(directory, "node_modules/@updf/example-cmr"), "dir");
