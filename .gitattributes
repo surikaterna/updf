@@ -1,0 +1,2 @@
+# Preserve PDF xref bytes and avoid text whitespace checks on evidence fixtures.
+/docs/evidence/svg50/**/*.pdf binary
