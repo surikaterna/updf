@@ -1,50 +1,60 @@
 import { collectFonts } from "../fonts/cids.js";
-import { fontObjects } from "../fonts/pdf.js";
+import { defineFont, reserveFont } from "../fonts/pdf.js";
 import { collectAlpha } from "../painting/alpha.js";
-import { assemble, chunkLength, type PdfObject, stream } from "./bytes.js";
 import { commands } from "./content.js";
-import { decimal as n, name, value } from "./pdf-values.js";
+import { name } from "./pdf-values.js";
+import { type PdfRef, PdfWriter } from "./pdf-writer.js";
 import type { MeasuredPage } from "./plan.js";
-import { checkLimit, type Policy, policy } from "./policy.js";
-
-function objects(pages: readonly MeasuredPage[], limits: Policy): PdfObject[] {
-  const result: PdfObject[] = [];
-  const budget = { length: 0, maximum: limits.outputBytes };
-  const fonts = collectFonts(pages);
-  const alphas = collectAlpha(pages);
-  const fontBase = 4 + pages.length * 2;
-  const alphaBase = fontBase + fonts.length * 6;
-  const alphaRefs = alphas.length
-    ? ` /ExtGState <<${alphas.map((alpha, i) => ` /${alpha.key} ${alphaBase + i} 0 R`).join("")} >>`
-    : "";
-  const refs = fonts.map((font, i) => ` /${font.key} ${fontBase + i * 6} 0 R`).join("");
-  const kids = pages.map((_, i) => `${4 + i * 2} 0 R`).join(" ");
-  result.push(["<< /Type /Catalog /Pages 2 0 R >>"]);
-  result.push([`<< /Type /Pages /Kids [${kids}] /Count ${pages.length} >>`]);
-  result.push([
-    `<< /Type /Font /Subtype /Type1 /BaseFont ${value(name("Helvetica"))} /Encoding ${value(name("WinAnsiEncoding"))} >>`,
-  ]);
-  pages.forEach((page, i) => {
-    result.push([
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${n(page.width)} ${n(page.height)}] /Resources << /Font << /F1 3 0 R${refs} >>${alphaRefs} >> /Contents ${5 + i * 2} 0 R >>`,
-    ]);
-    result.push(stream(commands(page, budget, fonts, alphas)));
-  });
-  fonts.forEach((font, i) => {
-    // Reserve program bytes before the defensive serializer copy allocation.
-    checkLimit(budget.length + font.font.metadata.byteLength, budget.maximum, "", "PDF font output bytes");
-    const parts = fontObjects(font, fontBase + i * 6);
-    budget.length += parts.reduce(
-      (sum, object) => sum + object.reduce((size, chunk) => size + chunkLength(chunk), 0),
-      0,
-    );
-    checkLimit(budget.length, budget.maximum, "", "PDF output bytes");
-    result.push(...parts);
-  });
-  for (const alpha of alphas) result.push([`<< /Type /ExtGState /ca ${n(alpha.fill)} /CA ${n(alpha.stroke)} >>`]);
-  return result;
-}
+import { type Policy, policy } from "./policy.js";
 
 export function serialize(pages: readonly MeasuredPage[], limits: Policy = policy()): Uint8Array<ArrayBuffer> {
-  return assemble(objects(pages, limits), limits.outputBytes);
+  const writer = new PdfWriter(limits.outputBytes);
+  const catalog = writer.reserve();
+  writer.setRoot(catalog);
+  const tree = writer.reserve();
+  const helvetica = writer.reserve();
+  const pageRefs = pages.map(() => ({ page: writer.reserve(), content: writer.reserve() }));
+  const fonts = collectFonts(pages);
+  const fontRefs = fonts.map(() => reserveFont(writer));
+  const alphas = collectAlpha(pages);
+  const alphaRefs = alphas.map(() => writer.reserve());
+  const resources = {
+    Font: { F1: helvetica, ...Object.fromEntries(fonts.map((font, i) => [font.key, fontRefs[i]!.font])) },
+    ...(alphas.length ? { ExtGState: Object.fromEntries(alphas.map((alpha, i) => [alpha.key, alphaRefs[i]!])) } : {}),
+  };
+  writer.define(catalog, { Type: name("Catalog"), Pages: tree });
+  writer.define(tree, { Type: name("Pages"), Kids: pageRefs.map((refs) => refs.page), Count: pages.length });
+  defineHelvetica(writer, helvetica);
+  const budget = { length: 0, maximum: limits.outputBytes };
+  pages.forEach((page, i) => {
+    const refs = pageRefs[i]!;
+    writer.define(refs.page, {
+      Type: name("Page"),
+      Parent: tree,
+      MediaBox: [0, 0, page.width, page.height],
+      Resources: resources,
+      Contents: refs.content,
+    });
+    writer.defineStream(refs.content, commands(page, budget, fonts, alphas));
+  });
+  fonts.forEach((font, i) => {
+    defineFont(writer, font, fontRefs[i]!);
+  });
+  alphas.forEach((alpha, i) => {
+    writer.define(alphaRefs[i]!, {
+      Type: name("ExtGState"),
+      ca: alpha.fill,
+      CA: alpha.stroke,
+    });
+  });
+  return writer.seal();
+}
+
+function defineHelvetica(writer: PdfWriter, ref: PdfRef): void {
+  writer.define(ref, {
+    Type: name("Font"),
+    Subtype: name("Type1"),
+    BaseFont: name("Helvetica"),
+    Encoding: name("WinAnsiEncoding"),
+  });
 }

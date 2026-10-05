@@ -7,7 +7,11 @@ import { check, entries } from "./preservation.js";
 import { reconcile } from "./reconciliation.js";
 
 test("preservation inventory accounts for all relocated originals and protects roadmap/assets/legacy bytes", () => {
-  assert.equal(reconcile("docs/evidence/migration-inventory.json").total, 293);
+  const result = reconcile("docs/evidence/migration-inventory.json");
+  assert.equal(result.total, 293);
+  const writer = result.entries.find((entry) => entry.old === "experimental/declarative/core/bytes.ts");
+  assert.equal(writer?.new, "packages/core/src/core/pdf-writer.ts");
+  assert.equal(writer?.status, "migration-edit-review-required");
 });
 
 test("destination rules retain distinct legacy, native, examples, tests and historical configs", () => {
