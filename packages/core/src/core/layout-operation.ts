@@ -25,6 +25,7 @@ import { measure } from "./measure.js";
 import { operation } from "./operation.js";
 import type { Policy, OperationOptions as RenderOptions } from "./policy.js";
 import { type ResolvedTextResources as ResolvedFonts, textService } from "./text-resources.js";
+import { measureResolvedText } from "./text-measurement.js";
 import { validate } from "./validate.js";
 
 /** Internal adapter seam: no resolved resources or serializer plans escape. */
@@ -82,7 +83,7 @@ export function layoutOperation(
     },
     measureText(input: TextMeasurementInput, path: string) {
       check();
-      return textService(fonts, path).measure(input, { bindings: fonts.bindings, budget }, path);
+      return measureResolvedText(input, fonts, budget, path);
     },
     validateFixed(nodes: readonly NodeDefinition[], width: number, height: number, path: string) {
       check();

@@ -4,7 +4,7 @@
  * @module
  */
 import type { RenderOptions } from "@updf/core";
-import { createLayoutOperation } from "@updf/core/internal";
+import { measureStandaloneText } from "@updf/core/internal";
 import type { TextMeasurement, TextMeasurementInput } from "./types.js";
 
 export { paintInlineText } from "./inline-paint.js";
@@ -23,10 +23,5 @@ export function measureText(input: TextMeasurementInput, options: RenderOptions)
 }
 /** Validate unknown data and measure with the same contract as {@link measureText}. */
 export function measureTextUnknown(input: unknown, options: RenderOptions): TextMeasurement {
-  const operation = createLayoutOperation(options);
-  try {
-    return operation.measureText(input as TextMeasurementInput, "");
-  } finally {
-    operation.close();
-  }
+  return measureStandaloneText(input as TextMeasurementInput, options);
 }

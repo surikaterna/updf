@@ -9,6 +9,7 @@ export { dataArray, dataRecord, ownDataValue, pointer, snapshot as snapshotData 
 export { DocumentError, fail } from "./core/error.js";
 export type { LayoutOperation } from "./core/layout-operation.js";
 export { contextLayoutOperation, createLayoutOperation } from "./core/layout-operation.js";
+export { measureStandaloneText } from "./core/text-measurement.js";
 export type { Policy } from "./core/policy.js";
 export { checkLimit, codePoints, policy } from "./core/policy.js";
 export { array, finite, number, validateDataObject } from "./core/schema.js";

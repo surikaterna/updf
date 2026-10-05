@@ -9,7 +9,9 @@ import { costInputs } from "./consumer/cost-inputs.js";
 const root = resolve(process.argv[2] ?? process.cwd());
 const historical = process.argv[3] === "baseline";
 execFileSync("npm", ["run", "build"], { cwd: root, stdio: "inherit" });
-const output = resolve(process.cwd(), "artifacts/font-extraction", historical ? "baseline" : "current");
+const output = resolve(
+  process.argv[4] ?? resolve(process.cwd(), "artifacts/font-extraction", historical ? "baseline" : "current"),
+);
 await mkdir(output, { recursive: true });
 const profiles = [];
 const inputs = costInputs(historical);
@@ -30,6 +32,11 @@ for (const [profile, contents] of Object.entries(inputs)) {
   const bytes = result.outputFiles[0]?.contents;
   assert.ok(bytes);
   const modules = Object.keys(result.metafile.inputs);
+  const contributions = Object.values(result.metafile.outputs)
+    .flatMap((output) =>
+      Object.entries(output.inputs).map(([module, { bytesInOutput }]) => ({ module, bytesInOutput })),
+    )
+    .sort((a, b) => b.bytesInOutput - a.bytesInOutput);
   assert.ok(!modules.some((path) => /packages\/[^/]+\/src\//u.test(path)), "Source alias in cost profile");
   assert.ok(
     !modules.some((path) => /packages\/[^/]+\/dist\/(?:cjs|node)\//u.test(path)),
@@ -41,7 +48,7 @@ for (const [profile, contents] of Object.entries(inputs)) {
     assert.ok(!modules.some((path) => /packages\/fonts\//u.test(path)), "Host measurement imported fonts");
   if (profile !== "fontkit") assert.ok(!modules.some((path) => /node_modules\/fontkit\//u.test(path)));
   await writeFile(resolve(output, `${profile}.mjs`), bytes);
-  profiles.push({ profile, raw: bytes.length, gzip: gzipSync(bytes).length, modules, input: contents });
+  profiles.push({ profile, raw: bytes.length, gzip: gzipSync(bytes).length, modules, contributions, input: contents });
 }
 const packages = [];
 for (const name of ["layout-kernel", "core", ...(historical ? [] : ["fonts", "text"]), "fontkit"]) {

@@ -219,6 +219,7 @@ const coreExports = [
   "policy",
   "ResolvedPaint",
   "createLayoutOperation",
+  "measureStandaloneText",
   "contextLayoutOperation",
   "LayoutOperation",
   "exceeds",
