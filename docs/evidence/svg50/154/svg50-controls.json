@@ -1,0 +1,92 @@
+[
+  {
+    "name": "correct",
+    "interiorMismatchRatio": 0,
+    "interiorMismatches": 0,
+    "compared": 242681,
+    "bboxDelta": 0,
+    "foregroundMismatchRatio": 0,
+    "inkMassDeltaRatio": 0.010837226098800412,
+    "foregroundMass": 6732.784313725351
+  },
+  {
+    "name": "thin",
+    "interiorMismatchRatio": 0,
+    "interiorMismatches": 0,
+    "compared": 242662,
+    "bboxDelta": 2,
+    "foregroundMismatchRatio": 0.15398521069286647,
+    "inkMassDeltaRatio": 0.7191592070443983,
+    "foregroundMass": 6659.819607843053
+  },
+  {
+    "name": "wrong-color",
+    "interiorMismatchRatio": 0.002019111508523535,
+    "interiorMismatches": 490,
+    "compared": 242681,
+    "bboxDelta": 0,
+    "foregroundMismatchRatio": 0.9024964178791495,
+    "inkMassDeltaRatio": 0.010837226098800412,
+    "foregroundMass": 6732.784313725351
+  },
+  {
+    "name": "missing",
+    "interiorMismatchRatio": 0.00022658641387862384,
+    "interiorMismatches": 55,
+    "compared": 242733,
+    "bboxDelta": 147,
+    "foregroundMismatchRatio": 0.566915196431166,
+    "inkMassDeltaRatio": 0.5652652665619918,
+    "foregroundMass": 6659.819607843053
+  },
+  {
+    "name": "displaced",
+    "interiorMismatchRatio": 0.0002770176116045196,
+    "interiorMismatches": 66,
+    "compared": 238252,
+    "bboxDelta": 8,
+    "foregroundMismatchRatio": 0.44420220635346885,
+    "inkMassDeltaRatio": 0.010837226098800412,
+    "foregroundMass": 6732.784313725351
+  },
+  {
+    "name": "opacity",
+    "interiorMismatchRatio": 0.0020434395702185163,
+    "interiorMismatches": 496,
+    "compared": 242728,
+    "bboxDelta": 0,
+    "foregroundMismatchRatio": 0,
+    "inkMassDeltaRatio": 0.44338656054984027,
+    "foregroundMass": 6659.819607843053
+  },
+  {
+    "name": "black",
+    "interiorMismatchRatio": 1,
+    "interiorMismatches": 243190,
+    "compared": 243190,
+    "bboxDelta": 122,
+    "foregroundMismatchRatio": 1,
+    "inkMassDeltaRatio": 0.973985079656863,
+    "foregroundMass": 256000
+  },
+  {
+    "name": "png-wrong-color",
+    "interiorMismatchRatio": 0.002093013692997245,
+    "interiorMismatches": 509,
+    "compared": 243190,
+    "bboxDelta": 0,
+    "foregroundMismatchRatio": 0.901217956795625,
+    "inkMassDeltaRatio": 0,
+    "foregroundMass": 6659.819607843053
+  },
+  {
+    "name": "png-black",
+    "interiorMismatchRatio": 1,
+    "interiorMismatches": 243190,
+    "compared": 243190,
+    "bboxDelta": 122,
+    "foregroundMismatchRatio": 1,
+    "inkMassDeltaRatio": 0.973985079656863,
+    "foregroundMass": 256000
+  }
+]

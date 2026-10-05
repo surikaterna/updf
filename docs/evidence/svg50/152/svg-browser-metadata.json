@@ -1,0 +1,10 @@
+{
+  "browser": "152.0.7977.82",
+  "executablePath": "/usr/bin/chromium",
+  "viewport": {
+    "width": 1280,
+    "height": 720
+  },
+  "devicePixelRatio": 1,
+  "raster": "Poppler Cairo, 144 DPI, white background, no resize"
+}

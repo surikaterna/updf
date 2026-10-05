@@ -1,0 +1,21 @@
+{
+  "capturedAt": "2026-10-05T05:31:02.715Z",
+  "cwd": "/home/sprawl/projects/updf/trees/svg-signature",
+  "head": "b1f3eeca4888bb8e63895256af35a330b2ad19e0",
+  "branch": "feature/svg-signature",
+  "node": "v24.21.0",
+  "qpdf": "qpdf version 12.4.1\nRun qpdf --copyright to see copyright and license information.",
+  "poppler": "26.08.0",
+  "hashes": {
+    "svg-signature.pdf": "86512743798e0a4be7ddd1c17dac4042572d92a6e861e65d53da0f95ebed715e",
+    "svg-signature.png": "c206b9ac46b527f343f1126d8d74c1ccf618d6e22881ae91913de84a15020acf",
+    "svg-native-signature.png": "ef74be15621c91cb00d85be2ecfa5ede147daf0ec287a8dad9cd9ec94d1dd22a",
+    "svg-comparison.json": "c0172ddaf60a950042df983c15cf5b7794d3b1e22c3f26d6e17d0aa981b504e3",
+    "svg-browser-metadata.json": "0c64cc7aad7cc9aee9b462d2b37a322cd6163a0bb711a6268ab40cfc6be076db",
+    "svg50-area.json": "251c6d5086d4eb7533e8f08519b21e71c777f7b399eb80b9c72a7623e38a0238",
+    "svg50-controls.json": "ea3f6b46d4e25824e24e481f859afbf361b287af422c081bfcb57061ff5391b5",
+    "svg50-png-black.png": "e1093a93f878f5289c1e475b278d1b79a2c5504f6c0763a8a599167c81f6b96a",
+    "svg50-png-wrong-color.png": "42ca0326721365fd401dd08b343af627716a4345d80a2ed68c0b45c7037a8930",
+    "signature-splash.png": "a1b617fc952c088b7650f48b397baec80779431bcc479e2f40bc1a91cabc2b17"
+  }
+}
