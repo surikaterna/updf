@@ -84,7 +84,7 @@ class Collection implements ResourceCollection {
 }
 
 function reservations(writer: PdfWriter, resources: readonly Resource<unknown>[]) {
-  const dictionary: Record<string, Record<string, PdfRef>> = {};
+  const dictionary: Record<string, Record<string, PdfRef>> = Object.create(null);
   const definitions = new Map<ResourcePhase, (() => void)[]>();
   return {
     dictionary,
@@ -96,7 +96,7 @@ function reservations(writer: PdfWriter, resources: readonly Resource<unknown>[]
         if (resource.phase !== phase) continue;
         let category = dictionary[resource.category];
         if (!category) {
-          category = {};
+          category = Object.create(null) as Record<string, PdfRef>;
           dictionary[resource.category] = category;
         }
         if (Object.hasOwn(category, resource.key)) throw new Error("Conflicting resource key");

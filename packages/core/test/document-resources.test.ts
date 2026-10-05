@@ -7,9 +7,9 @@ import { type Resource, type ResourceCollection, resourceSlot } from "../dist/co
 
 const node = { type: "rect", x: 0, y: 0, width: 10, height: 10 } as const;
 const page = (children = [node]): MeasuredPage => ({ width: 100, height: 100, children });
-function entry(key: string): Resource<string> {
+function entry(key: string, category = "Example"): Resource<string> {
   return {
-    category: "Example",
+    category,
     key,
     payload: key,
     phase: "content",
@@ -60,6 +60,68 @@ test("shared engine interns, binds per page, reserves provider-major and defines
   reserved.define("content");
   assert.match(Buffer.from(writer.seal()).toString(), /\/R0 2 0 R \/R1 3 0 R/);
   assert.throws(() => reserved.reserve("content"), /already reserved/);
+});
+
+const dictionaryNames = ["Example", "__proto__", "constructor", "toString"];
+const builtins = [Object.prototype, Object, Object.prototype.toString];
+
+function namedResources(entries: readonly Resource<string>[]) {
+  const slot = resourceSlot<string>();
+  return documentResources(
+    [],
+    [
+      {
+        slot,
+        initialize(collection) {
+          entries.forEach((resource, i) => {
+            collection.intern(slot, i, () => resource);
+          });
+        },
+        collect() {},
+      },
+    ],
+  );
+}
+
+test("resource dictionaries preserve special PDF names without inherited state or builtin mutation", () => {
+  const snapshots = builtins.map((builtin) => Object.getOwnPropertyDescriptors(builtin));
+  const entries = dictionaryNames.flatMap((category) => dictionaryNames.map((key) => entry(key, category)));
+  const writer = new PdfWriter(),
+    root = writer.reserve();
+  writer.setRoot(root);
+  const reserved = namedResources(entries).open(writer);
+  reserved.reserve("content");
+  builtins.forEach((builtin, i) => {
+    assert.deepEqual(Object.getOwnPropertyDescriptors(builtin), snapshots[i]);
+  });
+  assert.equal(Object.getPrototypeOf(reserved.dictionary), null);
+  assert.deepEqual(Object.keys(reserved.dictionary), dictionaryNames);
+  for (const category of dictionaryNames) {
+    const dictionary = reserved.dictionary[category];
+    assert.ok(dictionary);
+    assert.equal(Object.getPrototypeOf(dictionary), null);
+    assert.deepEqual(Object.keys(dictionary), dictionaryNames);
+    for (const key of dictionaryNames) assert.ok(Object.hasOwn(dictionary, key));
+  }
+  writer.define(root, { Resources: reserved.dictionary });
+  reserved.define("content");
+  const raw = Buffer.from(writer.seal()).toString("latin1");
+  dictionaryNames.forEach((category, i) => {
+    const keys = dictionaryNames.map((key, j) => `/${key} ${2 + i * dictionaryNames.length + j} 0 R`);
+    assert.ok(raw.includes(`/${category} << ${keys.join(" ")} >>`));
+  });
+  assert.equal((raw.match(/\n\d+ 0 obj\n/g) ?? []).length, entries.length + 1);
+  assert.equal(new Set(Object.values(reserved.dictionary).flatMap(Object.values)).size, entries.length);
+});
+
+test("duplicate special resource keys conflict in every category", () => {
+  for (const category of dictionaryNames) {
+    for (const key of dictionaryNames) {
+      const writer = new PdfWriter();
+      const reserved = namedResources([entry(key, category), entry(key, category)]).open(writer);
+      assert.throws(() => reserved.reserve("content"), /Conflicting resource key/);
+    }
+  }
 });
 
 test("collection rejects foreign/conflicting bindings and closes both mutation paths", () => {
