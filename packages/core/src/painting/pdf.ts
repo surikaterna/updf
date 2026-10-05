@@ -1,6 +1,7 @@
 import { decimal as n } from "../core/pdf-values.js";
+import type { PageResources } from "../core/resource-types.js";
 import { multiply } from "./affine.js";
-import { type Alpha, alphaKey } from "./alpha.js";
+import { alphaAt } from "./alpha.js";
 import type { PathCommand, ResolvedDrawing, ResolvedPaint } from "./types.js";
 
 function operation(paint: ResolvedPaint): string {
@@ -19,16 +20,15 @@ export function painted(
   drawing: ResolvedDrawing,
   height: number,
   local: boolean,
-  alphas: readonly Alpha[],
+  resources: PageResources,
 ): readonly string[] {
   const paint = drawing.paint;
   const matrix = local ? drawing.matrix : multiply([1, 0, 0, -1, 0, height], drawing.matrix);
-  const selected = alphaKey(paint);
-  const alpha = alphas.find((item) => `${item.fill}|${item.stroke}` === selected);
+  const alpha = alphaAt(resources, drawing);
   return [
     "q\n",
     `${matrix.map(n).join(" ")} cm\n`,
-    ...(alpha ? [`/${alpha.key} gs\n`] : []),
+    ...(alpha ? [`/${alpha} gs\n`] : []),
     ...(paint.fill ? [`${paint.fill.map(n).join(" ")} rg\n`] : []),
     ...(paint.stroke && paint.width ? [`${paint.stroke.map(n).join(" ")} RG\n${n(paint.width)} w\n`] : []),
     `${["butt", "round", "square"].indexOf(paint.lineCap)} J\n${["miter", "round", "bevel"].indexOf(paint.lineJoin)} j\n${n(paint.miterLimit)} M\n`,

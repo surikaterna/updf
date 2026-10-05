@@ -1,3 +1,4 @@
+import { defaultResources } from "./core/default-resources.js";
 import { measure } from "./core/measure.js";
 import { operation } from "./core/operation.js";
 import { serialize } from "./core/serialize.js";
@@ -48,5 +49,6 @@ export function render(document: DocumentDefinition, options: RenderOptions = {}
 export function renderUnknown(document: unknown, options: RenderOptions = {}): Uint8Array<ArrayBuffer> {
   const { fonts, budget } = operation(options, [], false);
   validate(document, fonts, budget);
-  return serialize(measure(document, fonts, budget), budget.policy);
+  const pages = measure(document, fonts, budget);
+  return serialize(pages, defaultResources(pages), budget.policy);
 }
