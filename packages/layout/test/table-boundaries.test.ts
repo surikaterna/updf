@@ -1,15 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
-import { type Component, type ComponentContext, h, lower } from "@updf/core/vdom";
+import { DocumentError } from "@updf/core";
+import { type Component, type ComponentContext, h } from "@updf/core/vdom";
 import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
-import { tableProofDefinition } from "../../../tests/fixtures/transitional-table-proof.js";
 import {
   layoutTable,
   layoutTableFlowUnknown,
   layoutTableUnknown,
-  type TableDocumentDefinition,
-} from "../dist/cjs/tables/index.js";
+  lower,
+  render,
+} from "../../../tests/fixtures/text-options.js";
+import { tableProofDefinition } from "../../../tests/fixtures/transitional-table-proof.js";
+import type { TableDocumentDefinition } from "../dist/cjs/tables/index.js";
 import { Tables } from "../dist/cjs/tables/vdom.js";
 
 function failure(run: () => unknown, code: string, path?: string): void {

@@ -1,7 +1,7 @@
 # @updf/layout — native document authoring
 
-Private/unreleased `2.0.0-poc.0`, MIT ©2026 Surikat AB. Optional, core-only runtime
-dependency; importing `@updf/core` never loads layout. Tables remain in the real,
+Private/unreleased `2.0.0-poc.0`, MIT ©2026 Surikat AB. Depends on core, text and
+layout-kernel; importing `@updf/core` never loads layout. Tables remain in the real,
 separate `@updf/tables` package. Dated audit evidence is retained in `docs/evidence`.
 
 ## Public surface
@@ -18,6 +18,25 @@ The transitional `/vdom`, `/tables`, `/tables/vdom`, `layoutFlow`,
 `layoutFlowUnknown` and `Flow.Document` exports are removed without a facade.
 See [migration](../../docs/authoring-migration.md).
 
+Text composition belongs to the application, not layout. The examples below use
+this explicit configuration; pass the same runtime/service/provider pairing to
+`measure`, `layout`/`lower`, and final `render`:
+
+```ts
+import { createHelvetica, fontProvider, fontRuntime } from '@updf/fonts';
+import { createTextService } from '@updf/text';
+const runtime = fontRuntime();
+const options = {
+  resources: { Helvetica: createHelvetica() },
+  text: createTextService({ runtime, defaultFont: 'Helvetica' }),
+  providers: [fontProvider(runtime)],
+};
+```
+
+Layout has no implicit font. Omitted author fonts select only the injected service's
+explicit default; empty paragraphs and overridden styles still validate. Generic
+owned resource handles retain identity through snapshots and deferred callbacks.
+
 ```tsx
 /** @jsxImportSource @updf/core */
 import { render } from '@updf/core';
@@ -28,7 +47,7 @@ const content = <Document><Flow pageSize={{ width: 200, height: 100 }}
   margins={{ top: 10, right: 10, bottom: 10, left: 10 }}>
   <Paragraph>{'Author text '}<Span style={{ color: [1, 0, 0] }}>styled text</Span></Paragraph>
 </Flow></Document>;
-const bytes = render(lower(content));
+const bytes = render(lower(content, options), options);
 ```
 
 ```ts
@@ -38,12 +57,12 @@ import { document, flow, layout, measure, paragraph, span } from '@updf/layout';
 const content = paragraph({ children: [
   'Author text ', span({ style: { color: [1, 0, 0] }, children: 'styled text' }),
 ] });
-const metrics = measure(content, { width: 180 });
+const metrics = measure(content, { width: 180 }, options);
 const result = layout(document({ children: flow({
   pageSize: { width: 200, height: 100 },
   margins: { top: 10, right: 10, bottom: 10, left: 10 }, children: content,
-}) }));
-const bytes = render(result.document);
+}) }), options);
+const bytes = render(result.document, options);
 ```
 
 `layout` accepts core `LowerOptions`, including local registry/metadata. It returns

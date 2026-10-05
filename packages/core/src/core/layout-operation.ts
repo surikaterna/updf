@@ -1,9 +1,6 @@
-import type { ResolvedFonts } from "../fonts/resources.js";
-import type { RenderOptions } from "../fonts/types.js";
-import { type InlineLine, type InlineMetric, measureInline } from "../measurement/inline.js";
+import type { InlineLine, InlineMetric } from "../measurement/inline.js";
 import { ledger, type WorkLedger } from "../measurement/ledger.js";
-import { type InlineLineHeights, type LineEnvelope, type LineHeight, participant } from "../measurement/line-height.js";
-import { measureInput } from "../measurement/measure.js";
+import type { InlineLineHeights, LineEnvelope, LineHeight } from "../measurement/line-height.js";
 import type {
   InkBounds,
   ParagraphDefinition,
@@ -11,7 +8,6 @@ import type {
   TextMeasurementInput,
   TextStyle,
 } from "../measurement/types.js";
-import { validateStyle } from "../measurement/validate.js";
 import type { DocumentDefinition, NodeDefinition } from "../types.js";
 import { bindRendererContext, type RendererBinding } from "../vdom/context.js";
 import {
@@ -27,7 +23,9 @@ import { DocumentError, fail } from "./error.js";
 import { nativeInk } from "./ink.js";
 import { measure } from "./measure.js";
 import { operation } from "./operation.js";
-import type { Policy } from "./policy.js";
+import type { Policy, OperationOptions as RenderOptions } from "./policy.js";
+import { type ResolvedTextResources as ResolvedFonts, textService } from "./text-resources.js";
+import { measureResolvedText } from "./text-measurement.js";
 import { validate } from "./validate.js";
 
 /** Internal adapter seam: no resolved resources or serializer plans escape. */
@@ -58,6 +56,7 @@ export interface LayoutOperation {
   readonly nativeInk: (nodes: readonly NodeDefinition[]) => InkBounds;
   readonly close: () => void;
   readonly validateStyle: (style: TextStyle, path: string) => void;
+  readonly resolveStyle: (style: Omit<TextStyle, "font"> & { readonly font?: string }, path: string) => TextStyle;
   readonly lineBox: (style: TextStyle, height: LineHeight, path: string) => LineEnvelope;
 }
 const contexts = new WeakMap<object, LayoutOperation>();
@@ -76,7 +75,7 @@ export function layoutOperation(
     policy: budget.policy,
     lineBox(style: TextStyle, height: LineHeight, path: string) {
       check();
-      return participant(style, height, fonts, path);
+      return textService(fonts, path).lineBox(style, height, { bindings: fonts.bindings, budget }, path);
     },
     ...contentMethods(state, fonts, budget, check),
     close() {
@@ -84,7 +83,7 @@ export function layoutOperation(
     },
     measureText(input: TextMeasurementInput, path: string) {
       check();
-      return measureInput(input, fonts, budget, path);
+      return measureResolvedText(input, fonts, budget, path);
     },
     validateFixed(nodes: readonly NodeDefinition[], width: number, height: number, path: string) {
       check();
@@ -98,7 +97,14 @@ export function layoutOperation(
 }
 type ContentMethods = Pick<
   LayoutOperation,
-  "validateStyle" | "nativeInk" | "measureInline" | "normalizeContent" | "scoped" | "finalContext" | "lowerDrawing"
+  | "validateStyle"
+  | "resolveStyle"
+  | "nativeInk"
+  | "measureInline"
+  | "normalizeContent"
+  | "scoped"
+  | "finalContext"
+  | "lowerDrawing"
 >;
 function contentMethods(state: State, fonts: ResolvedFonts, budget: WorkLedger, check: () => void): ContentMethods {
   return {
@@ -123,26 +129,38 @@ function contentMethods(state: State, fonts: ResolvedFonts, budget: WorkLedger, 
     },
     validateStyle(style: TextStyle, path: string) {
       check();
-      validateStyle(style, fonts, path);
+      textService(fonts, path).validateStyle(style, { bindings: fonts.bindings, budget }, path);
+    },
+    resolveStyle(style: Omit<TextStyle, "font"> & { readonly font?: string }, path: string) {
+      check();
+      return textService(fonts, path).resolveStyle(style, { bindings: fonts.bindings, budget }, path);
     },
     nativeInk(nodes: readonly NodeDefinition[]) {
       check();
       return nativeInk(nodes, fonts, budget.policy);
     },
-    measureInline(
-      paragraph: ParagraphDefinition,
-      visuals: () => readonly InlineMetric[],
-      width: number,
-      autoHeight: boolean | InlineLineHeights,
-      path: string,
-    ) {
-      check();
-      return measureInline(paragraph, visuals, width, autoHeight, fonts, budget, path);
-    },
+    measureInline: inlineMeasurement(fonts, budget, check),
     normalizeContent: (input, resolve, path, guard, native, numeric, deferChildren) => {
       check();
       return normalizeScoped(input, state, resolve, path, guard, native, numeric, deferChildren);
     },
+  };
+}
+function inlineMeasurement(
+  fonts: ResolvedFonts,
+  budget: WorkLedger,
+  check: () => void,
+): LayoutOperation["measureInline"] {
+  return (paragraph, visuals, width, autoHeight, path) => {
+    check();
+    return textService(fonts, path).inline(
+      paragraph,
+      visuals,
+      width,
+      autoHeight,
+      { bindings: fonts.bindings, budget },
+      path,
+    );
   };
 }
 function validateGenerated(document: DocumentDefinition, fonts: ResolvedFonts, policy: Policy): void {

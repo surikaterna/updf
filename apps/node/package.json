@@ -5,6 +5,8 @@
   "type": "module",
   "dependencies": {
     "@updf/core": "2.0.0-poc.0",
+    "@updf/fonts": "2.0.0-poc.0",
+    "@updf/text": "2.0.0-poc.0",
     "@updf/fontkit": "2.0.0-poc.0",
     "@updf/svg": "2.0.0-poc.0",
     "@updf/example-cmr": "2.0.0-poc.0"

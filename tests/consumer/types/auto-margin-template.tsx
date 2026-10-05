@@ -1,5 +1,5 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
+
 import {
   Block,
   type BlockStyle,
@@ -9,13 +9,14 @@ import {
   document,
   Flow,
   flow,
-  layout,
   Paragraph,
   type ParagraphStyle,
   paragraph,
   type RowStyle,
   type SpanStyle,
 } from "@updf/layout";
+import { layout } from "./layout-options.js";
+import { render } from "./text-options.js";
 
 const style: BlockStyle = { height: 20, marginTop: "auto" };
 const tree = (

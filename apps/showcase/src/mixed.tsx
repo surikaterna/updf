@@ -1,8 +1,10 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
+
 import { createContext, useContext } from "@updf/core/vdom";
-import { Block, Document, Flow, layout, type Orientation, PageContext, PageSize, Paragraph, pt } from "@updf/layout";
+import { Block, Document, Flow, type Orientation, PageContext, PageSize, Paragraph, pt } from "@updf/layout";
 import { FixedAppendix, FixedCover } from "./fixed-pages.js";
+import { layout } from "./layout-options.js";
+import { render } from "./text-options.js";
 
 export interface MixedControls {
   readonly count: number;

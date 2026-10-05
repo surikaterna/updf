@@ -1,7 +1,7 @@
-import { render } from "@updf/core";
-import { h, lower } from "@updf/core/vdom";
+import { h } from "@updf/core/vdom";
 import { Block, blockComponent, createExtensions, Document, defineBlockAdapter, Flow, Paragraph } from "@updf/layout";
 import { compileSVG } from "@updf/svg";
+import { lower, render } from "./text-options.js";
 
 const svgAdapter = defineBlockAdapter<Record<never, never>>({
   name: "showcase.svg",

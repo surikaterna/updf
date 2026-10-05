@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
+import { DocumentError } from "@updf/core";
 import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
+import { render } from "../../../tests/fixtures/text-options.js";
 import {
   type BlockFragment,
   createExtensions,

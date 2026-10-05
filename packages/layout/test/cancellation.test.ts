@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { type DocumentDefinition, DocumentError, render, renderUnknown } from "@updf/core";
-import { measureText } from "@updf/core/measurement";
-import { h, lower } from "@updf/core/vdom";
+import { type DocumentDefinition, DocumentError } from "@updf/core";
+import { h } from "@updf/core/vdom";
+import { lower, measureText, render, renderUnknown } from "../../../tests/fixtures/text-options.js";
 import {
   LegacyFlow as Flow,
   type FlowDocumentDefinition,
   layoutFlow,
   layoutFlowUnknown,
 } from "../../../tests/fixtures/transitional-layout.js";
-import { bits, value } from "../src/binary64.js";
+import { bits, value } from "../dist/binary64.js";
 import { fixed, flow, paragraph } from "./fixtures.js";
 
 function agrees(input: FlowDocumentDefinition, pageCount = 1): DocumentDefinition {

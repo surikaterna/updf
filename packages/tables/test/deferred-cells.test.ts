@@ -2,9 +2,10 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
-import { createContext, h, lower, useContext } from "@updf/core/vdom";
+import { DocumentError } from "@updf/core";
+import { createContext, h, useContext } from "@updf/core/vdom";
 import { table, tableExtension } from "@updf/tables";
+import { lower, render } from "../../../tests/fixtures/text-options.js";
 import {
   Block,
   createExtensions,

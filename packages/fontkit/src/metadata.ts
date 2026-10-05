@@ -1,5 +1,5 @@
-import type { FontBounds, FontMetadata, PreparedFontInput, PreparedGlyph } from "@updf/core/fonts";
-import { fail, scalar } from "@updf/core/internal";
+import { fail } from "@updf/core/internal";
+import { type FontBounds, type FontMetadata, type PreparedFontInput, type PreparedGlyph, scalar } from "@updf/fonts";
 
 interface ParsedFont {
   readonly postscriptName: string;

@@ -1,7 +1,8 @@
-import { type NodeDefinition, type RGB, render, type TextNode } from "@updf/core";
+import type { NodeDefinition, RGB, TextNode } from "@updf/core";
 import { compileSVG } from "@updf/svg";
 import { type BrandingControls, brandingDefaults, validateBranding } from "./branding-controls.js";
 import { brandingLogo, brandPalettes } from "./branding-logo.js";
+import { render } from "./text-options.js";
 
 function text(text: string, x: number, y: number, width: number, fontSize = 11): TextNode {
   return {

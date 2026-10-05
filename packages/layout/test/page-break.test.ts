@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
-import { type Component, createContext, h, lower, useContext } from "@updf/core/vdom";
+import { DocumentError } from "@updf/core";
+import { type Component, createContext, h, useContext } from "@updf/core/vdom";
 import {
   Block,
   Column,
@@ -9,8 +9,6 @@ import {
   document,
   Flow,
   flow,
-  layout,
-  measure,
   Page,
   PageBreak,
   type PageProps,
@@ -18,6 +16,7 @@ import {
   paragraph,
   Row,
 } from "@updf/layout";
+import { layout, lower, measure, render } from "../../../tests/fixtures/text-options.js";
 
 const pageSize = { width: 100, height: 40 };
 const margins = { top: 0, right: 0, bottom: 0, left: 0 };

@@ -4,8 +4,8 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { type DocumentDefinition, DocumentError, render } from "@updf/core";
-import { createLayoutOperation } from "@updf/core/internal";
+import { type DocumentDefinition, DocumentError } from "@updf/core";
+import { createLayoutOperation, render } from "../../../tests/fixtures/text-options.js";
 import {
   block,
   createExtensions,

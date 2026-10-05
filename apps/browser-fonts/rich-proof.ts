@@ -1,9 +1,11 @@
-import { type PreparedFont, render } from "@updf/core";
-import { measureText } from "@updf/core/measurement";
+import { render } from "@updf/core";
 import { type Component, createContext, h, lower, useContext } from "@updf/core/vdom";
+import type { PreparedFont } from "@updf/fonts";
+import { measureText } from "@updf/text";
+import { textOptions } from "./text-options.js";
 
 export function richProof(font: PreparedFont) {
-  const options = { profile: "service", resources: { Demo: font } } as const;
+  const options = textOptions({ profile: "service", resources: { Demo: font } });
   const input = {
     kind: "rich",
     width: 250,

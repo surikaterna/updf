@@ -25,6 +25,7 @@
     }
   },
   "dependencies": {
+    "@updf/fonts": "2.0.0-poc.0",
     "@updf/core": "2.0.0-poc.0"
   },
   "peerDependencies": {

@@ -1,5 +1,5 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
+
 import {
   Block,
   blockComponent,
@@ -7,13 +7,14 @@ import {
   createExtensions,
   Document,
   Flow,
-  layout,
   Paragraph,
   Row,
   type RowAlignment,
 } from "@updf/layout";
 import { chartAdapter } from "./chart.js";
+import { layout } from "./layout-options.js";
 import { tableVisual } from "./optional-table-svg.js";
+import { render } from "./text-options.js";
 
 const Chart = blockComponent(chartAdapter);
 export function rowExample(title: string, oversized = false) {

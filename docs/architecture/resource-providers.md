@@ -1,45 +1,30 @@
-# Private resource and positioned-text painting seams
+# Resource and positioned-text contracts
 
-The resource pipeline and painting capability are private implementation contracts,
-not a public plugin API or an optional fonts package.
+Core owns generic resource identity, document-local interning, page/site bindings,
+reservation order, validated numeric text output, operation lifetime, and `Tf`/`Tm`/
+`Tj` formatting. Public narrow contracts are `@updf/core/resources` and
+`@updf/core/pdf`; implementation plans and serializer internals are not exported.
 
-## Current ownership
+`@updf/fonts` owns prepared static TrueType storage/profile checks, Helvetica
+metrics, private opaque runs, committed CID registration, and PDF font definitions.
+`@updf/text` owns measurement/wrapping/line envelopes/inline text, depending only
+on core contracts and kernel arithmetic. Neither core nor text imports fonts.
+Fontkit is an optional adapter peer, never required transitively by native text.
 
-- `core/document-resources.ts` owns document-local interning, resource ownership,
-  page/site bindings, reservation order, and painting completion. A painting binding
-  references an owned resource of the capability's category; it is not another PDF
-  resource. Rebinding the same site/slot to a different binding is rejected.
-- `core/text-paint.ts` owns the typed `Font` painting capability and PDF `Tf`, `Tm`,
-  and `Tj` formatting. It accepts a site, numeric position/size, and page resources,
-  without prepared-font or glyph contracts. Its payload is a PDF literal or hex
-  string, never a name. Content has no concrete font-provider import.
-- `fonts/provider.ts` owns font usage, committed CID registration, and glyph/string
-  encoding. Font resources carry no encoding accessor payload. Stable per-site
-  bindings and usage state reset on provider initialization for each document.
-- Alpha continues to use ordinary page resource resolution, unchanged.
+Applications explicitly bind resources, a text service, and providers. The same
+font runtime must produce runs and provide their painting. Omission requires an
+explicit service default; core never installs Helvetica or a font provider.
+See [migration and composition](../migration/fonts-text.md).
 
 All committed pages register resources and CIDs before collection closes. Painting
-completion is **lazy after closure**, cached once per distinct binding across
-shared sites/pages and repeated serialization. Both result and payload are frozen.
-This avoids eagerly materializing every encoded run before the output-byte budget
-can reject an early command. Successful painting retains its encoded payload for
-the lifetime of this document resource collection; it does not allocate CIDs or
-PDF references. A completion failure aborts the serialization operation, which
-returns no partial PDF. There are no new quotas or implicit clips.
+completion is lazy after closure and cached once per distinct binding. Joining
+owned runs retains existing text/glyphs without metric recomputation or speculative
+CID allocation. Measurement never allocates PDF references. Failures return no
+partial PDF. Alpha remains a core drawing provider.
 
-## Remaining extraction work (not delivered here)
-
-Prepared fonts and glyph runs still live in core-owned plans, measurement, validation,
-and VDOM. Preparation, metrics, Helvetica, CIDs, and PDF font definitions still
-reside in `packages/core/src/fonts/`. Moving these responsibilities to an optional
-fonts package requires a separate generic measured contract and coordinated
-Fontkit/layout/host consumer migration. Layout-kernel is unchanged.
-
-`core/default-resources.ts` and current render entry points still install concrete
-font/alpha defaults. Explicit composition and future JPEG integration are separate
-slices, not compatibility fallbacks added here. No public exports change.
-
-The serializer still writes one whole-document resource dictionary on every page
-and retains unconditional Helvetica `/F1` for byte compatibility. Per-page and
-only-used-font policies remain future decisions. Fonts are **not optional** in
-the current bundle; this seam alone makes no optional-font savings claim.
+Only fonts used by committed text are emitted. Helvetica retains `/F1` naming when
+used; drawing-only and prepared-only PDFs have no synthetic Helvetica resource.
+The serializer still writes the whole-document resource dictionary on every page.
+Resource aliases share identity. `limits.resourceBytes` counts unique private owned
+bytes, including unused bindings, not mutable public metadata or runtime callbacks.
+No global registry, additional numeric quotas, or JPEG integration is introduced.

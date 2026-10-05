@@ -1,7 +1,8 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
-import { lower } from "@updf/core/vdom";
-import { Document, document, Flow, flow, layout, PageBreak, type PageBreakProps, paragraph } from "@updf/layout";
+
+import { Document, document, Flow, flow, PageBreak, type PageBreakProps, paragraph } from "@updf/layout";
+import { layout } from "./layout-options.js";
+import { lower, render } from "./text-options.js";
 
 const pageSize = { width: 100, height: 40 };
 const margins = { top: 0, right: 0, bottom: 0, left: 0 };

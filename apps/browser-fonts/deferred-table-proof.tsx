@@ -1,9 +1,10 @@
 /** @jsxImportSource @updf/core */
 import { render } from "@updf/core";
-import type { PreparedFont } from "@updf/core/fonts";
 import { createContext, lower, useContext } from "@updf/core/vdom";
+import type { PreparedFont } from "@updf/fonts";
 import { Block, createExtensions, Document, Flow, FragmentContext, layout, PageContext, Paragraph } from "@updf/layout";
 import { Table, table, tableExtension } from "@updf/tables";
+import { textOptions } from "./text-options.js";
 
 const Theme = createContext({ name: "DEFAULT" });
 const columns = [{ width: { weight: 1, min: 160, max: 180 } }] as const;
@@ -31,7 +32,7 @@ export function deferredTableProof(font: PreparedFont, mode: "data" | "jsx") {
       </Theme.Provider>
     </Document>
   );
-  const options = { resources: { Proof: font } };
+  const options = textOptions({ resources: { Proof: font } });
   const result = layout(tree, options);
   const bytes = render(result.document, options);
   const observed = contexts.slice();

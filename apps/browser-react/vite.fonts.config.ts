@@ -9,7 +9,7 @@ export default defineConfig({
     outDir: "dist-fonts",
     minify: "esbuild",
     lib: {
-      entry: fileURLToPath(new URL("../../packages/core/dist/fonts/index.js", import.meta.url)),
+      entry: fileURLToPath(new URL("../../packages/fonts/dist/index.js", import.meta.url)),
       formats: ["es"],
       fileName: () => "fonts.mjs",
     },

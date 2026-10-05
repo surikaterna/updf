@@ -1,8 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { DocumentError, render } from "@updf/core";
-import { createLayoutOperation } from "@updf/core/internal";
-import { createContext, definePrimitive, h, lower, useContext, type VDOMChild } from "@updf/core/vdom";
+import { DocumentError } from "@updf/core";
+import { createContext, definePrimitive, h, useContext, type VDOMChild } from "@updf/core/vdom";
 import {
   Block,
   Document,
@@ -12,7 +11,6 @@ import {
   type FragmentInfo,
   flow,
   flowFooter,
-  layout,
   Page,
   PageContext,
   type PageInfo,
@@ -21,6 +19,7 @@ import {
   page,
   pageSize,
 } from "@updf/layout";
+import { createLayoutOperation, layout, lower, render } from "../fixtures/text-options.js";
 
 const margins = { top: 10, right: 10, bottom: 10, left: 10 };
 function nativeText(text: string, width = 180) {
@@ -143,7 +142,10 @@ test("layout and ordinary lower share the existing operation-local native primit
     (_props: unknown): _props is Record<never, never> => typeof _props === "object" && _props !== null,
     (_props, context) => {
       calls++;
-      assert.deepEqual(context.resources, [{ id: "Other", kind: "test" }]);
+      assert.deepEqual(context.resources, [
+        { id: "Helvetica", kind: "resource" },
+        { id: "Other", kind: "test" },
+      ]);
       return nativeText(`Page ${useContext(PageContext).docPageNumber}`);
     },
   );

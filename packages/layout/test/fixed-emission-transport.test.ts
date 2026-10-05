@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, type NodeDefinition, render } from "@updf/core";
+import { DocumentError, type NodeDefinition } from "@updf/core";
 import { h } from "@updf/core/vdom";
+import { render } from "../../../tests/fixtures/text-options.js";
 import {
   Block,
   createExtensions,

@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
-import { type DiagnosticCode, DocumentError, render, renderUnknown } from "@updf/core";
+import { type DiagnosticCode, DocumentError } from "@updf/core";
 import { jsxDEV } from "@updf/core/jsx-dev-runtime";
 import { jsx, jsxs } from "@updf/core/jsx-runtime";
-import { bind, type Component, definePrimitive, Fragment, h, lower, type VDOMChild, type VNode } from "@updf/core/vdom";
+import { bind, type Component, definePrimitive, Fragment, h, type VDOMChild, type VNode } from "@updf/core/vdom";
 import { cmrFixture, createCmrDocument } from "@updf/example-cmr/cmr";
 import { createCmrTree } from "@updf/example-cmr/cmr-tree";
+import { lower, render, renderUnknown } from "../../../tests/fixtures/text-options.js";
 
 const rect = () => h("rect", { x: 0, y: 0, width: 10, height: 10 });
 const page = (children: VDOMChild) => h("page", { width: 100, height: 100, children });

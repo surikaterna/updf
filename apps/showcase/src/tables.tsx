@@ -1,5 +1,5 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
+
 import {
   type BlockAdapterIdentity,
   type BlockContent,
@@ -8,12 +8,13 @@ import {
   Document,
   Flow,
   type InlineAdapterIdentity,
-  layout,
   Paragraph,
   pt,
 } from "@updf/layout";
 import { Table, type TableColumn, tableExtension } from "@updf/tables";
 import { chartAdapter } from "./chart.js";
+import { layout } from "./layout-options.js";
+import { render } from "./text-options.js";
 
 export interface TableControls {
   readonly count: number;

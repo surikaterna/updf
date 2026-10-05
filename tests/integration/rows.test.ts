@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import test from "node:test";
-import { render } from "@updf/core";
-import { column, document, flow, layout, measure, paragraph, row } from "@updf/layout";
+import { column, document, flow, paragraph, row } from "@updf/layout";
+import { layout, measure, render } from "../fixtures/text-options.js";
 
 test("#44 data Row real PDF geometry retains resolved widths, alignment and atomic page transition", async () => {
   const item = row({

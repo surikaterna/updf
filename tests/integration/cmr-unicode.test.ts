@@ -4,9 +4,9 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { render } from "@updf/core";
 import { createUnicodeCmrDocument } from "@updf/example-cmr/cmr-unicode";
 import { prepareFont } from "@updf/fontkit";
+import { render } from "../fixtures/text-options.js";
 
 test("all CMR fields use selected font and actual Cyrillic addresses/instructions extract", async () => {
   const font = prepareFont(

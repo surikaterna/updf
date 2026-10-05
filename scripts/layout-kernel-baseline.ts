@@ -1,8 +1,7 @@
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { gzipSync } from "node:zlib";
-import { render } from "@updf/core";
-import { cmrFixture, createCmrDocument } from "@updf/example-cmr/cmr";
+import { cmrFixture, createCmrDocument, renderCMR } from "@updf/example-cmr/cmr";
 import { build } from "esbuild";
 import { freightInvoiceExample } from "../examples/business/freight-invoice.js";
 import { freightFonts } from "../tests/fixtures/fonts/freight-fonts.js";
@@ -16,8 +15,12 @@ const rows = await readFile("artifacts/rows/geometry.pdf").catch((cause: unknown
 const control = baseline ? arithmeticControl(await arithmeticSource()) : undefined;
 const result = await build({
   stdin: {
-    contents:
-      'import { render } from "@updf/core"; export const pdf = render({version:1,pages:[{width:100,height:100,children:[{type:"text",x:10,y:10,width:80,height:20,text:"Kernel baseline",fontSize:10,lineHeight:12,align:"left"}]}]});',
+    contents: `import { render } from "@updf/core";
+      import { createHelvetica, fontRuntime, fontProvider } from "@updf/fonts";
+      import { createTextService } from "@updf/text";
+      const runtime = fontRuntime();
+      const options = { resources: { Helvetica: createHelvetica() }, text: createTextService({runtime, defaultFont: "Helvetica"}), providers: [fontProvider(runtime)] };
+      export const pdf = render({version:1,pages:[{width:100,height:100,children:[{type:"text",x:10,y:10,width:80,height:20,text:"Kernel baseline",fontSize:10,lineHeight:12,align:"left"}]}]}, options);`,
     resolveDir: process.cwd(),
   },
   bundle: true,
@@ -49,7 +52,7 @@ console.log(
         graph: Object.keys(result.metafile.inputs).sort(),
       },
       pdf: {
-        cmr: hash(render(createCmrDocument(cmrFixture))),
+        cmr: hash(renderCMR(createCmrDocument(cmrFixture))),
         rows: hash(rows),
         freight: hash(freightInvoiceExample(await freightFonts()).bytes),
       },

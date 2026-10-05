@@ -1,4 +1,4 @@
-import type { ResolvedFonts } from "../fonts/resources.js";
+import type { ResolvedTextResources as ResolvedFonts } from "../core/text-resources.js";
 import type { WorkLedger } from "../measurement/ledger.js";
 import type { ProviderEnvironment } from "./context.js";
 import type { Expansion } from "./progress.js";

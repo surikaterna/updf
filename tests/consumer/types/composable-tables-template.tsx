@@ -1,7 +1,6 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
-import { lower } from "@updf/core/vdom";
-import { Block, createExtensions, Document, Flow, layout, Paragraph, Span } from "@updf/layout";
+
+import { Block, createExtensions, Document, Flow, Paragraph, Span } from "@updf/layout";
 import {
   type CellStyle,
   type RowStyle,
@@ -11,6 +10,8 @@ import {
   table,
   tableExtension,
 } from "@updf/tables";
+import { layout } from "./layout-options.js";
+import { lower, render } from "./text-options.js";
 
 const columns = [
   { width: { weight: 2, min: 80, max: 140 }, style: { borderLeft: { width: 2, color: [0, 0, 1] } } },

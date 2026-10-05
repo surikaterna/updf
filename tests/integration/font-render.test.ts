@@ -5,13 +5,17 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
-import { createPreparedFont } from "@updf/core/fonts";
+import { render as coreRender, type DocumentDefinition, DocumentError, type OperationOptions } from "@updf/core";
 import { type Component, h, lower } from "@updf/core/vdom";
-import { cmrFixture, createCmrDocument } from "@updf/example-cmr/cmr";
+import { createPreparedFont } from "@updf/fonts";
+import { cmrFixture, createCmrDocument } from "../../apps/cmr/src/cmr.js";
 import { measure } from "../../packages/core/dist/cjs/core/measure.js";
-import { resolveResources } from "../../packages/core/dist/cjs/fonts/resources.js";
+import { operation } from "../../packages/core/dist/cjs/core/operation.js";
 import { fixtureFont, fontDocument, fontInput, fontText } from "../fixtures/fonts/font-fixture.js";
+import { fontOptions } from "../fixtures/fonts/font-options.js";
+
+const render = (document: DocumentDefinition, options: OperationOptions = {}) =>
+  coreRender(document, fontOptions(options));
 
 async function inspect(
   bytes: Uint8Array,
@@ -111,7 +115,7 @@ test("selected-font advance widths and wrapping match independent Poppler bbox a
   });
   const plan = measure(
     fontDocument([fontText("ABC ABC", { width: expected + 4, fontSize: 10, lineHeight: 12 })]),
-    resolveResources(options),
+    operation(fontOptions(options)).fonts,
   );
   const measured = plan[0]?.children[0];
   assert.ok(measured?.type === "text");
@@ -173,7 +177,10 @@ test("real embedded-font raster retains top-edge ink and contains tight multilin
 test("resource-aware VDOM validates Unicode and gives components only immutable id/kind metadata", async () => {
   const resources = { Demo: await fixtureFont() };
   const Text: Component<object> = (_props, context) => {
-    assert.deepEqual(context.resources, [{ id: "Demo", kind: "font" }]);
+    assert.deepEqual(context.resources, [
+      { id: "Helvetica", kind: "resource" },
+      { id: "Demo", kind: "resource" },
+    ]);
     assert.ok(Object.isFrozen(context.resources[0]) && !("bytes" in (context.resources[0] ?? {})));
     return h("text", {
       x: 20,
@@ -188,11 +195,11 @@ test("resource-aware VDOM validates Unicode and gives components only immutable 
     });
   };
   const node = h("document", { version: 1, children: h("page", { width: 595, height: 842, children: h(Text, {}) }) });
-  const ast = lower(node, { resources });
+  const ast = lower(node, fontOptions({ resources }));
   assert.deepEqual(render(ast, { resources }), render(fontDocument([fontText("Москва")]), { resources }));
 });
 
-test("no-font output and unused resources retain exact historical Helvetica bytes", async () => {
+test("explicit Helvetica binding and unused prepared resources retain exact historical bytes", async () => {
   const document = createCmrDocument(cmrFixture);
   const before = render(document);
   assert.deepEqual(render(document, { resources: { Unused: await fixtureFont() } }), before);

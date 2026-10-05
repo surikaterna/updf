@@ -1,12 +1,12 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { type DocumentDefinition, render } from "@updf/core";
-import { createPreparedFont } from "@updf/core/fonts";
-import { record } from "../../../packages/core/dist/fonts/checks.js";
+import type { DocumentDefinition } from "@updf/core";
+import { createPreparedFont } from "@updf/fonts";
+import { render } from "./text-options.js";
 
 // Node demonstration of host-provided prepared data, not runtime font parsing.
 const fixtures = new URL("../../../tests/fixtures/fonts/", import.meta.url);
 const input: unknown = JSON.parse(await readFile(new URL("liberation-sans.json", fixtures), "utf8"));
-record(input, "/fixture");
+if (typeof input !== "object" || input === null || Array.isArray(input)) throw new Error("Invalid font fixture");
 const bytes = new Uint8Array(await readFile(new URL("LiberationSans-Regular.ttf", fixtures)));
 const font = createPreparedFont({ ...input, bytes });
 const document = {

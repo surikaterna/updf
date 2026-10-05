@@ -2,10 +2,11 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
-import { type DocumentDefinition, render } from "@updf/core";
+import type { DocumentDefinition } from "@updf/core";
 import type { ContentMeasurement } from "@updf/layout";
 import { inlineProof } from "../../apps/browser-fonts/inline-proof.js";
 import { fixtureFont } from "../fixtures/fonts/font-fixture.js";
+import { render } from "../fixtures/text-options.js";
 import { layoutFlow, measure, paragraph, span } from "../fixtures/transitional-layout.js";
 
 async function raster(name: string, bytes: Uint8Array): Promise<Buffer> {

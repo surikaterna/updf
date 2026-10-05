@@ -1,5 +1,6 @@
-import { type DocumentDefinition, DocumentError, render, renderUnknown, type TextNode } from "@updf/core";
-import { type CmrData, cmrFixture, createCmrDocument } from "@updf/example-cmr/cmr";
+import { type DocumentDefinition, DocumentError, renderUnknown, type TextNode } from "@updf/core";
+import { type CmrData, cmrFixture, createCmrDocument, renderCMR } from "@updf/example-cmr/cmr";
+import { render } from "./text-options.js";
 
 /** Native TS templates are ordinary pure functions returning declarative data. */
 export function createGreeting(data: { readonly recipient: string }): DocumentDefinition {
@@ -28,7 +29,7 @@ export function createGreeting(data: { readonly recipient: string }): DocumentDe
 }
 
 export const positiveBytes: Uint8Array = render(createGreeting({ recipient: "PDF" }));
-export const cmrBytes: Uint8Array = render(createCmrDocument(cmrFixture satisfies CmrData));
+export const cmrBytes: Uint8Array = renderCMR(createCmrDocument(cmrFixture satisfies CmrData));
 
 // Compile-only tests: never execute deliberate invalid templates/mutations.
 export function checkTypeErrors(document: DocumentDefinition, text: TextNode, data: CmrData, json: unknown): void {

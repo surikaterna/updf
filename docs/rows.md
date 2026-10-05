@@ -19,7 +19,9 @@ const summary = row({
 });
 ```
 
-Use this content in `flow({ ... , children: summary })` or `measure(summary, { width })`.
+Use this content in `flow({ ... , children: summary })` or `measure(summary, { width }, options)`.
+Text-bearing measurement/layout/render uses explicit resources, text service and providers;
+see [composition](migration/fonts-text.md). Row constructors do not install fonts.
 Columns accept existing paragraphs, blocks, nested Rows, and public block adapters;
 charts and SVG do not need special engine kinds or tables-as-layout.
 

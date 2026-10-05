@@ -1,6 +1,6 @@
 import type { NodeDefinition } from "@updf/core";
 import { checkLimit, codePoints, type Policy } from "@updf/core/internal";
-import type { TextLineMeasurement } from "@updf/core/measurement";
+import type { TextLineMeasurement } from "@updf/text";
 import { scanOutput } from "./output-scan.js";
 export interface BudgetTotals {
   readonly nodes: number;

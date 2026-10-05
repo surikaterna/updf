@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError } from "@updf/core";
 import { h } from "@updf/core/vdom";
-import { Block, type BorderEdge, block, expandBorders, measure, mergeBorders, paragraph } from "@updf/layout";
+import { Block, type BorderEdge, block, expandBorders, mergeBorders, paragraph } from "@updf/layout";
+import { measure } from "../../../tests/fixtures/text-options.js";
 import { layoutFlow } from "../../../tests/fixtures/transitional-layout.js";
 import { paragraph as fixedParagraph, flow } from "./fixtures.js";
 

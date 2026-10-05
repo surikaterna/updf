@@ -1,5 +1,5 @@
 import { exceeds, fail, MetricSum, sum } from "@updf/core/internal";
-import type { TextMeasurement } from "@updf/core/measurement";
+import type { TextMeasurement } from "@updf/text";
 import { reserveAncestors } from "./container-reservation.js";
 import { paragraphLine } from "./fragments.js";
 import type { FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";

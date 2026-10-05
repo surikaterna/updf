@@ -1,19 +1,9 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
+
 import { useContext } from "@updf/core/vdom";
-import {
-  Column,
-  createExtensions,
-  Document,
-  Flow,
-  layout,
-  PageContext,
-  PageSize,
-  Paragraph,
-  Row,
-  Span,
-} from "@updf/layout";
+import { Column, createExtensions, Document, Flow, PageContext, PageSize, Paragraph, Row, Span } from "@updf/layout";
 import { Table, tableExtension } from "@updf/tables";
+import { layout, render } from "../text-options.js";
 import { AddressBlock, businessTheme, LabelValue, Section, SignatureArea, Theme, Totals } from "./components.js";
 import { calculateManifest, consignmentTotals, kilograms } from "./manifest-calculations.js";
 import { type ManifestData, type ManifestRoute, mockManifest } from "./manifest-data.js";

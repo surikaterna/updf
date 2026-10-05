@@ -1,5 +1,8 @@
+import type { ResolvedDrawing } from "../painting/types.js";
+import type { OwnedResource } from "./owned-resource.js";
 import type { PdfRef, PdfWriter } from "./pdf-writer.js";
-import type { MeasuredNode, MeasuredPage } from "./plan.js";
+import type { MeasuredPage } from "./plan.js";
+import type { TextRun } from "./text-runtime.js";
 
 const slotBrand: unique symbol = Symbol("Resource slot");
 export interface ResourceSlot<T> {
@@ -37,8 +40,17 @@ export interface ResourceCollection {
 }
 export interface ResourceProvider {
   readonly slot: object;
-  readonly initialize?: (collection: ResourceCollection) => void;
-  readonly collect: (node: MeasuredNode, collection: ResourceCollection) => void;
+  readonly initialize?: (
+    collection: ResourceCollection,
+    context: { readonly bindings: ReadonlyMap<string, OwnedResource> },
+  ) => void;
+  readonly collectText?: (site: TextSite, collection: ResourceCollection) => void;
+  readonly collectDrawing?: (drawing: ResolvedDrawing, collection: ResourceCollection) => void;
+}
+export interface TextSite {
+  readonly identity: object;
+  readonly run: TextRun;
+  readonly path: string;
 }
 export interface DocumentResources {
   page(page: MeasuredPage): PageResources;

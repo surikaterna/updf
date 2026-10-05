@@ -1,7 +1,9 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
-import { Block, blockComponent, createExtensions, Document, Flow, layout, Paragraph, pageSize } from "@updf/layout";
+
+import { Block, blockComponent, createExtensions, Document, Flow, Paragraph, pageSize } from "@updf/layout";
 import { chartAdapter } from "./chart.js";
+import { layout } from "./layout-options.js";
+import { render } from "./text-options.js";
 
 export interface BlockControls {
   readonly chartHeight: number;

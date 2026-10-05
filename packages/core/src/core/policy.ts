@@ -1,6 +1,9 @@
-import type { FontResources } from "../fonts/types.js";
+import { ownDataValue } from "./data.js";
 import { fail } from "./error.js";
+import type { OwnedResource } from "./owned-resource.js";
+import type { ResourceProvider } from "./resource-types.js";
 import { validateDataObject as record } from "./schema.js";
+import type { TextService } from "./text-service.js";
 
 /** Optional resource budgets. Counts are nonnegative safe integers; text uses Unicode code points. */
 export interface Limits {
@@ -14,8 +17,8 @@ export interface Limits {
   readonly textCodePoints?: number;
   /** Total native path commands. */
   readonly pathCommands?: number;
-  /** Bytes of unique owned font programs, not a per-font allowance. */
-  readonly fontBytes?: number;
+  /** Bytes of unique owned resources, not a per-resource allowance. */
+  readonly resourceBytes?: number;
   /** Serialized PDF byte budget; does not cap arbitrary host allocations. */
   readonly outputBytes?: number;
 }
@@ -25,17 +28,21 @@ export interface OperationOptions {
   readonly profile?: "trusted" | "service";
   /** Per-field overrides of the selected profile, including zero; omitted fields keep profile defaults. */
   readonly limits?: Limits;
-  /** Host-owned font IDs. Omitted resources use built-in Helvetica; it cannot be overridden. */
-  readonly resources?: FontResources;
+  /** Host-owned resource IDs; core installs no fonts or fallback resources. */
+  readonly resources?: Readonly<Record<string, OwnedResource>>;
+  /** Explicit operation-bound text measurement and painting service. */
+  readonly text?: TextService;
+  /** Host-selected resource collectors; installation is local to each operation. */
+  readonly providers?: readonly ResourceProvider[];
 }
-/** Service defaults: nesting, source/generated nodes, pages, scalar text, commands, unique font/output bytes. */
+/** Service defaults: nesting, source/generated nodes, pages, scalar text, commands, unique resource/output bytes. */
 export const SERVICE_LIMITS: Readonly<Required<Limits>> = Object.freeze({
   depth: 128,
   nodes: 10000,
   pages: 20,
   textCodePoints: 100000,
   pathCommands: 100000,
-  fontBytes: 8 * 1024 * 1024,
+  resourceBytes: 8 * 1024 * 1024,
   outputBytes: 10 * 1024 * 1024,
 });
 export type Policy = Readonly<Required<Limits>>;
@@ -43,10 +50,10 @@ const limitKeys = Object.keys(SERVICE_LIMITS);
 const trusted = Object.freeze(Object.fromEntries(limitKeys.map((key) => [key, Number.MAX_SAFE_INTEGER]))) as Policy;
 
 export function policy(options: unknown = {}, additional: readonly string[] = []): Policy {
-  record(options, ["profile", "limits", "resources", ...additional], "/options");
+  record(options, ["profile", "limits", "resources", "text", "providers", ...additional], "/options");
   if ("profile" in options && options.profile !== "trusted" && options.profile !== "service")
     fail("VALUE", "/options/profile", "Expected trusted or service profile");
-  if ("resources" in options && options.resources === undefined)
+  if (Object.hasOwn(options, "resources") && ownDataValue(options, "resources", "/options/resources") === undefined)
     fail("TYPE", "/options/resources", "Present resources require a data value");
   const defaults = options.profile === "service" ? SERVICE_LIMITS : trusted;
   if (!("limits" in options)) return defaults;

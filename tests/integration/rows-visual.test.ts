@@ -2,10 +2,11 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
-import { type NodeDefinition, render } from "@updf/core";
+import type { NodeDefinition } from "@updf/core";
 import { h } from "@updf/core/vdom";
-import { Block, Column, Document, Flow, layout, Paragraph, Row, type RowAlignment } from "@updf/layout";
+import { Block, Column, Document, Flow, Paragraph, Row, type RowAlignment } from "@updf/layout";
 import { rowExample } from "../../apps/showcase/src/rows.js";
+import { layout, render } from "../fixtures/text-options.js";
 
 function fixture(align: RowAlignment) {
   const border = { width: 2, color: [0, 1, 0] as const };

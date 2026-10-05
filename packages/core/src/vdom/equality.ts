@@ -1,4 +1,4 @@
-import { isPreparedFont } from "../fonts/prepare.js";
+import { isOwnedResource } from "../core/owned-resource.js";
 import { isVNode } from "./ownership.js";
 
 /** Compare owned immutable data, preserving key order, observable shapes and opaque handle identity. */
@@ -10,7 +10,7 @@ export function sameData(left: unknown, right: unknown): boolean {
     const [a, b] = pair;
     if (Object.is(a, b)) continue;
     if (!a || !b || typeof a !== "object" || typeof b !== "object") return false;
-    if (isVNode(a) || isVNode(b) || isPreparedFont(a) || isPreparedFont(b)) return false;
+    if (isVNode(a) || isVNode(b) || isOwnedResource(a) || isOwnedResource(b)) return false;
     if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) return false;
     const keys = Object.keys(a);
     const rightKeys = Object.keys(b);

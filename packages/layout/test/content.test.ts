@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
-import { type ComponentContext, createContext, h, lower, useContext } from "@updf/core/vdom";
+import { DocumentError } from "@updf/core";
+import { type ComponentContext, createContext, h, useContext } from "@updf/core/vdom";
 import { badge, badgeAdapter } from "../../../apps/showcase/src/inline-badge.js";
+import { lower, render } from "../../../tests/fixtures/text-options.js";
 import {
   Block,
   block,

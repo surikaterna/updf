@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError } from "@updf/core";
-import { derivedAxis } from "../src/axis.js";
-import { bits, dyadic, spacing, value } from "../src/binary64.js";
+import { derivedAxis } from "../dist/axis.js";
+import { bits, dyadic, spacing, value } from "../dist/binary64.js";
 
 test("inverse-translation capacities own the exact endpoint midpoint with ties-to-even parity", () => {
   for (const parity of [0n, 1n]) {

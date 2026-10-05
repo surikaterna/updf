@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
-import { h, lower, useContext } from "@updf/core/vdom";
+import { DocumentError } from "@updf/core";
+import { h, useContext } from "@updf/core/vdom";
 import {
   Block,
   createExtensions,
@@ -10,11 +10,11 @@ import {
   Flow,
   FragmentContext,
   inline,
-  layout,
   PageContext,
   Paragraph,
   pageSize,
 } from "@updf/layout";
+import { layout, lower, render } from "../fixtures/text-options.js";
 
 const margins = { top: 10, right: 10, bottom: 10, left: 10 };
 test("atomic and native final-region bounds failures are vertical overflow, not body retry", () => {

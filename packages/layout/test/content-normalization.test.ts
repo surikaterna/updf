@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError } from "@updf/core";
 import { type ComponentContext, h } from "@updf/core/vdom";
-import { Block, block, measure, Paragraph, paragraph, Span, span } from "@updf/layout";
-import { layoutTableFlow } from "../dist/cjs/tables/index.js";
+import { Block, block, Paragraph, paragraph, Span, span } from "@updf/layout";
+import { layoutTableFlow, measure } from "../../../tests/fixtures/text-options.js";
 
 function reject(callback: () => unknown, code: string, path?: RegExp): void {
   assert.throws(

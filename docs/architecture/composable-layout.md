@@ -91,7 +91,7 @@ undefined, infinities, negative/fractional/unsafe integers are rejected.
 | `pages` | Generated/native pages | 20 |
 | `textCodePoints` | Unicode code points, including spaces and LF; not UTF16 units | 100,000 |
 | `pathCommands` | Aggregate drawable primitive commands: path length, rectangle 5, line 2; excludes viewport clips/style/transform/PDF operators | 100,000 |
-| `fontBytes` | Bytes of unique owned prepared programs; aliases do not duplicate charges | 8 MiB |
+| `resourceBytes` | Private bytes of unique owned resources, including unused bindings; aliases do not duplicate charges | 8 MiB |
 | `outputBytes` | Complete serialized PDF bytes, including objects/xref/trailer/programs | 10 MiB |
 
 Default profile is `trusted`: no arbitrary workload ceilings. Internal safe-integer
@@ -100,7 +100,7 @@ replace individual values, including zero. There is deliberately no `imageBytes`
 field: images/#33 are not implemented, so no enforcement is promised. There is no
 public measurement-work counter, per-text-node 4,096 cap, eight-font-id cap or
 mandatory 4 MiB prepared-program cap. `createPreparedFont(input, options?)` checks
-an optional `fontBytes` limit before its defensive copy.
+an optional `resourceBytes` limit before its defensive copy.
 Zero pages cannot produce a valid document: at least one native/empty-flow page
 is still required. Detached node/context construction has no operation options
 and uses trusted data checks; an operation's service limits are not a constructor
@@ -213,9 +213,9 @@ were removed:
   Parser metrics/outline work remains outside a CPU sandbox.
 
 Existing core identifier grammars also remain deliberate separate limitations:
-resource IDs are ASCII identifiers of at most 64 characters (`fonts/resources`),
-excluding reserved Helvetica; prepared PostScript names are restricted ASCII names
-of at most 128 characters (`fonts/prepare`). These are retained metadata grammars,
+resource IDs are ASCII identifiers of at most 64 characters (`core/text-resources`);
+Helvetica is not a reserved binding ID. Prepared PostScript names are restricted ASCII names
+of at most 128 characters (`packages/fonts/src/prepare`). These are retained metadata grammars,
 **not** universal PDF length limits or configurable workload budgets. Prepared
 descriptor stem estimates stay 1..1,000, italic angles -90..90, metric bounds use
 signed 16-bit ranges, advances unsigned 16-bit ranges and supported flags mask

@@ -8,7 +8,7 @@ import {
   snapshotData,
   sum,
 } from "@updf/core/internal";
-import type { TextMeasurementInput } from "@updf/core/measurement";
+import type { TextMeasurementInput } from "@updf/text";
 import { ancestors, withAdapter } from "./adapter-ancestors.js";
 import { type AdapterOrigin, adapterCall } from "./adapter-call.js";
 import { measureAdapterContent } from "./adapter-content.js";

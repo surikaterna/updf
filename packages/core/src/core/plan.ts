@@ -1,18 +1,18 @@
-import type { PreparedFont, PreparedGlyph } from "../fonts/types.js";
 import type { PrivateFragment } from "../measurement/lines.js";
 import type { Matrix, PaintGroup, PathNode, ResolvedDrawing } from "../painting/types.js";
 import type { LineNode, RectangleNode, RichTextNode, TextNode } from "../types.js";
+import type { TextRun } from "./text-runtime.js";
 
 export interface MeasuredLine {
   readonly text: string;
   readonly x: number;
   readonly y: number;
-  readonly glyphs?: readonly PreparedGlyph[];
+  readonly run: TextRun;
+  readonly path: string;
 }
 
 export interface MeasuredText extends TextNode {
   readonly lines: readonly MeasuredLine[];
-  readonly preparedFont?: PreparedFont;
 }
 export interface MeasuredRichText extends RichTextNode {
   readonly fragments: readonly PrivateFragment[];

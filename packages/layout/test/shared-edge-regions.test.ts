@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, type NodeDefinition } from "@updf/core";
-import { createLayoutOperation } from "@updf/core/internal";
+import { createLayoutOperation } from "../../../tests/fixtures/text-options.js";
 import type { EdgeRegionInput, LocalEdgeClaim } from "@updf/layout";
 import { ownEmissionWrapper } from "../dist/cjs/emission-nodes.js";
 import {

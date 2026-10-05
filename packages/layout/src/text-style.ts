@@ -1,5 +1,5 @@
 import type { RGB, TextAlign } from "@updf/core";
-import { validateLineHeight } from "@updf/core/internal";
+import { validateLineHeight } from "@updf/text";
 
 /** Absolute positive finite line-box length in points, created with pt(). */
 export interface PointLength {
@@ -8,7 +8,7 @@ export interface PointLength {
 }
 /** Positive font-size ratio, font-aware normal (default), or absolute point length; zero is unsupported. */
 export type LineHeight = number | "normal" | PointLength;
-/** Inherited per-key text styling; default Helvetica at 10pt, black, normal line height. */
+/** Inherited per-key text styling; the installed service selects the font, with 10pt, black, normal line height. */
 export interface SpanStyle {
   readonly backgroundColor?: RGB;
   /** A registered font resource ID, not a CSS family or fallback list. */

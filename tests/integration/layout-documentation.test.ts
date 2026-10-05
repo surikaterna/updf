@@ -6,6 +6,7 @@ import { measure, paragraph, pt } from "@updf/layout";
 import { LayoutInputError } from "@updf/layout-kernel";
 import { createFragmentOperation } from "@updf/layout-kernel/fragmentation";
 import { derivedAxis } from "@updf/layout-kernel/geometry";
+import { textOptions } from "../fixtures/text-options.js";
 import {
   authorMeasuredDocument,
   authorPagedTable,
@@ -23,7 +24,7 @@ test("documented layout measurement is unpaginated, frozen and explicitly serial
   assert.ok(Object.isFrozen(metrics.lines));
   assert.equal(new TextDecoder().decode(bytes.subarray(0, 5)), "%PDF-");
   assert.throws(
-    () => measure(paragraph({ children: "x" }), { width: 100, height: 1 }),
+    () => measure(paragraph({ children: "x" }), { width: 100, height: 1 }, textOptions({})),
     (error) => error instanceof DocumentError && error.diagnostics[0]?.code === "VERTICAL_OVERFLOW",
   );
   assert.throws(() => pt(0));

@@ -9,6 +9,20 @@
     "README.md"
   ],
   "exports": {
+    "./resources": {
+      "browser": {
+        "types": "./dist/node/resources.d.mts",
+        "default": "./dist/resources.js"
+      },
+      "import": {
+        "types": "./dist/node/resources.d.mts",
+        "default": "./dist/node/resources.mjs"
+      },
+      "require": {
+        "types": "./dist/node/resources.d.cts",
+        "default": "./dist/cjs/resources.js"
+      }
+    },
     ".": {
       "browser": {
         "types": "./dist/node/index.d.mts",
@@ -23,32 +37,18 @@
         "default": "./dist/cjs/index.js"
       }
     },
-    "./fonts": {
+    "./pdf": {
       "browser": {
-        "types": "./dist/node/fonts/index.d.mts",
-        "default": "./dist/fonts/index.js"
+        "types": "./dist/node/pdf.d.mts",
+        "default": "./dist/pdf.js"
       },
       "import": {
-        "types": "./dist/node/fonts/index.d.mts",
-        "default": "./dist/node/fonts/index.mjs"
+        "types": "./dist/node/pdf.d.mts",
+        "default": "./dist/node/pdf.mjs"
       },
       "require": {
-        "types": "./dist/node/fonts/index.d.cts",
-        "default": "./dist/cjs/fonts/index.js"
-      }
-    },
-    "./measurement": {
-      "browser": {
-        "types": "./dist/node/measurement/index.d.mts",
-        "default": "./dist/measurement/index.js"
-      },
-      "import": {
-        "types": "./dist/node/measurement/index.d.mts",
-        "default": "./dist/node/measurement/index.mjs"
-      },
-      "require": {
-        "types": "./dist/node/measurement/index.d.cts",
-        "default": "./dist/cjs/measurement/index.js"
+        "types": "./dist/node/pdf.d.cts",
+        "default": "./dist/cjs/pdf.js"
       }
     },
     "./painting": {

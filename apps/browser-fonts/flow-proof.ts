@@ -1,6 +1,8 @@
-import { type PreparedFont, render } from "@updf/core";
+import { render } from "@updf/core";
 import { h, lower } from "@updf/core/vdom";
+import type { PreparedFont } from "@updf/fonts";
 import { Document, document, flow, flowHeader, layout, paragraph, pt, span } from "@updf/layout";
+import { textOptions } from "./text-options.js";
 
 export function flowProofDefinition() {
   return document({
@@ -39,7 +41,7 @@ export function flowProofDefinition() {
   });
 }
 export function flowProof(font: PreparedFont) {
-  const options = { resources: { Demo: font } };
+  const options = textOptions({ resources: { Demo: font } });
   const definition = flowProofDefinition();
   const result = layout(definition, options);
   const bytes = render(result.document, options);

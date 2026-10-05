@@ -1,4 +1,4 @@
-import type { PreparedFont } from "@updf/core/fonts";
+import type { PreparedFont } from "@updf/fonts";
 import { parseColor, parsePathData } from "@updf/geometry";
 import { resolveWidths } from "@updf/layout-kernel";
 import { compileSVG } from "@updf/svg";

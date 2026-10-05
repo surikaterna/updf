@@ -1,6 +1,6 @@
-import type { TextLineMeasurement } from "@updf/core/measurement";
 import type { BoxLayout } from "@updf/layout-kernel/boxes";
 import type { FragmentCounts } from "@updf/layout-kernel/fragmentation";
+import type { TextLineMeasurement } from "@updf/text";
 import type { SourceNode } from "./boxes.js";
 
 export interface Unit {

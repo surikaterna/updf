@@ -2,11 +2,12 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
-import { DocumentError, type RichTextNode, render } from "@updf/core";
-import { createPreparedFont } from "@updf/core/fonts";
-import { measureText, type ParagraphDefinition } from "@updf/core/measurement";
-import { type Component, h, lower } from "@updf/core/vdom";
+import { DocumentError, type RichTextNode } from "@updf/core";
+import { type Component, h } from "@updf/core/vdom";
+import { createPreparedFont } from "@updf/fonts";
+import type { ParagraphDefinition } from "@updf/text";
 import { fixtureFont, fontInput } from "../fixtures/fonts/font-fixture.js";
+import { lower, measureText, render } from "../fixtures/text-options.js";
 
 const paragraph = (text: string, props: Partial<ParagraphDefinition> = {}): ParagraphDefinition => ({
   runs: [{ text }],

@@ -4,8 +4,10 @@ import { documentResources } from "../dist/cjs/core/document-resources.js";
 import { PdfWriter } from "../dist/cjs/core/pdf-writer.js";
 import type { MeasuredPage } from "../dist/cjs/core/plan.js";
 import { type Resource, type ResourceCollection, resourceSlot } from "../dist/cjs/core/resource-types.js";
+import { drawing as resolveDrawing } from "../dist/cjs/painting/read.js";
 
-const node = { type: "rect", x: 0, y: 0, width: 10, height: 10 } as const;
+const drawing = resolveDrawing({ type: "rect", x: 0, y: 0, width: 10, height: 10 }, "");
+const node = { type: "rect", x: 0, y: 0, width: 10, height: 10, painting: drawing } as const;
 const page = (children = [node]): MeasuredPage => ({ width: 100, height: 100, children });
 function entry(key: string, category = "Example"): Resource<string> {
   return {
@@ -29,7 +31,7 @@ test("shared engine interns, binds per page, reserves provider-major and defines
   const visited: string[] = [];
   const providers = [a, b].map((slot, i) => ({
     slot,
-    collect(site: object, collection: ResourceCollection) {
+    collectDrawing(site: object, collection: ResourceCollection) {
       visited.push(String(i));
       const resource = collection.intern(slot, node, () => entry(`R${i}`));
       assert.equal(
@@ -44,9 +46,9 @@ test("shared engine interns, binds per page, reserves provider-major and defines
   }));
   const resources = documentResources([first, first, second, shared], providers);
   assert.deepEqual(visited, ["0", "1", "0", "1", "0", "1"]);
-  assert.equal(resources.page(first).resolve(node, a).key, "R0");
-  assert.equal(resources.page(shared).resolve(node, a), resources.page(first).resolve(node, a));
-  assert.throws(() => resources.page(second).resolve(node, a), /Missing/);
+  assert.equal(resources.page(first).resolve(drawing, a).key, "R0");
+  assert.equal(resources.page(shared).resolve(drawing, a), resources.page(first).resolve(drawing, a));
+  assert.throws(() => resources.page(second).resolve(drawing, a), /Missing/);
   assert.throws(() => resources.page(page()), /Foreign/);
   assert.throws(() => resources.page(first).resolve(node, resourceSlot<string>()), /Missing/);
   const writer = new PdfWriter(10000),
@@ -77,7 +79,6 @@ function namedResources(entries: readonly Resource<string>[]) {
             collection.intern(slot, i, () => resource);
           });
         },
-        collect() {},
       },
     ],
   );
@@ -133,7 +134,7 @@ test("collection rejects foreign/conflicting bindings and closes both mutation p
     [
       {
         slot,
-        collect(site, collection) {
+        collectDrawing(site, collection) {
           captured = collection;
           bound = collection.intern(slot, "first", () => entry("A"));
           collection.bind(site, slot, bound);
@@ -156,7 +157,7 @@ test("resource identities and references never cross document operations", () =>
   const slot = resourceSlot<string>();
   const provider = {
     slot,
-    collect(site: object, collection: ResourceCollection) {
+    collectDrawing(site: object, collection: ResourceCollection) {
       collection.bind(
         site,
         slot,
@@ -168,7 +169,7 @@ test("resource identities and references never cross document operations", () =>
     second = page();
   const one = documentResources([first], [provider]),
     two = documentResources([second], [provider]);
-  assert.notEqual(one.page(first).resolve(node, slot), two.page(second).resolve(node, slot));
+  assert.notEqual(one.page(first).resolve(drawing, slot), two.page(second).resolve(drawing, slot));
   assert.throws(() => two.page(first), /Foreign/);
   assert.ok(Object.isFrozen(one) && Object.isFrozen(one.page(first)));
 });

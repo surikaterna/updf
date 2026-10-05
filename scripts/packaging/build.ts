@@ -3,6 +3,7 @@ import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import ts from "typescript";
 import { commonJSOutputPath } from "./commonjs-path.js";
+import { valueExports } from "./value-exports.js";
 
 interface Entry {
   browser: { types: string; default: string };
@@ -22,20 +23,6 @@ async function emitCommonJS(source: ts.SourceFile, path: string): Promise<void> 
   });
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, result.outputText);
-}
-
-function valueExports(program: ts.Program, source: ts.SourceFile): string[] {
-  const checker = program.getTypeChecker();
-  const module = checker.getSymbolAtLocation(source);
-  assert.ok(module, `Missing checked module: ${source.fileName}`);
-  return checker
-    .getExportsOfModule(module)
-    .filter((symbol) => {
-      const target = symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
-      return Boolean(target.flags & ts.SymbolFlags.Value);
-    })
-    .map((symbol) => symbol.name)
-    .sort();
 }
 
 async function facade(program: ts.Program, entry: Entry, out: string, root: string): Promise<void> {

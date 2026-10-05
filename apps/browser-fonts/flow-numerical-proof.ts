@@ -1,5 +1,6 @@
-import { DocumentError, type PreparedFont, render } from "@updf/core";
+import { DocumentError, render } from "@updf/core";
 import { h, lower } from "@updf/core/vdom";
+import type { PreparedFont } from "@updf/fonts";
 import {
   Block,
   Document,
@@ -15,6 +16,7 @@ import {
 } from "@updf/layout";
 import { assertAutoMarginProof, autoMarginProofDefinition, autoMarginProofFailures } from "./auto-margin-proof.js";
 import { inlineBackgroundProofDefinition } from "./inline-background-proof.js";
+import { textOptions } from "./text-options.js";
 
 function definition(
   text: string,
@@ -47,7 +49,7 @@ function definition(
   });
 }
 function success(input: DocumentContentData, font: PreparedFont) {
-  const options = { resources: { Demo: font } };
+  const options = textOptions({ resources: { Demo: font } });
   const result = layout(input, options);
   if (input === autoDefinition) assertAutoMarginProof(result);
   const bytes = render(result.document, options);

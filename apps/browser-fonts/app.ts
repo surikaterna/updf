@@ -1,5 +1,4 @@
-import { render } from "@updf/core";
-import { createUnicodeCmrDocument } from "@updf/example-cmr/cmr-unicode";
+import { renderUnicodeCMR } from "@updf/example-cmr/cmr-unicode";
 import { prepareFont } from "@updf/fontkit";
 import fontUrl from "../../tests/fixtures/fonts/LiberationSans-Regular.ttf?url";
 import { mountBlockProof } from "./block-proof.js";
@@ -13,7 +12,7 @@ import { tableProof } from "./table-proof.js";
 
 const fontBytes = new Uint8Array(await (await fetch(fontUrl)).arrayBuffer());
 const font = prepareFont(fontBytes);
-const bytes = render(createUnicodeCmrDocument(font), { resources: { CmrFont: font } });
+const bytes = renderUnicodeCMR(font);
 const url = URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
 const status = document.getElementById("status");
 if (!status) throw new Error("Missing proof status");

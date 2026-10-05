@@ -1,8 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdir, readFile } from "node:fs/promises";
 import test from "node:test";
-import { render } from "@updf/core";
-import { cmrFixture, createCmrDocument } from "@updf/example-cmr/cmr";
+import { cmrFixture, createCmrDocument, renderCMR as render } from "@updf/example-cmr/cmr";
 import { chromium } from "playwright";
 import { preview } from "vite";
 import { createCmrServer } from "../../apps/node/src/server.js";

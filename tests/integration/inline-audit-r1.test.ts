@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
-import { render } from "@updf/core";
-import type { ParagraphDefinition } from "@updf/core/measurement";
+import type { ParagraphDefinition } from "@updf/text";
+import { render } from "../fixtures/text-options.js";
 import {
   block,
   type Content,

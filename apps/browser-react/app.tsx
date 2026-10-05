@@ -1,15 +1,12 @@
 /** @jsxImportSource react */
 
-import { render } from "@updf/core";
-import { lower } from "@updf/core/vdom";
-import { cmrFixture } from "@updf/example-cmr/cmr";
-import { createCmrTree } from "@updf/example-cmr/cmr-tree";
+import { cmrFixture, createCmrDocument, renderCMR } from "@updf/example-cmr/cmr";
 import React from "react";
 import { createRoot } from "react-dom/client";
 
 function App() {
   const url = React.useMemo(
-    () => URL.createObjectURL(new Blob([render(lower(createCmrTree(cmrFixture)))], { type: "application/pdf" })),
+    () => URL.createObjectURL(new Blob([renderCMR(createCmrDocument(cmrFixture))], { type: "application/pdf" })),
     [],
   );
   React.useEffect(() => () => URL.revokeObjectURL(url), [url]);

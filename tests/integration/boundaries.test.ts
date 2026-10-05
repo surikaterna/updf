@@ -30,11 +30,12 @@ test("internal seams reject noninventoried consumers", () => {
 
 test("internal export inventory rejects broad exports and unexpected helpers", () => {
   internalExports("export { fail } from './error.js';", ["fail"]);
+  internalExports("export type { Resource, TextRun, } from './resources.js';", ["Resource", "TextRun"]);
   assert.throws(() => internalExports("export { fail, serialize } from './error.js';", ["fail"]));
   assert.throws(() => internalExports("export * from './error.js';", []));
 });
 test("layout package edges reject optional/runtime leakage and core dependency inversion", () => {
-  packageEdge("layout", "@updf/core/measurement");
+  packageEdge("layout", "@updf/text");
   packageEdge("layout", "./types.js");
   packageEdge("layout", "@updf/layout-kernel");
   packageEdge("layout", "@updf/layout-kernel/numeric");
@@ -50,4 +51,18 @@ test("kernel edges reject every external runtime dependency", () => {
   packageEdge("layout-kernel", "./width-types.js");
   for (const name of ["@updf/core", "@updf/layout", "react", "node:fs", "fontkit", "foreign"])
     assert.throws(() => packageEdge("layout-kernel", name));
+});
+
+test("optional fonts/text reject reverse edges and concrete implementations", () => {
+  packageEdge("fonts", "@updf/core/resources");
+  packageEdge("text", "@updf/core/resources");
+  packageEdge("text", "@updf/layout-kernel/arithmetic");
+  for (const name of ["@updf/fonts", "@updf/fontkit", "fontkit", "react", "node:fs"]) {
+    assert.throws(() => packageEdge("core", name));
+    assert.throws(() => packageEdge("text", name));
+  }
+  assert.throws(() => packageEdge("core", "@updf/text"));
+  assert.throws(() => packageEdge("fonts", "@updf/text"));
+  assert.throws(() => packageEdge("fonts", "@updf/layout-kernel/arithmetic"));
+  assert.throws(() => packageEdge("layout", "@updf/fonts"));
 });

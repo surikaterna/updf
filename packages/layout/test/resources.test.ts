@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
-import { createPreparedFont } from "@updf/core/fonts";
-import { measureText } from "@updf/core/measurement";
-import { type Component, type ComponentContext, h, lower } from "@updf/core/vdom";
+import { DocumentError } from "@updf/core";
+import { type Component, type ComponentContext, h } from "@updf/core/vdom";
+import { createPreparedFont } from "@updf/fonts";
 import { fixtureFont, fontInput } from "../../../tests/fixtures/fonts/font-fixture.js";
+import { lower, measureText, render } from "../../../tests/fixtures/text-options.js";
 import { LegacyFlow as Flow, layoutFlow, layoutFlowUnknown } from "../../../tests/fixtures/transitional-layout.js";
 import { flow, paragraph } from "./fixtures.js";
 

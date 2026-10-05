@@ -2,9 +2,10 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
 import { DocumentError } from "@updf/core";
-import { createPreparedFont } from "@updf/core/fonts";
-import { type Component, createContext, h, lower, useContext, type VDOMChild } from "@updf/core/vdom";
+import { type Component, createContext, h, useContext, type VDOMChild } from "@updf/core/vdom";
+import { createPreparedFont } from "@updf/fonts";
 import { fontInput } from "../../../tests/fixtures/fonts/font-fixture.js";
+import { lower } from "../../../tests/fixtures/text-options.js";
 
 const document = (children: VDOMChild = []) =>
   h("document", {

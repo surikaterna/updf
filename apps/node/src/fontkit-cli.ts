@@ -1,6 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { render } from "@updf/core";
-import { createUnicodeCmrDocument } from "@updf/example-cmr/cmr-unicode";
+import { renderUnicodeCMR } from "@updf/example-cmr/cmr-unicode";
 import { prepareFont } from "@updf/fontkit";
 
 const output = process.argv[2];
@@ -9,4 +8,4 @@ const bytes = new Uint8Array(
   await readFile(new URL("../../../tests/fixtures/fonts/LiberationSans-Regular.ttf", import.meta.url)),
 );
 const font = prepareFont(bytes);
-await writeFile(output, render(createUnicodeCmrDocument(font), { resources: { CmrFont: font } }));
+await writeFile(output, renderUnicodeCMR(font));

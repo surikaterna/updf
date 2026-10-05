@@ -1,8 +1,5 @@
-import type { ResolvedFonts } from "../fonts/resources.js";
 import { ledger } from "../measurement/ledger.js";
-import { ink, metrics, union } from "../measurement/metrics.js";
 import type { InkBounds } from "../measurement/types.js";
-import { effectiveStyle } from "../measurement/validate.js";
 import { multiply } from "../painting/affine.js";
 import { type Bounds, intersection, pathBounds, rectangle } from "../painting/bounds.js";
 import { drawing } from "../painting/read.js";
@@ -11,6 +8,7 @@ import type { NodeDefinition } from "../types.js";
 import { measure } from "./measure.js";
 import type { MeasuredNode } from "./plan.js";
 import type { Policy } from "./policy.js";
+import { type ResolvedTextResources as ResolvedFonts, textService } from "./text-resources.js";
 
 const identity: Matrix = [1, 0, 0, 1, 0, 0];
 interface Task {
@@ -43,9 +41,8 @@ function scan(task: Task, tasks: Task[], output: InkBounds[], fonts: ResolvedFon
     return;
   }
   if (node.type === "text") {
-    const style = effectiveStyle({ font: node.font ?? "Helvetica", fontSize: node.fontSize, color: [0, 0, 0] });
-    for (const line of node.lines)
-      addInk(ink(metrics(line.text, style, fonts, ""), line.x, line.y), 0, 0, transform, clip, output);
+    const bounds = textService(fonts, "").fixedInk(node, { bindings: fonts.bindings, budget: ledger() }, "");
+    for (const item of bounds) addInk(item, 0, 0, transform, clip, output);
     return;
   }
   shape(node, transform, clip, output);
@@ -95,4 +92,15 @@ function addInk(
 function addBounds(bounds: Bounds | undefined, clip: Bounds | undefined, output: InkBounds[]): void {
   const visible = bounds && (clip ? intersection(bounds, clip) : bounds);
   if (visible) output.push({ empty: false, left: visible[0], top: visible[1], right: visible[2], bottom: visible[3] });
+}
+function union(bounds: readonly InkBounds[]): InkBounds {
+  const nonempty = bounds.filter((item) => !item.empty);
+  if (!nonempty.length) return Object.freeze({ empty: true });
+  return Object.freeze({
+    empty: false,
+    left: nonempty.reduce((edge, item) => Math.min(edge, item.left), Infinity),
+    right: nonempty.reduce((edge, item) => Math.max(edge, item.right), -Infinity),
+    top: nonempty.reduce((edge, item) => Math.min(edge, item.top), Infinity),
+    bottom: nonempty.reduce((edge, item) => Math.max(edge, item.bottom), -Infinity),
+  });
 }

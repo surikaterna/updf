@@ -6,13 +6,15 @@ import { createFragmentOperation } from "@updf/layout-kernel/fragmentation";
 import { alignedTop, derivedAxis, materializedStart } from "@updf/layout-kernel/geometry";
 import { bits, dyadic, floorDyadic, spacing, successor, value } from "@updf/layout-kernel/numeric";
 import { table, tableExtension } from "@updf/tables";
+import { textOptions } from "../fixtures/text-options.js";
 
 export function authorMeasuredDocument() {
   const content = paragraph({
     style: { lineHeight: pt(12) },
     children: ["Measured ", span({ children: "text", style: { color: [1, 0, 0] } })],
   });
-  const metrics = measure(content, { width: 180, height: 24 });
+  const options = textOptions({});
+  const metrics = measure(content, { width: 180, height: 24 }, options);
   const result = layout(
     document({
       children: flow({
@@ -21,8 +23,9 @@ export function authorMeasuredDocument() {
         children: content,
       }),
     }),
+    options,
   );
-  return { metrics, result, bytes: render(result.document) };
+  return { metrics, result, bytes: render(result.document, options) };
 }
 
 export function authorPagedTable() {
@@ -45,6 +48,7 @@ export function authorPagedTable() {
         children: content,
       }),
     }),
+    textOptions({}),
   );
 }
 

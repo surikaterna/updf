@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError } from "@updf/core";
-import { bits, value } from "../src/binary64.js";
+import { bits, value } from "../dist/binary64.js";
 import {
   certifyGeneratedFragment,
   generatedFragmentStart,
   generatedIntervals,
   materializeGeneratedInterval,
-} from "../src/generated-interval.js";
+} from "../dist/generated-interval.js";
 
 const path = "/generated";
 const reservation = (sourceEnd: number) => ({ sourceStart: 0, sourceEnd });

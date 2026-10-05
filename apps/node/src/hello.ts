@@ -1,4 +1,5 @@
-import { type DocumentDefinition, render } from "@updf/core";
+import type { DocumentDefinition } from "@updf/core";
+import { render } from "./text-options.js";
 
 const document: DocumentDefinition = {
   version: 1,

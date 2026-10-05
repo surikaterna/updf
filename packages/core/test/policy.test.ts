@@ -1,17 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  type DocumentDefinition,
-  DocumentError,
-  type NodeDefinition,
-  render,
-  renderUnknown,
-  SERVICE_LIMITS,
-} from "@updf/core";
-import { createPreparedFont } from "@updf/core/fonts";
-import { measureText, measureTextUnknown } from "@updf/core/measurement";
-import { type Component, createContext, h, lower, useContext } from "@updf/core/vdom";
+import { type DocumentDefinition, DocumentError, type NodeDefinition, renderUnknown, SERVICE_LIMITS } from "@updf/core";
+import { type Component, lower as coreLower, createContext, h, useContext } from "@updf/core/vdom";
+import { createPreparedFont } from "@updf/fonts";
+import { measureTextUnknown } from "@updf/text";
 import { fontDocument, fontInput, fontText } from "../../../tests/fixtures/fonts/font-fixture.js";
+import { lower, measureText, render } from "../../../tests/fixtures/text-options.js";
 
 const rectangle: NodeDefinition = { type: "rect", x: 5, y: 5, width: 1, height: 1 };
 const page = { width: 1000000, height: 100, children: [] as readonly NodeDefinition[] };
@@ -46,7 +40,7 @@ test("trusted defaults exceed old pages/per-node/aggregate text and node ceiling
 test("service defaults are frozen; overrides permit zero and raise individual limits", () => {
   assert.ok(Object.isFrozen(SERVICE_LIMITS));
   assert.ok(
-    render(document(), { profile: "service", limits: { nodes: 0, textCodePoints: 0, fontBytes: 0 }, resources: {} })
+    render(document(), { profile: "service", limits: { nodes: 0, textCodePoints: 0, resourceBytes: 0 }, resources: {} })
       .length,
   );
   limited(() => render(document([rectangle]), { limits: { nodes: 0 } }));
@@ -78,7 +72,7 @@ test("options reject unknown keys, undefined, unsafe integers, fractions, infini
   for (const options of invalid) {
     assert.throws(() => renderUnknown(null, options as never), DocumentError);
     assert.throws(() => measureTextUnknown(null, options as never), DocumentError);
-    assert.throws(() => lower(null, options as never), DocumentError);
+    assert.throws(() => coreLower(null, options as never), DocumentError);
   }
   assert.equal(calls, 0);
 });
@@ -167,14 +161,14 @@ test("trusted deep native/VDOM/context snapshots do not depend on recursive Java
   };
   assert.ok(lower(h(Read, {})));
 });
-test("font byte limits count aliases once, apply before copies, and trusted PDF can exceed 10 MiB", async () => {
+test("resource byte limits count font aliases once, apply before copies, and trusted PDF can exceed 10 MiB", async () => {
   const input = await fontInput();
   const font = createPreparedFont({ ...input, bytes: new Uint8Array(11 * 1024 * 1024) });
   const resources = { Demo: font, Alias: font };
   assert.ok(render(fontDocument([fontText("A")]), { resources }).length > 10 * 1024 * 1024);
   limited(() => render(fontDocument([]), { resources, profile: "service" }));
-  assert.ok(render(fontDocument([]), { resources, limits: { fontBytes: font.metadata.byteLength } }).length);
-  limited(() => render(fontDocument([]), { resources, limits: { fontBytes: font.metadata.byteLength - 1 } }));
+  assert.ok(render(fontDocument([]), { resources, limits: { resourceBytes: font.metadata.byteLength } }).length);
+  limited(() => render(fontDocument([]), { resources, limits: { resourceBytes: font.metadata.byteLength - 1 } }));
 });
 test("nested operations isolate policies and snapshot caller limits before component mutation", () => {
   const limits = { pages: 1 };

@@ -4,9 +4,10 @@ import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { type DocumentDefinition, type NodeDefinition, render } from "@updf/core";
+import type { DocumentDefinition, NodeDefinition } from "@updf/core";
 import { h } from "@updf/core/vdom";
-import { Block, document, flow, layout, paragraph } from "@updf/layout";
+import { Block, document, flow, paragraph } from "@updf/layout";
+import { layout, render } from "../fixtures/text-options.js";
 
 test("#51 unchanged native groups match an independently translated control PDF, bbox and ink", async () => {
   const content = paragraph({ style: { font: "Helvetica", fontSize: 9, lineHeight: 1.4 }, children: "hello hello" });

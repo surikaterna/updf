@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { createLayoutOperation } from "@updf/core/internal";
 import { paragraph } from "@updf/layout";
+import { createLayoutOperation } from "../../../tests/fixtures/text-options.js";
 import { prepareLeaf } from "../dist/cjs/blocks.js";
 import { OutputBudget } from "../dist/cjs/budget.js";
 import { authorParagraph, normalizeBlocks } from "../dist/cjs/content-normalize.js";

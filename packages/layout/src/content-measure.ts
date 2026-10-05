@@ -33,7 +33,7 @@ export function measure(
   constraints: ContentConstraints,
   options: ContentOptions = {},
 ): ContentMeasurement {
-  record(options, ["resources", "profile", "limits", "extensions"], "/options");
+  record(options, ["resources", "text", "providers", "profile", "limits", "extensions"], "/options");
   const { extensions: extensionValue, ...renderOptions } = options;
   const extensions = extensionValue as Extensions | undefined;
   const operation = createLayoutOperation(renderOptions as RenderOptions);

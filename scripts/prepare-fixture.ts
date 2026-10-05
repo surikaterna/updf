@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
-import type { FontBounds, PreparedFontInput, PreparedGlyph } from "@updf/core/fonts";
+import type { FontBounds, PreparedFontInput, PreparedGlyph } from "@updf/fonts";
 
 // Developer-only reader of FontTools' known TTX dump, not a binary font parser.
 function section(xml: string, tag: string): string {

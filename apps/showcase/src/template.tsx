@@ -1,7 +1,8 @@
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
-import { type Component, lower } from "@updf/core/vdom";
+
+import type { Component } from "@updf/core/vdom";
 import { Block, Document, Flow, Paragraph, pageSize } from "@updf/layout";
+import { lower, render } from "./text-options.js";
 
 const Card: Component<{ readonly title: string }> = ({ title }) => (
   <Block style={{ backgroundColor: [0.9, 0.96, 1], padding: 12, paddingTop: 18, paddingBottom: 22 }}>

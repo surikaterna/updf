@@ -1,5 +1,5 @@
 import type { ParagraphDefinition, RichTextNode } from "@updf/core";
-import type { TextLineMeasurement } from "@updf/core/measurement";
+import type { TextLineMeasurement } from "@updf/text";
 
 /** Reconstitute normalized complete lines, never substring/reflow the source paragraph. */
 export function paragraphLine(

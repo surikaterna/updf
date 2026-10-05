@@ -8,7 +8,7 @@ import {
   validateDataObject as record,
   sum,
 } from "@updf/core/internal";
-import type { TextMeasurement } from "@updf/core/measurement";
+import type { TextMeasurement } from "@updf/text";
 import { compile } from "./block-compiler.js";
 import { OutputBudget } from "./budget.js";
 import { reserveAncestors } from "./container-reservation.js";

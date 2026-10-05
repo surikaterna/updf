@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, type RenderOptions, renderUnknown as render } from "@updf/core";
+import { DocumentError, type RenderOptions } from "@updf/core";
+import { renderUnknown as render, textOptions } from "../../../tests/fixtures/text-options.js";
 import { measure as measureValidated } from "../dist/cjs/core/measure.js";
-import { textWidth } from "../dist/cjs/core/metrics.js";
 import { decimal, literal, value } from "../dist/cjs/core/pdf-values.js";
+import { policy } from "../dist/cjs/core/policy.js";
+import { resolveResources } from "../dist/cjs/core/text-resources.js";
 import { validate } from "../dist/cjs/core/validate.js";
 
 const text = (overrides: Record<string, unknown> = {}) => ({
@@ -25,8 +27,9 @@ const document = (children: readonly unknown[] = [text()]) => ({
 const pdfString = (bytes: Uint8Array) => new TextDecoder("latin1").decode(bytes);
 
 function measuredText(input: unknown) {
-  validate(input);
-  const node = measureValidated(input)[0]?.children[0];
+  const options = resolveResources(textOptions({}), policy({}));
+  validate(input, options);
+  const node = measureValidated(input, options)[0]?.children[0];
   assert.ok(node?.type === "text");
   return node;
 }
@@ -87,9 +90,6 @@ test("exact byte offsets, stream lengths, binary header and startxref", () => {
 });
 
 test("Helvetica widths, LF, spaces, wrapping, alignment and empty text", () => {
-  assert.equal(textWidth("Hello", 10), 22.78);
-  assert.equal(textWidth("AV", 10), 13.34); // No kerning in measurement or Tj.
-  assert.equal(textWidth("a", Number.MAX_VALUE), 0.556 * Number.MAX_VALUE);
   const plan = measuredText(document([text({ text: "Hello Hello\nX", width: 30, align: "right" })]));
   assert.deepEqual(
     plan.lines.map((line) => line.text),

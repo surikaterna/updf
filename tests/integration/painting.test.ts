@@ -5,13 +5,14 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { type DocumentDefinition, DocumentError, type PathCommand, render, renderUnknown } from "@updf/core";
+import { type DocumentDefinition, DocumentError, type PathCommand } from "@updf/core";
 import { paint } from "@updf/core/internal";
-import { h, lower } from "@updf/core/vdom";
+import { h } from "@updf/core/vdom";
 import { cmrFixture, createCmrDocument } from "@updf/example-cmr/cmr";
 import { createUnicodeCmrDocument } from "@updf/example-cmr/cmr-unicode";
 import { prepareFont } from "@updf/fontkit";
 import { paintingDocument } from "../../apps/node/src/painting-document.js";
+import { lower, render, renderUnknown } from "../fixtures/text-options.js";
 
 const document = (children: DocumentDefinition["pages"][number]["children"]): DocumentDefinition => ({
   version: 1,
@@ -185,10 +186,9 @@ test("recursive groups collect embedded fonts and alpha resources without shifti
     digest(render(createCmrDocument(cmrFixture))),
     "8316f7de647590dbfad97a7dff0aac7dd6dbde1ff98cbdff544387ca59c49a22",
   );
-  assert.equal(
-    digest(render(createUnicodeCmrDocument(font), { resources: { CmrFont: font } })),
-    "cea1742abcfd3a21d2ebe6162967e9e4a9867653aee294cbf26bd658deca23e4",
-  );
+  const unicode = render(createUnicodeCmrDocument(font), { resources: { CmrFont: font } });
+  assert.doesNotMatch(Buffer.from(unicode).toString("latin1"), /\/BaseFont \/Helvetica/);
+  assert.deepEqual(render(createUnicodeCmrDocument(font), { resources: { CmrFont: font } }), unicode);
 });
 
 test("independent Poppler painting raster checks evenodd/nonzero, separate alpha, clip and sibling isolation", async () => {

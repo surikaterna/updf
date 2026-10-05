@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError } from "@updf/core";
-import { createExtensions, defineBlockAdapter, document, extension, flow, layout } from "@updf/layout";
-import { retainAllocation, reuseAllocation } from "../src/widths.js";
+import { createExtensions, defineBlockAdapter, document, extension, flow } from "@updf/layout";
+import { layout } from "../../../tests/fixtures/text-options.js";
+import { retainAllocation, reuseAllocation } from "../dist/widths.js";
 
 function diagnostic(callback: () => unknown, code: string, path = /./u) {
   assert.throws(

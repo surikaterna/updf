@@ -19,7 +19,7 @@ export async function typeConsumer(
   bundler = false,
   execute = true,
 ): Promise<void> {
-  for (const name of names) {
+  for (const name of [...names, "text-options.ts", "layout-options.ts"]) {
     await writeFile(join(directory, name), await readFile(join(root, "tests/consumer/types", name)));
   }
   await writeFile(

@@ -1,15 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, type NodeDefinition, render } from "@updf/core";
-import { createLayoutOperation } from "@updf/core/internal";
-import { h, lower } from "@updf/core/vdom";
+import { DocumentError, type NodeDefinition } from "@updf/core";
+import { h } from "@updf/core/vdom";
+import { createLayoutOperation, layoutTableFlow, lower, render } from "../../../tests/fixtures/text-options.js";
 import {
   LegacyFlow as Flow,
   type FlowDocumentDefinition,
   layoutFlow,
 } from "../../../tests/fixtures/transitional-layout.js";
 import { Paginator } from "../dist/cjs/paginator.js";
-import { layoutTableFlow } from "../dist/cjs/tables/index.js";
 import { Tables } from "../dist/cjs/tables/vdom.js";
 import { template } from "../dist/cjs/template.js";
 import { flow } from "./fixtures.js";

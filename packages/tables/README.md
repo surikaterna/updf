@@ -4,12 +4,18 @@ Private, unreleased `2.0.0-poc.0`, MIT © 2026 Surikat AB. Composable atomic-row
 tables for the ordinary `@updf/core` JSX/runtime and `@updf/layout` block protocol.
 
 ```text
-@updf/tables → @updf/layout → @updf/core
+@updf/tables → @updf/layout → @updf/core + @updf/text + @updf/layout-kernel
 ```
 
 No SVG, Fontkit, React, Node, private layout import or table-specific paginator.
 SVG/charts are application-owned public block/inline adapters. Images remain future
 backend work (#33), not an implemented cell feature.
+
+Text resources, service and providers are installed explicitly at the application
+boundary, as shown in the [layout composition example](../layout/README.md).
+The following example uses that `options` object for both lowering and rendering;
+tables do not install Helvetica or any fallback font, and empty/overridden cell
+styles still validate against the selected service.
 
 See the grouped [API inventory](API.md) for declaration owners and honest hover
 coverage, and the compiled
@@ -41,7 +47,7 @@ const content = <Document><Flow
       <Table.Cell>{3}</Table.Cell></Table.Row></Table.Foot>
   </Table>
 </Flow></Document>;
-const bytes = render(lower(content));
+const bytes = render(lower(content, options), options);
 ```
 
 Install `tableExtension` **once** in the local Flow extension set, together with any

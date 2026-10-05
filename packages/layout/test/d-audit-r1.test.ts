@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { type DocumentDefinition, type NodeDefinition, render } from "@updf/core";
-import { measureText, type ParagraphDefinition } from "@updf/core/measurement";
-import { createContext, h, lower, useContext } from "@updf/core/vdom";
+import type { DocumentDefinition, NodeDefinition } from "@updf/core";
+import { createContext, h, useContext } from "@updf/core/vdom";
+import type { ParagraphDefinition } from "@updf/text";
+import { lower, measureText, render } from "../../../tests/fixtures/text-options.js";
 import {
   block,
   type Content,

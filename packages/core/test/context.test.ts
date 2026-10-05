@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
-import { type Component, createContext, Fragment, h, lower, useContext, type VDOMChild } from "@updf/core/vdom";
+import { DocumentError } from "@updf/core";
+import { type Component, createContext, Fragment, h, useContext, type VDOMChild } from "@updf/core/vdom";
 import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
+import { lower, render } from "../../../tests/fixtures/text-options.js";
 
 const theme = createContext({ label: "default", nested: { color: [0, 0, 0] } });
 const Label: Component<object> = () => useContext(theme).label;
@@ -121,7 +122,7 @@ test("async output and thenable accessors reject without invocation and do not l
   assert.throws(() => useContext(theme), DocumentError);
   assert.equal(text(document(label())), "default");
 });
-test("contexts allow privately owned prepared font handles, not lookalikes", async () => {
+test("contexts preserve privately owned handles; copied metadata is data, not a resource", async () => {
   const font = await fixtureFont();
   const context = createContext({ font });
   const Read: Component<object> = () => {
@@ -129,5 +130,7 @@ test("contexts allow privately owned prepared font handles, not lookalikes", asy
     return "owned";
   };
   assert.equal(text(document(h(Read, {}))), "owned");
-  assert.throws(() => createContext({ font: { ...font } }), DocumentError);
+  const copy = { ...font };
+  assert.ok(createContext({ font: copy }));
+  assert.throws(() => render({ version: 1, pages: [] }, { resources: { Demo: copy } }), DocumentError);
 });

@@ -12,21 +12,27 @@ bidi, images or CSS engine is implied.
 import { render } from '@updf/core';
 import { lower } from '@updf/core/vdom';
 import { Block, Document, Flow, measure, Paragraph, Span } from '@updf/layout';
+import { createHelvetica, fontRuntime, fontProvider } from '@updf/fonts';
+import { createTextService } from '@updf/text';
+
+const runtime = fontRuntime();
+const options = { resources: { Helvetica: createHelvetica() },
+  text: createTextService({ runtime, defaultFont: 'Helvetica' }), providers: [fontProvider(runtime)] };
 
 const content = <Block style={{ padding: 4 }}>
   <Paragraph style={{ fontSize: 10, lineHeight: 1.2 }}>
     {'Author text '}<Span style={{ color: [1, 0, 0] }}>with nested styles</Span>
   </Paragraph>
 </Block>;
-const measured = measure(content, { width: 180 });
+const measured = measure(content, { width: 180 }, options);
 const bytes = render(lower(<Document><Flow pageSize={{ width: 200, height: 100 }}
-  margins={{ top: 10, right: 10, bottom: 10, left: 10 }}>{content}</Flow></Document>));
+  margins={{ top: 10, right: 10, bottom: 10, left: 10 }}>{content}</Flow></Document>, options), options);
 ```
 
 Data authoring is equivalent: `paragraph({ style: { fontSize: 10, lineHeight: 1.2 }, children: ['Author text ',
 span({ style: { color: [1, 0, 0] }, children: 'with nested styles' })] })`, optionally
 inside `block({ style: { padding: 4 }, children: [...] })`. `layout(document({ children: flow({ pageSize,
-margins, children }) }))` accepts the same data content. Import components and
+margins, children }) }), options)` accepts the same data content. Import components and
 constructors from the root. Root imports do not load tables, SVG, Fontkit, React or Node code.
 The small core-owned recipe/context normalization bridge is intentionally present.
 
@@ -57,7 +63,8 @@ or global name registry is introduced. Final PageContext is described in [docume
 
 ## Paragraph styles and measurement
 
-Defaults are Helvetica, 10 points, black, `style.lineHeight: 'normal'`, left
+The font default is selected by the injected text service (no implicit Helvetica).
+Other defaults are 10 points, black, `style.lineHeight: 'normal'`, left
 alignment, collapsed ASCII spaces, and `breakLongWords: 'error'`. See the
 [public text-style contract](text-styles.md) for units, role checks, inheritance
 and migration. Normal line height is font-aware; raw ratios resolve per run and
@@ -78,7 +85,7 @@ Empty/overridden-away Span styles still validate, but an empty Span creates no
 glyph/run reservation. Font/style diagnostics map to original Span attributes;
 character diagnostics retain the original string's UTF16 range.
 
-`measure(content, { width, height? }, { resources?, profile?, limits?, extensions? })`
+`measure(content, { width, height? }, { resources?, text?, providers?, profile?, limits?, extensions? })`
 returns a deeply frozen, JSON-portable readonly value:
 
 - `size`: unpaginated natural border-box width/height, in PDF points;
@@ -117,7 +124,7 @@ Node runtime or type dependency leaks into core/layout. Invalid fonts/styles are
 checked **before** inline callbacks execute. Trusted defaults and optional service
 budgets remain B's policy, not an executable-code sandbox.
 
-The unreleased `@updf/core/measurement` plain/rich inputs, native `richText`, old
+The unreleased `@updf/text` plain/rich inputs, native `richText`, old
 Flow paragraph records and component `measurement.measureText` remain low-level
 renderer/adapter paths. They are **not recommended for new authoring**,
 not a permanent compatibility facade or a recommendation to serialize rich-run
@@ -140,7 +147,7 @@ const square = defineInlineAdapter<{ height: number }>({
 });
 const extensions = createExtensions([square]);
 const content = paragraph({ children: ['Before ', inline(square, { height: 24 }), ' after'] });
-const metrics = measure(content, { width: 180 }, { extensions });
+const metrics = measure(content, { width: 180 }, { ...options, extensions });
 ```
 
 `defineInlineAdapter<P>` captures its definition; `inline(adapter, props)` captures

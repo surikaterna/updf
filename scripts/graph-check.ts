@@ -47,6 +47,8 @@ for (const build of builds) {
     );
   if (build === "dist-core") assert.ok(!modules.some((id) => /\/layout\//u.test(id)), "Layout leaked into core");
   if (build === "dist-core")
+    assert.ok(!modules.some((id) => /\/packages\/(?:fonts|text)\//u.test(id)), "Fonts/text leaked into drawing core");
+  if (build === "dist-core")
     assert.ok(
       modules
         .filter((id) => /\/packages\/layout-kernel\//u.test(id))

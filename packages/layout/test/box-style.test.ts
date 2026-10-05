@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError } from "@updf/core";
-import { block, measure, paragraph } from "@updf/layout";
+import { block, paragraph } from "@updf/layout";
+import { measure } from "../../../tests/fixtures/text-options.js";
 
 test("#49-C scalar padding and explicit edges are independent of key enumeration", () => {
   for (const style of [

@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
-import { createContext, h, lower, useContext } from "@updf/core/vdom";
+import { DocumentError } from "@updf/core";
+import { createContext, h, useContext } from "@updf/core/vdom";
 import { Table, type TableInput, table, tableExtension } from "@updf/tables";
 import { chart, chartAdapter } from "../../../tests/fixtures/chart.js";
+import { lower, render } from "../../../tests/fixtures/text-options.js";
 import {
   type BlockContent,
   createExtensions,

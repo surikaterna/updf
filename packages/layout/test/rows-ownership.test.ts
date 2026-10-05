@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
+import { DocumentError } from "@updf/core";
 import { type ComponentContext, createContext, h, useContext } from "@updf/core/vdom";
 import {
   column,
@@ -10,9 +10,7 @@ import {
   extension,
   type FlowBlock,
   flow,
-  layout,
   type MeasureContext,
-  measure,
   Paragraph,
   paragraph,
   row,
@@ -21,6 +19,7 @@ import {
 import { renderSVG } from "@updf/svg";
 import { chart, chartAdapter } from "../../../tests/fixtures/chart.js";
 import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
+import { layout, measure, render } from "../../../tests/fixtures/text-options.js";
 
 function reject(callback: () => unknown, code: string): void {
   assert.throws(callback, (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === code);

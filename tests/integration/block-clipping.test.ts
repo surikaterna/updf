@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
-import { type DocumentDefinition, render } from "@updf/core";
+import type { DocumentDefinition } from "@updf/core";
 import { flow, paragraph } from "../../packages/layout/test/fixtures.js";
+import { render } from "../fixtures/text-options.js";
 import { block, type FlowBlock, layoutFlow } from "../fixtures/transitional-layout.js";
 
 const padding = 4;

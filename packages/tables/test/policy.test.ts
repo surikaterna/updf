@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DocumentError, render } from "@updf/core";
+import { DocumentError } from "@updf/core";
 import { createContext, h, useContext } from "@updf/core/vdom";
 import { Table, table, tableExtension } from "@updf/tables";
 import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
+import { render } from "../../../tests/fixtures/text-options.js";
 import {
   createExtensions,
   Document,
@@ -26,7 +27,7 @@ test("F prepared fonts, opaque aliases and table-column-cell-paragraph-Span styl
   const options = {
     resources: { Demo: font, Alias: font },
     profile: "service" as const,
-    limits: { fontBytes: font.metadata.byteLength },
+    limits: { resourceBytes: font.metadata.byteLength },
   };
   const input = table({
     columns: [{ width: 90, style: { font: "Alias" } }, { width: 90 }],

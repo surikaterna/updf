@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import test from "node:test";
-import { render } from "@updf/core";
 import { h } from "@updf/core/vdom";
-import { Document, document, Flow, flow, layout, PageBreak, Paragraph, paragraph } from "@updf/layout";
+import { Document, document, Flow, flow, PageBreak, Paragraph, paragraph } from "@updf/layout";
+import { layout, render } from "../fixtures/text-options.js";
 
 function checkPdf(path: string): void {
   execFileSync("qpdf", ["--check", path]);

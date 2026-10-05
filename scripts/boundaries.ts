@@ -102,6 +102,25 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "fontkit/src/index.ts",
     "fontkit/src/metadata.ts",
     "fontkit/src/sfnt.ts",
+    "fonts/src/checks.ts",
+    "fonts/src/cids.ts",
+    "fonts/src/prepare.ts",
+    "fonts/src/profile.ts",
+    "fonts/src/provider.ts",
+    "fonts/src/runtime.ts",
+    "text/src/fixed-text.ts",
+    "text/src/inline.ts",
+    "text/src/line-height.ts",
+    "text/src/lines.ts",
+    "text/src/measure.ts",
+    "text/src/source.ts",
+    "text/src/validate.ts",
+    "text/src/wrap.ts",
+    "text/src/ledger.ts",
+    "text/src/service.ts",
+    "text/src/text-resources.ts",
+    "text/src/runtime-output.ts",
+    "text/src/index.ts",
   ],
   "@updf/geometry/internal": ["svg/src/numbers.ts"],
 };
@@ -113,7 +132,10 @@ export function allowedInternal(file: string, specifier: string): void {
 
 export function internalExports(text: string, expected: readonly string[]): void {
   const names = [...text.matchAll(/export (?:type )?\{([^}]+)\}/gu)].flatMap((match) =>
-    (match[1] ?? "").split(",").map((name) => name.trim().replace(/^type /u, "")),
+    (match[1] ?? "")
+      .split(",")
+      .map((name) => name.trim().replace(/^type /u, ""))
+      .filter(Boolean),
   );
   assert.deepEqual(names.sort(), [...expected].sort(), "Internal export inventory expanded");
   assert.ok(!/export\s+\*/u.test(text), "Internal wildcard export");
@@ -143,15 +165,21 @@ export function portableGraph(modules: readonly string[], optional = false, reac
 export function packageEdge(owner: string, specifier: string): void {
   if (owner === "core")
     assert.ok(
-      specifier === "@updf/layout-kernel/arithmetic" ||
-        !/^@updf\/(?:layout|layout-kernel|tables)(?:\/|$)/u.test(specifier),
-      "Core may depend only on kernel arithmetic, not boxes/layout/tables",
+      specifier === "@updf/layout-kernel/arithmetic" || specifier.startsWith("."),
+      "Core may depend only on kernel arithmetic, not fonts/text/boxes/layout/tables",
     );
   if (owner === "layout-kernel") assert.ok(specifier.startsWith("."), "Kernel must have zero runtime dependencies");
+  if (owner === "text")
+    assert.ok(
+      specifier.startsWith(".") || specifier.startsWith("@updf/core") || specifier === "@updf/layout-kernel/arithmetic",
+      "Text must depend only on core and kernel arithmetic",
+    );
+  if (owner === "fonts")
+    assert.ok(specifier.startsWith(".") || specifier.startsWith("@updf/core"), "Fonts must depend only on core");
   if (owner === "layout")
     assert.ok(
-      specifier.startsWith(".") || /^@updf\/(?:core|layout-kernel)(?:\/|$)/u.test(specifier),
-      "Layout must remain core/kernel-only",
+      specifier.startsWith(".") || /^@updf\/(?:core|text|layout-kernel)(?:\/|$)/u.test(specifier),
+      "Layout must remain core/text/kernel-only, without a font implementation",
     );
   if (owner === "tables")
     assert.ok(
@@ -175,7 +203,6 @@ function sourceEdges(owner: string, text: string, path: string, root: string): v
 }
 
 const coreExports = [
-  "validateLineHeight",
   "DocumentError",
   "fail",
   "array",
@@ -189,11 +216,10 @@ const coreExports = [
   "matrix",
   "commands",
   "paint",
-  "byteLength",
-  "isPreparedFont",
-  "scalar",
+  "policy",
   "ResolvedPaint",
   "createLayoutOperation",
+  "measureStandaloneText",
   "contextLayoutOperation",
   "LayoutOperation",
   "exceeds",
@@ -205,7 +231,6 @@ const coreExports = [
   "InlineLine",
   "InlineLineHeights",
   "LineHeight",
-  "paintInlineText",
   "InlineMetric",
   "RunMetrics",
   "NormalizedContent",
@@ -214,8 +239,18 @@ const coreExports = [
   "semanticComponent",
   "createRendererContext",
   "RendererBinding",
+  "dataArray",
+  "dataRecord",
+  "ownDataValue",
+  "pointer",
+  "WorkLedger",
+  "ledger",
+  "work",
+  "textOnce",
+  "inputNode",
 ];
 export async function checkSeams(root: string): Promise<void> {
+  await checkResourceExports(root);
   internalExports(await readFile(join(root, "packages/core/src/internal.ts"), "utf8"), coreExports);
   const drawing = await readFile(join(root, "packages/core/src/internal-drawing.ts"), "utf8");
   assert.ok(/export function createDrawingLayoutOperation\(/u.test(drawing));
@@ -231,10 +266,68 @@ export async function checkSeams(root: string): Promise<void> {
     "whitespace",
     "Scanner",
   ]);
-  for (const owner of ["core", "layout-kernel", "layout", "tables", "geometry", "svg", "fontkit"]) {
+  for (const owner of ["core", "layout-kernel", "layout", "tables", "geometry", "svg", "fonts", "text", "fontkit"]) {
     for (const path of await files(join(root, "packages", owner, "src"))) {
       const text = await readFile(path, "utf8");
       sourceEdges(owner, text, path, root);
     }
   }
+}
+
+const pdfExports = [
+  "PdfScalar",
+  "PdfString",
+  "hex",
+  "literal",
+  "name",
+  "PdfDictionary",
+  "PdfRef",
+  "PdfValue",
+  "PdfWriter",
+];
+const resourceExports = [
+  "OwnedResource",
+  "createOwnedResource",
+  "isOwnedResource",
+  "ownedResourceBytes",
+  "MeasuredRichText",
+  "MeasuredText",
+  "PageResources",
+  "PaintingBinding",
+  "PaintingSlot",
+  "Resource",
+  "ResourceCollection",
+  "ResourcePhase",
+  "ResourceProvider",
+  "ResourceSlot",
+  "TextSite",
+  "paintingSlot",
+  "resourceSlot",
+  "textSlot",
+  "TextMetrics",
+  "TextMode",
+  "TextRun",
+  "TextRuntime",
+  "TextService",
+  "TextServiceContext",
+  "InlineLine",
+  "InlineMetric",
+  "InlineLineHeights",
+  "LineEnvelope",
+  "LineHeight",
+  "PrivateFragment",
+  "InkBounds",
+  "ParagraphDefinition",
+  "PlainTextInput",
+  "RichTextInput",
+  "TextFragmentMeasurement",
+  "TextLineMeasurement",
+  "TextMeasurement",
+  "TextMeasurementInput",
+  "TextRun as SourceTextRun",
+  "TextStyle",
+];
+async function checkResourceExports(root: string): Promise<void> {
+  internalExports(await readFile(join(root, "packages/core/src/pdf.ts"), "utf8"), pdfExports);
+  internalExports(await readFile(join(root, "packages/core/src/resources.ts"), "utf8"), resourceExports);
 }

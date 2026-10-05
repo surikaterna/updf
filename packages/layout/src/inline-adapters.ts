@@ -9,7 +9,7 @@ import {
   snapshotData,
   sum,
 } from "@updf/core/internal";
-import type { TextStyle } from "@updf/core/measurement";
+import type { TextStyle } from "@updf/text";
 import { adapterCall } from "./adapter-call.js";
 import { registerAdapter } from "./adapter-ownership.js";
 import { type BudgetTotals, OutputBudget } from "./budget.js";

@@ -7,7 +7,7 @@ audit-status wording are not current instructions. Use root `readme.md` commands
 
 ## Core contracts
 
-- `@updf/core/measurement`: public readonly plain/rich measurement. Separate
+- `@updf/text`: public readonly plain/rich measurement with required explicit options. Separate
   `RichTextNode`/native `<richText>` paragraph data supports font/size/RGB runs.
   Trusted components use operation-bound `context.measurement.measureText`.
   See [full semantics, caps and lifetime contract](measurement.md). Local #26
@@ -21,11 +21,11 @@ audit-status wording are not current instructions. Use root `readme.md` commands
   geometry must fit page bounds; new painting checks conservative ink bounds.
   Plain data descriptors/prototypes/dense arrays are required. JSON roundtrips,
   frozen input and shared nodes work; cycles/accessors/classes/unknown keys reject.
-- `@updf/core/fonts`: `createPreparedFont` accepts checked prepared metadata and
+- `@updf/fonts`: `createPreparedFont` accepts checked prepared metadata and
   owned ordinary nonshared Uint8Array bytes. Opaque handle identity is core-owned;
   metadata/bytes are copied, program bytes remain private. This is a trusted
   preparation boundary, not a font-file sanitizer. Resources are external to AST.
-- Default regular Helvetica accepts printable ASCII + LF, with no fallback,
+- Explicit regular Helvetica accepts printable ASCII + LF, with no fallback,
   kerning, shaping or silent transliteration. Wrapping preserves space runs;
   overflow fails rather than clips/shrinks/pages automatically. Selected fonts
   require every glyph and support simple LTR Latin/Cyrillic/profile symbols only.

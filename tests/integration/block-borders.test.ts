@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
-import { type DocumentDefinition, render } from "@updf/core";
+import type { DocumentDefinition } from "@updf/core";
 import { h } from "@updf/core/vdom";
-import { Block, document, flow, layout, paragraph, pt } from "@updf/layout";
+import { Block, document, flow, paragraph, pt } from "@updf/layout";
+import { layout, render } from "../fixtures/text-options.js";
 
 type Rectangle = readonly [x: number, y: number, width: number, height: number];
 const blue = { width: 2, color: [0, 0, 1] as const };

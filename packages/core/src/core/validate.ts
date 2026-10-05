@@ -1,16 +1,14 @@
-import { validateCharacters } from "../fonts/profile.js";
-import { type ResolvedFonts, selectedFont } from "../fonts/resources.js";
 import { exceeds } from "../measurement/arithmetic.js";
-import { characters, ledger, type WorkLedger, work } from "../measurement/ledger.js";
-import { validateInput } from "../measurement/validate.js";
+import { ledger, type WorkLedger } from "../measurement/ledger.js";
 import { identity, matrix, multiply } from "../painting/affine.js";
 import { type Bounds, intersection, pathBounds, rectangle } from "../painting/bounds.js";
 import { clip, drawing } from "../painting/read.js";
 import type { Matrix } from "../painting/types.js";
 import type { DocumentDefinition } from "../types.js";
 import { fail } from "./error.js";
-import { checkLimit, codePoints } from "./policy.js";
+import { checkLimit } from "./policy.js";
 import { array, finite, number, validateDataObject as record } from "./schema.js";
+import { emptyTextResources, type ResolvedTextResources as ResolvedFonts, textService } from "./text-resources.js";
 
 interface View {
   width: number;
@@ -49,16 +47,20 @@ function box(node: Record<string, unknown>, view: View, path: string): void {
 }
 function text(node: Record<string, unknown>, path: string, state: Counts): void {
   if (typeof node.text !== "string") fail("TYPE", `${path}/text`, "Expected text");
-  characters(state.budget, codePoints(node.text), `${path}/text`);
-  work(state.budget, 2, path);
-  if ("font" in node && typeof node.font !== "string")
-    fail("FONT_RESOURCE", `${path}/font`, "Font reference must be a string");
-  validateCharacters(node.text, selectedFont(node.font, state.fonts, `${path}/font`), `${path}/text`);
-  const fontSize = number(node.fontSize, `${path}/fontSize`, true),
-    lineHeight = number(node.lineHeight, `${path}/lineHeight`, true);
-  if (lineHeight < fontSize) fail("GEOMETRY", `${path}/lineHeight`, "Line height must be at least font size");
-  if (node.align !== "left" && node.align !== "center" && node.align !== "right")
-    fail("VALUE", `${path}/align`, "Unsupported alignment");
+  textService(state.fonts, path).validate(
+    {
+      kind: "plain",
+      width: node.width,
+      height: node.height,
+      text: node.text,
+      fontSize: node.fontSize,
+      lineHeight: node.lineHeight,
+      align: node.align,
+      ...(Object.hasOwn(node, "font") ? { font: node.font } : {}),
+    },
+    { bindings: state.fonts.bindings, budget: state.budget },
+    path,
+  );
 }
 function line(node: Record<string, unknown>, view: View, path: string): void {
   const x = view.local ? finite(node.x, `${path}/x`) : number(node.x, `${path}/x`);
@@ -102,10 +104,9 @@ function group(node: Record<string, unknown>, view: View, path: string, state: C
 function contents(node: Record<string, unknown>, view: View, path: string, state: Counts, depth: number): void {
   if (node.type === "richText") {
     box(node, view, path);
-    validateInput(
+    textService(state.fonts, path).validate(
       { kind: "rich", width: node.width, height: node.height, paragraphs: node.paragraphs },
-      state.fonts,
-      state.budget,
+      { bindings: state.fonts.bindings, budget: state.budget },
       path,
     );
     return;
@@ -194,7 +195,7 @@ function child(value: unknown, view: View, path: string, state: Counts, depth: n
 }
 export function validate(
   document: unknown,
-  fonts: ResolvedFonts = new Map(),
+  fonts: ResolvedFonts = emptyTextResources,
   budget: WorkLedger = ledger(),
 ): asserts document is DocumentDefinition {
   record(document, ["version", "pages"], "");

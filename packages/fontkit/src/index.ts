@@ -1,6 +1,5 @@
-import type { PreparedFont } from "@updf/core/fonts";
-import { createPreparedFont } from "@updf/core/fonts";
-import { byteLength, DocumentError, fail } from "@updf/core/internal";
+import { DocumentError, fail } from "@updf/core/internal";
+import { byteLength, createPreparedFont, type PreparedFont } from "@updf/fonts";
 import { create } from "fontkit";
 import { preparedData } from "./metadata.js";
 import { inspectSfnt } from "./sfnt.js";

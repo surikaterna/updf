@@ -4,8 +4,9 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { type NodeDefinition, render } from "@updf/core";
+import type { NodeDefinition } from "@updf/core";
 import { type TableInput, table, tableExtension } from "@updf/tables";
+import { render } from "../../../tests/fixtures/text-options.js";
 import { block, createExtensions, layoutFlow } from "../../../tests/fixtures/transitional-layout.js";
 
 const row = { minHeight: 20, cells: [{}, {}] } as const;

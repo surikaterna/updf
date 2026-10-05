@@ -1,9 +1,11 @@
 /** @jsxImportSource @updf/core */
-import { type PreparedFont, render } from "@updf/core";
+import { render } from "@updf/core";
 import { createContext, lower, useContext } from "@updf/core/vdom";
+import type { PreparedFont } from "@updf/fonts";
 import { createExtensions, Document, Flow, measure, Paragraph, Span } from "@updf/layout";
 import { badge, badgeAdapter } from "../showcase/src/inline-badge.js";
 import { inlineSVG, inlineSVGAdapter } from "../showcase/src/optional-inline-svg.js";
+import { textOptions } from "./text-options.js";
 
 const Theme = createContext({ color: [0, 0, 1] as const });
 const svg = '<svg viewBox="0 0 16 16"><path d="M0 0H16V16H0Z" fill="#ff0000"/></svg>';
@@ -20,7 +22,7 @@ function Content() {
 }
 export function inlineProof(font: PreparedFont) {
   const extensions = createExtensions([badgeAdapter, inlineSVGAdapter]);
-  const options = { resources: { Demo: font }, profile: "service" as const };
+  const options = textOptions({ resources: { Demo: font }, profile: "service" });
   const content = (
     <Theme.Provider value={{ color: [0, 0, 1] }}>
       <Content />

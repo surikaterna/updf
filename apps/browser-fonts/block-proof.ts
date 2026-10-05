@@ -2,8 +2,10 @@ import { render } from "@updf/core";
 import { block, document as createDocument, createExtensions, flow, layout } from "@updf/layout";
 import { chart, chartAdapter } from "../../tests/fixtures/chart.js";
 import { blockDefaults, blockExample } from "../showcase/src/blocks.js";
+import { textOptions } from "./text-options.js";
 
 export function blockProof() {
+  const options = textOptions();
   const result = layout(
     createDocument({
       children: flow({
@@ -13,8 +15,9 @@ export function blockProof() {
         extensions: createExtensions([chartAdapter]),
       }),
     }),
+    options,
   );
-  return { bytes: render(result.document), result };
+  return { bytes: render(result.document, options), result };
 }
 
 export function mountBlockProof(): void {
