@@ -9,7 +9,7 @@ export const arithmeticProvenance = {
   path: "packages/core/src/measurement/arithmetic.ts",
   sha256: "6c99483a778c69420c73b74c4745247479d484c4d6d0eacce1be1ed28b0dd620",
 };
-const arithmeticPath = /packages\/core\/(?:src\/measurement\/arithmetic\.ts|dist\/measurement\/arithmetic\.js)$/;
+const arithmeticPath = /packages\/core\/(?:src\/measurement\/arithmetic\.ts|dist\/cjs\/measurement\/arithmetic\.js)$/;
 
 export function certifyArithmetic(source: string): void {
   assert.equal(

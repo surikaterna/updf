@@ -31,8 +31,11 @@ import { validateRegion } from "./region-overflow.js";
 import { renderRegion } from "./region-render.js";
 import { finishLooseSharedEdges, finishSharedEdgeNode } from "./shared-edge-finalize.js";
 
+/** Final-context Block.Header/Footer reservation; children must fit without repaginating the body. */
 export interface BlockRegionProps {
+  /** Positive finite height in points. */
   readonly height: number;
+  /** Default header first/footer last; true repeats on every block fragment. */
   readonly repeat?: boolean;
   readonly children?:
     | import("@updf/core/vdom").VDOMChild
@@ -42,14 +45,17 @@ export interface BlockRegionProps {
 export const blockHeaderIdentity = Object.freeze({});
 export const blockBodyIdentity = Object.freeze({});
 export const blockFooterIdentity = Object.freeze({});
+/** Block.Header JSX slot finalized with sealed PageContext and FragmentContext. */
 export const BlockHeader = semanticComponent<Record<string, unknown>>(
   blockHeaderIdentity,
   true,
 ) as unknown as BlockComponent<BlockRegionProps>;
+/** Block.Footer JSX slot finalized with sealed PageContext and FragmentContext. */
 export const BlockFooter = semanticComponent<Record<string, unknown>>(
   blockFooterIdentity,
   true,
 ) as unknown as BlockComponent<BlockRegionProps>;
+/** Block.Body JSX slot; use it rather than mixing direct body siblings with reserved slots. */
 export const BlockBody = semanticComponent<Record<string, unknown>>(
   blockBodyIdentity,
   true,

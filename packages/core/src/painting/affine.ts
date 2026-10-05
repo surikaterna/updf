@@ -2,7 +2,9 @@ import { fail } from "../core/error.js";
 import { array, finite } from "../core/schema.js";
 import type { Matrix } from "./types.js";
 
+/** Frozen neutral affine transform. */
 export const identity: Matrix = Object.freeze([1, 0, 0, 1, 0, 0]);
+/** Transformed [x, y] coordinates in points. */
 export type Point = readonly [number, number];
 
 export function matrix(value: unknown, path: string): Matrix {
@@ -22,6 +24,7 @@ export function matrix(value: unknown, path: string): Matrix {
     fail("GEOMETRY", path, "Affine must have a finite representable nonzero determinant");
   return Object.freeze(result);
 }
+/** Compose a × b (apply b first); returns a frozen matrix or throws DocumentError for invalid results. */
 export function multiply(a: Matrix, b: Matrix): Matrix {
   return matrix(
     [
@@ -35,6 +38,7 @@ export function multiply(a: Matrix, b: Matrix): Matrix {
     "/transform",
   );
 }
+/** Apply an affine to a point; nonfinite output fails with DocumentError. The returned tuple is not frozen. */
 export function point(m: Matrix, x: number, y: number): Point {
   return [finite(m[0] * x + m[2] * y + m[4], "/transform"), finite(m[1] * x + m[3] * y + m[5], "/transform")];
 }

@@ -4,13 +4,13 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { commands } from "../../packages/core/dist/core/content.js";
-import { documentResources } from "../../packages/core/dist/core/document-resources.js";
-import { literal, name } from "../../packages/core/dist/core/pdf-values.js";
-import type { MeasuredPage } from "../../packages/core/dist/core/plan.js";
-import { resourceSlot } from "../../packages/core/dist/core/resource-types.js";
-import { serialize } from "../../packages/core/dist/core/serialize.js";
-import { textSlot } from "../../packages/core/dist/core/text-paint.js";
+import { commands } from "../../packages/core/dist/cjs/core/content.js";
+import { documentResources } from "../../packages/core/dist/cjs/core/document-resources.js";
+import { literal, name } from "../../packages/core/dist/cjs/core/pdf-values.js";
+import type { MeasuredPage } from "../../packages/core/dist/cjs/core/plan.js";
+import { resourceSlot } from "../../packages/core/dist/cjs/core/resource-types.js";
+import { serialize } from "../../packages/core/dist/cjs/core/serialize.js";
+import { textSlot } from "../../packages/core/dist/cjs/core/text-paint.js";
 
 const site = { text: "provider-owned", x: 10, y: 20 };
 const page: MeasuredPage = {

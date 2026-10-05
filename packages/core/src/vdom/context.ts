@@ -9,6 +9,7 @@ import type { Component, DeepReadonly, Key, ProviderVNode, VDOMChild, VNode } fr
 export interface ReadContext<T> {
   readonly valueType?: T;
 }
+/** Owned context with a synchronous Provider; nested providers shadow the copied default value. */
 export interface Context<T> extends ReadContext<T> {
   readonly Provider: Component<{ readonly value: T; readonly children?: VDOMChild }>;
 }
@@ -39,6 +40,7 @@ const constructors = new WeakMap<object, Definition>();
 const providers = new WeakMap<object, Provider>();
 const frames: Frame[] = [];
 
+/** Create a frozen context identity and snapshot its default data; non-data values fail with DocumentError. */
 export function createContext<T>(defaultValue: T): Context<T> {
   const definition = { identity: {}, value: snapshot(defaultValue, "/context/defaultValue", false) };
   const Provider: Context<T>["Provider"] = () => fail("TYPE", "", "Providers must be library-created nodes");
@@ -83,7 +85,9 @@ export function bindRendererContext<T>(
   next.set(definition.identity, snapshot(value, "/context/final", false));
   return next;
 }
+/** Read the nearest provider/default during synchronous component execution; outside it fails MEASUREMENT_CONTEXT. */
 export function useContext<T>(context: Context<T>): DeepReadonly<T>;
+/** Read an owned context; renderer-only contexts may be unavailable before finalization. */
 export function useContext<T>(context: ReadContext<T>): DeepReadonly<T>;
 export function useContext<T>(context: Context<T> | ReadContext<T>): DeepReadonly<T> {
   const frame = frames.at(-1);

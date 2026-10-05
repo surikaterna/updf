@@ -32,6 +32,7 @@ export function cloneExtension(block: ExtensionBlock): ExtensionBlock {
   return copy;
 }
 
+/** Define a frozen identity with trusted synchronous callbacks; install that exact identity in createExtensions. */
 export function defineBlockAdapter<P>(definition: BlockAdapterDefinition<P>): BlockAdapter<P> {
   record(definition, ["name", "validate", "measure"], "/adapter");
   if (typeof definition.name !== "string" || !/^[A-Za-z][A-Za-z0-9.-]*$/u.test(definition.name))
@@ -54,6 +55,7 @@ export function defineBlockAdapter<P>(definition: BlockAdapterDefinition<P>): Bl
   return adapter;
 }
 
+/** Create a frozen local capability set; duplicate names/identities throw KEY, foreign identities reject. */
 export function createExtensions(adapters: readonly (BlockAdapterIdentity | InlineAdapterIdentity)[]): Extensions {
   array(adapters, Number.MAX_SAFE_INTEGER, "/extensions");
   const names = new Map<string, object>();
@@ -67,6 +69,7 @@ export function createExtensions(adapters: readonly (BlockAdapterIdentity | Inli
   return extensions;
 }
 
+/** Snapshot props into an owned frozen descriptor; adapter validation runs at measurement, not here. */
 export function extension<P>(adapter: BlockAdapter<P>, props: P): ExtensionBlock {
   if (!definitions.has(adapter)) fail("TYPE", "/adapter", "Expected an owned block adapter");
   const block = ownContentData(

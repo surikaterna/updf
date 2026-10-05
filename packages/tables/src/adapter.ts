@@ -62,6 +62,7 @@ function selectRows(rows: readonly MeasuredRow[], offset: number, availableHeigh
   }
   return offset;
 }
+/** Owned updf.table block adapter; install once via createExtensions for both table() data and Table JSX. */
 export const tableExtension = defineBlockAdapter<TableDefinition>({
   name: "updf.table",
   validate: validateOccurrence,

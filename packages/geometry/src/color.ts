@@ -1,11 +1,17 @@
 import { fail } from "@updf/core/internal";
 import type { RGB } from "@updf/core/painting";
 
+/** Normalized 0..1 RGB and alpha; null RGB means no paint. Not runtime-frozen. */
 export interface ParsedColor {
   readonly rgb: RGB | null;
   readonly opacity: number;
 }
-/** Adapted legacy hex/rgb parsing; anchored grammar, correct unscaled alpha. */
+/**
+ * Parse hex (3/4/6/8 digits), comma rgb/rgba, black/white/red/green/blue,
+ * none or transparent, ignoring surrounding whitespace and case. RGB channels
+ * are 0..255 or percentages; alpha is 0..1 or a percentage. No clamping,
+ * hsl(), currentColor or full CSS named-color support; rejects with DocumentError.
+ */
 export function parseColor(input: string): ParsedColor {
   if (typeof input !== "string") fail("PAINT", "/color", "Expected color string");
   const text = input.trim().toLowerCase();

@@ -3,7 +3,7 @@ import test from "node:test";
 import { type DiagnosticCode, DocumentError, render, renderUnknown } from "@updf/core";
 import { createPreparedFont } from "@updf/core/fonts";
 import { fixtureFont, fontDocument, fontInput, fontText } from "../../../tests/fixtures/fonts/font-fixture.js";
-import { record } from "../dist/fonts/checks.js";
+import { record } from "../dist/cjs/fonts/checks.js";
 
 function rejects(run: () => unknown, code: DiagnosticCode): void {
   assert.throws(run, (error: unknown) => {

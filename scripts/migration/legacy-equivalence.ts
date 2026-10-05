@@ -20,6 +20,10 @@ function comparable(value: unknown) {
   };
 }
 
-export function compareLegacy(before: unknown, after: unknown): void {
+export function compareLegacy(before: unknown, after: unknown, rawResults?: unknown): void {
   assert.deepEqual(comparable(after), comparable(before), "Legacy baseline changed");
+  if (rawResults !== undefined) {
+    assert.ok(after && typeof after === "object" && "rawResults" in after);
+    assert.deepEqual(after.rawResults, rawResults, "Focused legacy assertion inventory changed");
+  }
 }

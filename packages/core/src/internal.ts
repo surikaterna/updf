@@ -1,3 +1,8 @@
+/**
+ * `@updf/core/internal`: unstable coordination bridge for sibling packages.
+ * Not a supported consumer extension API; exports may change without a new compatibility guarantee.
+ * @module
+ */
 export type { ContentHandle } from "./core/content-ownership.js";
 export { isContentData, ownContentData } from "./core/content-ownership.js";
 export { snapshot as snapshotData } from "./core/data.js";

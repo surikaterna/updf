@@ -9,8 +9,8 @@ import {
   layoutTableFlowUnknown,
   layoutTableUnknown,
   type TableDocumentDefinition,
-} from "../src/tables/index.js";
-import { Tables } from "../src/tables/vdom.js";
+} from "../dist/cjs/tables/index.js";
+import { Tables } from "../dist/cjs/tables/vdom.js";
 
 function failure(run: () => unknown, code: string, path?: string): void {
   assert.throws(run, (error: unknown) => {

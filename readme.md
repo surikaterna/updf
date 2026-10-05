@@ -12,8 +12,9 @@ This checkout contains private, **unreleased** native packages (`2.0.0-poc.0`)
 and the compatibility-preserving legacy implementation (`0.4.15`). Workspace
 migration and README (#34/#35) were independently audited and merged via
 [PR #36](https://github.com/surikaterna/updf/pull/36) (`ac60f80`), **not released**
-or published. The Pages showcase is an **independently audited local artifact**,
-not deployed. #26–#28 remain OPEN, with uncommitted/unmerged local changes.
+or published. The prior Pages showcase was independently audited locally;
+the current modernization and SVG branding await final integrated audit and are
+**not deployed**. #26–#28 remain OPEN, with uncommitted/unmerged local changes.
 The prior painting/SVG proof was independently verified before
 migration; its [dated historical evidence](docs/evidence/native-poc.md) is not
 verification of the new package structure.
@@ -40,7 +41,10 @@ The [static TUI integration proof](scripts/tui-layout-proof/README.md) shows the
 Formbar host-snapshot → public kernel → terminal pipeline and runnable commands;
 it is not a production interactive TUI package.
 See [package architecture](docs/architecture/packages.md),
-[native contracts](docs/native-api.md) and [legacy migration](docs/migration/legacy.md).
+[native contracts](docs/native-api.md), [Node/browser packaging](docs/native-packaging.md)
+and [legacy migration](docs/migration/legacy.md). Public API inventories are maintained
+for [core](packages/core/API.md), [layout](packages/layout/API.md) and
+[tables](packages/tables/API.md).
 
 ## Run the checkout
 
@@ -62,9 +66,11 @@ npm run check:licenses
 ```
 
 `typecheck` builds in explicit kernel → core → layout/tables/geometry/Fontkit → SVG → examples order,
-then compiles repository tooling/tests. Legacy compilation uses its scoped old
-toolchain. Native declarations use ES2022 only, no ambient DOM/Node/React or TS
-path aliases. Clean tarball consumers check NodeNext and bundler resolution.
+then compiles repository tooling/tests. Legacy compilation now uses TypeScript
+`allowJs`, preserving CommonJS `.default` and `lib` deep imports. Native declarations
+use ES2022 only, no ambient DOM/Node/React or TS path aliases. Node require and ESM
+imports share one canonical CommonJS implementation; browsers retain tree-shakeable
+ESM. Clean tarball consumers check both loaders, identity and type resolution.
 
 The npm monorepo uses `packages/*` for libraries, five private `apps/*`
 workspaces for runnable examples, and `scripts/*` for repository automation.
@@ -72,23 +78,33 @@ Package names and public exports are unchanged; native JSX remains in the core
 subpaths rather than a separate package.
 
 `npm run format` applies Biome 2.4.13 formatting to maintained native code,
-apps, scripts, tests and root configs. `npm run lint` combines Biome with the
-existing TypeScript-recommended ESLint checks and the unchanged 400-line file,
-49-line function and three-level nesting limits. Legacy code, historical
+apps, scripts, tests and root configs. `npm run lint` combines Biome lint with the
+TypeScript AST code-principles checker: 400-line files, 49-line functions and
+three-level nesting limits. Legacy code, historical
 evidence, generated output and byte-sensitive font fixtures are intentionally
-outside Biome's scope. See the [alignment evidence](docs/evidence/ghost-biome-alignment.md)
-for exceptions, preservation history and acceptance results.
+outside Biome's scope. See [current quality policy](docs/code-quality.md) for rule
+mapping and exceptions; [dated alignment evidence](docs/evidence/ghost-biome-alignment.md)
+preserves the prior tooling state, not the current configuration.
 
 **Legacy failures are not hidden by native success:** `npm run test:legacy` fails
 on the inherited container fixture. `npm run test:legacy:comparison` checks actual
 before/after equivalence (including six full-suite failures); it does not turn
-the legacy test suite green. Root `npm audit --ignore-scripts` includes inherited
-vulnerable tooling and is nonzero. No legacy modernization is included here.
+the legacy test suite green. Active Babel/ESLint/Mocha tooling has been retired in
+favor of TypeScript and a bounded Node test adapter; source/test/config bytes and
+historical archives remain immutable. See [retirement and exact comparison evidence](docs/migration/legacy-tooling-retirement.md).
+This does not repair legacy behavior or claim a clean dependency audit.
 
 ## Browser showcase / GitHub Pages
 
 The private [showcase](apps/showcase) runs native text/layout, reusable TSX,
 rich text/shared measurement, painting and optional on-demand flow/tables/SVG demos.
+Desktop inputs and PDF preview sit side by side; edits update live after a 300 ms
+debounce. Narrow screens stack the workspace. A native disclosure below shows
+actual TypeScript/TSX source and arguments for the committed result, not an editor.
+The vector brand letterhead uses an original MIT-licensed sample SVG logo with
+bounded size/palette controls, not an official corporate mark or raster Image API.
+See [UX rationale and acceptance scope](docs/showcase-ux.md); these local changes
+are not a WCAG conformance or deployment claim.
 The focused [Row/Column](docs/rows.md) demo composes chart/SVG/paragraphs and nested
 atomic rows with fixed/weighted tracks and all alignments; an oversize entry exposes
 the controlled diagnostic. The separate [#46-A original mock invoice](docs/business-showcases.md)
@@ -100,7 +116,8 @@ operational paperwork; both are unreleased application examples, not library API
 It generates downloadable PDFs locally,
 with automatic, multi-page PDF.js canvas previews and a mobile open/download fallback.
 PDF.js and its worker are lazy, locally bundled assets; SVG remains optional.
-No Fontkit, React, arbitrary source evaluation
+The initial entry includes no Fontkit or React; freight demos load the optional
+Fontkit adapter and licensed font assets on demand. No arbitrary source evaluation
 or editor is included. From the repository root:
 
 ```sh
@@ -308,7 +325,7 @@ the original planning records are preserved rather than rewritten as delivery ev
 
 All workspaces are private; no npm publishing or deployment is authorized.
 The user confirmed the project MIT attribution: **Copyright (c) 2026 Surikat AB**.
-The full [project license](LICENSE) ships in all six production package tarballs
+The full [project license](LICENSE) ships in all eight checked package tarballs
 and the showcase's `notices/LICENSE`; the earlier missing-notice blocker is resolved.
 See [dated resolution evidence](docs/evidence/project-license.md). This pull request
 is review-only: it does not authorize merge, npm publishing, deployment, or issue

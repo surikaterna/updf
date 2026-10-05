@@ -15,6 +15,11 @@ import type {
 
 const definitions = new WeakSet<object>();
 
+/**
+ * Define a trusted validated expansion with an uppercase identifier that cannot override native tags.
+ * Install the returned definition in lower's registry; validation runs on snapshotted props at expansion.
+ * @throws {DocumentError} For invalid names; missing installation or invalid props fail during lowering.
+ */
 export function definePrimitive<P extends object>(
   name: string,
   validate: (props: unknown) => props is DeepReadonly<P>,

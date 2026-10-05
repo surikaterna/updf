@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { commands } from "../dist/core/content.js";
-import { documentResources } from "../dist/core/document-resources.js";
-import { hex, literal, name } from "../dist/core/pdf-values.js";
-import type { MeasuredPage } from "../dist/core/plan.js";
-import { paintingSlot, type ResourceCollection, resourceSlot } from "../dist/core/resource-types.js";
-import { serialize } from "../dist/core/serialize.js";
-import { textSlot } from "../dist/core/text-paint.js";
+import { commands } from "../dist/cjs/core/content.js";
+import { documentResources } from "../dist/cjs/core/document-resources.js";
+import { hex, literal, name } from "../dist/cjs/core/pdf-values.js";
+import type { MeasuredPage } from "../dist/cjs/core/plan.js";
+import { paintingSlot, type ResourceCollection, resourceSlot } from "../dist/cjs/core/resource-types.js";
+import { serialize } from "../dist/cjs/core/serialize.js";
+import { textSlot } from "../dist/cjs/core/text-paint.js";
 
 const first = { text: "ignored", x: 10, y: 20 };
 const second = { text: "also ignored", x: 30, y: 40 };
@@ -35,7 +35,7 @@ function resource(category = "Font") {
     key: "Synthetic",
     phase: "bootstrap" as const,
     payload: undefined,
-    reserve(writer: import("../dist/core/pdf-writer.js").PdfWriter) {
+    reserve(writer: import("../dist/cjs/core/pdf-writer.js").PdfWriter) {
       const ref = writer.reserve();
       return { ref, define: () => writer.define(ref, { Type: name("Font") }) };
     },

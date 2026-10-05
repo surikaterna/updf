@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "target": "ES2015",
+    "module": "CommonJS",
+    "esModuleInterop": true,
+    "rootDir": "src",
+    "outDir": "lib",
+    "skipLibCheck": true,
+    "types": []
+  },
+  "include": ["src/**/*.js"]
+}

@@ -35,6 +35,7 @@ test("#46-B lazy manifest: actual source dependencies, keyboard, mixed page prev
     await retained(page);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await screenshot(page, "manifest-mobile");
+    await page.locator("#example-code summary").click();
     await page.getByLabel("Example source", { exact: true }).focus();
     assert.equal(await page.evaluate(() => document.activeElement?.getAttribute("aria-label")), "Example source");
     await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));

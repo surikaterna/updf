@@ -17,6 +17,7 @@ declare const adapterBrand: unique symbol;
 declare const extensionsBrand: unique symbol;
 declare const blockBrand: unique symbol;
 
+/** Readonly adapter props, preserving opaque content handles rather than recursively expanding their grammars. */
 export type ReadonlyProps<T> = T extends ContentHandle | VNode | BlockContent | ImplicitInlineContent
   ? Readonly<T>
   : T extends readonly unknown[]
@@ -24,7 +25,9 @@ export type ReadonlyProps<T> = T extends ContentHandle | VNode | BlockContent | 
     : T extends object
       ? { readonly [K in keyof T]: ReadonlyProps<T[K]> }
       : T;
+/** Operation-owned synchronous measurement services; do not retain for use after layout/measure returns. */
 export interface MeasureContext {
+  /** Available positive point width for this occurrence. */
   readonly width: number;
   readonly sourcePath: string;
   readonly ancestors: readonly string[];
@@ -37,6 +40,7 @@ export interface MeasureContext {
   /** Operation-owned local report/content wrapper; copies and serialized wrappers carry no claims. */
   readonly edgeRegion: (input: EdgeRegionInput) => NodeDefinition;
 }
+/** Reserved before/after block content; first/all/last selects occurrence fragments, height is points. */
 export interface ContentDecoration {
   readonly edge: "before" | "after";
   readonly repeat: "first" | "all" | "last";
@@ -45,13 +49,16 @@ export interface ContentDecoration {
 }
 declare const partBrand: unique symbol;
 declare const scopeBrand: unique symbol;
+/** Owned author-slot identity; structurally similar or serialized values cannot substitute. */
 export interface BlockPartIdentity {
   readonly [partBrand]: true;
 }
 export type BlockPartComponent<P extends object> = BlockComponent<P> & BlockPartIdentity;
+/** Captured author content scoped to one operation; cannot be transferred between measurements. */
 export interface ScopedContent extends ContentHandle {
   readonly [scopeBrand]: true;
 }
+/** Captured slot report with scoped children and readonly props, returned by readParts. */
 export interface BlockPart {
   readonly key?: string | number;
   readonly part: BlockPartIdentity;
@@ -59,6 +66,7 @@ export interface BlockPart {
   readonly content: ScopedContent;
   readonly sourcePath: string;
 }
+/** Point constraints plus explicit adapter defaults; implicitParagraph enables all-inline coercion. */
 export interface AdapterContentConstraints extends ContentConstraints {
   readonly style?: BlockStyle;
   readonly sourcePath?: string;
@@ -72,10 +80,12 @@ export interface ContentMeasurer {
     constraints: AdapterContentConstraints & { readonly implicitParagraph: true },
   ): MeasuredContent;
 }
+/** Natural point size and native local-origin nodes; not an independently paginated document. */
 export interface MeasuredContent {
   readonly size: { readonly width: number; readonly height: number };
   readonly nodes: readonly NodeDefinition[];
 }
+/** Source-unit offset and point region capacity; offset is not a vertical point coordinate. */
 export interface BlockFragmentRequest {
   readonly offset: number;
   readonly availableHeight: number;
@@ -83,6 +93,7 @@ export interface BlockFragmentRequest {
   readonly atFreshRegion: boolean;
   readonly width: number;
 }
+/** Defer without progress or place a progressing source range with local native nodes and point height. */
 export type BlockFragment =
   | { readonly status: "defer" }
   | {
@@ -92,6 +103,7 @@ export type BlockFragment =
       readonly nodes: readonly NodeDefinition[];
       readonly decorations?: DecorationPlan;
     };
+/** Measured adapter protocol; extent is positive source units, naturalSize is points, atomic blocks cannot split. */
 export interface MeasuredBlock {
   /** Resolve selected before/body/after root reports together, independently of decoration reservation. */
   readonly sharedEdges?: boolean;
@@ -104,23 +116,28 @@ export interface MeasuredBlock {
   readonly decorations?: DecorationPlan;
   readonly fragment: (request: BlockFragmentRequest) => BlockFragment;
 }
+/** Trusted synchronous callbacks; validate returns snapshot-compatible props, measure returns a fragment producer. */
 export interface BlockAdapterDefinition<P> {
   readonly name: string;
   readonly validate: (input: unknown) => P;
   readonly measure: (props: ReadonlyProps<P>, context: MeasureContext) => MeasuredBlock;
 }
+/** Owned named adapter identity; names alone do not authorize descriptors. */
 export interface BlockAdapterIdentity {
   readonly name: string;
   readonly [adapterBrand]: unknown;
 }
+/** Typed identity from defineBlockAdapter, reusable across independently scoped operations. */
 export interface BlockAdapter<P> extends BlockAdapterIdentity {
   readonly [adapterBrand]: (props: P) => P;
 }
+/** Owned extension() snapshot; cannot be reconstructed from serialized props alone. */
 export interface ExtensionBlock {
   readonly type: "extension";
   readonly props: unknown;
   readonly [blockBrand]: true;
 }
+/** Local capability set from createExtensions; no global installation or name-based fallback. */
 export interface Extensions {
   readonly [extensionsBrand]: true;
 }

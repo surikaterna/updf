@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { documentResources } from "../dist/core/document-resources.js";
-import { PdfWriter } from "../dist/core/pdf-writer.js";
-import type { MeasuredPage } from "../dist/core/plan.js";
-import { type Resource, type ResourceCollection, resourceSlot } from "../dist/core/resource-types.js";
+import { documentResources } from "../dist/cjs/core/document-resources.js";
+import { PdfWriter } from "../dist/cjs/core/pdf-writer.js";
+import type { MeasuredPage } from "../dist/cjs/core/plan.js";
+import { type Resource, type ResourceCollection, resourceSlot } from "../dist/cjs/core/resource-types.js";
 
 const node = { type: "rect", x: 0, y: 0, width: 10, height: 10 } as const;
 const page = (children = [node]): MeasuredPage => ({ width: 100, height: 100, children });

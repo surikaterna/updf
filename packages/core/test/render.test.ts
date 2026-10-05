@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, type RenderOptions, renderUnknown as render } from "@updf/core";
-import { measure as measureValidated } from "../dist/core/measure.js";
-import { textWidth } from "../dist/core/metrics.js";
-import { decimal, literal, value } from "../dist/core/pdf-values.js";
-import { validate } from "../dist/core/validate.js";
+import { measure as measureValidated } from "../dist/cjs/core/measure.js";
+import { textWidth } from "../dist/cjs/core/metrics.js";
+import { decimal, literal, value } from "../dist/cjs/core/pdf-values.js";
+import { validate } from "../dist/cjs/core/validate.js";
 
 const text = (overrides: Record<string, unknown> = {}) => ({
   type: "text",

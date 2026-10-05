@@ -43,8 +43,8 @@ test("visible block/chart demo has actual sources, Node/browser bytes, error/hid
     assert.equal(await page.locator("#block-height").evaluate((element) => element === document.activeElement), true);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await screenshot(page, "blocks-mobile");
-    await page.getByRole("button", { name: "Reset", exact: true }).click();
-    assert.deepEqual(await pdf(page), textDemo("Hello portable PDF"));
+    await page.getByRole("button", { name: "Reset demo", exact: true }).click();
+    assert.deepEqual(await pdf(page), blockExample("Hello portable PDF").bytes);
     await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
     assert.equal(await page.evaluate(() => Reflect.get(window, "activePdfUrls").size), 0);
   } finally {

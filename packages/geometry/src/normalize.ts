@@ -102,6 +102,13 @@ function apply(source: string, values: readonly number[], state: State): readonl
   state.previous = kind;
   return output;
 }
+/**
+ * Normalize SVG M/L/H/V/C/S/Q/T/A/Z (absolute or relative) to native commands.
+ * Coordinates remain in source units; quadratics/arcs become cubics. Nonempty
+ * paths must begin with moveto. Limits: 100000 UTF-16 code units and 4096 output
+ * commands, with an additional scanner work budget. Malformed or over-budget
+ * input throws DocumentError; no DOM, external resources or caller mutation.
+ */
 export function parsePathData(input: string): readonly PathCommand[] {
   if (typeof input !== "string") fail("TYPE", "/path", "Expected path string");
   if (input.length > 100000) fail("LIMIT", "/path", "Path string budget exceeded");

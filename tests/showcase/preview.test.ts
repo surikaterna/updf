@@ -16,7 +16,7 @@ test("debounced edits retain matched old output, publish latest pixels and dispo
     const href = await page.locator("#download").getAttribute("href");
     await page.getByLabel("PDF title", { exact: true }).fill("Discard this edit");
     assert.equal(await page.locator("#download").getAttribute("href"), href);
-    assert.match(await page.getByRole("status").innerText(), /Previous PDF remains/);
+    assert.match(await page.locator("#result-state").innerText(), /Previous PDF remains/);
     await page.getByLabel("PDF title", { exact: true }).fill("IIII");
     assert.deepEqual(await pdf(page), textDemo("IIII"));
     assert.notDeepEqual(await rendered(page), original);
@@ -121,6 +121,8 @@ test("cancel pending PDF.js document load without replacing previous or latest o
     await page.goto(app.url);
     await rendered(page);
     const previous = await page.locator("#download").getAttribute("href");
+    const previousSource = await page.locator("#source").textContent();
+    const previousArguments = await page.locator("#source-arguments").textContent();
     const pending = new Promise<void>((resolve) => {
       release = resolve;
     });
@@ -136,6 +138,8 @@ test("cancel pending PDF.js document load without replacing previous or latest o
     await page.getByLabel("Example", { exact: true }).selectOption("template");
     await request;
     assert.equal(await page.locator("#download").getAttribute("href"), previous);
+    assert.equal(await page.locator("#source").textContent(), previousSource);
+    assert.equal(await page.locator("#source-arguments").textContent(), previousArguments);
     assert.equal(await page.locator("#preview canvas").count(), 1);
     await page.getByLabel("PDF title", { exact: true }).fill("Latest document");
     await page.getByLabel("Example", { exact: true }).selectOption("text");

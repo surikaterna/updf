@@ -6,6 +6,11 @@ separate `@updf/tables` package. Dated audit evidence is retained in `docs/evide
 
 ## Public surface
 
+The grouped [API inventory](API.md) maps root exports to their declaration owners
+and states the limits of field-level hover coverage. The compiled
+[`layout-documentation-examples.ts`](../../tests/integration/layout-documentation-examples.ts)
+exercises data layout/measurement, paged tables and the kernel subpaths.
+
 Import `Document`, `Page`, `Flow`, `Block`, `Paragraph`, `Span`, `Row`, `Column`, `PageSize`,
 `PageContext`, `FragmentContext`, `layout`, `measure`, data constructors,
 decorations and adapter contracts from the root. Use core's JSX runtime and renderer.

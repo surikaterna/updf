@@ -13,7 +13,8 @@ test("bounded form input is data, never HTML or evaluated source", async () => {
     await page.getByLabel("PDF title", { exact: true }).fill(title);
     await page.getByRole("button", { name: "Generate PDF" }).click();
     assert.deepEqual(await pdf(page, "input-proof.pdf"), textDemo(title));
-    assert.equal(await page.locator("img").count(), 0);
+    assert.equal(await page.locator("img:not(#brand-logo)").count(), 0);
+    assert.equal(await page.locator("#brand-logo").getAttribute("src"), null);
     await source(page, "text.ts");
     await page.locator("#title").evaluate((element) => {
       if (!(element instanceof HTMLInputElement)) throw new Error("Expected input");

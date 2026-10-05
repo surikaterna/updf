@@ -1,5 +1,5 @@
 import { render } from "@updf/core";
-import { layoutTableFlow } from "../../packages/layout/src/tables/index.js";
+import { layoutTableFlow } from "../../packages/layout/dist/cjs/tables/index.js";
 
 /** Historical C table fixture remains a migration control until G removes the old API. */
 export function legacyInventory(title: string) {

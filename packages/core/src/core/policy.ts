@@ -4,17 +4,28 @@ import { validateDataObject as record } from "./schema.js";
 
 /** Optional resource budgets. Counts are nonnegative safe integers; text uses Unicode code points. */
 export interface Limits {
+  /** Maximum nesting depth, not JavaScript call-stack or execution-time control. */
   readonly depth?: number;
+  /** Source/generated node budgets; these totals are checked independently. */
   readonly nodes?: number;
+  /** Maximum number of document pages. */
   readonly pages?: number;
+  /** Total Unicode scalars, not UTF-16 code units. */
   readonly textCodePoints?: number;
+  /** Total native path commands. */
   readonly pathCommands?: number;
+  /** Bytes of unique owned font programs, not a per-font allowance. */
   readonly fontBytes?: number;
+  /** Serialized PDF byte budget; does not cap arbitrary host allocations. */
   readonly outputBytes?: number;
 }
+/** Shared operation policy; all profiles retain schema, geometry and font validation. */
 export interface OperationOptions {
+  /** Defaults to trusted (safe-integer ceilings); service selects SERVICE_LIMITS. Not a code sandbox. */
   readonly profile?: "trusted" | "service";
+  /** Per-field overrides of the selected profile, including zero; omitted fields keep profile defaults. */
   readonly limits?: Limits;
+  /** Host-owned font IDs. Omitted resources use built-in Helvetica; it cannot be overridden. */
   readonly resources?: FontResources;
 }
 /** Service defaults: nesting, source/generated nodes, pages, scalar text, commands, unique font/output bytes. */

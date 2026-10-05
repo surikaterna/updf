@@ -20,6 +20,14 @@ interface Sized {
   allocation: BoxAllocation;
   placementStyle: PlacementStyle;
 }
+/**
+ * Snapshot a bounded host tree, allocate widths before measuring leaf content,
+ * then size/position boxes. Geometry cannot shrink or truncate content; invalid
+ * records, repeated nodes/IDs, incompatible stretch or exhausted budgets throw
+ * LayoutInputError. Callbacks are synchronous trusted code, not a sandbox.
+ * Returns frozen records/arrays/counts; generic content payloads are retained,
+ * not cloned or frozen. Caller tree data is not frozen.
+ */
 export function layoutBoxes<N, C>(input: LayoutBoxesInput<N, C>): BoxLayout<C> {
   const options = boxInput(input);
   const { nodes, childCalls } = collectBoxes(options.root, options.view, options.limits);

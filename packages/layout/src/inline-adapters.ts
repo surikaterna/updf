@@ -21,6 +21,7 @@ const definitions = new WeakMap<object, InlineAdapterDefinition<unknown>>();
 const descriptors = new WeakMap<object, object>();
 const caches = new WeakMap<LayoutOperation, WeakMap<object, Map<string, PreparedVisual>>>();
 const captures = new WeakMap<LayoutOperation, OutputBudget>();
+/** Define a frozen inline identity with trusted synchronous callbacks; install it in the local Extensions set. */
 export function defineInlineAdapter<P>(definition: InlineAdapterDefinition<P>): InlineAdapter<P> {
   record(definition, ["name", "validate", "measure"], "/adapter");
   if (typeof definition.name !== "string" || !/^[A-Za-z][A-Za-z0-9.-]*$/u.test(definition.name))
@@ -32,6 +33,7 @@ export function defineInlineAdapter<P>(definition: InlineAdapterDefinition<P>): 
   registerAdapter(adapter, definition.name);
   return adapter;
 }
+/** Snapshot plain props into a frozen inline descriptor; foreign adapters throw TYPE, uninstalled ones later throw KEY. */
 export function inline<P>(adapter: InlineAdapter<P>, props: P): InlineVisual {
   if (!definitions.has(adapter)) fail("TYPE", "/adapter", "Expected an owned inline adapter");
   const descriptor = ownContentData(

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { render } from "@updf/core";
-import { PdfWriter } from "../../packages/core/dist/core/pdf-writer.js";
+import { PdfWriter } from "../../packages/core/dist/cjs/core/pdf-writer.js";
 import { fixtureFont, fontDocument, fontText } from "../fixtures/fonts/font-fixture.js";
 
 test("production font, page, painting and stream consumers use the one typed writer", async (context) => {

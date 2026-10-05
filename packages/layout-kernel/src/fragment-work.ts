@@ -2,6 +2,7 @@ import { fail } from "./error.js";
 import type { FragmentCounts, FragmentLimits, ProviderWork } from "./fragment-types.js";
 import { record, trackLimit } from "./width-validation.js";
 
+/** Frozen cumulative caps: 10000 attempts, 100000 visits/reads/measurements/units/output, 1000000 provider units. */
 export const fragmentDefaults: FragmentCounts = Object.freeze({
   attempts: 10000,
   sourceVisits: 100000,

@@ -126,7 +126,12 @@ function finish(state: State): DocumentDefinition {
   return snapshot(result, "/result");
 }
 
-/** Synchronous trusted component execution, fresh local registry/budgets/outputs each call. */
+/**
+ * Expand one native document tree to deeply frozen validated fixed-page data.
+ * Each call has fresh registry/budgets/output; measurement contexts close on success or failure.
+ * Components execute synchronously as trusted host code, even with the service profile.
+ * @throws {DocumentError} For hierarchy, ownership, cycles, registry, fitting or budget failures.
+ */
 export function lower(tree: VDOMChild, options: LowerOptions = {}): DocumentDefinition {
   dataRecord(options, "/options");
   const { fonts, budget } = operation(options, ["registry", "resourceMetadata"]);

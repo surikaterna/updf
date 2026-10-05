@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { site, source } from "./helpers.js";
+import { rendered, site, source } from "./helpers.js";
 
 test("rich diagnostics, controls and scrollable source remain reachable on narrow viewports", async () => {
   const app = await site();
@@ -18,7 +18,9 @@ test("rich diagnostics, controls and scrollable source remain reachable on narro
         `,
         });
       await page.getByLabel("Example", { exact: true }).selectOption("rich");
+      await rendered(page);
       await source(page, "rich.tsx");
+      await page.locator("#example-code summary").click();
       await page.getByLabel("Width", { exact: true }).fill("20");
       await page.getByRole("button", { name: "Generate PDF" }).click();
       await page
@@ -38,7 +40,7 @@ test("rich diagnostics, controls and scrollable source remain reachable on narro
 
 async function assertReachable(page: import("playwright").Page): Promise<void> {
   const geometry = await page.evaluate(() => {
-    const sourcePanel = document.querySelector("pre");
+    const sourcePanel = document.querySelector('pre[aria-label="Example source"]');
     if (!(sourcePanel instanceof HTMLElement)) throw new Error("Missing source panel");
     sourcePanel.scrollLeft = sourcePanel.scrollWidth;
     return {

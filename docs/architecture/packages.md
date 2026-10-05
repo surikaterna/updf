@@ -12,9 +12,13 @@ tables → core + layout;
 SVG → core + geometry; Fontkit adapter → core, with optional peer Fontkit ^2.0.4.
 Exact native local dependency versions prevent registry fallback. Fontkit 2.0.4
 is a pinned dev dependency exclusively of its adapter. React and its types belong
-to the browser React example, not native libraries. No new CommonJS native output.
+to the browser React example, not native libraries. Node require and ESM imports
+share a canonical CommonJS graph via named ESM facades; the browser condition
+selects independent tree-shakeable ESM. See [native packaging](../native-packaging.md)
+for loader identity, declaration graphs and private direct-import limits.
 
-Native manifests pair explicit `types`/`import` exports: core root, fonts, painting,
+Native manifests use explicit browser/import/require exports with matching types:
+core root, fonts, painting,
 VDOM, measurement and both JSX runtimes; layout root; tables root; geometry root;
 SVG root/tree; Fontkit adapter root. Layout's removed `/vdom` and `/tables*`
 exports are not compatibility aliases. Kernel exports root, numeric, arithmetic,
@@ -22,7 +26,13 @@ geometry, boxes and fragmentation; see the authoritative
 [layout-kernel contract](layout-kernel.md).
 There are no wildcard exports. `lib: [ES2022]`, `types: []`, strict NodeNext and
 no TS paths apply to native builds. Build order is kernel → core → layout/tables/geometry/Fontkit → SVG
-→ CMR/node examples. Babel 6/Mocha 2/ESLint 2 remain scoped to legacy.
+→ CMR/node examples. Legacy uses TypeScript `allowJs` CommonJS compilation and
+a bounded Node test runner; Babel/Mocha/ESLint are retired from active tooling.
+Preserved historical configs and archives are inert; see
+[legacy tooling retirement](../migration/legacy-tooling-retirement.md).
+Maintained native code uses [Biome and TS code-principles gates](../code-quality.md).
+Public API inventories: [core](../../packages/core/API.md),
+[layout](../../packages/layout/API.md), [tables](../../packages/tables/API.md).
 
 ## Narrow internal seams
 

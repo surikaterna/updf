@@ -1,10 +1,14 @@
 # Legacy compatibility during private migration
 
-The old package manifest is archived at `../evidence/baseline/legacy-package.json`;
-the original short README is preserved in `legacy-readme.md`. Published historical
+The old package manifest is [archived in baseline evidence](../evidence/baseline/legacy-package.json);
+the original short README is [archived here](legacy-readme.md). The long
+[`packages/legacy/readme.md`](../../packages/legacy/readme.md) is also protected
+historical documentation: its old tooling instructions are not current commands.
+Historical manifests, lockfiles, configs and evidence are preserved, not rewritten.
+Published historical
 `@surikat/updf` is not replaced on a registry by this transition. In this private
 checkout, the old implementation is named `@updf/legacy`, remains version 0.4.15,
-and preserves `main: lib/index.js` and Babel default CommonJS export semantics:
+and preserves `main: lib/index.js` and the historical CommonJS `.default` semantics:
 
 ```js
 const Document = require('@updf/legacy').default;
@@ -12,11 +16,15 @@ const A4 = require('@updf/legacy/lib/boxes/a4').default;
 ```
 
 There is no legacy exports map restricting existing `lib` deep imports. The root
-shim `packages/legacy/index.js` imports src and requires Babel; it is not actual
-package main. All legacy src/test/config files retained relative relationships
-and original bytes. `lib` is ignored local Babel output, not tracked source.
-Lifecycle/test/watch/compile/prepublish scripts and Babel 6/Mocha 2/ESLint 2 remain.
-Root `npm ci --ignore-scripts` requires explicit build rather than lifecycle output.
+shim `packages/legacy/index.js` imports src; it is preserved historical source,
+not the actual package main or a supported direct Node entry. All legacy
+src/test/config files retain relative relationships and original bytes.
+`lib` is ignored, rebuildable TypeScript `allowJs` CommonJS output, not immutable
+source. Active compile/watch/lifecycle commands use TypeScript; tests use a bounded
+Node runner. Babel 6/Mocha 2/ESLint 2 are absent from active tooling; preserved
+`.babelrc`/`.eslintrc` files are inert. Root `npm ci --ignore-scripts` requires an
+explicit build rather than lifecycle output. See
+[active tooling retirement and comparison evidence](legacy-tooling-retirement.md).
 
 The raw suite still fails at container.js:255:46, selected by inherited `it.only`
 at 433; Windows output paths and unavailable diagram fixtures are unchanged.
@@ -28,12 +36,13 @@ not evidence that images rendered. No failure has been modernized or waived.
 
 External tarball smoke requires the actual package main plus lib deep imports and
 matches the original 651-byte PDF digest. Legacy regression comparison is distinct
-from raw `npm run test:legacy`, which remains failed. Root audit includes legacy
-vulnerable toolchain; the initial root baseline had 57 findings. Current merged
-audit results are recorded in migration evidence, not described as zero.
+from raw `npm run test:legacy`, which remains failed. The exact comparison passes
+under the replacement runner; this is equivalence, not a green legacy suite.
+The initial dependency audit had 57 findings under the old toolchain; that is
+historical evidence, not a current dependency count or a claim of zero findings.
 
 All packages are private. The user confirmed the project MIT attribution,
 Copyright (c) 2026 Surikat AB; the full project LICENSE now ships in the legacy
 tarball alongside the unchanged Fontello notice for arc math. See the
 [dated resolution](../evidence/project-license.md); historical evidence is unchanged.
-Npm publication, deployment and dependency modernization need separate authorization.
+Npm publication, deployment and further modernization need separate authorization.
