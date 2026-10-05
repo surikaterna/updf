@@ -3,9 +3,11 @@ import test from "node:test";
 import { render } from "@updf/core";
 import { fixtureFont, fontDocument, fontText } from "../../../tests/fixtures/fonts/font-fixture.js";
 import { defaultResources } from "../dist/core/default-resources.js";
+import { documentResources } from "../dist/core/document-resources.js";
 import { measure } from "../dist/core/measure.js";
 import { serialize } from "../dist/core/serialize.js";
-import { fontAt } from "../dist/fonts/provider.js";
+import { textSlot } from "../dist/core/text-paint.js";
+import { fontProvider } from "../dist/fonts/provider.js";
 import { resolveResources } from "../dist/fonts/resources.js";
 import { alphaAt } from "../dist/painting/alpha.js";
 
@@ -32,9 +34,9 @@ test("final lines use alias identity, include later-page CIDs and exclude discar
     laterLine = laterNode.lines[0],
     lostLine = lostNode.lines[0];
   assert.ok(firstLine && laterLine && lostLine);
-  assert.equal(fontAt(resources.page(first), firstLine).key, "F2");
-  assert.throws(() => fontAt(resources.page(first), laterLine), /Missing/);
-  assert.throws(() => fontAt(resources.page(first), lostLine), /Missing/);
+  assert.equal(resources.page(first).painting(firstLine, textSlot).key, "F2");
+  assert.throws(() => resources.page(first).painting(laterLine, textSlot), /Missing/);
+  assert.throws(() => resources.page(first).painting(lostLine, textSlot), /Missing/);
   assert.deepEqual(
     serialize([first, second], resources),
     serialize([first, second], defaultResources([first, second])),
@@ -113,10 +115,48 @@ test("rich fragments bind final encodings with shared measured objects across pa
   assert.ok(fragment && builtin);
   const shared = { ...first };
   const resources = defaultResources([first, shared]);
-  assert.equal(fontAt(resources.page(first), fragment).key, "F2");
-  assert.equal(fontAt(resources.page(shared), fragment).key, "F2");
-  assert.equal(fontAt(resources.page(shared), builtin).key, "F1");
+  assert.equal(resources.page(first).painting(fragment, textSlot).key, "F2");
+  assert.equal(resources.page(shared).painting(fragment, textSlot).key, "F2");
+  assert.equal(resources.page(shared).painting(builtin, textSlot).key, "F1");
   const next = defaultResources([first]);
   assert.deepEqual(serialize([first], next), serialize([first], defaultResources([first])));
   assert.throws(() => next.page(shared), /Foreign/);
+});
+
+test("reused provider resets document state while previous lazy bindings retain their own CIDs", async () => {
+  const font = await fixtureFont();
+  const fonts = resolveResources({ resources: { Demo: font } });
+  const first = measure(fontDocument([fontText("A")]), fonts)[0];
+  const second = measure(fontDocument([fontText("B")]), fonts)[0];
+  assert.ok(first && second);
+  const provider = fontProvider();
+  const one = documentResources([first], [provider]);
+  const two = documentResources([second], [provider]);
+  const raw = Buffer.from(serialize([first], one)).toString("latin1");
+  const later = Buffer.from(serialize([second], two)).toString("latin1");
+  assert.match(raw, /<0001> <0041>/);
+  assert.doesNotMatch(raw, /<0042>/);
+  assert.match(later, /<0001> <0042>/);
+  assert.doesNotMatch(later, /<0041>/);
+  assert.match(raw, /\/F2 /);
+  assert.match(later, /\/F2 /);
+});
+
+test("lookup never allocates CIDs: a post-collection unregistered glyph fails instead of extending usage", async () => {
+  const font = await fixtureFont();
+  const pages = measure(fontDocument([fontText("A")]), resolveResources({ resources: { Demo: font } }));
+  const page = pages[0];
+  const node = page?.children[0];
+  assert.ok(page && node?.type === "text");
+  const line = node.lines[0];
+  const glyph = line?.glyphs?.[0];
+  assert.ok(line && glyph);
+  const mutableGlyph = { ...glyph };
+  const site = { ...line, glyphs: [mutableGlyph] };
+  const probe = { ...page, children: [{ ...node, lines: [site] }] };
+  const resources = documentResources([probe], [fontProvider()]);
+  mutableGlyph.codePoint = 66;
+  assert.throws(() => resources.page(probe).painting(site, textSlot), /Unregistered glyph/);
+  mutableGlyph.codePoint = 65;
+  assert.equal(resources.page(probe).painting(site, textSlot).payload.value, "0001");
 });
