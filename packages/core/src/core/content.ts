@@ -2,7 +2,7 @@ import { encodeRun, type FontUsage } from "../fonts/cids.js";
 import type { Alpha } from "../painting/alpha.js";
 import { painted } from "../painting/pdf.js";
 import { fail } from "./error.js";
-import { literal, decimal as n, value } from "./pdf-values.js";
+import { hex, literal, decimal as n, value } from "./pdf-values.js";
 import type {
   MeasuredLine,
   MeasuredNode,
@@ -21,13 +21,13 @@ function textCommand(
   fonts: readonly FontUsage[],
 ): string {
   let key = "F1";
-  let encoded = value(literal(line.text));
+  let encoded: string;
   if (node.preparedFont) {
     const font = fonts.find((item) => item.font === node.preparedFont);
     if (!font || !line.glyphs) fail("FONT_DATA", "", "Unregistered measured font/run");
     key = font.key;
-    encoded = `<${encodeRun(font, line.glyphs)}>`;
-  }
+    encoded = value(hex(encodeRun(font, line.glyphs)));
+  } else encoded = value(literal(line.text));
   const position = local ? `1 0 0 -1 ${n(line.x)} ${n(line.y)}` : `1 0 0 1 ${n(line.x)} ${n(height - line.y)}`;
   return `BT /${key} ${n(node.fontSize)} Tf ${position} Tm ${encoded} Tj ET\n`;
 }
@@ -42,13 +42,13 @@ function richCommands(
   push("q\n");
   for (const fragment of node.fragments) {
     let key = "F1";
-    let encoded = value(literal(fragment.text));
+    let encoded: string;
     if (fragment.preparedFont) {
       const font = fonts.find((item) => item.font === fragment.preparedFont);
       if (!font || !fragment.glyphs) fail("FONT_DATA", "", "Unregistered rich font/run");
       key = font.key;
-      encoded = `<${encodeRun(font, fragment.glyphs)}>`;
-    }
+      encoded = value(hex(encodeRun(font, fragment.glyphs)));
+    } else encoded = value(literal(fragment.text));
     const x = node.x + fragment.x;
     const y = node.y + fragment.baseline;
     const position = local ? `1 0 0 -1 ${n(x)} ${n(y)}` : `1 0 0 1 ${n(x)} ${n(height - y)}`;

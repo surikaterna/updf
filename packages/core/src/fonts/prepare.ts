@@ -1,4 +1,5 @@
 import { fail } from "../core/error.js";
+import type { PdfRef, PdfWriter } from "../core/pdf-writer.js";
 import { type OperationOptions, policy } from "../core/policy.js";
 import { array, bounds, byteLength, fontLimits, numeric, record } from "./checks.js";
 import {
@@ -118,9 +119,9 @@ export function glyphFor(font: PreparedFont, codePoint: number, path: string): P
   return glyph;
 }
 
-/** Internal serializer access returns a copy, never mutable owned storage. */
-export function copyProgram(font: PreparedFont): Uint8Array<ArrayBuffer> {
+/** The writer budgets and snapshots private storage without exposing it. */
+export function writeProgram(font: PreparedFont, writer: PdfWriter, ref: PdfRef): void {
   const data = storage.get(font);
   if (!data) fail("FONT_RESOURCE", "/resources", "Unowned prepared font");
-  return new Uint8Array(data.bytes);
+  writer.defineStream(ref, [data.bytes], { Length1: data.bytes.byteLength });
 }

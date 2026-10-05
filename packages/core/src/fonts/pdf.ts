@@ -1,7 +1,7 @@
-import { type PdfObject, stream } from "../core/bytes.js";
-import { decimal as n, name, value } from "../core/pdf-values.js";
+import { literal, name } from "../core/pdf-values.js";
+import type { PdfRef, PdfWriter } from "../core/pdf-writer.js";
 import { type FontUsage, utf16hex } from "./cids.js";
-import { copyProgram } from "./prepare.js";
+import { writeProgram } from "./prepare.js";
 
 function unicode(usage: FontUsage): string[] {
   const chunks = [
@@ -28,24 +28,60 @@ function gidMap(usage: FontUsage): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
-export function fontObjects(usage: FontUsage, base: number): readonly PdfObject[] {
+export function reserveFont(writer: PdfWriter) {
+  return {
+    font: writer.reserve(),
+    descendant: writer.reserve(),
+    descriptor: writer.reserve(),
+    program: writer.reserve(),
+    map: writer.reserve(),
+    unicode: writer.reserve(),
+  };
+}
+
+export function defineFont(writer: PdfWriter, usage: FontUsage, refs: ReturnType<typeof reserveFont>): void {
   const metadata = usage.font.metadata;
   const descriptor = metadata.descriptor;
-  const scale = (unit: number): string => n((unit / metadata.unitsPerEm) * 1000);
-  const baseName = value(name(descriptor.postscriptName));
-  const widths = usage.glyphs.map((glyph) => scale(glyph.advance)).join(" ");
-  return [
-    [
-      `<< /Type /Font /Subtype /Type0 /BaseFont ${baseName} /Encoding /Identity-H /DescendantFonts [${base + 1} 0 R] /ToUnicode ${base + 5} 0 R >>`,
-    ],
-    [
-      `<< /Type /Font /Subtype /CIDFontType2 /BaseFont ${baseName} /CIDSystemInfo << /Registry (Adobe) /Ordering (Identity) /Supplement 0 >> /FontDescriptor ${base + 2} 0 R /CIDToGIDMap ${base + 4} 0 R /DW 0 /W [1 [${widths}]] >>`,
-    ],
-    [
-      `<< /Type /FontDescriptor /FontName ${baseName} /Flags ${descriptor.flags} /FontBBox [${descriptor.bounds.map(scale).join(" ")}] /ItalicAngle ${n(descriptor.italicAngle)} /Ascent ${scale(descriptor.ascent)} /Descent ${scale(descriptor.descent)} /CapHeight ${scale(descriptor.capHeight)} /StemV ${n(descriptor.stemV)} /FontFile2 ${base + 3} 0 R >>`,
-    ],
-    stream([copyProgram(usage.font)], ` /Length1 ${metadata.byteLength}`),
-    stream([gidMap(usage)]),
-    stream(unicode(usage)),
-  ];
+  const scale = (unit: number): number => (unit / metadata.unitsPerEm) * 1000;
+  const baseName = name(descriptor.postscriptName);
+  writer.define(refs.font, {
+    Type: name("Font"),
+    Subtype: name("Type0"),
+    BaseFont: baseName,
+    Encoding: name("Identity-H"),
+    DescendantFonts: [refs.descendant],
+    ToUnicode: refs.unicode,
+  });
+  writer.define(refs.descendant, {
+    Type: name("Font"),
+    Subtype: name("CIDFontType2"),
+    BaseFont: baseName,
+    CIDSystemInfo: { Registry: literal("Adobe"), Ordering: literal("Identity"), Supplement: 0 },
+    FontDescriptor: refs.descriptor,
+    CIDToGIDMap: refs.map,
+    DW: 0,
+    W: [1, usage.glyphs.map((glyph) => scale(glyph.advance))],
+  });
+  defineDescriptor(writer, refs.descriptor, refs.program, usage);
+  writeProgram(usage.font, writer, refs.program);
+  writer.defineStream(refs.map, [gidMap(usage)]);
+  writer.defineStream(refs.unicode, unicode(usage));
+}
+
+function defineDescriptor(writer: PdfWriter, ref: PdfRef, program: PdfRef, usage: FontUsage): void {
+  const metadata = usage.font.metadata;
+  const descriptor = metadata.descriptor;
+  const scale = (unit: number): number => (unit / metadata.unitsPerEm) * 1000;
+  writer.define(ref, {
+    Type: name("FontDescriptor"),
+    FontName: name(descriptor.postscriptName),
+    Flags: descriptor.flags,
+    FontBBox: descriptor.bounds.map(scale),
+    ItalicAngle: descriptor.italicAngle,
+    Ascent: scale(descriptor.ascent),
+    Descent: scale(descriptor.descent),
+    CapHeight: scale(descriptor.capHeight),
+    StemV: descriptor.stemV,
+    FontFile2: program,
+  });
 }

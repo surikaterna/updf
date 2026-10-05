@@ -15,6 +15,7 @@ const overrides: Readonly<Record<string, string>> = {
   "readme.md": "docs/migration/legacy-readme.md",
   "experimental/declarative/eslint.config.ts": "eslint.config.ts",
   "experimental/declarative/README.md": "docs/evidence/native-poc-readme.md",
+  "experimental/declarative/core/bytes.ts": "packages/core/src/core/pdf-writer.ts",
 };
 
 function immutable(entry: Entry): boolean {
