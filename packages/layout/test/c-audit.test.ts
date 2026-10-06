@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 import { DocumentError, type NodeDefinition } from "@updf/core";
 import {
   block,
@@ -298,10 +299,7 @@ test("C-F5: existing structured errors retain identity/span and failure closes c
     (error: unknown) => error === original,
   );
   assert.deepEqual(original.diagnostics[0]?.span, { start: 2, end: 5 });
-  diagnostic(
-    () => retained?.measureText({ kind: "plain", text: "A", width: 100, fontSize: 10, lineHeight: 10, align: "left" }),
-    "MEASUREMENT_CONTEXT",
-  );
+  diagnostic(() => retained?.measureText(richInput("A", 100, 10, 10)), "MEASUREMENT_CONTEXT");
 });
 test("C-F2/F3: discarded footer space candidates roll back consumption and selected wrappers", () => {
   const plan = createDecorationPlan([{ edge: "after", repeat: "last", height: 10, nodes: [rect] }]);
@@ -336,16 +334,7 @@ test("C-F4: a cached callback's measurement context uses its current occurrence 
       return {
         ...output([]),
         fragment() {
-          if (++calls === 2)
-            context.measureText({
-              kind: "plain",
-              text: "A",
-              width: 100,
-              fontSize: 10,
-              lineHeight: 10,
-              align: "left",
-              font: "unknown",
-            });
+          if (++calls === 2) context.measureText(richInput("A", 100, 10, 10, "unknown"));
           return { status: "placed", nextOffset: 1, height: 1, nodes: [] };
         },
       };
@@ -372,8 +361,5 @@ test("C-F5: measure-stage failures also close retained contexts without replacin
     },
   });
   diagnostic(() => layoutFlow(flow([extension(adapter, {})]), {}, createExtensions([adapter])), "TYPE", "/body/0");
-  diagnostic(
-    () => context?.measureText({ kind: "plain", text: "A", width: 100, fontSize: 10, lineHeight: 10, align: "left" }),
-    "MEASUREMENT_CONTEXT",
-  );
+  diagnostic(() => context?.measureText(richInput("A", 100, 10, 10)), "MEASUREMENT_CONTEXT");
 });

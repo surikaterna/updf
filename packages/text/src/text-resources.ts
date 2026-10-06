@@ -11,20 +11,13 @@ export function ownRuntime(value: unknown): TextRuntime {
   const path = "/text/runtime";
   dataRecord(value, path);
   const callbacks = Object.create(null) as TextRuntime;
-  for (const key of [
-    "validateResource",
-    "validateText",
-    "fixedPolicy",
-    "lineMetrics",
-    "measure",
-    "joinRuns",
-  ] as const) {
+  for (const key of ["validateResource", "validateText", "lineMetrics", "measure", "joinRuns"] as const) {
     const callback = ownDataValue(value, key, `${path}/${key}`);
     if (typeof callback !== "function") fail("FONT_RESOURCE", `${path}/${key}`, "Missing text runtime capability");
     const bound = callback.bind(value);
     const captured =
       key === "measure"
-        ? (...args: Parameters<TextRuntime["measure"]>) => intrinsicMetrics(bound(...args), args[4])
+        ? (...args: Parameters<TextRuntime["measure"]>) => intrinsicMetrics(bound(...args), args[3])
         : key === "lineMetrics"
           ? (...args: Parameters<TextRuntime["lineMetrics"]>) => intrinsicLineMetrics(bound(...args), args[2])
           : bound;

@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import type { DocumentDefinition, TextNode } from "@updf/core";
+import type { DocumentDefinition, ParagraphDefinition, RichTextNode } from "@updf/core";
 import { createPreparedFont, type PreparedFont } from "@updf/fonts";
 import { record } from "../../../packages/fonts/dist/cjs/checks.js";
 
@@ -12,20 +12,32 @@ export async function fontInput(): Promise<Record<string, unknown>> {
 export async function fixtureFont(): Promise<PreparedFont> {
   return createPreparedFont(await fontInput());
 }
-export const fontText = (text: string, overrides: Partial<TextNode> = {}): TextNode => ({
-  type: "text",
+export function fontParagraph(
+  text: string,
+  font = "Demo",
+  fontSize = 16,
+  lineHeight = 24,
+  align: ParagraphDefinition["align"] = "left",
+): ParagraphDefinition {
+  return {
+    runs: [{ text }],
+    defaultStyle: { font, fontSize, color: [0, 0, 0] },
+    lineHeight,
+    align,
+    whiteSpace: "preserve",
+    breakLongWords: "error",
+  };
+}
+export const fontText = (text: string, overrides: Partial<RichTextNode> = {}): RichTextNode => ({
+  type: "richText",
   x: 20,
   y: 20,
   width: 400,
   height: 100,
-  text,
-  font: "Demo",
-  fontSize: 16,
-  lineHeight: 24,
-  align: "left",
+  paragraphs: [fontParagraph(text)],
   ...overrides,
 });
-export const fontDocument = (children: readonly TextNode[]): DocumentDefinition => ({
+export const fontDocument = (children: readonly RichTextNode[]): DocumentDefinition => ({
   version: 1,
   pages: [{ width: 595, height: 842, children }],
 });

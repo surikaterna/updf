@@ -124,7 +124,7 @@ Node runtime or type dependency leaks into core/layout. Invalid fonts/styles are
 checked **before** inline callbacks execute. Trusted defaults and optional service
 budgets remain B's policy, not an executable-code sandbox.
 
-The unreleased `@updf/text` plain/rich inputs, native `richText`, old
+The unreleased `@updf/text` paragraph-only inputs, native `richText`, old
 Flow paragraph records and component `measurement.measureText` remain low-level
 renderer/adapter paths. They are **not recommended for new authoring**,
 not a permanent compatibility facade or a recommendation to serialize rich-run

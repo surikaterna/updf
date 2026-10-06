@@ -9,7 +9,14 @@ this document is not a tracker transition, release or deployment claim.
 
 `@updf/text` exports `measureText(input, options)` and
 `measureTextUnknown(unknown, options)`. Required options bind resources and an
-explicit text service; see [composition and migration](migration/fonts-text.md).
+explicit `TextMeasurer`; see [composition and migration](migration/fonts-text.md).
+`MeasureOptions` accepts only `resources`, required `measurer`, `profile`, and
+`limits`. `text`, `providers`, and unknown keys are rejected even when empty;
+the measurer accepts only an own `measure` function. This breaking prerelease
+contract has no rendering-options overload or silent key projection.
+`createTextMeasurer({ runtime })` validates all five runtime
+capabilities and installs no automatic default font. All supplied limits validate,
+including limits not consumed by standalone measurement; no new quota is added.
 Each independent call has a fresh ledger.
 Results are deeply frozen ordinary readonly data, in top-left PDF points:
 `width`, `consumedHeight`, `lineCount`, ordered `lines`. Every line gives
@@ -20,14 +27,10 @@ and original UTF16 `[source.start, source.end)` offsets within that run.
 Empty ink is explicitly `{ empty: true }`; nonempty bounds give left/top/right/bottom.
 No plans, glyph records, serializer commands, resource handles or font bytes escape.
 
-`kind: 'plain'` takes existing text/font/fontSize/lineHeight/align semantics plus
-required width and optional height, without page position. Fixed text preserves
-its historical wrapping, empty-text zero lines and baseline placement, including
-the selected-font block-wide ink envelope. Its source offsets refer to its single
-original text string; LF advances the reported paragraph index. The renderer and
-measurement share the unchanged fixed-text helper, not a replacement PDF engine.
-
-`kind: 'rich'` takes width, optional height, and readonly paragraphs. Each paragraph
+The only input is `{ width, height?, paragraphs }` (`TextMeasurementInput = RichTextInput`).
+There is no discriminator, plain form, compatibility flag or automatic converter.
+Bare root strings fail `TYPE`; former plain fields and any `kind` (including
+`'rich'`) fail `KEY` at their field paths. Each paragraph
 requires `runs`, `defaultStyle`, `lineHeight`, `align`, `whiteSpace` and
 `breakLongWords`. `TextStyle` requires a font id, positive point fontSize, and
 normalized RGB triple. Runs require text and may override any style property;
@@ -39,7 +42,7 @@ bold/italic, decorations, shaping, bidi, kerning or font fallback is implied.
 
 - Zero paragraphs consume zero height. Every empty paragraph consumes one line,
   including paragraphs with zero runs or empty runs. LF creates a hard break,
-  retaining empty and trailing lines. CR and tabs are not coerced.
+  retaining empty and trailing lines within the same paragraph index. CR and tabs are not coerced.
 - `preserve` retains U+0020 sequences and their leading/trailing advance. `collapse`
   collapses across run boundaries, trims paragraph/hard-line edges, and discards
   spaces at soft wraps. A collapsed space uses its first original scalar's style
@@ -67,8 +70,13 @@ scale, not an unrelated huge box width. Nonfinite results always fail. Metrics
 are not clamped, shrunk or decimal-quantized, so natural height may still contain
 a representational tail (for example `30.900000000000002` fits a `30.9` bound).
 The helper is private to measurement; no public or `/internal` export was added.
-Fixed/plain wrapping, comparisons, accumulation and baseline/ink metrics retain
-their historical behavior. This addresses Auditor R1 and awaits independent re-audit.
+Native positioned text now uses only these rich paragraphs and the same rich engine.
+The old native plain node/tag, plain props and fixed service callbacks are removed,
+not accepted by an adapter. Existing rich output remains unchanged; former plain
+consumers adopt rich per-line leading/baselines. Runtime measurement has five
+capabilities and no fixed policy or mode argument. See the
+[final integration evidence](evidence/rich-only-text.md) for rich preservation and
+fair bundle costs. Implementation is not independent audit.
 
 The AST uses `RichTextNode` (`type: 'richText'`, Box and paragraphs). Native TSX
 uses `<richText ... paragraphs={paragraphs} />`, not a `<span>` child grammar.

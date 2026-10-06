@@ -6,6 +6,7 @@ import { createPreparedFont } from "@updf/fonts";
 import { measureTextUnknown } from "@updf/text";
 import { fontDocument, fontInput, fontText } from "../../../tests/fixtures/fonts/font-fixture.js";
 import { lower, measureText, render } from "../../../tests/fixtures/text-options.js";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 
 const rectangle: NodeDefinition = { type: "rect", x: 5, y: 5, width: 1, height: 1 };
 const page = { width: 1000000, height: 100, children: [] as readonly NodeDefinition[] };
@@ -13,18 +14,13 @@ const document = (children: readonly NodeDefinition[] = []): DocumentDefinition 
   version: 1,
   pages: [{ ...page, children }],
 });
-const plain = (text: string) =>
-  ({ kind: "plain", width: page.width, text, fontSize: 1, lineHeight: 2, align: "left" }) as const;
+const plain = (text: string) => richInput(text, page.width, 1, 2);
 const text = (content: string): NodeDefinition => ({
-  type: "text",
+  type: "richText",
   x: 0,
   y: 0,
   height: 2,
-  width: page.width,
-  text: content,
-  fontSize: 1,
-  lineHeight: 2,
-  align: "left",
+  ...richInput(content, page.width, 1, 2),
 });
 function limited(run: () => unknown): void {
   assert.throws(run, (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === "LIMIT");
@@ -95,12 +91,12 @@ test("supplementary text charges one scalar before mandatory font profile reject
   );
 });
 test("measurement uses the same optional source depth policy before glyph/line allocation", () => {
-  assert.equal(measureText(plain("A"), { limits: { depth: 0 } }).lineCount, 1);
-  limited(() => measureText({ kind: "rich", width: 10, paragraphs: [] }, { limits: { depth: 0 } }));
+  assert.equal(measureText(plain("A"), { limits: { depth: 4 } }).lineCount, 1);
+  limited(() => measureText(plain("A"), { limits: { depth: 3 } }));
+  limited(() => measureText({ width: 10, paragraphs: [] }, { limits: { depth: 0 } }));
 });
 test("trusted rich lines exceed JavaScript argument-spread sizes without implicit ceilings", () => {
   const input = {
-    kind: "rich",
     width: page.width,
     paragraphs: [
       {

@@ -72,20 +72,20 @@ async function fractionalRaster(align: ParagraphDefinition["align"]): Promise<vo
     }),
   );
   assert.deepEqual(first.image, control.image);
-  const plain = await inspect(
-    `f1-plain-${align}`,
-    render({
-      version: 1,
-      pages: [
-        {
-          width: 100,
-          height,
-          children: [{ type: "text", x: 0, y: 0, width: 100, height, fontSize, lineHeight: height, align, text }],
-        },
-      ],
-    }),
+  const segmentedNative = await inspect(
+    `f1-segmented-native-${align}`,
+    nativeControl({ ...rich, runs: [{ text: text.slice(0, 3) }, { text: text.slice(3) }] }, height),
   );
-  assert.match(plain.text, /second line/u);
+  assert.match(segmentedNative.text, /second line/u);
+  assert.deepEqual(segmentedNative.image, control.image);
+}
+function nativeControl(paragraph: ParagraphDefinition, height: number): Uint8Array {
+  return render({
+    version: 1,
+    pages: [
+      { width: 100, height, children: [{ type: "richText", x: 0, y: 0, width: 100, height, paragraphs: [paragraph] }] },
+    ],
+  });
 }
 test("D-F2: public line/fragment metadata tracks real PDF placement for nested static decoration reservations", async () => {
   const control = await inspect("f2-control", laidOut(paragraph({ children: "A" })).bytes);

@@ -1,20 +1,26 @@
-import type { NodeDefinition, RGB, TextNode } from "@updf/core";
+import type { NodeDefinition, RGB, RichTextNode } from "@updf/core";
 import { compileSVG } from "@updf/svg";
 import { type BrandingControls, brandingDefaults, validateBranding } from "./branding-controls.js";
 import { brandingLogo, brandPalettes } from "./branding-logo.js";
 import { render } from "./text-options.js";
 
-function text(text: string, x: number, y: number, width: number, fontSize = 11): TextNode {
+function text(text: string, x: number, y: number, width: number, fontSize = 11): RichTextNode {
   return {
-    type: "text",
-    text,
+    type: "richText",
     x,
     y,
     width,
     height: fontSize * 1.5,
-    fontSize,
-    lineHeight: fontSize * 1.5,
-    align: "left",
+    paragraphs: [
+      {
+        runs: [{ text }],
+        defaultStyle: { font: "Helvetica", fontSize, color: [0, 0, 0] },
+        lineHeight: fontSize * 1.5,
+        align: "left",
+        whiteSpace: "preserve",
+        breakLongWords: "error",
+      },
+    ],
   };
 }
 

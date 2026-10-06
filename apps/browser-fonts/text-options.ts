@@ -1,6 +1,6 @@
 import type { OperationOptions } from "@updf/core";
 import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
-import { createTextService } from "@updf/text";
+import { createTextMeasurer, createTextService, type MeasureOptions } from "@updf/text";
 
 export function textOptions(options: OperationOptions = {}): OperationOptions {
   const runtime = fontRuntime();
@@ -9,5 +9,12 @@ export function textOptions(options: OperationOptions = {}): OperationOptions {
     resources: { Helvetica: createHelvetica(), ...options.resources },
     text: createTextService({ runtime, defaultFont: "Helvetica" }),
     providers: [fontProvider(runtime)],
+  };
+}
+export function measurementOptions(options: Partial<MeasureOptions> = {}): MeasureOptions {
+  return {
+    measurer: createTextMeasurer({ runtime: fontRuntime() }),
+    ...options,
+    resources: { Helvetica: createHelvetica(), ...options.resources },
   };
 }

@@ -15,9 +15,22 @@ function FixedPageFooter(props: { readonly width: number; readonly background: R
   return (
     <paintGroup>
       <rect x={0} y={0} width={props.width} height={14} paint={{ fill: props.background, stroke: null }} />
-      <text x={0} y={0} width={props.width} height={14} fontSize={10} lineHeight={14} align="left">
-        {`Page ${page.docPageNumber}/${page.docPageCount}`}
-      </text>
+      <richText
+        x={0}
+        y={0}
+        width={props.width}
+        height={14}
+        paragraphs={[
+          {
+            runs: [{ text: `Page ${page.docPageNumber}/${page.docPageCount}` }],
+            defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
+            lineHeight: 14,
+            align: "left",
+            whiteSpace: "preserve",
+            breakLongWords: "error",
+          },
+        ]}
+      />
     </paintGroup>
   );
 }
@@ -29,9 +42,22 @@ function FixedPositionPage(props: FixedPageProps) {
   return (
     <Page size={props.size} orientation={props.orientation}>
       <group x={36} y={36}>
-        <text x={0} y={0} width={width} height={28} fontSize={10} lineHeight={14} align="left">
-          {props.title}
-        </text>
+        <richText
+          x={0}
+          y={0}
+          width={width}
+          height={28}
+          paragraphs={[
+            {
+              runs: [{ text: props.title }],
+              defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
+              lineHeight: 14,
+              align: "left",
+              whiteSpace: "preserve",
+              breakLongWords: "error",
+            },
+          ]}
+        />
       </group>
       {props.footer && (
         <group x={36} y={height - 50}>

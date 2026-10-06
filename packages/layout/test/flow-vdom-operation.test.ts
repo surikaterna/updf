@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 import { DocumentError } from "@updf/core";
 import { type ComponentContext, createContext, h, useContext, type VDOMChild } from "@updf/core/vdom";
 import { lower, render } from "../../../tests/fixtures/text-options.js";
@@ -17,14 +18,7 @@ import { Document, Flow } from "../dist/cjs/transitional-vdom.js";
 import { flow } from "./fixtures.js";
 
 const pageTemplate = flow().pageTemplate;
-const textInput = {
-  kind: "plain" as const,
-  text: "p",
-  width: 100,
-  fontSize: 10,
-  lineHeight: 12,
-  align: "left" as const,
-};
+const textInput = richInput("p");
 const Theme = createContext({ text: "default" });
 
 function contentFlow(child: ReturnType<typeof h>) {

@@ -19,8 +19,6 @@ export type {
   Primitive,
   RegistryDefinition,
   ResourceMetadata,
-  TextChildren,
-  TextProps,
   VDOMChild,
   VNode,
 } from "./types.js";

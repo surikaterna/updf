@@ -1,4 +1,4 @@
-import type { ParagraphDefinition, TextNode } from "@updf/core";
+import type { ParagraphDefinition, RichTextNode } from "@updf/core";
 import type { FlowBlock, FlowDocumentDefinition, PageTemplate } from "@updf/layout";
 
 export function paragraph(text: string, overrides: Partial<ParagraphDefinition> = {}): ParagraphDefinition {
@@ -12,8 +12,8 @@ export function paragraph(text: string, overrides: Partial<ParagraphDefinition> 
     ...overrides,
   };
 }
-export function fixed(text = "Header"): TextNode {
-  return { type: "text", x: 0, y: 0, width: 80, height: 10, text, fontSize: 10, lineHeight: 10, align: "left" };
+export function fixed(text = "Header"): RichTextNode {
+  return { type: "richText", x: 0, y: 0, width: 80, height: 10, paragraphs: [paragraph(text)] };
 }
 export function flow(body: readonly FlowBlock[] = [], overrides: Partial<PageTemplate> = {}): FlowDocumentDefinition {
   return {

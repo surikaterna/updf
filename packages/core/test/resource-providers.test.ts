@@ -4,7 +4,7 @@ import type { OperationOptions } from "@updf/core";
 import { render } from "@updf/core";
 import { fontProvider, fontRuntime } from "@updf/fonts";
 import { createTextService } from "@updf/text";
-import { fixtureFont, fontDocument, fontText } from "../../../tests/fixtures/fonts/font-fixture.js";
+import { fixtureFont, fontDocument, fontParagraph, fontText } from "../../../tests/fixtures/fonts/font-fixture.js";
 import { fontOptions } from "../../../tests/fixtures/fonts/font-options.js";
 import { defaultResources } from "../dist/cjs/core/default-resources.js";
 import { documentResources } from "../dist/cjs/core/document-resources.js";
@@ -53,8 +53,14 @@ test("final lines use alias identity, include later-page CIDs and exclude discar
   const options = fontOptions({ resources: { Demo: font, Alias: font, Other: other, Unused: unused } });
   const fonts = resolved(options);
   const discarded = measure(fontDocument([fontText("Z")]), fonts);
-  const first = measure(fontDocument([fontText("A"), fontText("B", { font: "Alias", y: 100 })]), fonts)[0];
-  const second = measure(fontDocument([fontText("C"), fontText("D", { font: "Other", y: 100 })]), fonts)[0];
+  const first = measure(
+    fontDocument([fontText("A"), fontText("B", { paragraphs: [fontParagraph("B", "Alias")], y: 100 })]),
+    fonts,
+  )[0];
+  const second = measure(
+    fontDocument([fontText("C"), fontText("D", { paragraphs: [fontParagraph("D", "Other")], y: 100 })]),
+    fonts,
+  )[0];
   assert.ok(first && second);
   const resources = collected([first, second], options);
   const raw = Buffer.from(serialize([first, second], resources)).toString("latin1");
@@ -64,10 +70,10 @@ test("final lines use alias identity, include later-page CIDs and exclude discar
   const firstNode = first.children[0],
     laterNode = second.children[0],
     lostNode = discarded[0]?.children[0];
-  assert.ok(firstNode?.type === "text" && laterNode?.type === "text" && lostNode?.type === "text");
-  const firstLine = firstNode.lines[0],
-    laterLine = laterNode.lines[0],
-    lostLine = lostNode.lines[0];
+  assert.ok(firstNode?.type === "richText" && laterNode?.type === "richText" && lostNode?.type === "richText");
+  const firstLine = firstNode.fragments[0],
+    laterLine = laterNode.fragments[0],
+    lostLine = lostNode.fragments[0];
   assert.ok(firstLine && laterLine && lostLine);
   assert.equal(resources.page(first).painting(firstLine, textSlot).key, "F2");
   assert.throws(() => resources.page(first).painting(laterLine, textSlot), /Missing/);
@@ -185,12 +191,12 @@ test("opaque run data cannot be changed through measured sites or forged glyph a
   const pages = measure(fontDocument([fontText("A")]), resolved(options));
   const page = pages[0];
   const node = page?.children[0];
-  assert.ok(page && node?.type === "text");
-  const line = node.lines[0];
+  assert.ok(page && node?.type === "richText");
+  const line = node.fragments[0];
   assert.ok(line);
   assert.ok(!("glyphs" in line) && Object.isFrozen(line.run));
   const site = { ...line, text: "B", glyphs: [] };
-  const probe = { ...page, children: [{ ...node, lines: [site] }] };
+  const probe = { ...page, children: [{ ...node, fragments: [site] }] };
   const resources = collected([probe], options);
   assert.equal(resources.page(probe).painting(site, textSlot).payload.value, "0001");
 });

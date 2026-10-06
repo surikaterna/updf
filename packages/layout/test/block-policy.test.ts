@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 import { DocumentError, type NodeDefinition } from "@updf/core";
 import { h } from "@updf/core/vdom";
 import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
@@ -96,15 +97,7 @@ test("operation resource snapshot survives caller mutation and retained callback
     },
     measure(_props, context) {
       retained = context;
-      const result = context.measureText({
-        kind: "plain",
-        text: "Привет",
-        font: "Demo",
-        fontSize: 10,
-        lineHeight: 10,
-        align: "left",
-        width: 100,
-      });
+      const result = context.measureText(richInput("Привет", 100, 10, 10, "Demo"));
       assert.equal(result.lineCount, 1);
       return {
         fragmentation: "atomic",
@@ -119,10 +112,7 @@ test("operation resource snapshot survives caller mutation and retained callback
     "LAYOUT_OVERSIZED",
   );
   assert.ok(retained);
-  rejects(
-    () => retained?.measureText({ kind: "plain", text: "A", fontSize: 10, lineHeight: 10, align: "left", width: 100 }),
-    "MEASUREMENT_CONTEXT",
-  );
+  rejects(() => retained?.measureText(richInput("A", 100, 10, 10)), "MEASUREMENT_CONTEXT");
 });
 test("foreign or undeclared decoration capability cannot bypass reservation checks", () => {
   const plan = createDecorationPlan([{ edge: "after", repeat: "all", height: 10, nodes: [] }]);
@@ -144,9 +134,7 @@ test("hidden container cannot mask malformed text/resource output or insufficien
       {
         type: "fixed",
         height: 20,
-        children: [
-          { type: "text", text: "A", fontSize: 10, lineHeight: 10, align: "left", width: 1, height: 10, x: 0, y: 0 },
-        ],
+        children: [{ type: "richText", x: 0, y: 0, height: 10, ...richInput("A", 1, 10, 10) }],
       },
     ],
     style: { height: 10, overflow: "hidden" },
@@ -177,7 +165,7 @@ test("owned native VNodes are not extension/container data props, without a VDOM
   rejects(() => block({ children: [node as never] }), "TYPE");
 });
 test("repeated semantic measurement during reservation trials uses the same operation ledger", () => {
-  const input = { kind: "plain" as const, text: "A", width: 100, fontSize: 10, lineHeight: 10, align: "left" as const };
+  const input = richInput("A", 100, 10, 10);
   const plan = createDecorationPlan([{ edge: "after", repeat: "last", height: 10, nodes: [] }]);
   let calls = 0;
   const adapter = defineBlockAdapter({

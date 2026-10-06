@@ -8,15 +8,21 @@ import { measure } from "../../core/dist/cjs/core/measure.js";
 import { operation } from "../../core/dist/cjs/core/operation.js";
 
 const text = {
-  type: "text",
+  type: "richText",
   x: 0,
   y: 0,
   width: 100,
   height: 20,
-  text: "AB",
-  fontSize: 10,
-  lineHeight: 12,
-  align: "left",
+  paragraphs: [
+    {
+      runs: [{ text: "AB" }],
+      defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
+      lineHeight: 12,
+      align: "left",
+      whiteSpace: "preserve",
+      breakLongWords: "error",
+    },
+  ],
 } as const;
 const document: DocumentDefinition = { version: 1, pages: [{ width: 100, height: 100, children: [text] }] };
 const missing = (run: () => unknown, path: string) =>
@@ -39,7 +45,7 @@ test("text requires explicitly bound resource, runtime and provider; geometry ne
         resources: { Helvetica: resource },
         text: createTextService({ runtime, defaultFont: "Helvetica" }),
       }),
-    "/pages/0/children/0/text",
+    "/pages/0/children/0/paragraphs/0",
   );
   missing(
     () =>
@@ -47,7 +53,7 @@ test("text requires explicitly bound resource, runtime and provider; geometry ne
         resources: { Helvetica: createOwnedResource({ other: true }) },
         text: createTextService({ runtime, defaultFont: "Helvetica" }),
       }),
-    "/pages/0/children/0/font",
+    "/pages/0/children/0/paragraphs/0/defaultStyle/font",
   );
   const options = {
     resources: { Helvetica: resource, Other: createOwnedResource({ image: true }) },
@@ -70,8 +76,8 @@ test("operation copies bindings, providers and executable callbacks independentl
   assert.equal(owned.providers.length, 1);
   const pages = measure(document, owned.fonts);
   const node = pages[0]?.children[0];
-  assert.ok(node?.type === "text" && node.lines[0]?.run);
-  assert.ok(!("preparedFont" in node) && !("glyphs" in node.lines[0]));
+  assert.ok(node?.type === "richText" && node.fragments[0]?.run);
+  assert.ok(!("preparedFont" in node) && !("glyphs" in node.fragments[0]));
 });
 
 test("inline visual metrics remain numeric and do not require fabricated text runs", () => {

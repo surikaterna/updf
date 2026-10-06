@@ -1,7 +1,8 @@
-import type { DocumentDefinition, NodeDefinition, TextAlign, TextNode } from "@updf/core";
+import type { DocumentDefinition, NodeDefinition, TextAlign, RichTextNode } from "@updf/core";
 import { type OperationOptions, render } from "@updf/core";
 import type { CmrData, CmrGoodsRow } from "./cmr-types.js";
 import { cmrTextOptions } from "./text-options.js";
+import { cmrParagraph } from "./cmr-paragraph.js";
 
 export type { CmrData, CmrGoodsRow } from "./cmr-types.js";
 
@@ -17,16 +18,13 @@ const text = (
   value: string,
   fontSize = 6,
   align: TextAlign = "left",
-): TextNode => ({
-  type: "text",
+): RichTextNode => ({
+  type: "richText",
   x,
   y,
   width,
   height,
-  text: value,
-  fontSize,
-  lineHeight: fontSize * 1.2,
-  align,
+  paragraphs: cmrParagraph(value, fontSize, align),
 });
 
 function cell(x: number, y: number, width: number, height: number, label: string, content: string): NodeDefinition[] {

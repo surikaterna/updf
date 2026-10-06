@@ -3,19 +3,19 @@ import type { WorkLedger } from "../measurement/ledger.js";
 import type { InlineLineHeights, LineEnvelope, LineHeight } from "../measurement/line-height.js";
 import type { PrivateFragment } from "../measurement/lines.js";
 import type {
-  InkBounds,
   ParagraphDefinition,
   RichTextInput,
   TextMeasurement,
   TextMeasurementInput,
   TextStyle,
 } from "../measurement/types.js";
-import type { TextNode } from "../types.js";
-import { dataRecord, ownDataValue, snapshot } from "./data.js";
-import { fail } from "./error.js";
+import { dataRecord } from "./data.js";
+import { validateDataObject } from "./schema.js";
 import type { OwnedResource } from "./owned-resource.js";
-import type { MeasuredText } from "./plan.js";
-import { validateTextOutput } from "./text-output.js";
+import { captureTextCallback } from "./text-capture.js";
+import { validateMeasurement } from "./text-measurement-output.js";
+import { validateInline, validateLineBox, validateRich } from "./text-output.js";
+import { style } from "./text-output-shapes.js";
 
 export interface TextServiceContext {
   readonly bindings: ReadonlyMap<string, OwnedResource>;
@@ -25,7 +25,6 @@ export interface TextServiceContext {
 export interface TextService {
   measure(input: TextMeasurementInput, context: TextServiceContext, path: string): TextMeasurement;
   validate(input: unknown, context: TextServiceContext, path: string): void;
-  fixed(node: TextNode, context: TextServiceContext, path: string): MeasuredText;
   rich(
     input: RichTextInput,
     context: TextServiceContext,
@@ -46,46 +45,24 @@ export interface TextService {
     path: string,
   ): TextStyle;
   lineBox(style: TextStyle, height: LineHeight, context: TextServiceContext, path: string): LineEnvelope;
-  fixedInk(node: MeasuredText, context: TextServiceContext, path: string): readonly InkBounds[];
 }
-const keys = [
-  "measure",
-  "validate",
-  "fixed",
-  "rich",
-  "inline",
-  "validateStyle",
-  "resolveStyle",
-  "lineBox",
-  "fixedInk",
-] as const;
-
 export function ownTextService(value: unknown): TextService {
   const path = "/options/text";
   dataRecord(value, path);
-  const callbacks = Object.create(null) as TextService;
-  for (const key of keys) {
-    const callback = ownDataValue(value, key, `${path}/${key}`);
-    if (typeof callback !== "function") fail("FONT_RESOURCE", `${path}/${key}`, "Missing text service capability");
-    Object.defineProperty(callbacks, key, {
-      value: (...args: unknown[]) => {
-        const path = args.at(-1) as string;
-        const result = ownTextOutput(callback.apply(value, args), path);
-        validateTextOutput(key, result, path);
-        return result;
-      },
-      enumerable: true,
-    });
-  }
-  return Object.freeze(callbacks);
-}
-
-/** Clone returned data but retain opaque run identities for the resource provider. */
-export function ownTextOutput<T>(value: T, path: string): T {
-  return snapshot(value, path, (item, at) => {
-    if (typeof item === "number" && !Number.isFinite(item)) fail("GEOMETRY", at, "Text output must be finite");
-    if (!at.endsWith("/run")) return false;
-    if (!item || typeof item !== "object") fail("FONT_RESOURCE", at, "Expected opaque text run");
-    return true;
+  validateDataObject(
+    value,
+    ["measure", "validate", "rich", "inline", "validateStyle", "resolveStyle", "lineBox"],
+    path,
+  );
+  const unchanged = () => {};
+  const callbacks = Object.assign(Object.create(null), {
+    measure: captureTextCallback(value, "measure", path, validateMeasurement),
+    validate: captureTextCallback(value, "validate", path, unchanged),
+    rich: captureTextCallback(value, "rich", path, validateRich),
+    inline: captureTextCallback(value, "inline", path, validateInline),
+    validateStyle: captureTextCallback(value, "validateStyle", path, unchanged),
+    resolveStyle: captureTextCallback(value, "resolveStyle", path, style),
+    lineBox: captureTextCallback(value, "lineBox", path, validateLineBox),
   });
+  return Object.freeze(callbacks) as TextService;
 }

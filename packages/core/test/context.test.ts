@@ -4,33 +4,29 @@ import { DocumentError } from "@updf/core";
 import { type Component, createContext, Fragment, h, useContext, type VDOMChild } from "@updf/core/vdom";
 import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
 import { lower, render } from "../../../tests/fixtures/text-options.js";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 
 const theme = createContext({ label: "default", nested: { color: [0, 0, 0] } });
-const Label: Component<object> = () => useContext(theme).label;
+const labelNode = (text: string) => h("richText", { x: 0, y: 0, height: 12, ...richInput(text) });
+const Label: Component<object> = () => labelNode(useContext(theme).label);
 const document = (children: VDOMChild) =>
   h("document", {
     version: 1,
     children: h("page", {
       width: 100,
       height: 100,
-      children: h("text", {
-        x: 0,
-        y: 0,
-        width: 100,
-        height: 12,
-        fontSize: 10,
-        lineHeight: 12,
-        align: "left",
-        children,
-      }),
+      children,
     }),
   });
 const label = () => h(Label, {});
 const value = (label: string) => ({ label, nested: { color: [0, 0, 0] } });
 const text = (tree: VDOMChild) => {
-  const node = lower(tree).pages[0]?.children[0];
-  assert.ok(node?.type === "text");
-  return node.text;
+  return lower(tree)
+    .pages[0]?.children.map((node) => {
+      assert.ok(node.type === "richText");
+      return node.paragraphs.flatMap((paragraph) => paragraph.runs.map((run) => run.text)).join("");
+    })
+    .join("");
 };
 test("context defaults and providers capture deeply frozen copies without freezing callers", () => {
   const original = value("original");
@@ -41,7 +37,7 @@ test("context defaults and providers capture deeply frozen copies without freezi
     const captured = useContext(context);
     assert.ok(Object.isFrozen(captured.nested.color));
     assert.equal(captured.nested.color[0], 0);
-    return captured.label;
+    return labelNode(captured.label);
   };
   assert.equal(text(document(h(Read, {}))), "original");
   const providerValue = value("captured");
@@ -50,7 +46,7 @@ test("context defaults and providers capture deeply frozen copies without freezi
   assert.equal(text(tree), "captured");
   assert.equal(Object.isFrozen(providerValue), false);
 });
-test("provider nesting restores siblings, text children and separate lowering operations", () => {
+test("provider nesting restores rich siblings and separate lowering operations", () => {
   const nested = h(theme.Provider, { value: value("inner"), children: label() });
   const tree = h(theme.Provider, { value: value("outer"), children: document([label(), nested, label()]) });
   assert.equal(text(tree), "outerinnerouter");
@@ -65,7 +61,7 @@ test("reentrant lower calls isolate defaults and restore outer frame on success 
       throw new Error("nested failure");
     };
     assert.throws(() => lower(h(Throw, {})), DocumentError);
-    return useContext(theme).label;
+    return labelNode(useContext(theme).label);
   };
   const tree = h(theme.Provider, { value: value("outer"), children: document(h(Read, {})) });
   assert.equal(text(tree), "outer");
@@ -127,7 +123,7 @@ test("contexts preserve privately owned handles; copied metadata is data, not a 
   const context = createContext({ font });
   const Read: Component<object> = () => {
     assert.equal(useContext(context).font, font);
-    return "owned";
+    return labelNode("owned");
   };
   assert.equal(text(document(h(Read, {}))), "owned");
   const copy = { ...font };

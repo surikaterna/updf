@@ -3,7 +3,6 @@ import {
   createOwnedResource,
   type OwnedResource,
   type TextMetrics,
-  type TextMode,
   type TextRun,
   type TextRuntime,
 } from "@updf/core/resources";
@@ -26,7 +25,6 @@ export function isHelvetica(value: object): value is Helvetica {
 export interface RunData {
   readonly resource: PreparedFont | Helvetica;
   readonly fontSize: number;
-  readonly mode: TextMode;
   readonly text: string;
   readonly glyphs: readonly PreparedGlyph[];
 }
@@ -53,14 +51,13 @@ export function fontRuntime(): TextRuntime {
       validateResource(resource, path);
       validateCharacters(text, isPreparedFont(resource) ? resource : undefined, path);
     },
-    fixedPolicy,
     lineMetrics,
-    measure(resource: OwnedResource, text: string, size: number, mode: TextMode, path: string) {
+    measure(resource: OwnedResource, text: string, size: number, path: string) {
       validateResource(resource, path);
-      const result = measured(resource, text, size, mode, path);
+      const result = measured(resource, text, size, path);
       return Object.freeze({
         ...result.metrics,
-        run: own({ resource, text, fontSize: size, mode, glyphs: result.glyphs }),
+        run: own({ resource, text, fontSize: size, glyphs: result.glyphs }),
       });
     },
     joinRuns(input: readonly TextRun[], path: string) {
@@ -69,12 +66,6 @@ export function fontRuntime(): TextRuntime {
   });
   runtimes.set(runtime, runs);
   return runtime;
-}
-function fixedPolicy(resource: OwnedResource, path: string): ReturnType<TextRuntime["fixedPolicy"]> {
-  validateResource(resource, path);
-  return isPreparedFont(resource)
-    ? { baseline: "center-envelope", checkInk: true }
-    : { baseline: "ascent", checkInk: false };
 }
 function lineMetrics(resource: OwnedResource, size: number, path: string) {
   validateResource(resource, path);
@@ -97,8 +88,8 @@ function joined(
   const initial = data[0];
   if (!initial) fail("FONT_RESOURCE", path, "Missing first run");
   for (const item of data)
-    if (item.resource !== initial.resource || item.fontSize !== initial.fontSize || item.mode !== initial.mode)
-      fail("FONT_RESOURCE", path, "Cannot join different resources, sizes or modes");
+    if (item.resource !== initial.resource || item.fontSize !== initial.fontSize)
+      fail("FONT_RESOURCE", path, "Cannot join different resources or sizes");
   if (input.length === 1) return first;
   return own({
     ...initial,
@@ -110,21 +101,19 @@ function measured(
   font: PreparedFont | Helvetica,
   text: string,
   size: number,
-  mode: TextMode,
   path: string,
 ): { metrics: Omit<TextMetrics, "run">; glyphs: readonly PreparedGlyph[] } {
-  if (!isPreparedFont(font)) return measuredHelvetica(text, size, mode, path);
+  if (!isPreparedFont(font)) return measuredHelvetica(text, size, path);
   const run = fontRun(text, font, path),
     scale = size / font.metadata.unitsPerEm;
-  const rich = mode === "rich";
-  const ascent = rich ? Math.max(0, run.ink?.[3] ?? 0) * scale : (run.ascent / font.metadata.unitsPerEm) * size;
-  const descent = rich ? Math.max(0, -(run.ink?.[1] ?? 0)) * scale : (run.descent / font.metadata.unitsPerEm) * size;
+  const ascent = Math.max(0, run.ink?.[3] ?? 0) * scale;
+  const descent = Math.max(0, -(run.ink?.[1] ?? 0)) * scale;
   return {
     glyphs: Object.freeze(run.glyphs),
     metrics: {
-      advance: rich ? run.advance * scale : (run.advance / font.metadata.unitsPerEm) * size,
-      left: rich ? (run.ink?.[0] ?? 0) * scale : (run.left / font.metadata.unitsPerEm) * size,
-      right: rich ? (run.ink?.[2] ?? 0) * scale : (run.right / font.metadata.unitsPerEm) * size,
+      advance: run.advance * scale,
+      left: (run.ink?.[0] ?? 0) * scale,
+      right: (run.ink?.[2] ?? 0) * scale,
       ascent,
       descent,
       top: -(run.ink?.[3] ?? 0) * scale,
@@ -133,11 +122,11 @@ function measured(
     },
   };
 }
-function measuredHelvetica(text: string, size: number, mode: TextMode, path: string) {
+function measuredHelvetica(text: string, size: number, path: string) {
   validateCharacters(text, undefined, path);
   const advance = textWidth(text, size),
     ascent = size * inkAscent;
-  const descent = mode === "rich" ? size - ascent : size * (1 - inkAscent);
+  const descent = size - ascent;
   return {
     glyphs: Object.freeze([]),
     metrics: {

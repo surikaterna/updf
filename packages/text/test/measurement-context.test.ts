@@ -4,17 +4,11 @@ import { DocumentError, type OperationOptions } from "@updf/core";
 import { type Component, type ComponentContext, lower as coreLower, h, type VDOMChild } from "@updf/core/vdom";
 import type { TextMeasurementInput } from "@updf/text";
 import { fontOptions } from "../../../tests/fixtures/fonts/font-options.js";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 
 const lower = (input: VDOMChild, options: OperationOptions = {}) => coreLower(input, fontOptions(options));
 
-const input: TextMeasurementInput = {
-  kind: "plain",
-  width: 50,
-  text: "abc",
-  fontSize: 10,
-  lineHeight: 12,
-  align: "left",
-};
+const input: TextMeasurementInput = richInput("abc", 50);
 const tree = (component: Component<object>) =>
   h("document", { version: 1, children: h("page", { width: 200, height: 200, children: h(component, {}) }) });
 function rejects(action: () => unknown, code: string, pattern?: RegExp): void {
@@ -33,15 +27,11 @@ test("component measurement is frozen, bound to resources and closed on lower su
     retained = context;
     assert.ok(Object.isFrozen(context) && Object.isFrozen(context.measurement));
     const measured = context.measurement.measureText(input);
-    return h("text", {
+    return h("richText", {
       x: 0,
       y: 0,
-      width: 50,
+      ...input,
       height: measured.consumedHeight,
-      text: "abc",
-      fontSize: 10,
-      lineHeight: 12,
-      align: "left",
     });
   };
   lower(tree(component));
@@ -65,7 +55,7 @@ test("remeasurement does not double-charge semantic content; distinct content sh
   };
   assert.ok(lower(tree(expensive), { profile: "service" }));
   const textHeavy: Component<object> = (_props, context) => {
-    for (let i = 0; i < 26; i++) context.measurement.measureText({ ...input, width: 100000, text: "x".repeat(4096) });
+    for (let i = 0; i < 26; i++) context.measurement.measureText(richInput("x".repeat(4096), 100000));
     return null;
   };
   rejects(() => lower(tree(textHeavy), { profile: "service" }), "LIMIT");
@@ -74,7 +64,6 @@ test("remeasurement does not double-charge semantic content; distinct content sh
 test("measurement diagnostics preserve component origin, run path and cannot accept a caller path", () => {
   const component: Component<object> = (_props, context) => {
     context.measurement.measureText({
-      kind: "rich",
       width: 20,
       paragraphs: [
         {
@@ -117,8 +106,7 @@ test("measurement diagnostics preserve component origin, run path and cannot acc
   rejects(() => lower(tree(badDrawing)), "VERTICAL_OVERFLOW", /^\/tree.*\/expanded\/props\/height$/);
 });
 
-test("plain lowering keeps historical deferred wrapping validation", () => {
-  const component: Component<object> = () =>
-    h("text", { x: 0, y: 0, width: 1, height: 12, text: "long", fontSize: 10, lineHeight: 12, align: "left" });
-  assert.equal(lower(tree(component)).pages[0]?.children[0]?.type, "text");
+test("rich lowering validates wrapping before delivering a native node", () => {
+  const component: Component<object> = () => h("richText", { x: 0, y: 0, height: 12, ...richInput("long", 1) });
+  rejects(() => lower(tree(component)), "TOKEN_OVERFLOW", /expanded\/props\/paragraphs\/0\/runs\/0\/text$/);
 });

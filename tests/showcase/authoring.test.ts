@@ -29,7 +29,6 @@ test("primary TSX demos author real layout components, not renamed drawing intri
 function textContent(nodes: readonly NodeDefinition[]): string {
   return nodes
     .map((node) => {
-      if (node.type === "text") return node.text;
       if (node.type === "richText")
         return node.paragraphs.flatMap((paragraph) => paragraph.runs.map((run) => run.text)).join("");
       return "children" in node ? textContent(node.children) : "";

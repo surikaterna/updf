@@ -161,7 +161,7 @@ const fontkitRuntime = `
     const context = cv.createContext({font});
     const Reader = () => {assert.equal(ev.useContext(context).font,font);return null;};
     ev.lower(cj.jsx('document',{version:1,children:cj.jsx('page',{width:100,height:100,children:cv.h(Reader,{})})}));
-    const definition = {version:1,pages:[{width:100,height:100,children:[{type:'text',x:0,y:0,width:90,height:12,text:'mixed',font:'Demo',fontSize:10,lineHeight:12,align:'left'}]}]};
+    const definition = {version:1,pages:[{width:100,height:100,children:[{type:'richText',x:0,y:0,width:90,height:12,paragraphs:[{runs:[{text:'mixed'}],defaultStyle:{font:'Demo',fontSize:10,color:[0,0,0]},lineHeight:12,align:'left',whiteSpace:'preserve',breakLongWords:'error'}]}]}]};
     const options = {...fontOptions,resources:{Demo:font}};
     assert.deepEqual(c.render(definition,options),e.render(definition,options));
   }

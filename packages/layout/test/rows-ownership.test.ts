@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 import { DocumentError } from "@updf/core";
 import { type ComponentContext, createContext, h, useContext } from "@updf/core/vdom";
 import {
@@ -89,31 +90,9 @@ test("Row children keep provider/font context and close retained component measu
   assert.ok(fragment?.role === "text");
   assert.equal(fragment.style.font, "Demo");
   assert.ok(retained);
-  reject(
-    () =>
-      retained?.measurement.measureText({
-        kind: "plain",
-        text: "x",
-        width: 100,
-        fontSize: 10,
-        lineHeight: 10,
-        align: "left",
-      }),
-    "MEASUREMENT_CONTEXT",
-  );
+  reject(() => retained?.measurement.measureText(richInput("x", 100, 10, 10)), "MEASUREMENT_CONTEXT");
   reject(() => measure(item, { width: 100 }), "FONT_RESOURCE");
-  reject(
-    () =>
-      retained?.measurement.measureText({
-        kind: "plain",
-        text: "x",
-        width: 100,
-        fontSize: 10,
-        lineHeight: 10,
-        align: "left",
-      }),
-    "MEASUREMENT_CONTEXT",
-  );
+  reject(() => retained?.measurement.measureText(richInput("x", 100, 10, 10)), "MEASUREMENT_CONTEXT");
 });
 test("deferred Rows emit only selected occurrences and retain owned adapter content until operation close", () => {
   let retained: MeasureContext | undefined,

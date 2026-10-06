@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 import { DocumentError } from "@updf/core";
 import { Fragment } from "@updf/core/jsx-runtime";
 import { type ComponentContext, createContext, h, useContext } from "@updf/core/vdom";
@@ -112,18 +113,7 @@ test("#44 wrappers, Fragments and providers produce Columns; captured page scope
   assert.deepEqual(calls, ["ROW:2"]);
   assert.match(new TextDecoder().decode(render(result.document)), /ROW:2/);
   assert.ok(retained);
-  diagnostic(
-    () =>
-      retained?.measurement.measureText({
-        kind: "plain",
-        text: "x",
-        width: 100,
-        fontSize: 10,
-        lineHeight: 10,
-        align: "left",
-      }),
-    "MEASUREMENT_CONTEXT",
-  );
+  diagnostic(() => retained?.measurement.measureText(richInput("x", 100, 10, 10)), "MEASUREMENT_CONTEXT");
 });
 test("#44 Row rejects direct non-Columns at their actual wrapper source path", () => {
   for (const child of [

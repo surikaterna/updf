@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import ts from "typescript";
-import { checkCoreArtifacts } from "../../scripts/consumer/core-artifacts.js";
+import { checkCoreArtifacts, checkTextArtifacts } from "../../scripts/consumer/core-artifacts.js";
 import { valueExports } from "../../scripts/packaging/value-exports.js";
 
 test("facades omit type-only aliases of value symbols but retain real value exports", () => {
@@ -14,6 +14,24 @@ test("facades omit type-only aliases of value symbols but retain real value expo
   const source = program.getSourceFile("entry.ts");
   assert.ok(source);
   assert.deepEqual(valueExports(program, source), ["Writer", "value"]);
+});
+
+test("text tarballs reject removed fixed text in every emitted format and map", () => {
+  for (const prefix of ["dist/", "dist/cjs/", "dist/node/"])
+    for (const extension of [
+      ".js",
+      ".mjs",
+      ".d.ts",
+      ".d.mts",
+      ".d.cts",
+      ".js.map",
+      ".mjs.map",
+      ".d.ts.map",
+      ".d.mts.map",
+      ".d.cts.map",
+    ])
+      assert.throws(() => checkTextArtifacts([`${prefix}fixed-text${extension}`]), /Obsolete fixed text/u);
+  assert.doesNotThrow(() => checkTextArtifacts(["dist/measure.js", "dist/cjs/service.js", "dist/node/index.mjs"]));
 });
 
 test("core tarballs reject obsolete implementations in every emitted format and map", () => {

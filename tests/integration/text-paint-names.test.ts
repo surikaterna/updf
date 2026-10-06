@@ -16,8 +16,13 @@ import { textSlot } from "../../packages/core/dist/cjs/core/text-paint.js";
 const site = {
   text: "provider-owned",
   x: 10,
-  y: 20,
-  run: fontRuntime().measure(createHelvetica(), "provider-owned", 12, "fixed", "/synthetic").run,
+  baseline: 20,
+  style: { font: "Helvetica", fontSize: 12, color: [0, 0, 0] as const },
+  advance: 0,
+  inkBounds: { empty: true } as const,
+  runIndex: 0,
+  source: { start: 0, end: 0 },
+  run: fontRuntime().measure(createHelvetica(), "provider-owned", 12, "/synthetic").run,
   path: "/synthetic",
 };
 const page: MeasuredPage = {
@@ -25,16 +30,13 @@ const page: MeasuredPage = {
   height: 100,
   children: [
     {
-      type: "text",
-      text: site.text,
+      type: "richText",
       x: 0,
       y: 0,
       width: 200,
       height: 100,
-      align: "left",
-      lineHeight: 12,
-      fontSize: 12,
-      lines: [site],
+      paragraphs: [],
+      fragments: [site],
     },
   ],
 };
@@ -87,7 +89,7 @@ for (const [key, escaped] of [
   test(`synthetic font key ${JSON.stringify(key)} resolves in a complete PDF`, () => {
     assert.ok(key && escaped);
     const { content, bytes } = syntheticDocument(key);
-    assert.equal(content, `0.5 w\nBT /${escaped} 12 Tf 1 0 0 1 10 80 Tm (Expected text) Tj ET\n`);
+    assert.equal(content, `0.5 w\nq\n0 0 0 rg\nBT /${escaped} 12 Tf 1 0 0 1 10 80 Tm (Expected text) Tj ET\nQ\n`);
     assert.ok(Buffer.from(bytes).toString("latin1").includes(`/${escaped} `));
     const directory = mkdtempSync(join(tmpdir(), "updf-text-names-"));
     try {

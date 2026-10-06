@@ -9,19 +9,6 @@ export interface Box {
   readonly height: number;
 }
 
-/** Fixed plain-text box; overflow fails rather than clipping, shrinking or creating pages. */
-export interface TextNode extends Box {
-  readonly type: "text";
-  /** ASCII plus LF by default; named prepared fonts enable the documented Unicode profile. */
-  readonly text: string;
-  readonly fontSize: number;
-  /** Absolute points, at least fontSize. No implicit defaults or shrinking. */
-  readonly lineHeight: number;
-  readonly align: TextAlign;
-  /** Resource id; omission requires the selected text service's explicit defaultFont. */
-  readonly font?: string;
-}
-
 /** Fixed rich-text box measured from explicit paragraph/run styles. */
 export interface RichTextNode extends Box {
   readonly type: "richText";
@@ -45,7 +32,7 @@ export interface LineNode extends Painting {
 /** Recursive native drawing container with local transform/clip, without style inheritance. */
 export type PaintingGroupNode = PaintGroup<NodeDefinition>;
 /** Supported fixed-page drawing data; arbitrary objects and unknown keys are rejected. */
-export type NodeDefinition = TextNode | RichTextNode | RectangleNode | LineNode | PathNode | PaintingGroupNode;
+export type NodeDefinition = RichTextNode | RectangleNode | LineNode | PathNode | PaintingGroupNode;
 
 /** Positive page dimensions in points; children paint in array order within page bounds. */
 export interface PageDefinition {

@@ -2,12 +2,12 @@ import { render } from "@updf/core";
 import { type Component, createContext, h, lower, useContext } from "@updf/core/vdom";
 import type { PreparedFont } from "@updf/fonts";
 import { measureText } from "@updf/text";
-import { textOptions } from "./text-options.js";
+import { measurementOptions, textOptions } from "./text-options.js";
 
 export function richProof(font: PreparedFont) {
-  const options = textOptions({ profile: "service", resources: { Demo: font } });
+  const setup = { profile: "service", resources: { Demo: font } } as const;
+  const options = textOptions(setup);
   const input = {
-    kind: "rich",
     width: 250,
     paragraphs: [
       {
@@ -24,7 +24,7 @@ export function richProof(font: PreparedFont) {
       },
     ],
   } as const;
-  const measurement = measureText(input, options);
+  const measurement = measureText(input, measurementOptions(setup));
   const Theme = createContext({ font, x: 20 });
   const Document: Component<object> = () => {
     const theme = useContext(Theme);

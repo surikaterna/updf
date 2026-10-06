@@ -74,10 +74,6 @@ export function scanOutput(value: unknown, path: string, charges: OutputCharges,
       owners.push(node);
       pending.push(frame(node.children, path, policy.nodes));
     }
-    if (node.type === "text") {
-      if (typeof node.text !== "string") fail("TYPE", path, "Expected output text");
-      charges.text(node.text);
-    }
     if (node.type === "richText") rich(node.paragraphs, path, charges, policy);
     const count =
       node.type === "path"

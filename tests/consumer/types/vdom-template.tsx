@@ -1,21 +1,31 @@
 /** @jsxImportSource @updf/core */
 
+import type { ParagraphDefinition } from "@updf/core";
 import { type Component, definePrimitive, Fragment, h, type VDOMChild } from "@updf/core/vdom";
 import { lower, render } from "./text-options.js";
 
-const bounds = { x: 0, y: 0, width: 80, height: 24, fontSize: 10, lineHeight: 12, align: "left" } as const;
+const bounds = { x: 0, y: 0, width: 80, height: 24 } as const;
+function paragraph(text: string): ParagraphDefinition {
+  return {
+    runs: [{ text }],
+    defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
+    lineHeight: 12,
+    align: "left",
+    whiteSpace: "preserve",
+    breakLongWords: "error",
+  };
+}
 interface LabelProps {
   readonly label: string;
   readonly children: string;
   readonly items?: readonly string[];
 }
 const Label: Component<LabelProps> = ({ label, children }) => (
-  <text {...bounds}>
-    {label}
-    {children}
-  </text>
+  <richText {...bounds} paragraphs={[paragraph(label + children)]} />
 );
-const NoChildren: Component<{ readonly label: string }> = ({ label }) => <text {...bounds} text={label} />;
+const NoChildren: Component<{ readonly label: string }> = ({ label }) => (
+  <richText {...bounds} paragraphs={[paragraph(label)]} />
+);
 
 function isDot(value: unknown): value is { readonly size: number } {
   return typeof value === "object" && value !== null && "size" in value && typeof value.size === "number";
@@ -42,12 +52,10 @@ export function typeFailures(children: VDOMChild, props: LabelProps): void {
   const unknown = <circle />;
   const align = (
     // @ts-expect-error Align is a closed union, not arbitrary text.
-    <text {...bounds} align="justify">
-      X
-    </text>
+    <richText {...bounds} paragraphs={[{ ...paragraph("X"), align: "justify" }]} />
   );
   // @ts-expect-error Numbers cannot become text by implicit coercion.
-  const number = <text {...bounds}>{42}</text>;
+  const number = <richText {...bounds} paragraphs={[{ ...paragraph("X"), runs: [{ text: 42 }] }]} />;
   // @ts-expect-error Required component props are inferred from Component<Props>.
   const required = <Label>missing label</Label>;
   // @ts-expect-error Component-specific declared children are required.
@@ -59,11 +67,12 @@ export function typeFailures(children: VDOMChild, props: LabelProps): void {
   // @ts-expect-error Explicit builders infer the same required component props.
   const builder = h(Label, { children: "missing label" });
   const both = (
-    // @ts-expect-error Native text has mutually exclusive content sources.
-    <text {...bounds} text="prop">
-      child
-    </text>
+    // @ts-expect-error Native rich text accepts canonical data, not concatenated children.
+    <richText {...bounds} paragraphs={[paragraph("prop")]} children="child" />
   );
+  // @ts-expect-error Removed native text is rejected, not forwarded to rich text.
+  const obsolete = <text {...bounds} text="old" />;
+  void obsolete;
   // @ts-expect-error The AST version is still 1, not the package major version.
   const version = <document version={2}>{children}</document>;
   // @ts-expect-error Native data primitives cannot accept callback props.

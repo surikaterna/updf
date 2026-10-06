@@ -48,9 +48,13 @@ import { h, lower } from '@updf/core/vdom';
 const font = prepareFont(new Uint8Array(readFileSync('fixture.ttf')));
 const runtime = fontRuntime();
 const options = { resources: {Demo: font}, text: createTextService({runtime, defaultFont: 'Demo'}), providers: [fontProvider(runtime)] };
-const bytes = render({version: 1, pages: [{width: 100, height: 100, children: [{type: 'text', x: 10, y: 10, width: 80, height: 20, text: 'Привет', font: 'Demo', fontSize: 10, lineHeight: 12, align: 'left'}]}]}, options);
+const props = {x: 10, y: 10, width: 80, height: 20, paragraphs: [{
+  runs: [{text: 'Привет'}], defaultStyle: {font: 'Demo', fontSize: 10, color: [0, 0, 0]},
+  lineHeight: 12, align: 'left', whiteSpace: 'preserve', breakLongWords: 'error',
+}]};
+const bytes = render({version: 1, pages: [{width: 100, height: 100, children: [{type: 'richText', ...props}]}]}, options);
 assert.ok(bytes.length > 400000);
-const tree = h('document', {version: 1, children: h('page', {width: 100, height: 100, children: h('text', {x: 10, y: 10, width: 80, height: 20, text: 'Привет', font: 'Demo', fontSize: 10, lineHeight: 12, align: 'left'})})});
+const tree = h('document', {version: 1, children: h('page', {width: 100, height: 100, children: h('richText', props)})});
 assert.deepEqual(render(lower(tree, options), options), bytes);
 assert.throws(() => prepareFont(new Uint8Array()), DocumentError);
 `;

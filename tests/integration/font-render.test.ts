@@ -11,7 +11,7 @@ import { createPreparedFont } from "@updf/fonts";
 import { cmrFixture, createCmrDocument } from "../../apps/cmr/src/cmr.js";
 import { measure } from "../../packages/core/dist/cjs/core/measure.js";
 import { operation } from "../../packages/core/dist/cjs/core/operation.js";
-import { fixtureFont, fontDocument, fontInput, fontText } from "../fixtures/fonts/font-fixture.js";
+import { fixtureFont, fontDocument, fontInput, fontParagraph, fontText } from "../fixtures/fonts/font-fixture.js";
 import { fontOptions } from "../fixtures/fonts/font-options.js";
 
 const render = (document: DocumentDefinition, options: OperationOptions = {}) =>
@@ -37,8 +37,8 @@ test("real full TrueType embedding extracts Cyrillic and Latin, mixed fonts and 
   const other = await fixtureFont();
   const page = fontDocument([
     fontText("Привет, мир!\nLatin ABC"),
-    fontText("Helvetica ASCII", { font: "Helvetica", y: 150 }),
-    fontText("Другой шрифт", { font: "Other", y: 200 }),
+    fontText("Helvetica ASCII", { paragraphs: [fontParagraph("Helvetica ASCII", "Helvetica")], y: 150 }),
+    fontText("Другой шрифт", { paragraphs: [fontParagraph("Другой шрифт", "Other")], y: 200 }),
   ]).pages[0];
   assert.ok(page);
   const document = { version: 1, pages: [page, page] } as const;
@@ -97,7 +97,7 @@ test("codepoint CIDs stay distinct for a shared GID and supplementary ToUnicode 
 test("selected-font advance widths and wrapping match independent Poppler bbox alignment", async () => {
   const font = await fixtureFont();
   const options = { resources: { Demo: font } };
-  const node = fontText("ABC", { x: 100, width: 100, align: "right", fontSize: 10, lineHeight: 12 });
+  const node = fontText("ABC", { x: 100, width: 100, paragraphs: [fontParagraph("ABC", "Demo", 10, 12, "right")] });
   const expected =
     ("ABC".split("").reduce((sum, char) => {
       const glyph = font.metadata.glyphs.find((item) => item.codePoint === char.codePointAt(0));
@@ -114,13 +114,15 @@ test("selected-font advance widths and wrapping match independent Poppler bbox a
     assert.ok(Math.abs(Number(match[2]) - 200) < 1e-5);
   });
   const plan = measure(
-    fontDocument([fontText("ABC ABC", { width: expected + 4, fontSize: 10, lineHeight: 12 })]),
+    fontDocument([
+      fontText("ABC ABC", { width: expected + 4, paragraphs: [fontParagraph("ABC ABC", "Demo", 10, 12)] }),
+    ]),
     operation(fontOptions(options)).fonts,
   );
   const measured = plan[0]?.children[0];
-  assert.ok(measured?.type === "text");
+  assert.ok(measured?.type === "richText");
   assert.deepEqual(
-    measured.lines.map((line) => line.text),
+    measured.fragments.map((fragment) => fragment.text),
     ["ABC ", "ABC"],
   );
 });
@@ -131,14 +133,14 @@ test("actual selected glyph bounds control exact-fit multiline ascent/descent an
   const bar = font.metadata.glyphs.find((item) => item.codePoint === 124);
   assert.ok(bar);
   const ink = ((bar.bounds[3] - bar.bounds[1]) / font.metadata.unitsPerEm) * 100;
-  const node = fontText("|\n|", { fontSize: 100, lineHeight: 100, height: 200 });
+  const node = fontText("|\n|", { paragraphs: [fontParagraph("|\n|", "Demo", 100, 100)], height: 200 });
   assert.ok(ink <= 100 && render(fontDocument([node]), options).length);
   assert.throws(() => render(fontDocument([fontText("j")]), options), DocumentError);
   const input = await fontInput();
   const tall = createPreparedFont({ ...input, glyphs: [{ ...bar, bounds: [0, -600, 100, 1800] }] });
   assert.throws(
     () =>
-      render(fontDocument([fontText("|", { fontSize: 100, lineHeight: 100, height: 100 })]), {
+      render(fontDocument([fontText("|", { paragraphs: [fontParagraph("|", "Demo", 100, 100)], height: 100 })]), {
         resources: { Demo: tall },
       }),
     (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === "FONT_INK",
@@ -148,8 +150,8 @@ test("actual selected glyph bounds control exact-fit multiline ascent/descent an
 test("real embedded-font raster retains top-edge ink and contains tight multiline boxes", async () => {
   const font = await fixtureFont();
   const document = fontDocument([
-    fontText("|", { x: 20, y: 0, width: 50, height: 100, fontSize: 100, lineHeight: 100 }),
-    fontText("|\n|", { x: 100, y: 50, width: 50, height: 200, fontSize: 100, lineHeight: 100 }),
+    fontText("|", { x: 20, y: 0, width: 50, height: 100, paragraphs: [fontParagraph("|", "Demo", 100, 100)] }),
+    fontText("|\n|", { x: 100, y: 50, width: 50, height: 200, paragraphs: [fontParagraph("|\n|", "Demo", 100, 100)] }),
   ]);
   await inspect(render(document, { resources: { Demo: font } }), async (path, directory) => {
     const prefix = join(directory, "ink");
@@ -182,29 +184,20 @@ test("resource-aware VDOM validates Unicode and gives components only immutable 
       { id: "Demo", kind: "resource" },
     ]);
     assert.ok(Object.isFrozen(context.resources[0]) && !("bytes" in (context.resources[0] ?? {})));
-    return h("text", {
-      x: 20,
-      y: 20,
-      width: 400,
-      height: 100,
-      fontSize: 16,
-      lineHeight: 24,
-      align: "left",
-      font: "Demo",
-      text: "Москва",
-    });
+    const { type: _type, ...props } = fontText("Москва");
+    return h("richText", props);
   };
   const node = h("document", { version: 1, children: h("page", { width: 595, height: 842, children: h(Text, {}) }) });
   const ast = lower(node, fontOptions({ resources }));
   assert.deepEqual(render(ast, { resources }), render(fontDocument([fontText("Москва")]), { resources }));
 });
 
-test("explicit Helvetica binding and unused prepared resources retain exact historical bytes", async () => {
+test("unused prepared resources retain the canonical rich CMR bytes", async () => {
   const document = createCmrDocument(cmrFixture);
   const before = render(document);
   assert.deepEqual(render(document, { resources: { Unused: await fixtureFont() } }), before);
   assert.equal(
     createHash("sha256").update(before).digest("hex"),
-    "8316f7de647590dbfad97a7dff0aac7dd6dbde1ff98cbdff544387ca59c49a22",
+    "cb826a04f161a18e472d9ed70aa9342be20356a91527eb90d1f46cfe1fc5a7bb",
   );
 });

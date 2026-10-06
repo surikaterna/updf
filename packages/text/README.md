@@ -1,44 +1,67 @@
 # @updf/text (private/unpublished)
 
-Owns plain/fixed and rich text measurement, wrapping, alignment, line envelopes,
+Owns rich paragraph measurement, wrapping, alignment, line envelopes,
 inline layout, and intrinsic text ink. Depends on generic `@updf/core` contracts
 and `@updf/layout-kernel/arithmetic`, never a concrete font implementation.
 
 ```ts
 import { render } from "@updf/core";
 import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
-import { createTextService, measureText } from "@updf/text";
+import { createTextMeasurer, createTextService, measureText, type MeasureOptions } from "@updf/text";
 
 const runtime = fontRuntime();
+const resources = { Helvetica: createHelvetica() };
+const measurementOptions: MeasureOptions = {
+  resources,
+  measurer: createTextMeasurer({ runtime }),
+};
 const text = createTextService({ runtime, defaultFont: "Helvetica" });
 const options = {
-  resources: { Helvetica: createHelvetica() },
+  resources,
   text,
   providers: [fontProvider(runtime)],
 };
 const measured = measureText({
-  kind: "plain", text: "Hello", width: 100,
-  fontSize: 10, lineHeight: 12, align: "left",
-}, options);
+  width: 100,
+  paragraphs: [{
+    runs: [{ text: "Hello" }],
+    defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
+    lineHeight: 12, align: "left", whiteSpace: "preserve", breakLongWords: "error",
+  }],
+}, measurementOptions);
 // render(document, options);
 ```
 
 `measureText(input, options)` and `measureTextUnknown(input, options)` require
-explicit options. Their frozen results contain numerical layout, source spans,
-and styles, not font programs or private runs. VDOM components use the same
-selected service through `context.measurement.measureText`; core closes those
+`MeasureOptions`: only `resources`, required `measurer`, `profile`, and `limits`.
+This is a breaking prerelease change: rendering options (`text` or `providers`)
+are rejected, even when empty; there is no overload or automatic projection.
+The structural `TextMeasurer` in `@updf/core/resources` has only `measure`;
+core captures that own callback and rejects extra methods/accessors/inheritance.
+Its frozen results contain numerical layout, source spans,
+and styles, not font programs or private runs. VDOM components still use the full
+selected `TextService` through `context.measurement.measureText`; core closes those
 callbacks after lowering, including failed operations.
 
-`createTextService({ runtime, defaultFont? })` captures the runtime's own data
-callbacks once. An omitted font requires an explicit `defaultFont`; even binding
-`Helvetica` does not select it implicitly. Rich styles carry explicit font IDs.
+`createTextMeasurer({ runtime })` and
+`createTextService({ runtime, defaultFont? })` share the measurement implementation
+and validate/capture all five runtime own data callbacks: `validateResource`,
+`validateText`, `measure`, `lineMetrics`, and `joinRuns`.
+The latter has seven capabilities for render/layout/inline text.
+Measurement accepts only `{ width, height?, paragraphs }`, with explicit paragraph
+styles and font IDs. Bare strings, former plain fields and any `kind` discriminator
+are rejected, not converted or silently dropped. Zero paragraphs consume zero
+lines; an empty paragraph consumes one. LF stays within its paragraph index.
+Native rendering supports only `richText`, with explicit paragraph
+`defaultStyle.font`. `defaultFont` is only a full-service style-resolution default;
+standalone measurement accepts only `runtime` and does not select a default font.
 For prepared fonts bind the immutable handle and pair the service with
 `fontProvider(runtime)` using the **same runtime instance**. Custom host metrics
 may implement `TextRuntime` from `@updf/core/resources` and supply their own
 opaque-run provider; neither measuring nor core imports `@updf/fonts`.
 
-Only omission selects `defaultFont`; an own `font: undefined` is malformed (`TYPE`
-at the font field), including native render/lower inputs. Runtime measurement
+Only omission in service style resolution selects `defaultFont`; an own
+`font: undefined` is malformed (`TYPE` at the font field). Runtime measurement
 outputs are own-data snapshots validated before wrapping: advance/ascent/descent
 are finite nonnegative values, ink edges are finite signed values, nonempty bounds
 are ordered, and runs are opaque objects whose identity is preserved. Invalid
@@ -48,9 +71,9 @@ legitimate callback-thrown errors propagate unchanged. No numeric quota is added
 
 Core validates/captures structural service callbacks and clones numerical output
 while retaining each opaque run's exact identity. Rich fragments join retained
-scalar runs, without reprofiling glyphs or allocating CIDs. Helvetica retains its
-ascent-baseline/no-ink-check fixed policy; prepared fonts retain centered envelopes
-and ink checks. Fixed candidate strings deliberately retain repeated measurement.
+scalar runs, without reprofiling glyphs or allocating CIDs. Runtime measurement
+uses one canonical rich metric envelope, with no mode or fixed-text policy.
+`measure(resource, text, fontSize, path)` retains the existing rich arithmetic.
 
 Generic budgets use `limits.resourceBytes` (service default 8 MiB), counting all
 unique bound identities, including unused resources. Byte counts are private

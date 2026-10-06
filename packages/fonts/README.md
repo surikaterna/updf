@@ -26,9 +26,11 @@ byte compatibility, but only emits when committed text uses it. Other fonts are
 allocated on committed text traversal. Aliases share identity; unused fonts are
 not embedded.
 
-`fontRuntime()` instances own runs privately. `measure` returns numeric metrics
+`fontRuntime()` exposes five callbacks: `validateResource`, `validateText`,
+`measure`, `lineMetrics`, and `joinRuns`. Instances own runs privately.
+`measure(resource, text, fontSize, path)` returns canonical rich numeric metrics
 and a frozen opaque token. `joinRuns` requires a nonempty ordered sequence from
-the same runtime, resource, size, and mode. It concatenates existing text/glyphs
+the same runtime, resource, and size. It concatenates existing text/glyphs
 without profiling, metric recomputation, or CID allocation. The provider collects
 all pages before lazily encoding a cached painting binding at each actual line
 or fragment identity. Measurement never owns PDF references.
@@ -38,8 +40,9 @@ Core owns only generic resource handles and text service contracts, exposed by
 Resource metadata is snapshotted/frozen; private bytes are never exposed.
 Other generic resource kinds may coexist in the binding map. Text selection
 validates font ownership separately, with structured `FONT_RESOURCE` diagnostics
-for missing services, resources, providers, or foreign runs. Omitted font requires
-the text service's explicit `defaultFont` in addition to a resource binding.
+for missing services, resources, providers, or foreign runs. Paragraph
+`defaultStyle.font` is explicit. Only full-service authoring style resolution can
+select the service's `defaultFont` on omission; standalone measurement cannot.
 Private font program bytes are counted by core's owned-resource registry, not
 a `TextRuntime` accounting capability; Helvetica counts zero.
 

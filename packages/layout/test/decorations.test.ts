@@ -11,6 +11,7 @@ import {
   layoutFlowUnknown,
 } from "../../../tests/fixtures/transitional-layout.js";
 import { flow, paragraph } from "./fixtures.js";
+import { richNode } from "../../../tests/fixtures/rich-input.js";
 
 function rejects(run: () => unknown, code: string): void {
   assert.throws(run, (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === code);
@@ -100,19 +101,7 @@ test("last reservation trials have at most two synchronous candidates and do not
           status: "placed",
           nextOffset: request.offset + count,
           height: count * 20,
-          nodes: [
-            {
-              type: "text",
-              x: 0,
-              y: 0,
-              width: 100,
-              height: 20,
-              fontSize: 10,
-              lineHeight: 10,
-              align: "left",
-              text: "A",
-            },
-          ],
+          nodes: [richNode("A", { height: 20 }, { lineHeight: 10 })],
         };
       },
     }),
@@ -147,17 +136,7 @@ test("later candidate callbacks cannot mutate nodes of an already selected fragm
         shared.nextOffset = request.offset + count;
         shared.height = count * 20;
         shared.nodes = [
-          {
-            type: "text",
-            x: 0,
-            y: 0,
-            width: 100,
-            height: shared.height,
-            text: count === 1 ? "selected" : "discarded",
-            fontSize: 10,
-            lineHeight: 10,
-            align: "left",
-          },
+          richNode(count === 1 ? "selected" : "discarded", { height: shared.height }, { lineHeight: 10 }),
         ];
         return shared;
       },
@@ -168,7 +147,7 @@ test("later candidate callbacks cannot mutate nodes of an already selected fragm
   assert.equal(first?.type, "paintGroup");
   if (first?.type === "paintGroup") {
     const node = first.children[0];
-    assert.equal(node?.type, "text");
-    if (node?.type === "text") assert.equal(node.text, "selected");
+    assert.equal(node?.type, "richText");
+    if (node?.type === "richText") assert.equal(node.paragraphs[0]?.runs[0]?.text, "selected");
   }
 });

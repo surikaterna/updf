@@ -10,3 +10,8 @@ export function checkCoreArtifacts(paths: readonly string[]): void {
     );
   }
 }
+
+export function checkTextArtifacts(paths: readonly string[]): void {
+  for (const path of paths)
+    assert.ok(!/^dist\/(?:cjs\/|node\/)?fixed-text\./u.test(path), `Obsolete fixed text artifact: ${path}`);
+}

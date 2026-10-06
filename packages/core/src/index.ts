@@ -41,7 +41,6 @@ export type {
   RichTextNode,
   SourceSpan,
   TextAlign,
-  TextNode,
   TextRun,
   TextStyle,
 } from "./types.js";

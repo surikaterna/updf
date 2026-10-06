@@ -6,10 +6,12 @@ import type { DocumentDefinition } from "@updf/core";
 import { h, useContext } from "@updf/core/vdom";
 import { Document, Flow, Page, PageContext, Paragraph, pageSize } from "@updf/layout";
 import { layout, render } from "../fixtures/text-options.js";
+import { richNode } from "../fixtures/rich-input.js";
 
 const directory = new URL("../../artifacts/mixed/", import.meta.url);
 function label(text: string) {
-  return h("text", { x: 0, y: 0, width: 180, height: 12, text, fontSize: 10, lineHeight: 12, align: "left" });
+  const { type: _type, ...props } = richNode(text, { width: 180 });
+  return h("richText", props);
 }
 function Footer() {
   const page = useContext(PageContext);

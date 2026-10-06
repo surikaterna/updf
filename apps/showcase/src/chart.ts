@@ -28,16 +28,21 @@ function nodes(props: ChartProps, width: number): readonly NodeDefinition[] {
   const step = (width - 20) / props.values.length;
   return [
     {
-      type: "text",
+      type: "richText",
       x: 10,
       y: 6,
       width: width - 20,
       height: 14,
-      text: "External chart",
-      font: "Helvetica",
-      fontSize: 10,
-      lineHeight: 14,
-      align: "left",
+      paragraphs: [
+        {
+          runs: [{ text: "External chart" }],
+          defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
+          lineHeight: 14,
+          align: "left",
+          whiteSpace: "preserve",
+          breakLongWords: "error",
+        },
+      ],
     },
     {
       type: "path",

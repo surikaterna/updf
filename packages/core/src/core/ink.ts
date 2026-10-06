@@ -8,7 +8,7 @@ import type { NodeDefinition } from "../types.js";
 import { measure } from "./measure.js";
 import type { MeasuredNode } from "./plan.js";
 import type { Policy } from "./policy.js";
-import { type ResolvedTextResources as ResolvedFonts, textService } from "./text-resources.js";
+import type { ResolvedTextResources as ResolvedFonts } from "./text-resources.js";
 
 const identity: Matrix = [1, 0, 0, 1, 0, 0];
 interface Task {
@@ -26,11 +26,11 @@ export function nativeInk(nodes: readonly NodeDefinition[], fonts: ResolvedFonts
   const bounds: InkBounds[] = [];
   while (tasks.length) {
     const task = tasks.pop();
-    if (task) scan(task, tasks, bounds, fonts);
+    if (task) scan(task, tasks, bounds);
   }
   return union(bounds);
 }
-function scan(task: Task, tasks: Task[], output: InkBounds[], fonts: ResolvedFonts): void {
+function scan(task: Task, tasks: Task[], output: InkBounds[]): void {
   const { node, transform, clip } = task;
   if (node.type === "paintGroup") {
     group(node, transform, clip, tasks);
@@ -38,11 +38,6 @@ function scan(task: Task, tasks: Task[], output: InkBounds[], fonts: ResolvedFon
   }
   if (node.type === "richText") {
     for (const fragment of node.fragments) addInk(fragment.inkBounds, node.x, node.y, transform, clip, output);
-    return;
-  }
-  if (node.type === "text") {
-    const bounds = textService(fonts, "").fixedInk(node, { bindings: fonts.bindings, budget: ledger() }, "");
-    for (const item of bounds) addInk(item, 0, 0, transform, clip, output);
     return;
   }
   shape(node, transform, clip, output);
@@ -61,7 +56,7 @@ function group(
     tasks.push({ node: child, transform: matrix, ...(nextClip ? { clip: nextClip } : {}) });
 }
 function shape(
-  node: Exclude<MeasuredNode, { type: "paintGroup" | "text" | "richText" }>,
+  node: Exclude<MeasuredNode, { type: "paintGroup" | "richText" }>,
   transform: Matrix,
   clip: Bounds | undefined,
   output: InkBounds[],

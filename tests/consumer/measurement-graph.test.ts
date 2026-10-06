@@ -4,7 +4,8 @@ import { readFile } from "node:fs/promises";
 import { build } from "esbuild";
 import { costInputs } from "../../scripts/consumer/cost-inputs.js";
 
-const forbidden = /packages\/core\/dist\/(?:core\/(?:layout-operation|validate)|vdom\/normalize)\.js$/u;
+const forbidden =
+  /packages\/(?:core\/dist\/(?:core\/(?:layout-operation|validate|text-service|text-output)|vdom\/normalize)|text\/dist\/(?:service|inline|inline-paint))\.js$/u;
 async function retained(contents: string) {
   const result = await build({
     stdin: { contents, resolveDir: process.cwd(), loader: "ts" },
@@ -22,7 +23,7 @@ async function retained(contents: string) {
   );
 }
 
-test("emitted standalone measurement excludes layout-only code; general operation is a negative control", async () => {
+test("standalone measurement excludes full service and layout validators; full service is a negative control", async () => {
   const host = await readFile(new URL("./types/host-metrics-template.ts", import.meta.url), "utf8");
   for (const contents of [costInputs(false).measurementFonts!, host]) {
     const modules = await retained(contents);
@@ -41,6 +42,15 @@ test("emitted standalone measurement excludes layout-only code; general operatio
   assert.ok(
     control.some(([path]) => forbidden.test(path)),
     "Negative control must retain layout-only code",
+  );
+  const service = await retained(`
+    import {createTextService} from '@updf/text';
+    import {fontRuntime} from '@updf/fonts';
+    console.log(createTextService({runtime:fontRuntime()}));
+  `);
+  assert.ok(
+    service.some(([path]) => forbidden.test(path)),
+    "A used full service must fail the narrow graph guard",
   );
 });
 

@@ -1,5 +1,6 @@
 /** @jsxImportSource @updf/core */
 
+import type { ParagraphDefinition } from "@updf/core";
 import { createContext, h, useContext } from "@updf/core/vdom";
 import {
   Block,
@@ -21,33 +22,39 @@ import { layout } from "./layout-options.js";
 import { lower, render } from "./text-options.js";
 
 const Theme = createContext({ label: "report" });
+function footerParagraph(text: string): ParagraphDefinition {
+  return {
+    runs: [{ text }],
+    defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
+    lineHeight: 12,
+    align: "left",
+    whiteSpace: "preserve",
+    breakLongWords: "error",
+  };
+}
 function Footer() {
   const info: PageInfo = useContext(PageContext);
   const theme = useContext(Theme);
   return (
-    <text
+    <richText
       x={0}
       y={0}
       width={180}
       height={12}
-      fontSize={10}
-      lineHeight={12}
-      align="left"
-    >{`${theme.label} ${info.docPageNumber}/${info.docPageCount}`}</text>
+      paragraphs={[footerParagraph(`${theme.label} ${info.docPageNumber}/${info.docPageCount}`)]}
+    />
   );
 }
 function FragmentFooter() {
   const fragment = useContext(FragmentContext);
   return (
-    <text
+    <richText
       x={0}
       y={0}
       width={180}
       height={12}
-      fontSize={10}
-      lineHeight={12}
-      align="left"
-    >{`${fragment.index}/${fragment.count}`}</text>
+      paragraphs={[footerParagraph(`${fragment.index}/${fragment.count}`)]}
+    />
   );
 }
 const children = [

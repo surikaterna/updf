@@ -1,29 +1,15 @@
-import type { TextNode } from "@updf/core";
 import { fail } from "@updf/core/internal";
 import { exceeds, MetricSum } from "./arithmetic.js";
-import { measureFixedText } from "./fixed-text.js";
 import type { WorkLedger } from "./ledger.js";
 import { line, type PrivateFragment } from "./lines.js";
-import { ink, metrics } from "./metrics.js";
 import type { ResolvedTextResources as ResolvedFonts } from "./text-resources.js";
-import { fontId } from "./text-resources.js";
-import type { PlainTextInput, RichTextInput, TextLineMeasurement, TextMeasurement } from "./types.js";
-import { effectiveStyle, validateInput } from "./validate.js";
+import type { RichTextInput, TextLineMeasurement, TextMeasurement } from "./types.js";
+import { validateInput } from "./validate.js";
 import { atoms, wrap } from "./wrap.js";
 
 export interface RichMeasurementPlan {
   readonly result: TextMeasurement;
   readonly fragments: readonly PrivateFragment[];
-}
-function result(
-  width: number,
-  lines: readonly TextLineMeasurement[],
-  height?: number,
-  consumedHeight = lines.reduce((sum, line) => sum + line.height, 0),
-): TextMeasurement {
-  if (!Number.isFinite(consumedHeight)) fail("GEOMETRY", "/height", "Text height must remain finite");
-  if (height !== undefined && consumedHeight > height) fail("VERTICAL_OVERFLOW", "/height", "Text exceeds height");
-  return Object.freeze({ width, consumedHeight, lineCount: lines.length, lines: Object.freeze(lines) });
 }
 export function rich(
   input: RichTextInput,
@@ -47,62 +33,15 @@ export function rich(
   });
   if (input.height !== undefined && exceeds(height.value, input.height))
     fail("VERTICAL_OVERFLOW", `${path}/height`, "Text exceeds height");
-  return { result: result(input.width, lines, undefined, height.value), fragments };
-}
-function plainNode(input: PlainTextInput): TextNode {
-  return {
-    type: "text",
-    x: 0,
-    y: 0,
-    height: input.height ?? Number.MAX_VALUE,
+  const result = Object.freeze({
     width: input.width,
-    text: input.text,
-    fontSize: input.fontSize,
-    lineHeight: input.lineHeight,
-    align: input.align,
-    ...(input.font === undefined ? {} : { font: input.font }),
-  };
-}
-function plain(input: PlainTextInput, fonts: ResolvedFonts, budget: WorkLedger, path: string): TextMeasurement {
-  const measured = measureFixedText(plainNode(input), path, fonts, budget);
-  const style = effectiveStyle({
-    font: fontId(input.font, fonts, `${path}/font`),
-    fontSize: input.fontSize,
-    color: [0, 0, 0],
+    consumedHeight: height.value,
+    lineCount: lines.length,
+    lines: Object.freeze(lines),
   });
-  let paragraphIndex = 0;
-  let offset = 0;
-  const lines = measured.lines.map((item, i): TextLineMeasurement => {
-    const run = metrics(item.text, style, fonts, `${path}/text`);
-    const end = offset + item.text.length;
-    const next = input.text[end];
-    const bounds = ink(run, item.x, item.y);
-    const fragment = Object.freeze({
-      text: item.text,
-      style,
-      x: item.x,
-      advance: run.advance,
-      inkBounds: bounds,
-      runIndex: 0,
-      source: Object.freeze({ start: offset, end }),
-    });
-    const currentParagraph = paragraphIndex;
-    if (next === "\n") paragraphIndex++;
-    offset = end + (next === "\n" ? 1 : 0);
-    return Object.freeze({
-      paragraphIndex: currentParagraph,
-      top: i * input.lineHeight,
-      height: input.lineHeight,
-      baseline: item.y,
-      advance: run.advance,
-      inkBounds: bounds,
-      fragments: Object.freeze([fragment]),
-      breakReason: next === "\n" ? "hard" : i === measured.lines.length - 1 ? "paragraphEnd" : "soft",
-    });
-  });
-  return result(input.width, lines, input.height);
+  return { result, fragments };
 }
 export function measureInput(input: unknown, fonts: ResolvedFonts, budget: WorkLedger, path: string): TextMeasurement {
   validateInput(input, fonts, budget, path);
-  return input.kind === "rich" ? rich(input, fonts, budget, path).result : plain(input, fonts, budget, path);
+  return rich(input, fonts, budget, path).result;
 }

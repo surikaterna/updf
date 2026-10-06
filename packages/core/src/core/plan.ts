@@ -1,19 +1,6 @@
 import type { PrivateFragment } from "../measurement/lines.js";
 import type { Matrix, PaintGroup, PathNode, ResolvedDrawing } from "../painting/types.js";
-import type { LineNode, RectangleNode, RichTextNode, TextNode } from "../types.js";
-import type { TextRun } from "./text-runtime.js";
-
-export interface MeasuredLine {
-  readonly text: string;
-  readonly x: number;
-  readonly y: number;
-  readonly run: TextRun;
-  readonly path: string;
-}
-
-export interface MeasuredText extends TextNode {
-  readonly lines: readonly MeasuredLine[];
-}
+import type { LineNode, RectangleNode, RichTextNode } from "../types.js";
 export interface MeasuredRichText extends RichTextNode {
   readonly fragments: readonly PrivateFragment[];
 }
@@ -35,10 +22,4 @@ export interface MeasuredPath extends PathNode {
 export interface MeasuredPaintGroup extends PaintGroup<MeasuredNode> {
   readonly matrix: Matrix;
 }
-export type MeasuredNode =
-  | MeasuredText
-  | MeasuredRichText
-  | MeasuredRectangle
-  | MeasuredLineNode
-  | MeasuredPath
-  | MeasuredPaintGroup;
+export type MeasuredNode = MeasuredRichText | MeasuredRectangle | MeasuredLineNode | MeasuredPath | MeasuredPaintGroup;

@@ -28,12 +28,12 @@ const options = {resources: {Helvetica: createHelvetica()}, text: createTextServ
 const render = document => coreRender(document, options);`;
 const inputs = {
   textOnly: `${composition}
-export const pdf = (text) => render({version:1,pages:[{width:200,height:200,children:[{type:'text',x:10,y:10,width:180,height:20,text,font:'Helvetica',fontSize:12,lineHeight:16,align:'left'}]}]});`,
+ export const pdf = (text) => render({version:1,pages:[{width:200,height:200,children:[{type:'richText',x:10,y:10,width:180,height:20,paragraphs:[{runs:[{text}],defaultStyle:{font:'Helvetica',fontSize:12,color:[0,0,0]},lineHeight:16,align:'left',whiteSpace:'preserve',breakLongWords:'error'}]}]}]});`,
   paragraphFlow: `${composition}
 import { document, flow, paragraph, layout, pageSize } from '@updf/layout';
 export const pdf = (text) => render(layout(document({children:flow({pageSize:pageSize(200,200),children:paragraph({children:text})})}), options).document);`,
   fixedGeometry: `${composition}
-export const pdf = (text) => render({version:1,pages:[{width:200,height:200,children:[{type:'rect',x:10,y:10,width:180,height:180,paint:{fill:[0.9,0.9,0.9],stroke:null}},{type:'text',x:20,y:20,width:160,height:20,text,font:'Helvetica',fontSize:12,lineHeight:16,align:'left'}]}]});`,
+ export const pdf = (text) => render({version:1,pages:[{width:200,height:200,children:[{type:'rect',x:10,y:10,width:180,height:180,paint:{fill:[0.9,0.9,0.9],stroke:null}},{type:'richText',x:20,y:20,width:160,height:20,paragraphs:[{runs:[{text}],defaultStyle:{font:'Helvetica',fontSize:12,color:[0,0,0]},lineHeight:16,align:'left',whiteSpace:'preserve',breakLongWords:'error'}]}]}]});`,
 };
 await mkdir(output, { recursive: true });
 for (const [scope, contents] of Object.entries(inputs)) {

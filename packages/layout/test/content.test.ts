@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 import { DocumentError } from "@updf/core";
 import { type ComponentContext, createContext, h, useContext } from "@updf/core/vdom";
 import { badge, badgeAdapter } from "../../../apps/showcase/src/inline-badge.js";
@@ -138,18 +139,7 @@ test("D: invalid resources/styles fail before visual callbacks and normalization
     throw new Error("failure");
   };
   reject(() => measure(h(Failure, {}), { width: 100 }), "VDOM_COMPONENT");
-  reject(
-    () =>
-      retained?.measurement.measureText({
-        kind: "plain",
-        text: "x",
-        width: 100,
-        fontSize: 10,
-        lineHeight: 12,
-        align: "left",
-      }),
-    "MEASUREMENT_CONTEXT",
-  );
+  reject(() => retained?.measurement.measureText(richInput("x")), "MEASUREMENT_CONTEXT");
 });
 test("D: authoring descriptors cannot become forged providers/recipes or context data", () => {
   const content = paragraph({ children: "x" });
@@ -250,18 +240,7 @@ test("D: wrappers execute only in the operation with provider frames, progress c
   assert.equal(calls, 0);
   assert.equal(measure(tree, { width: 100 }).size.height, 20);
   assert.equal(calls, 1);
-  reject(
-    () =>
-      required(retained).measurement.measureText({
-        kind: "plain",
-        text: "x",
-        width: 100,
-        fontSize: 10,
-        lineHeight: 12,
-        align: "left",
-      }),
-    "MEASUREMENT_CONTEXT",
-  );
+  reject(() => required(retained).measurement.measureText(richInput("x")), "MEASUREMENT_CONTEXT");
   assert.equal(measure(h(Wrapper, {}), { width: 100 }).size.height, 10);
   const Cycle = (): ReturnType<typeof h> => h(Cycle, {});
   reject(() => measure(h(Cycle, {}), { width: 100 }), "VDOM_CYCLE");

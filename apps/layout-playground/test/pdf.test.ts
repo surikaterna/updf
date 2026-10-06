@@ -2,11 +2,26 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { compute } from "../src/compute.js";
 import { paginate } from "../src/pagination.js";
-import { exportProjection } from "../src/pdf.js";
+import { exportProjection, FONT_SIZE, LINE_HEIGHT, lowerLine, prepareParagraph } from "../src/pdf.js";
 import { project } from "../src/projection.js";
 import { controls, mixedUnits } from "./fixtures.js";
 import { assertPDFGeometry, inspectPDF } from "./pdf-tools.js";
 import { assertAtomicRaster } from "./raster.js";
+
+test("rich baseline preserves line-box origin independently of ink and physical PDF bbox", () => {
+  const prepared = prepareParagraph("Hello\nWorld", 100);
+  assert.equal(prepared.height, 2 * LINE_HEIGHT);
+  for (const [index, line] of prepared.lines.entries()) {
+    assert.equal(line.top, index * LINE_HEIGHT);
+    const baseline = (LINE_HEIGHT - FONT_SIZE) / 2 + FONT_SIZE * 0.775;
+    assert.ok(Math.abs(line.baseline - line.top - baseline) < 1e-12);
+    assert.equal(line.inkBounds.empty, false);
+    if (!line.inkBounds.empty) assert.ok(Math.abs(line.inkBounds.top - line.top - 2) < 1e-12);
+    const node = lowerLine({ line, x: 20, y: 20 + line.top, width: 100 });
+    assert.equal(node?.y, 20 + line.top);
+    assert.ok(Math.abs(baseline - FONT_SIZE * 0.718 - 2.798) < 1e-12);
+  }
+});
 
 test("mixed input order survives real PDF text and atomic-row geometry; old partition order rejects", async () => {
   const units = await mixedUnits();

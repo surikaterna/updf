@@ -12,13 +12,9 @@ function measuredNode(
   budget: WorkLedger,
   tasks: (() => void)[],
 ): MeasuredNode {
-  if (node.type === "text") {
-    const result = textService(fonts, path).fixed(node, { bindings: fonts.bindings, budget }, `${path}/text`);
-    return { ...node, lines: result.lines };
-  }
   if (node.type === "richText") {
     const plan = textService(fonts, path).rich(
-      { kind: "rich", width: node.width, height: node.height, paragraphs: node.paragraphs },
+      { width: node.width, height: node.height, paragraphs: node.paragraphs },
       { bindings: fonts.bindings, budget },
       path,
     );

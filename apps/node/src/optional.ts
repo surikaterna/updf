@@ -23,16 +23,21 @@ const document: DocumentDefinition = {
       height: 100,
       children: [
         {
-          type: "text",
+          type: "richText",
           x: 10,
           y: 10,
           width: 80,
           height: 20,
-          text: "Привет",
-          font: "Demo",
-          fontSize: 10,
-          lineHeight: 12,
-          align: "left",
+          paragraphs: [
+            {
+              runs: [{ text: "Привет" }],
+              defaultStyle: { font: "Demo", fontSize: 10, color: [0, 0, 0] },
+              lineHeight: 12,
+              align: "left",
+              whiteSpace: "preserve",
+              breakLongWords: "error",
+            },
+          ],
         },
       ],
     },

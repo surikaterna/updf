@@ -3,17 +3,18 @@ import test from "node:test";
 import { render as coreRender, type DocumentDefinition, DocumentError, type OperationOptions } from "@updf/core";
 import {
   type ParagraphDefinition,
+  type MeasureOptions,
   type RichTextInput,
   type TextMeasurementInput,
   measureText as textMeasure,
   measureTextUnknown as textMeasureUnknown,
 } from "@updf/text";
-import { fontOptions } from "../../../tests/fixtures/fonts/font-options.js";
+import { fontMeasurementOptions, fontOptions } from "../../../tests/fixtures/fonts/font-options.js";
 
-const measureText = (input: TextMeasurementInput, options: OperationOptions = {}) =>
-  textMeasure(input, fontOptions(options));
-const measureTextUnknown = (input: unknown, options: OperationOptions = {}) =>
-  textMeasureUnknown(input, fontOptions(options));
+const measureText = (input: TextMeasurementInput, options: Partial<MeasureOptions> = {}) =>
+  textMeasure(input, fontMeasurementOptions(options));
+const measureTextUnknown = (input: unknown, options: Partial<MeasureOptions> = {}) =>
+  textMeasureUnknown(input, fontMeasurementOptions(options));
 const render = (input: DocumentDefinition, options: OperationOptions = {}) => coreRender(input, fontOptions(options));
 
 export const paragraph = (text: string, props: Partial<ParagraphDefinition> = {}): ParagraphDefinition => ({
@@ -26,7 +27,6 @@ export const paragraph = (text: string, props: Partial<ParagraphDefinition> = {}
   ...props,
 });
 export const input = (text: string, props: Partial<ParagraphDefinition> = {}, width = 100): RichTextInput => ({
-  kind: "rich",
   width,
   paragraphs: [paragraph(text, props)],
 });
@@ -44,7 +44,7 @@ function rejects(value: unknown, code: string, path?: string): void {
 }
 
 test("rich empty block, paragraph, runs and LF retain explicit empty lines and natural/exact height", () => {
-  assert.equal(measureText({ kind: "rich", width: 10, height: 0, paragraphs: [] }).consumedHeight, 0);
+  assert.equal(measureText({ width: 10, height: 0, paragraphs: [] }).consumedHeight, 0);
   assert.deepEqual(strings(input("")), [""]);
   assert.deepEqual(strings(input("a\n\n")), ["a", "", ""]);
   assert.deepEqual(strings(input("", { runs: [] })), [""]);
@@ -126,15 +126,19 @@ test("whole-line alignment, mixed-size common baseline and immutable private-fre
   assert.ok(!JSON.stringify(measured).includes("glyphs"));
 });
 
-test("plain public measurement preserves fixed baseline, wraps, LF, empty text and selected schema", () => {
-  const plain = { kind: "plain", text: "AB\n", width: 20, fontSize: 10, lineHeight: 12, align: "left" } as const;
-  const result = measureText(plain);
-  assert.equal(result.lines[0]?.baseline, 7.75);
-  assert.equal(result.lines[1]?.baseline, 19.75);
+test("one-run measurement uses rich baseline, same-paragraph LF and explicit empty paragraph semantics", () => {
+  const value = input("AB\n", {}, 20);
+  const result = measureText(value);
+  assert.equal(result.lines[0]?.baseline, 8.75);
+  assert.equal(result.lines[1]?.baseline, 20.75);
+  assert.deepEqual(
+    result.lines.map((line) => line.paragraphIndex),
+    [0, 0],
+  );
   assert.equal(result.consumedHeight, 24);
-  assert.equal(measureText({ ...plain, text: "" }).lineCount, 0);
-  rejects({ ...plain, height: 23 }, "VERTICAL_OVERFLOW");
-  rejects({ ...plain, paragraphs: [] }, "KEY", "/paragraphs");
+  assert.equal(measureText(input("", {}, 20)).lineCount, 1);
+  rejects({ ...value, height: 23 }, "VERTICAL_OVERFLOW");
+  rejects({ ...value, text: "AB" }, "KEY", "/text");
 });
 
 test("data keys, optional undefined, styles, controls, arrays and caps fail before copying or font traversal", () => {
@@ -150,7 +154,7 @@ test("data keys, optional undefined, styles, controls, arrays and caps fail befo
   rejects(input("x", { defaultStyle: { font: "Missing", fontSize: 10, color: [0, 0, 0] } }), "FONT_RESOURCE");
   assert.throws(() => measureText(input("x".repeat(4097)), { limits: { textCodePoints: 4096 } }), DocumentError);
   assert.equal(
-    measureText({ kind: "rich", width: 10, paragraphs: Array.from({ length: 5001 }, () => paragraph("")) }).lineCount,
+    measureText({ width: 10, paragraphs: Array.from({ length: 5001 }, () => paragraph("")) }).lineCount,
     5001,
   );
   assert.equal(measureText(input("", { runs: Array.from({ length: 10000 }, () => ({ text: "" })) })).lineCount, 1);
@@ -165,9 +169,8 @@ test("data keys, optional undefined, styles, controls, arrays and caps fail befo
   assert.equal(invoked, false);
 });
 
-test("no public work cap; aggregate generated rich/plain text shares the optional rendering budget", () => {
+test("no public work cap; aggregate generated paragraphs share the optional rendering budget", () => {
   const empty = {
-    kind: "rich",
     width: 10,
     paragraphs: Array.from({ length: 5000 }, () => paragraph("", { runs: [] })),
   } as const;
@@ -182,22 +185,22 @@ test("no public work cap; aggregate generated rich/plain text shares the optiona
     paragraphs: [paragraph(" ".repeat(4096))],
   } as const;
   const plain = {
-    type: "text",
+    type: "richText",
     x: 0,
     y: 0,
     width: 100000,
     height: 12,
-    text: " ".repeat(1696),
-    fontSize: 10,
-    lineHeight: 12,
-    align: "left",
+    paragraphs: [paragraph(" ".repeat(1696))],
   } as const;
   const children = [...Array.from({ length: 24 }, () => block), plain];
   assert.ok(render({ version: 1, pages: [{ width: 100000, height: 100, children }] }).length);
   assert.throws(
     () =>
       render(
-        { version: 1, pages: [{ width: 100000, height: 100, children: [...children, { ...plain, text: " " }] }] },
+        {
+          version: 1,
+          pages: [{ width: 100000, height: 100, children: [...children, { ...plain, paragraphs: [paragraph(" ")] }] }],
+        },
         { profile: "service" },
       ),
     (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === "LIMIT",

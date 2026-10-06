@@ -35,7 +35,7 @@ function measureCell(
   operation: LayoutOperation,
 ): TextMeasurement {
   try {
-    return operation.measureText({ kind: "rich", width, paragraphs: [paragraph] }, path);
+    return operation.measureText({ width, paragraphs: [paragraph] }, path);
   } catch (error) {
     if (!(error instanceof DocumentError)) throw error;
     const diagnostic = error.diagnostics[0];

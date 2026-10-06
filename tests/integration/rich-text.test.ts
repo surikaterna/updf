@@ -24,7 +24,7 @@ function rejects(action: () => unknown, code: string): void {
 test("prepared rich Unicode/NBSP, actual bounds, scalar ranges, owned resources and component binding", async () => {
   const font = await fixtureFont();
   const options = { resources: { Demo: font } };
-  const input = { kind: "rich", width: 200, paragraphs: [paragraph("А\u00a0Б")] } as const;
+  const input = { width: 200, paragraphs: [paragraph("А\u00a0Б")] } as const;
   const measured = measureText(input, options);
   assert.equal(measured.lineCount, 1);
   const a = font.metadata.glyphs.find((glyph) => glyph.codePoint === 0x410);
@@ -50,7 +50,6 @@ test("prepared ink reports actual below-baseline bounds; frozen caller data and 
   const font = await fixtureFont();
   const resources = { Demo: font };
   const input = Object.freeze({
-    kind: "rich",
     width: 200,
     paragraphs: Object.freeze([Object.freeze(paragraph("_"))]),
   } as const);
@@ -80,7 +79,6 @@ test("rich scalar splitting retains UTF16 ranges and refuses horizontal/vertical
   const alias = createPreparedFont({ ...data, glyphs: [a, { ...a, codePoint: 0x1df00 }] });
   const split = measureText(
     {
-      kind: "rich",
       width: 15,
       paragraphs: [
         paragraph("\u{1df00}\u{1df00}", {
@@ -106,18 +104,12 @@ test("rich scalar splitting retains UTF16 ranges and refuses horizontal/vertical
   });
   rejects(
     () =>
-      measureText(
-        { kind: "rich", width: 200, paragraphs: [paragraph("А", { lineHeight: 20 })] },
-        { resources: { Demo: overhang } },
-      ),
+      measureText({ width: 200, paragraphs: [paragraph("А", { lineHeight: 20 })] }, { resources: { Demo: overhang } }),
     "FONT_INK",
   );
   rejects(
     () =>
-      measureText(
-        { kind: "rich", width: 30, paragraphs: [paragraph("А", { align: "left" })] },
-        { resources: { Demo: overhang } },
-      ),
+      measureText({ width: 30, paragraphs: [paragraph("А", { align: "left" })] }, { resources: { Demo: overhang } }),
     "FONT_INK",
   );
 });
@@ -132,7 +124,7 @@ test("actual rich PDF passes qpdf, extracts mixed fonts in order and rasterizes 
       ],
     }),
   ];
-  const measured = measureText({ kind: "rich", width: 300, paragraphs }, options);
+  const measured = measureText({ width: 300, paragraphs }, options);
   const node: RichTextNode = {
     type: "richText",
     x: 20,

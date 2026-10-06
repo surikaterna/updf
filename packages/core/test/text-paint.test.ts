@@ -11,18 +11,27 @@ import { textSlot } from "../dist/cjs/core/text-paint.js";
 
 const runtime = fontRuntime();
 const font = createHelvetica();
+const fragmentFields = {
+  style: { font: "Helvetica", fontSize: 12, color: [0, 0, 0] as const },
+  advance: 0,
+  inkBounds: { empty: true } as const,
+  runIndex: 0,
+  source: { start: 0, end: 0 },
+};
 const first = {
+  ...fragmentFields,
   text: "ignored",
   x: 10,
-  y: 20,
-  run: runtime.measure(font, "ignored", 12, "fixed", "/first").run,
+  baseline: 20,
+  run: runtime.measure(font, "ignored", 12, "/first").run,
   path: "/first",
 };
 const second = {
+  ...fragmentFields,
   text: "also ignored",
   x: 30,
-  y: 40,
-  run: runtime.measure(font, "also ignored", 12, "fixed", "/second").run,
+  baseline: 40,
+  run: runtime.measure(font, "also ignored", 12, "/second").run,
   path: "/second",
 };
 const page: MeasuredPage = {
@@ -30,16 +39,13 @@ const page: MeasuredPage = {
   height: 100,
   children: [
     {
-      type: "text",
-      text: "ignored",
+      type: "richText",
       x: 0,
       y: 0,
       width: 100,
       height: 100,
-      align: "left",
-      lineHeight: 12,
-      fontSize: 12,
-      lines: [first, second],
+      paragraphs: [],
+      fragments: [first, second],
     },
   ],
 };
@@ -87,7 +93,7 @@ test("non-font provider supplies literal and hex to real content, lazily once ac
     ],
   );
   assert.equal(count, 0);
-  assert.throws(() => commands(page, { length: 0, maximum: 6 }, resources.page(page)));
+  assert.throws(() => commands(page, { length: 0, maximum: 17 }, resources.page(page)));
   assert.equal(count, 1);
   const bytes = serialize([page, shared], resources);
   const raw = Buffer.from(bytes).toString("latin1");

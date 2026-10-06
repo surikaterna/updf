@@ -1,7 +1,6 @@
 export type {
   InkBounds,
   ParagraphDefinition,
-  PlainTextInput,
   RichTextInput,
   SourceTextRun as TextRun,
   TextFragmentMeasurement,

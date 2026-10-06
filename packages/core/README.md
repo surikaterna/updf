@@ -8,7 +8,7 @@ See [API inventory and compiled examples](API.md) for entry-point coverage,
 imports, units, defaults, lifecycle and trust boundaries. Public declarations carry
 JSDoc into generated types; optional sibling packages are not covered by this inventory.
 No example CMR types, React, parser or filesystem APIs are part of core.
-`@updf/text` exposes frozen plain/rich measurements; `RichTextNode` and native
+`@updf/text` exposes frozen paragraph-only rich measurements; `RichTextNode` and native
 `<richText>` use typed paragraphs/runs, with font/size/RGB styles. Components receive
 operation-bound `context.measurement.measureText`. See repository
 `docs/measurement.md`; dated audit evidence is retained in `docs/evidence`. Private/unreleased.
@@ -21,7 +21,8 @@ collection/painting slots and provider callbacks. `/pdf` exposes only the typed
 writer/value primitives required by resource providers, not internal directories.
 Text requires explicit `resources`, `text`, and rendering `providers`.
 Use `createTextService({ runtime, defaultFont? })` from `@updf/text`; an omitted
-font requires its explicit `defaultFont`. There is no implementation fallback or
+layout authoring font requires its explicit `defaultFont`; native paragraphs always
+specify `defaultStyle.font`. There is no implementation fallback or
 default provider. Core dispatches structural text capabilities, validates and
 owns their numeric output, and preserves opaque run identity. Wrapping and
 intrinsic metrics belong to text; alpha and generic drawing ink remain core-owned.

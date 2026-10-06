@@ -9,7 +9,13 @@ import {
   type OperationOptions,
 } from "@updf/core";
 import { createPreparedFont } from "@updf/fonts";
-import { fixtureFont, fontDocument, fontInput, fontText } from "../../../tests/fixtures/fonts/font-fixture.js";
+import {
+  fixtureFont,
+  fontDocument,
+  fontInput,
+  fontParagraph,
+  fontText,
+} from "../../../tests/fixtures/fonts/font-fixture.js";
 import { fontOptions } from "../../../tests/fixtures/fonts/font-options.js";
 import { record } from "../dist/cjs/checks.js";
 
@@ -95,7 +101,11 @@ test("font data descriptors/prototypes and malformed resources never invoke call
     },
   });
   rejects(() => coreRender(fontDocument([fontText("A")]), { ...fontOptions(), resources }), "TYPE");
-  assert.ok(render(fontDocument([fontText("A", { font: "Helvetica" })]), { resources: { Helvetica: font } }).length);
+  assert.ok(
+    render(fontDocument([fontText("A", { paragraphs: [fontParagraph("A", "Helvetica")] })]), {
+      resources: { Helvetica: font },
+    }).length,
+  );
   rejects(() => renderUnknown(fontDocument([fontText("A")]), { resources: { Demo: { ...font } } }), "FONT_RESOURCE");
   assert.equal(calls, 0);
 });
@@ -120,9 +130,7 @@ test("optional unique font bytes/output caps, uncapped aliases and backing-byte 
   const other = createPreparedFont({ ...input, bytes: new Uint8Array(4 * 1024 * 1024) });
   const children = Array.from({ length: 5 }, (_, i) =>
     fontText("A\n".repeat(2048), {
-      font: i % 2 ? "B" : "A",
-      fontSize: Number.MIN_VALUE,
-      lineHeight: Number.MIN_VALUE,
+      paragraphs: [fontParagraph("A\n".repeat(2048), i % 2 ? "B" : "A", Number.MIN_VALUE, Number.MIN_VALUE)],
     }),
   );
   rejects(() => render(fontDocument(children), { profile: "service", resources: { A: large, B: other } }), "LIMIT");
@@ -141,8 +149,14 @@ test("optional unique font bytes/output caps, uncapped aliases and backing-byte 
 test("selected fonts require every glyph including ASCII and reject shaping/scripts/surrogates", async () => {
   const font = await fixtureFont();
   const options = { resources: { Demo: font } };
-  rejects(() => render(fontDocument([fontText("x", { font: "Missing" })]), options), "FONT_RESOURCE");
-  rejects(() => render(fontDocument([fontText("Москва", { font: "Helvetica" })]), options), "CHARACTER");
+  rejects(
+    () => render(fontDocument([fontText("x", { paragraphs: [fontParagraph("x", "Missing")] })]), options),
+    "FONT_RESOURCE",
+  );
+  rejects(
+    () => render(fontDocument([fontText("Москва", { paragraphs: [fontParagraph("Москва", "Helvetica")] })]), options),
+    "CHARACTER",
+  );
   for (const text of ["e\u0301", "\u202eABC", "A\u200dB", "A\ufe0f", "عربي", "Ελλάδα", "😀", "\t", "\r", "\u2028"]) {
     rejects(() => render(fontDocument([fontText(text)]), options), "FONT_PROFILE");
   }
@@ -154,7 +168,7 @@ test("selected fonts require every glyph including ASCII and reject shaping/scri
     (error: unknown) => {
       assert.ok(error instanceof DocumentError);
       assert.equal(error.diagnostics[0]?.code, "GLYPH_MISSING");
-      assert.equal(error.diagnostics[0]?.path, "/pages/0/children/0/text");
+      assert.equal(error.diagnostics[0]?.path, "/pages/0/children/0/paragraphs/0/runs/0/text");
       assert.match(error.message, /U\+0041/);
       return true;
     },

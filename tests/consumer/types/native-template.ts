@@ -1,4 +1,4 @@
-import { type DocumentDefinition, DocumentError, renderUnknown, type TextNode } from "@updf/core";
+import { type DocumentDefinition, DocumentError, renderUnknown, type RichTextNode } from "@updf/core";
 import { type CmrData, cmrFixture, createCmrDocument, renderCMR } from "@updf/example-cmr/cmr";
 import { render } from "./text-options.js";
 
@@ -12,15 +12,21 @@ export function createGreeting(data: { readonly recipient: string }): DocumentDe
         height: 842,
         children: [
           {
-            type: "text",
+            type: "richText",
             x: 40,
             y: 40,
             width: 200,
             height: 24,
-            text: `Hello ${data.recipient}`,
-            fontSize: 10,
-            lineHeight: 12,
-            align: "left",
+            paragraphs: [
+              {
+                runs: [{ text: `Hello ${data.recipient}` }],
+                defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
+                lineHeight: 12,
+                align: "left",
+                whiteSpace: "preserve",
+                breakLongWords: "error",
+              },
+            ],
           },
         ],
       },
@@ -32,7 +38,7 @@ export const positiveBytes: Uint8Array = render(createGreeting({ recipient: "PDF
 export const cmrBytes: Uint8Array = renderCMR(createCmrDocument(cmrFixture satisfies CmrData));
 
 // Compile-only tests: never execute deliberate invalid templates/mutations.
-export function checkTypeErrors(document: DocumentDefinition, text: TextNode, data: CmrData, json: unknown): void {
+export function checkTypeErrors(document: DocumentDefinition, text: RichTextNode, data: CmrData, json: unknown): void {
   // @ts-expect-error Unsupported document version must fail compilation.
   render({ version: 2, pages: [] });
   // @ts-expect-error A misspelled node key is not part of the public schema.
@@ -45,17 +51,18 @@ export function checkTypeErrors(document: DocumentDefinition, text: TextNode, da
       {
         width: 100,
         height: 100,
-        // @ts-expect-error Text content is required, not optional or implicitly coerced.
-        children: [{ type: "text", x: 0, y: 0, width: 80, height: 20, fontSize: 10, lineHeight: 12, align: "left" }],
+        // @ts-expect-error Canonical paragraph content is required.
+        children: [{ type: "richText", x: 0, y: 0, width: 80, height: 20 }],
       },
     ],
   });
-  // @ts-expect-error Alignment has a closed discriminated union.
-  render({ version: 1, pages: [{ width: 100, height: 100, children: [{ ...text, align: "justify" }] }] });
+  // @ts-expect-error Alignment has a closed discriminated union inside paragraphs.
+  const alignment: import("@updf/core").ParagraphDefinition = { ...text.paragraphs[0]!, align: "justify" };
+  void alignment;
   // @ts-expect-error Readonly page arrays prohibit mutation through the typed API.
   document.pages.push({ width: 100, height: 100, children: [] });
   // @ts-expect-error Readonly node fields prohibit mutation through the typed API.
-  text.text = "changed";
+  text.paragraphs = [];
   // @ts-expect-error CMR display fields require strings, not implicit coercion.
   createCmrDocument({ ...data, totalWeight: 200 });
   // @ts-expect-error Each supplied goods row must use the named data shape.

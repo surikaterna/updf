@@ -1,4 +1,4 @@
-import type { RGB, TextAlign, TextNode } from "../types.js";
+import type { RGB, TextAlign } from "../types.js";
 
 /** Effective font ID, positive point size and normalized RGB; no synthetic bold/italic or fallback. */
 export interface TextStyle {
@@ -25,18 +25,12 @@ export interface ParagraphDefinition {
 }
 /** Rich measurement box in points; supplied height is a hard bound, not a clipping request. */
 export interface RichTextInput {
-  readonly kind: "rich";
   readonly width: number;
   readonly height?: number;
   readonly paragraphs: readonly ParagraphDefinition[];
 }
-/** Plain fixed-text semantics without page position; empty text consumes zero lines. */
-export type PlainTextInput = Omit<TextNode, "type" | "x" | "y" | "height"> & {
-  readonly kind: "plain";
-  readonly height?: number;
-};
-/** Discriminated measurement input; omit optional fields rather than supplying undefined. */
-export type TextMeasurementInput = PlainTextInput | RichTextInput;
+/** Canonical paragraph measurement input; omit optional fields instead of undefined. */
+export type TextMeasurementInput = RichTextInput;
 /** Visible ink envelope in top-left measurement coordinates, or an explicit empty marker. */
 export type InkBounds =
   | { readonly empty: true }
@@ -55,7 +49,7 @@ export interface TextFragmentMeasurement {
   readonly advance: number;
   readonly inkBounds: InkBounds;
   readonly runIndex: number;
-  /** Half-open UTF-16 offsets in the original run (plain input uses its single text string). */
+  /** Half-open UTF-16 offsets in the original run. */
   readonly source: { readonly start: number; readonly end: number };
 }
 /** One measured line; top/baseline are relative to the measurement origin in points. */

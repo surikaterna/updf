@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { renderUnknown } from "@updf/core";
 import { measureText, type ParagraphDefinition } from "@updf/text";
-import { fontOptions } from "../../../tests/fixtures/fonts/font-options.js";
+import { fontMeasurementOptions, fontOptions } from "../../../tests/fixtures/fonts/font-options.js";
 import { ledger } from "../src/ledger.js";
 import { type Atom, wrap } from "../src/wrap.js";
 
@@ -87,7 +87,7 @@ test("service rendering retains large short-word lines and scalar-split tokens",
     const text = split ? "a".repeat(32000) : "a ".repeat(16000);
     const p = paragraph(text, split);
     const width = split ? 60 : 600;
-    const measured = measureText({ kind: "rich", width, paragraphs: [p] }, fontOptions({ profile: "service" }));
+    const measured = measureText({ width, paragraphs: [p] }, fontMeasurementOptions({ profile: "service" }));
     assert.equal(measured.lineCount, split ? 3 : 1);
     assert.equal(
       measured.lines.flatMap((line) => line.fragments.map((fragment) => fragment.text)).join(""),

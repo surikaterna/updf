@@ -5,11 +5,14 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { DocumentError, type TextNode } from "@updf/core";
+import { DocumentError, type RichTextNode } from "@updf/core";
 import { cmrFixture, createCmrDocument } from "@updf/example-cmr/cmr";
 import { render } from "../fixtures/text-options.js";
+import { assertCmrPDF } from "./cmr-rich-proof.js";
 
-test("CMR named subset dimensions, exact anchors and supplied goods total", () => {
+const CMR_RICH_SHA256 = "cb826a04f161a18e472d9ed70aa9342be20356a91527eb90d1f46cfe1fc5a7bb";
+
+test("CMR named subset dimensions, exact anchors and supplied goods total", async () => {
   const ast = createCmrDocument(cmrFixture);
   const page = ast.pages[0];
   assert.ok(page);
@@ -45,18 +48,33 @@ test("CMR named subset dimensions, exact anchors and supplied goods total", () =
     ],
   );
   const texts = page.children
-    .filter((node) => node.type === "text")
-    .map((node) => node.text)
+    .filter((node) => node.type === "richText")
+    .flatMap((node) => node.paragraphs.map((paragraph) => paragraph.runs.map((run) => run.text).join("")))
     .join("\n");
   for (const anchor of ["1. Sender", "10. Reservations", "BOX-A", "BOX-B", "Total: 200 kg", "22. Delivery conditions"])
     assert.ok(texts.includes(anchor));
   assert.deepEqual(createCmrDocument(cmrFixture), ast);
   assert.ok(render(ast).length < 100 * 1024);
-  assert.equal(
-    createHash("sha256").update(render(ast)).digest("hex"),
-    "8316f7de647590dbfad97a7dff0aac7dd6dbde1ff98cbdff544387ca59c49a22",
-  );
+  await assertCmrPDF(render(ast), ast);
+  assert.equal(createHash("sha256").update(render(ast)).digest("hex"), CMR_RICH_SHA256);
   assert.throws(() => render(createCmrDocument({ ...cmrFixture, sender: "Москва" })), DocumentError);
+});
+
+test("CMR rich geometry oracle rejects physically displaced or missing text", async () => {
+  const ast = createCmrDocument(cmrFixture);
+  const shifted = {
+    ...ast,
+    pages: ast.pages.map((page) => ({
+      ...page,
+      children: page.children.map((node) => (node.type === "richText" ? { ...node, y: node.y + 3 } : node)),
+    })),
+  };
+  await assert.rejects(assertCmrPDF(render(shifted), ast), /missing\/displaced/);
+  const absent = {
+    ...ast,
+    pages: ast.pages.map((page) => ({ ...page, children: page.children.filter((node) => node.type !== "richText") })),
+  };
+  await assert.rejects(assertCmrPDF(render(absent), ast));
 });
 
 test("independent parser handles shared multipage nodes and literal injection strings", async () => {
@@ -64,16 +82,22 @@ test("independent parser handles shared multipage nodes and literal injection st
   const path = join(directory, "literal.pdf");
   const literal = "Literal (parens) \\ slash /Name endstream 0 obj";
   const child = Object.freeze({
-    type: "text",
+    type: "richText",
     x: 10,
     y: 10,
     width: 500,
     height: 20,
-    text: literal,
-    fontSize: 10,
-    lineHeight: 12,
-    align: "left",
-  } satisfies TextNode);
+    paragraphs: [
+      {
+        runs: [{ text: literal }],
+        defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
+        lineHeight: 12,
+        align: "left",
+        whiteSpace: "preserve",
+        breakLongWords: "error",
+      },
+    ],
+  } satisfies RichTextNode);
   const page = Object.freeze({ width: 595, height: 842, children: Object.freeze([child]) });
   try {
     await writeFile(path, render({ version: 1, pages: [page, page, page] }));

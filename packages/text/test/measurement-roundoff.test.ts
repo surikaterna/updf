@@ -5,11 +5,10 @@ import { h, lower } from "@updf/core/vdom";
 import { createPreparedFont } from "@updf/fonts";
 import { measureText, measureTextUnknown, type RichTextInput } from "@updf/text";
 import { fontInput } from "../../../tests/fixtures/fonts/font-fixture.js";
-import { fontOptions } from "../../../tests/fixtures/fonts/font-options.js";
+import { fontMeasurementOptions, fontOptions } from "../../../tests/fixtures/fonts/font-options.js";
 
 function input(text: string, fontSize: number, lineHeight: number, width: number, height?: number): RichTextInput {
   return {
-    kind: "rich",
     width,
     ...(height === undefined ? {} : { height }),
     paragraphs: [
@@ -55,21 +54,24 @@ function tree(value: RichTextInput) {
     }),
   });
 }
-function accepted(value: RichTextInput, lineCount: number, options: RenderOptions = {}) {
-  options = fontOptions(options);
-  const measured = measureText(value, options);
+type SharedOptions = Pick<RenderOptions, "resources" | "profile" | "limits">;
+function accepted(value: RichTextInput, lineCount: number, setup: SharedOptions = {}) {
+  const options = fontOptions(setup);
+  const measurement = fontMeasurementOptions(setup);
+  const measured = measureText(value, measurement);
   assert.equal(measured.lineCount, lineCount);
-  assert.deepEqual(measureTextUnknown(value, options), measured);
+  assert.deepEqual(measureTextUnknown(value, measurement), measured);
   const bytes = render(document(value), options);
   assert.deepEqual(renderUnknown(document(value), options), bytes);
   assert.deepEqual(render(lower(tree(value), options), options), bytes);
   return measured;
 }
-function rejected(value: RichTextInput, code: string, options: RenderOptions = {}): void {
-  options = fontOptions(options);
+function rejected(value: RichTextInput, code: string, setup: SharedOptions = {}): void {
+  const options = fontOptions(setup);
+  const measurement = fontMeasurementOptions(setup);
   const operations = [
-    () => measureText(value, options),
-    () => measureTextUnknown(value, options),
+    () => measureText(value, measurement),
+    () => measureTextUnknown(value, measurement),
     () => render(document(value), options),
     () => renderUnknown(document(value), options),
     () => lower(tree(value), options),

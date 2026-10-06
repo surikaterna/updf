@@ -7,7 +7,10 @@ audit-status wording are not current instructions. Use root `readme.md` commands
 
 ## Core contracts
 
-- `@updf/text`: public readonly plain/rich measurement with required explicit options. Separate
+- `@updf/text`: public readonly paragraph-only measurement with required `MeasureOptions`
+  (`resources`, `measurer`, `profile`, `limits` only). `createTextMeasurer` is the
+  standalone factory; rendering `text`/`providers` options are rejected, not projected.
+  `createTextService` remains the full render/layout service. Separate
   `RichTextNode`/native `<richText>` paragraph data supports font/size/RGB runs.
   Trusted components use operation-bound `context.measurement.measureText`.
   See [full semantics, caps and lifetime contract](measurement.md). Local #26
@@ -94,12 +97,15 @@ policies. See the [dated foundation/blueprint](architecture/composable-layout.md
 for units, all removed/residual ceilings, context lifetime and deferred C–G APIs.
 
 Migration added no image/layout/editor functionality or legacy modernization.
-Optional bounded flow was added subsequently by #27, without changing fixed CMR.
+Optional bounded flow was added subsequently by #27. Rich-only migration preserves
+the CMR form geometry but adopts rich line baselines and a new guarded PDF digest.
 
 ## Document authoring
 
 The current `@updf/layout` Document/Page/Flow components, readonly data constructors,
 PageSize presets/custom point sizes, sealed final PageContext/FragmentContext and
 reserved deferred decorations are documented in [documents.md](documents.md).
-Core's fixed document/page grammar and bytes remain unchanged. No Image API,
+Core's fixed document/page grammar remains version 1; native text is canonical
+`richText` paragraph data only. Former plain tags/props are rejected. Existing rich
+engine bytes remain unchanged, not the former plain baseline policy. No Image API,
 release, issue closure or deployment is implied.
