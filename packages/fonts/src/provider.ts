@@ -5,6 +5,7 @@ import {
   type PaintingBinding,
   type Resource,
   type ResourceCollection,
+  type ResourceDefinition,
   type ResourceProvider,
   resourceSlot,
   type TextRuntime,
@@ -19,33 +20,26 @@ import { isHelvetica, type RunData, resolveRun } from "./runtime.js";
 const fontSlot = resourceSlot<undefined>();
 
 export function fontProvider(runtime: TextRuntime): ResourceProvider {
-  let next = 1;
-  let helveticaKey: string | undefined;
-  let usages = new WeakMap<Resource<undefined>, FontUsage>();
+  let usages = new WeakMap<OwnedResource, FontUsage>();
   let bindings = new WeakMap<object, PaintingBinding<PdfString>>();
   const intern = (font: OwnedResource, collection: ResourceCollection): Resource<undefined> => {
     return collection.intern(fontSlot, font, () => {
-      // Keep historical font names without reserving an unused Helvetica object.
-      if (isHelvetica(font)) {
-        const key = helveticaKey ?? `F${next++}`;
-        helveticaKey = undefined;
-        return builtin(key);
-      }
+      if (isHelvetica(font)) return builtin();
       if (!isPreparedFont(font)) fail("FONT_RESOURCE", "/resources", "Expected an owned font");
-      const usage: FontUsage = { font, key: `F${next++}`, glyphs: [], cids: new Map() };
+      const usage: FontUsage = { font, glyphs: [], cids: new Map() };
       const resource = prepared(usage);
-      usages.set(resource, usage);
+      usages.set(font, usage);
       return resource;
     });
   };
   const bind = (site: TextSite, collection: ResourceCollection): void => {
     const data = resolveRun(runtime, site.run, site.path);
     const resource = intern(data.resource, collection);
-    if (isPreparedFont(data.resource)) register(data, usages.get(resource));
+    if (isPreparedFont(data.resource)) register(data, usages.get(data.resource));
     let binding = bindings.get(site.identity);
     if (binding && binding.resource !== resource) throw new Error("Conflicting font painting binding");
     if (!binding) {
-      const usage = usages.get(resource);
+      const usage = usages.get(data.resource);
       binding = { resource, finish: () => encoded(data, usage) };
       bindings.set(site.identity, binding);
     }
@@ -53,9 +47,7 @@ export function fontProvider(runtime: TextRuntime): ResourceProvider {
   };
   return {
     slot: fontSlot,
-    initialize(_collection, context) {
-      helveticaKey = [...context.bindings.values()].some(isHelvetica) ? "F1" : undefined;
-      next = helveticaKey ? 2 : 1;
+    initialize() {
       usages = new WeakMap();
       bindings = new WeakMap();
     },
@@ -74,10 +66,9 @@ function encoded(data: RunData, usage: FontUsage | undefined): PdfString {
   return hex(encodeRun(usage, data.glyphs));
 }
 
-function prepared(usage: FontUsage): Resource<undefined> {
+function prepared(usage: FontUsage): ResourceDefinition<undefined> {
   return {
     category: "Font",
-    key: usage.key,
     phase: "content",
     payload: undefined,
     reserve(writer) {
@@ -86,10 +77,9 @@ function prepared(usage: FontUsage): Resource<undefined> {
     },
   };
 }
-function builtin(key: string): Resource<undefined> {
+function builtin(): ResourceDefinition<undefined> {
   return {
     category: "Font",
-    key,
     phase: "bootstrap",
     payload: undefined,
     reserve(writer) {

@@ -8,7 +8,7 @@ Private/unreleased API change; no compatibility facade or publication is implied
 | `@updf/core/measurement` | `@updf/text` |
 | implicit Helvetica/default font/provider | explicit resources + text service + provider |
 | `limits.fontBytes` | `limits.resourceBytes` (all unique owned resource identities) |
-| unconditional `/F1` | Helvetica `/F1` only when committed text uses it |
+| unconditional `/F1` | Core assigns private font names in committed first-use order; unused Helvetica allocates none |
 | standalone `measureText(input, RenderOptions)` | `measureText(input, MeasureOptions)` with required `measurer` |
 | discriminated plain/rich measurement inputs | `{ width, height?, paragraphs }` only, no `kind` |
 | `TextNode`, native `<text>` and text children concatenation | `RichTextNode`, native `<richText paragraphs={...} />` only |

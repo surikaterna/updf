@@ -35,7 +35,6 @@ export function jpeg(resourceId: string, box: Box): XObjectNode {
 /** Reusable portable provider; all resource keys and PDF references belong to the current operation. */
 export function jpegProvider(): ResourceProvider {
   const slot = resourceSlot<null>();
-  const sequences = new WeakMap<ResourceCollection, number>();
   return Object.freeze({
     slot,
     collectXObject(site: XObjectSite, collection: ResourceCollection): void {
@@ -43,7 +42,6 @@ export function jpegProvider(): ResourceProvider {
       if (!bytes) return;
       const resource = collection.intern(slot, site.resource, () => ({
         category: "XObject",
-        key: imageKey(collection, sequences),
         payload: null,
         phase: "content",
         reserve(writer) {
@@ -56,11 +54,6 @@ export function jpegProvider(): ResourceProvider {
   });
 }
 
-function imageKey(collection: ResourceCollection, sequences: WeakMap<ResourceCollection, number>): string {
-  const next = (sequences.get(collection) ?? 0) + 1;
-  sequences.set(collection, next);
-  return `Im${next}`;
-}
 function dictionary(resource: JpegResource): PdfDictionary {
   const { width, height, components } = resource.metadata;
   return {

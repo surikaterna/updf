@@ -37,7 +37,7 @@ const jpegRuntime = String.raw`
   const options = {resources:{photo,alias:photo},providers:[jpeg.jpegProvider()]};
   const bytes = render(document,options), pdf = Buffer.from(bytes).toString('latin1');
   assert.equal((pdf.match(/\/Subtype \/Image/g)||[]).length,1);
-  assert.equal((pdf.match(/\/Im1 Do/g)||[]).length,2);
+  assert.equal((pdf.match(/\/X1 Do/g)||[]).length,2);
   assert.ok(!pdf.includes('/Type /Font'));
   assert.ok(Buffer.from(bytes).includes(original));
   assert.deepEqual(render(document,options),bytes);
@@ -60,6 +60,9 @@ const mixedRuntime = String.raw`
 
 export const jpegDualRuntime = String.raw`
   const cjpe = require('@updf/jpeg'), ejpe = await import('@updf/jpeg');
+  const cbridge = require('@updf/core/internal-drawing'), ebridge = await import('@updf/core/internal-drawing');
+  const cvdom = require('@updf/core/vdom'), evdom = await import('@updf/core/vdom');
+  assert.equal(cbridge.nativeNodeToVdom,ebridge.nativeNodeToVdom);
   const jpegSource = new Uint8Array(require('node:fs').readFileSync('fixture.jpg'));
   for (const [prepare,other] of [[cjpe.prepareJpeg,ejpe],[ejpe.prepareJpeg,cjpe]]) {
     const photo = prepare(jpegSource);
@@ -67,5 +70,10 @@ export const jpegDualRuntime = String.raw`
     const definition = {version:1,pages:[{width:100,height:100,children:[other.jpeg('photo',{x:10,y:20,width:60,height:40})]}]};
     const options = {resources:{photo},providers:[other.jpegProvider()]};
     assert.deepEqual(c.render(definition,options),e.render(definition,options));
+    for (const [bridge,vdom] of [[cbridge,evdom],[ebridge,cvdom]]) {
+      const owned = bridge.nativeNodeToVdom(definition.pages[0].children[0]);
+      const tree = vdom.h('document',{version:1,children:vdom.h('page',{width:100,height:100,children:owned})});
+      assert.deepEqual(c.render(vdom.lower(tree,options),options),c.render(definition,options));
+    }
   }
 `;

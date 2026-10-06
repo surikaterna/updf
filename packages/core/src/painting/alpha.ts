@@ -1,16 +1,20 @@
 import { name } from "../core/pdf-values.js";
-import { type PageResources, type Resource, type ResourceProvider, resourceSlot } from "../core/resource-types.js";
+import {
+  type PageResources,
+  type ResourceDefinition,
+  type ResourceProvider,
+  resourceSlot,
+} from "../core/resource-types.js";
 import type { ResolvedDrawing } from "./types.js";
 
-const alphaSlot = resourceSlot<string>();
+const alphaSlot = resourceSlot<undefined>();
 export function alphaAt(resources: PageResources, drawing: ResolvedDrawing): string | undefined {
   const paint = drawing.paint;
   if ((!paint.fill || paint.fillOpacity === 1) && (!paint.stroke || !paint.width || paint.strokeOpacity === 1))
     return undefined;
-  return resources.resolve(drawing, alphaSlot).payload;
+  return resources.resolve(drawing, alphaSlot).key;
 }
 export function alphaProvider(): ResourceProvider {
-  let next = 1;
   return {
     slot: alphaSlot,
     collectDrawing(drawing, collection) {
@@ -19,16 +23,15 @@ export function alphaProvider(): ResourceProvider {
       const stroke = paint.stroke && paint.width ? paint.strokeOpacity : 1;
       const identity = `${fill}|${stroke}`;
       if (identity === "1|1") return;
-      const resource = collection.intern(alphaSlot, identity, () => alpha(`GS${next++}`, fill, stroke));
+      const resource = collection.intern(alphaSlot, identity, () => alpha(fill, stroke));
       collection.bind(drawing, alphaSlot, resource);
     },
   };
 }
-function alpha(key: string, fill: number, stroke: number): Resource<string> {
+function alpha(fill: number, stroke: number): ResourceDefinition<undefined> {
   return {
     category: "ExtGState",
-    key,
-    payload: key,
+    payload: undefined,
     phase: "content",
     reserve(writer) {
       const ref = writer.reserve();

@@ -4,7 +4,12 @@ import { isBuiltin } from "node:module";
 import { join } from "node:path";
 
 export const internalImporters: Readonly<Record<string, readonly string[]>> = {
-  "@updf/core/internal-drawing": ["layout/src/mixed-layout.ts", "layout/src/index.ts"],
+  "@updf/core/internal-drawing": [
+    "layout/src/mixed-layout.ts",
+    "layout/src/index.ts",
+    "layout/src/native-vdom.ts",
+    "layout/src/region-render.ts",
+  ],
   "@updf/core/internal": [
     "layout/src/index.ts",
     "layout/src/adapter-ownership.ts",
@@ -41,7 +46,6 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/deferred-decoration.ts",
     "layout/src/region-render.ts",
     "layout/src/region-overflow.ts",
-    "layout/src/native-vdom.ts",
     "layout/src/layout.ts",
     "layout/src/template.ts",
     "layout/src/blocks.ts",
@@ -254,17 +258,37 @@ const coreExports = [
   "textOnce",
   "inputNode",
 ];
-export async function checkSeams(root: string): Promise<void> {
-  await checkResourceExports(root);
-  internalExports(await readFile(join(root, "packages/core/src/internal.ts"), "utf8"), coreExports);
+async function checkDrawingExports(root: string): Promise<void> {
   const drawing = await readFile(join(root, "packages/core/src/internal-drawing.ts"), "utf8");
   assert.ok(/export function createDrawingLayoutOperation\(/u.test(drawing));
   assert.deepEqual(
     [...drawing.matchAll(/^export function (\w+)/gmu)].map((match) => match[1]),
     ["createDrawingLayoutOperation"],
   );
-  assert.ok(!/^export\s+(?!function createDrawingLayoutOperation\b)/mu.test(drawing));
-  assert.ok(!/export\s+\*|export\s+\{/u.test(drawing), "Drawing seam must not re-export internals");
+  assert.ok(
+    !/^export\s+(?!function createDrawingLayoutOperation\b|\{ isNativeNodeKind, nativeNodeKinds \}|\{ isNativeNodeData, isNativeNodeDataArray, nativeNodeToVdom \})/mu.test(
+      drawing,
+    ),
+  );
+  internalExports(drawing, [
+    "isNativeNodeKind",
+    "nativeNodeKinds",
+    "isNativeNodeData",
+    "isNativeNodeDataArray",
+    "nativeNodeToVdom",
+  ]);
+  assert.ok(/export \{ isNativeNodeKind, nativeNodeKinds \} from "\.\/nodes\/metadata\.js";/u.test(drawing));
+  assert.ok(
+    /export \{ isNativeNodeData, isNativeNodeDataArray, nativeNodeToVdom \} from "\.\/vdom\/native-data\.js";/u.test(
+      drawing,
+    ),
+  );
+}
+
+export async function checkSeams(root: string): Promise<void> {
+  await checkResourceExports(root);
+  await checkDrawingExports(root);
+  internalExports(await readFile(join(root, "packages/core/src/internal.ts"), "utf8"), coreExports);
   internalExports(await readFile(join(root, "packages/geometry/src/internal.ts"), "utf8"), [
     "hasArguments",
     "numeric",
@@ -312,6 +336,7 @@ const resourceExports = [
   "PaintingSlot",
   "Resource",
   "ResourceCollection",
+  "ResourceDefinition",
   "ResourcePhase",
   "ResourceProvider",
   "ResourceSlot",

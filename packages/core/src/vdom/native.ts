@@ -1,15 +1,12 @@
 import { fail } from "../core/error.js";
-import { checkLimit, codePoints } from "../core/policy.js";
-import { matrix, multiply } from "../painting/affine.js";
+import { checkLimit } from "../core/policy.js";
+import type { NodeKind } from "../nodes/context.js";
+import { isNativeNodeKind } from "../nodes/metadata.js";
+import { coordinate } from "../nodes/native-fields.js";
+import { acceptedKeys, lowering, nativeWork } from "../nodes/wiring.js";
 import { keys } from "./data.js";
 import type { Location, State, Walk } from "./state.js";
 import { Fragment, type NativeVNode } from "./types.js";
-
-function coordinate(value: unknown, path: string): number {
-  if (typeof value !== "number" || !Number.isFinite(value))
-    fail("GEOMETRY", path, "Expected a finite translation coordinate");
-  return value;
-}
 
 function group(node: NativeVNode, location: Location, path: string, depth: number, walk: Walk): void {
   if (location.mode !== "draw") fail("VDOM_HIERARCHY", path, "Groups belong inside a page");
@@ -22,39 +19,15 @@ function group(node: NativeVNode, location: Location, path: string, depth: numbe
 
 function drawing(node: NativeVNode, location: Location, path: string, state: State): void {
   if (location.mode !== "draw" || !location.page) fail("VDOM_HIERARCHY", path, "Drawing nodes belong inside a page");
-  const boxKeys = ["x", "y", "width", "height"];
-  const allowed =
-    node.tag === "xObject"
-      ? [...boxKeys, "resource"]
-      : node.tag === "richText"
-        ? [...boxKeys, "paragraphs"]
-        : node.tag === "path"
-          ? ["commands", "paint", "transform"]
-          : node.tag === "line"
-            ? ["x", "y", "x2", "y2", "paint", "transform"]
-            : [...boxKeys, "paint", "transform"];
-  keys(node.props, allowed, `${path}/props`);
-  const props = { ...node.props };
-  translateProps(props, node.tag === "path", location, path);
+  if (!isNativeNodeKind(node.tag)) fail("TYPE", path, "Unsupported native drawing type");
+  keys(node.props, acceptedKeys(node.tag).slice(1), `${path}/props`);
+  const output = lowering(node.tag)(node.props, location.x, location.y, path);
   const target = location.target ?? location.page.children;
   const base = location.astPath ?? `/pages/${state.pages.indexOf(location.page)}`;
   state.origins.set(`${base}/children/${target.length}`, `${path}/props`);
   reserveNode(state, path);
-  reserveContent(props, node.tag, state, path);
-  target.push({ type: node.tag, ...props });
-}
-function translateProps(props: Record<string, unknown>, pathNode: boolean, location: Location, path: string): void {
-  if ("transform" in props && props.transform === undefined)
-    fail("TYPE", `${path}/props/transform`, "Omit optional transform instead of undefined");
-  if (pathNode || "transform" in props) {
-    if (location.x || location.y || "transform" in props)
-      props.transform = multiply([1, 0, 0, 1, location.x, location.y], matrix(props.transform, path));
-    return;
-  }
-  props.x = coordinate(props.x, `${path}/props/x`) + location.x;
-  props.y = coordinate(props.y, `${path}/props/y`) + location.y;
-  if ("x2" in props) props.x2 = coordinate(props.x2, `${path}/props/x2`) + location.x;
-  if ("y2" in props) props.y2 = coordinate(props.y2, `${path}/props/y2`) + location.y;
+  reserveContent(output, node.tag, state, path);
+  target.push(output);
 }
 function paintingGroup(
   node: NativeVNode,
@@ -66,17 +39,15 @@ function paintingGroup(
 ): void {
   if (location.mode !== "draw" || !location.page)
     fail("VDOM_HIERARCHY", path, "Painting containers belong inside a page");
-  keys(node.props, ["transform", "clip", "children"], `${path}/props`);
-  const props = { ...node.props };
-  delete props.children;
-  translateProps(props, true, location, path);
+  keys(node.props, acceptedKeys("paintGroup").slice(1), `${path}/props`);
+  const output = lowering("paintGroup")(node.props, location.x, location.y, path);
   const children: Record<string, unknown>[] = [];
   const target = location.target ?? location.page.children;
   const base = location.astPath ?? `/pages/${state.pages.indexOf(location.page)}`;
   const astPath = `${base}/children/${target.length}`;
   state.origins.set(astPath, `${path}/props`);
   reserveNode(state, path);
-  target.push({ type: "paintGroup", ...props, children });
+  target.push({ ...output, children });
   walk(
     node.props.children,
     { ...location, x: 0, y: 0, target: children, astPath },
@@ -125,35 +96,18 @@ function page(node: NativeVNode, location: Location, path: string, depth: number
 function reserveNode(state: State, path: string): void {
   state.generatedNodes = checkLimit(state.generatedNodes + 1, state.budget.policy.nodes, path, "Generated nodes");
 }
-function reserveContent(props: Record<string, unknown>, tag: NativeVNode["tag"], state: State, path: string): void {
-  let points = 0;
-  if (tag === "richText" && Array.isArray(props.paragraphs)) {
-    for (const paragraph of props.paragraphs) points += paragraphPoints(paragraph);
-  }
+function reserveContent(props: Record<string, unknown>, tag: NodeKind, state: State, path: string): void {
+  const work = nativeWork(tag)?.(props);
   state.generatedText = checkLimit(
-    state.generatedText + points,
+    state.generatedText + (work?.points ?? 0),
     state.budget.policy.textCodePoints,
     path,
     "Generated text code points",
   );
-  const commands =
-    tag === "path" && Array.isArray(props.commands)
-      ? props.commands.length
-      : tag === "rect"
-        ? 5
-        : tag === "line"
-          ? 2
-          : 0;
   state.generatedCommands = checkLimit(
-    state.generatedCommands + commands,
+    state.generatedCommands + (work?.commands ?? 0),
     state.budget.policy.pathCommands,
     path,
     "Generated path commands",
   );
-}
-function paragraphPoints(paragraph: unknown): number {
-  if (!paragraph || typeof paragraph !== "object" || !("runs" in paragraph) || !Array.isArray(paragraph.runs)) return 0;
-  let points = 0;
-  for (const run of paragraph.runs) if (run && typeof run.text === "string") points += codePoints(run.text);
-  return points;
 }

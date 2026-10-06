@@ -5,7 +5,7 @@ import type { OutputBudget } from "./budget.js";
 import { dataRecipe, legacyIdentity } from "./content-data.js";
 import { checkRole, convertBlocks } from "./content-normalize.js";
 import { finalizeDecorations } from "./deferred-decoration.js";
-import { nativeData } from "./document-native.js";
+import { isNativeNodeDataArray as nativeData } from "@updf/core/internal-drawing";
 import type { ExtensionLifetime } from "./extension-producer.js";
 import type { Extensions } from "./extension-types.js";
 import { type PageInfo, pageBinding } from "./page-context.js";

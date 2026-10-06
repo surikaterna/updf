@@ -71,3 +71,15 @@ types do not become runtime facade exports. Drawing/Helvetica/measurement graphs
 exclude JPEG, and the JPEG-only closure excludes fonts/text/Fontkit/decoders.
 `npm run build:browser` and `npm run check:graphs` check browser ESM isolation,
 tree-shaking boundaries and emitted rather than source-aliased package code.
+
+The six native source-owner modules are private implementation paths, not new
+consumer exports. The existing unstable `@updf/core/internal-drawing` entry reexports
+`nativeNodeKinds`/`isNativeNodeKind` metadata plus `isNativeNodeData`,
+`isNativeNodeDataArray` and `nativeNodeToVdom` alongside its drawing coordinator.
+Core owns classification and iterative AST-to-VDOM conversion; layout delegates
+generically and assembles documents/pages without a duplicated native leaf list
+or conversion logic.
+Its generated ESM facades still reference canonical CJS values. Separate
+function-local phase maps allow unused owner phases to tree-shake; metafile input
+presence is not evidence that their handlers survive in minified output. See
+[native node ownership](architecture/native-nodes.md) for the current ownership boundary.

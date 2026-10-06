@@ -1,10 +1,8 @@
 import { ledger, type WorkLedger } from "../measurement/ledger.js";
-import { matrix } from "../painting/affine.js";
-import { clip, drawing } from "../painting/read.js";
+import { measurement } from "../nodes/wiring.js";
 import type { DocumentDefinition, NodeDefinition } from "../types.js";
 import type { MeasuredNode, MeasuredPage } from "./plan.js";
-import { measureXObject } from "./xobject-measure.js";
-import { emptyTextResources, type ResolvedTextResources as ResolvedFonts, textService } from "./text-resources.js";
+import { emptyTextResources, type ResolvedTextResources as ResolvedFonts } from "./text-resources.js";
 
 function measuredNode(
   node: NodeDefinition,
@@ -13,30 +11,12 @@ function measuredNode(
   budget: WorkLedger,
   tasks: (() => void)[],
 ): MeasuredNode {
-  if (node.type === "xObject") return measureXObject(node, path, fonts.bindings);
-  if (node.type === "richText") {
-    const plan = textService(fonts, path).rich(
-      { width: node.width, height: node.height, paragraphs: node.paragraphs },
-      { bindings: fonts.bindings, budget },
-      path,
-    );
-    return { ...node, fragments: plan.fragments };
-  }
-  if (node.type === "paintGroup") {
-    const clipping = clip(node.clip, `${path}/clip`);
-    const children: MeasuredNode[] = [];
-    schedule(node.children, children, `${path}/children`, fonts, budget, tasks);
-    return {
-      type: "paintGroup",
-      matrix: matrix(node.transform, `${path}/transform`),
-      ...(clipping ? { clip: clipping } : {}),
-      children,
-    };
-  }
-  if (node.type === "path") return { ...node, painting: drawing({ ...node }, path) };
-  return node.paint !== undefined || node.transform !== undefined
-    ? { ...node, painting: drawing({ ...node }, path) }
-    : { ...node };
+  return measurement(node.type)(node, {
+    path,
+    fonts,
+    budget,
+    schedule: (nodes, output, pointer) => schedule(nodes, output, pointer, fonts, budget, tasks),
+  });
 }
 function schedule(
   nodes: readonly NodeDefinition[],

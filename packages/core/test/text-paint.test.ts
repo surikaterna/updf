@@ -3,9 +3,14 @@ import test from "node:test";
 import { createHelvetica, fontRuntime } from "@updf/fonts";
 import { commands } from "../dist/cjs/core/content.js";
 import { documentResources } from "../dist/cjs/core/document-resources.js";
-import { hex, literal, name } from "../dist/cjs/core/pdf-values.js";
+import { hex, literal, name, type PdfString } from "../dist/cjs/core/pdf-values.js";
 import type { MeasuredPage } from "../dist/cjs/core/plan.js";
-import { paintingSlot, type ResourceCollection, resourceSlot } from "../dist/cjs/core/resource-types.js";
+import {
+  paintingSlot,
+  type PaintingBinding,
+  type ResourceCollection,
+  resourceSlot,
+} from "../dist/cjs/core/resource-types.js";
 import { serialize } from "../dist/cjs/core/serialize.js";
 import { textSlot } from "../dist/cjs/core/text-paint.js";
 
@@ -53,7 +58,6 @@ const slot = resourceSlot<undefined>();
 function resource(category = "Font") {
   return {
     category,
-    key: "Synthetic",
     phase: "bootstrap" as const,
     payload: undefined,
     reserve(writer: import("../dist/cjs/core/pdf-writer.js").PdfWriter) {
@@ -68,14 +72,7 @@ test("non-font provider supplies literal and hex to real content, lazily once ac
   let count = 0;
   let visits = 0;
   const owned = resource();
-  const bindings = [literal("(\\)"), hex("0041")].map((payload) => ({
-    resource: owned,
-    finish() {
-      assert.equal(visits, 4);
-      count++;
-      return payload;
-    },
-  }));
+  const bindings: PaintingBinding<PdfString>[] = [];
   const resources = documentResources(
     [page, shared],
     [
@@ -83,8 +80,17 @@ test("non-font provider supplies literal and hex to real content, lazily once ac
         slot,
         collectText(site, collection) {
           visits++;
-          collection.intern(slot, "synthetic", () => owned);
-          const binding = bindings[site.identity === first ? 0 : 1];
+          const resource = collection.intern(slot, "synthetic", () => owned);
+          const index = site.identity === first ? 0 : 1;
+          const binding = bindings[index] ?? {
+            resource,
+            finish() {
+              assert.equal(visits, 4);
+              count++;
+              return index === 0 ? literal("(\\)") : hex("0041");
+            },
+          };
+          bindings[index] = binding;
           assert.ok(binding);
           collection.bindPainting(site.identity, textSlot, binding);
           collection.bindPainting(site.identity, textSlot, binding);
@@ -97,7 +103,7 @@ test("non-font provider supplies literal and hex to real content, lazily once ac
   assert.equal(count, 1);
   const bytes = serialize([page, shared], resources);
   const raw = Buffer.from(bytes).toString("latin1");
-  assert.ok(raw.includes("BT /Synthetic 12 Tf 1 0 0 1 10 80 Tm (\\(\\\\\\)) Tj ET"));
+  assert.ok(raw.includes("BT /F1 12 Tf 1 0 0 1 10 80 Tm (\\(\\\\\\)) Tj ET"));
   assert.match(raw, /30 60 Tm <0041> Tj/);
   assert.doesNotMatch(raw, /ignored| W n/);
   assert.equal(count, 2);
@@ -131,7 +137,7 @@ test("painting ownership/category/conflicts and every closed mutation path inclu
             },
           };
           assert.throws(
-            () => collection.bindPainting(first, textSlot, { ...binding, resource: resource() }),
+            () => collection.bindPainting(first, textSlot, { ...binding, resource: { ...resource(), key: "Foreign" } }),
             /Foreign/,
           );
           const wrong = collection.intern(slot, "wrong", () => resource("Example"));

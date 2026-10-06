@@ -7,6 +7,7 @@ export type {
   PaintingSlot,
   Resource,
   ResourceCollection,
+  ResourceDefinition,
   ResourcePhase,
   ResourceProvider,
   ResourceSlot,

@@ -38,6 +38,14 @@ Public API inventories: [core](../../packages/core/API.md),
 
 ## Narrow internal seams
 
+All six core native kinds have cohesive source owners and narrow exhaustive phase
+wiring; see [native node ownership](native-nodes.md). The existing unstable
+`@updf/core/internal-drawing` seam supplies `nativeNodeKinds`/`isNativeNodeKind`
+metadata plus `isNativeNodeData`, `isNativeNodeDataArray` and `nativeNodeToVdom`.
+Core owns classification and iterative AST-to-VDOM conversion; layout delegates
+generically and assembles documents/pages without duplicating a native leaf list
+or conversion logic.
+
 For explicit optional text/font composition and the PDF resource pipeline,
 see [resource providers](resource-providers.md) and [migration](../migration/fonts-text.md).
 

@@ -3,6 +3,10 @@ import { test } from "node:test";
 import { DocumentError, renderUnknown, type XObjectNode } from "@updf/core";
 import { createLayoutOperation } from "@updf/core/internal";
 import { name } from "@updf/core/pdf";
+import { commands } from "../dist/cjs/core/content.js";
+import { PdfWriter } from "../dist/cjs/core/pdf-writer.js";
+import type { MeasuredPage } from "../dist/cjs/core/plan.js";
+import type { PageResources } from "@updf/core/resources";
 import {
   createOwnedResource,
   type ResourceCollection,
@@ -26,14 +30,15 @@ function rejects(value: unknown, code: string, suffix = ""): void {
       error.diagnostics[0]?.path === `/pages/0/children/0${suffix}`,
   );
 }
-function provider(key = "__proto__"): ResourceProvider {
+function provider(key?: string, claim?: object): ResourceProvider {
   const slot = resourceSlot<null>();
   return {
     slot,
     collectXObject(site, collection) {
+      if (claim && site.resource !== claim) return;
       const resource = collection.intern(slot, site.resource, () => ({
         category: "XObject",
-        key,
+        ...(key === undefined ? {} : { key }),
         payload: null,
         phase: "content",
         reserve(writer) {
@@ -53,14 +58,57 @@ function provider(key = "__proto__"): ResourceProvider {
     },
   };
 }
-test("generic normalized Form XObject names are escaped in dictionaries and Do operands", () => {
+test("generic normalized Form XObjects use the same core name in dictionaries and Do operands", () => {
+  const pdf = Buffer.from(renderUnknown(input(), { resources: { shape: owned }, providers: [provider()] })).toString(
+    "latin1",
+  );
+  assert.ok(pdf.includes("/X1 Do"));
+  assert.match(pdf, /\/X1 \d+ 0 R/);
+  assert.ok(pdf.includes("30 0 0 40 10 40 cm"));
+});
+test("independent XObject providers need no prefix coordination across aliases, pages and documents", () => {
+  const other = createOwnedResource({});
+  const children = [node, { ...node, resource: "other", x: 50 }, { ...node, resource: "alias" }];
+  const document = {
+    version: 1,
+    pages: [
+      { width: 100, height: 100, children },
+      { width: 100, height: 100, children },
+    ],
+  };
+  const options = {
+    resources: { shape: owned, alias: owned, other },
+    providers: [provider(undefined, owned), provider(undefined, other)],
+  };
+  const bytes = renderUnknown(document, options);
+  const pdf = Buffer.from(bytes).toString("latin1");
+  assert.equal((pdf.match(/\/X1 Do/g) ?? []).length, 4);
+  assert.equal((pdf.match(/\/X2 Do/g) ?? []).length, 2);
+  assert.equal((pdf.match(/\/Subtype \/Form/g) ?? []).length, 2);
+  assert.match(pdf, /\/XObject << \/X1 \d+ 0 R \/X2 \d+ 0 R >>/);
+  assert.deepEqual(renderUnknown(document, options), bytes);
+});
+test("trusted lower-level painting and writer boundaries still escape PDF names", () => {
   for (const key of ["__proto__", "constructor", "name /Q\n%#()"]) {
-    const bytes = renderUnknown(input(), { resources: { shape: owned }, providers: [provider(key)] });
-    const pdf = Buffer.from(bytes).toString("latin1");
+    const page: MeasuredPage = { width: 100, height: 100, children: [{ ...node, owned, path: "" }] };
+    const resources: PageResources = {
+      resolve() {
+        throw new Error("unused");
+      },
+      painting<T>() {
+        return { key, payload: null as T };
+      },
+    };
+    const content = commands(page, { length: 0, maximum: 10000 }, resources).join("");
+    const writer = new PdfWriter();
+    const root = writer.reserve();
+    writer.setRoot(root);
+    writer.define(root, { XObject: { [key]: root } });
+    const pdf = Buffer.from(writer.seal()).toString("latin1");
     const encoded = key === "name /Q\n%#()" ? "/name#20#2FQ#0A#25#23#28#29" : `/${key}`;
-    assert.ok(pdf.includes(`${encoded} Do`));
-    assert.ok(pdf.includes(`${encoded} 4 0 R`) || pdf.includes(`${encoded} 5 0 R`));
-    assert.ok(pdf.includes("30 0 0 40 10 40 cm"));
+    assert.ok(content.includes(`${encoded} Do`));
+    assert.ok(pdf.includes(`${encoded} 1 0 R`));
+    assert.ok(content.includes("30 0 0 40 10 40 cm"));
   }
 });
 test("exact own-data schema, resource grammar, positive dimensions and finite derived geometry", () => {
@@ -100,7 +148,7 @@ test("one generic leaf charges a node but zero path commands and produces conser
   assert.deepEqual(operation.nativeInk([group]), { empty: false, left: 35, top: 25, right: 45, bottom: 45 });
   operation.close();
 });
-test("conflicting generic XObject keys and invalid PDF name bytes reject before reservations", () => {
+test("provider-assigned XObject keys reject before reservations", () => {
   const options = { resources: { shape: owned, other: createOwnedResource({}) }, providers: [provider("same")] };
   const document = {
     version: 1,
@@ -111,14 +159,14 @@ test("conflicting generic XObject keys and invalid PDF name bytes reject before 
     (error: unknown) =>
       error instanceof DocumentError &&
       error.diagnostics[0]?.code === "RESOURCE" &&
-      error.diagnostics[0]?.path === "/pages/0/children/1/resource",
+      error.diagnostics[0]?.path === "/resources",
   );
   assert.throws(
     () => renderUnknown(input(), { resources: { shape: owned }, providers: [provider("\u0100")] }),
     (error: unknown) =>
       error instanceof DocumentError &&
       error.diagnostics[0]?.code === "RESOURCE" &&
-      error.diagnostics[0]?.path === "/pages/0/children/0/resource",
+      error.diagnostics[0]?.path === "/resources",
   );
 });
 test("collectXObject captures validated own callback with original this before initialize mutates it", () => {

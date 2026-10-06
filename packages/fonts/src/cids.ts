@@ -3,7 +3,6 @@ import type { PreparedFont, PreparedGlyph } from "./types.js";
 
 export interface FontUsage {
   readonly font: PreparedFont;
-  readonly key: string;
   readonly glyphs: PreparedGlyph[];
   readonly cids: Map<number, number>;
 }

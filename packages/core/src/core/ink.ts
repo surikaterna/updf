@@ -1,8 +1,7 @@
 import { ledger } from "../measurement/ledger.js";
 import type { InkBounds } from "../measurement/types.js";
-import { multiply } from "../painting/affine.js";
-import { type Bounds, intersection, pathBounds, rectangle } from "../painting/bounds.js";
-import { drawing } from "../painting/read.js";
+import { ink } from "../nodes/wiring.js";
+import { type Bounds, intersection } from "../painting/bounds.js";
 import type { Matrix } from "../painting/types.js";
 import type { NodeDefinition } from "../types.js";
 import { measure } from "./measure.js";
@@ -31,62 +30,14 @@ export function nativeInk(nodes: readonly NodeDefinition[], fonts: ResolvedFonts
   return union(bounds);
 }
 function scan(task: Task, tasks: Task[], output: InkBounds[]): void {
-  const { node, transform, clip } = task;
-  if (node.type === "paintGroup") {
-    group(node, transform, clip, tasks);
-    return;
-  }
-  if (node.type === "richText") {
-    for (const fragment of node.fragments) addInk(fragment.inkBounds, node.x, node.y, transform, clip, output);
-    return;
-  }
-  shape(node, transform, clip, output);
-}
-function group(
-  node: Extract<MeasuredNode, { type: "paintGroup" }>,
-  transform: Matrix,
-  clip: Bounds | undefined,
-  tasks: Task[],
-): void {
-  const matrix = multiply(transform, node.matrix);
-  const localClip = node.clip && rectangle(node.clip.x, node.clip.y, node.clip.width, node.clip.height, matrix);
-  const nextClip = clip && localClip ? intersection(clip, localClip) : (clip ?? localClip);
-  if (clip && localClip && !nextClip) return;
-  for (const child of node.children)
-    tasks.push({ node: child, transform: matrix, ...(nextClip ? { clip: nextClip } : {}) });
-}
-function shape(
-  node: Exclude<MeasuredNode, { type: "paintGroup" | "richText" }>,
-  transform: Matrix,
-  clip: Bounds | undefined,
-  output: InkBounds[],
-): void {
-  if (node.type === "xObject") {
-    addBounds(rectangle(node.x, node.y, node.width, node.height, transform), clip, output);
-    return;
-  }
-  const painting = node.painting ?? drawing({ ...node }, "");
-  const paint = {
-    ...painting.paint,
-    fill: painting.paint.fillOpacity === 0 ? null : painting.paint.fill,
-    stroke: painting.paint.strokeOpacity === 0 ? null : painting.paint.stroke,
-  };
-  addBounds(pathBounds(painting.commands, multiply(transform, painting.matrix), paint), clip, output);
-}
-function addInk(
-  bounds: InkBounds,
-  x: number,
-  y: number,
-  transform: Matrix,
-  clip: Bounds | undefined,
-  output: InkBounds[],
-): void {
-  if (bounds.empty) return;
-  addBounds(
-    rectangle(bounds.left + x, bounds.top + y, bounds.right - bounds.left, bounds.bottom - bounds.top, transform),
-    clip,
-    output,
-  );
+  ink(task.node.type)(task.node, {
+    transform: task.transform,
+    ...(task.clip ? { clip: task.clip } : {}),
+    addBounds: (bounds) => addBounds(bounds, task.clip, output),
+    schedule: (nodes, transform, clip) => {
+      for (const node of nodes) tasks.push({ node, transform, ...(clip ? { clip } : {}) });
+    },
+  });
 }
 function addBounds(bounds: Bounds | undefined, clip: Bounds | undefined, output: InkBounds[]): void {
   const visible = bounds && (clip ? intersection(bounds, clip) : bounds);

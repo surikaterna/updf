@@ -1,4 +1,5 @@
 import { fail } from "../core/error.js";
+import { nativeNodeKinds } from "../nodes/metadata.js";
 import { providerNode } from "./context.js";
 import { dataRecord, snapshot } from "./data.js";
 import { ownNode } from "./ownership.js";
@@ -15,17 +16,12 @@ import {
   type VNode,
 } from "./types.js";
 
-export const nativeTags: readonly string[] = Object.freeze([
-  "document",
-  "page",
-  "group",
-  "richText",
-  "rect",
-  "line",
-  "path",
-  "paintGroup",
-  "xObject",
-]);
+export const nativeTags: readonly string[] = Object.freeze(["document", "page", "group", ...nativeNodeKinds]);
+
+export function isReservedNativeTag(name: string): boolean {
+  const normalized = name.toLowerCase();
+  return nativeTags.some((tag) => tag.toLowerCase() === normalized);
+}
 
 function isComponent<P extends object>(type: NativeTag | typeof Fragment | Component<P>): type is Component<P> {
   return typeof type === "function" && type !== Fragment;

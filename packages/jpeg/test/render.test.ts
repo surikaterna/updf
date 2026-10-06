@@ -22,8 +22,8 @@ test("exact compressed streams, pixel metadata vs point placement, immutable sou
   const output = render(input, options);
   const pdf = binary(output);
   assert.equal(imageCount(output), 1);
-  assert.equal((pdf.match(/\/Im1 Do/g) ?? []).length, 2);
-  assert.ok(pdf.includes("60 0 0 40 10 40 cm\n/Im1 Do"));
+  assert.equal((pdf.match(/\/X1 Do/g) ?? []).length, 2);
+  assert.ok(pdf.includes("60 0 0 40 10 40 cm\n/X1 Do"));
   assert.ok(
     pdf.includes(
       "/Width 32 /Height 24 /BitsPerComponent 8 /ColorSpace /DeviceRGB /Filter /DCTDecode /DecodeParms << /ColorTransform 1 >>",
@@ -153,7 +153,7 @@ test("drawing/text bytes unchanged when unused JPEG is configured and image oper
     { version: 1, pages: [{ width: 100, height: 100, children: [...document().pages[0]!.children, caption] }] },
     imageOptions,
   );
-  assert.ok(binary(mixed).includes("/Im1 Do\nQ\nq\n0 0 0 rg\n"));
+  assert.ok(binary(mixed).includes("/X1 Do\nQ\nq\n0 0 0 rg\n"));
   assert.ok(binary(mixed).includes("/F1 10 Tf"));
 });
 test("forged public metadata does not create private JPEG ownership", () => {

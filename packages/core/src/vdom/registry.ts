@@ -1,5 +1,5 @@
 import { fail } from "../core/error.js";
-import { nativeTags } from "./create.js";
+import { isReservedNativeTag } from "./create.js";
 import { dataArray, dataRecord, keys, snapshot } from "./data.js";
 import { ownNode } from "./ownership.js";
 import { ownInvocation } from "./progress.js";
@@ -25,7 +25,7 @@ export function definePrimitive<P extends object>(
   validate: (props: unknown) => props is DeepReadonly<P>,
   expand: (props: DeepReadonly<P>, context: ComponentContext) => VDOMChild,
 ): Primitive<P> {
-  if (!/^[A-Z][A-Za-z0-9]*$/.test(name) || nativeTags.includes(name.toLowerCase())) {
+  if (!/^[A-Z][A-Za-z0-9]*$/.test(name) || isReservedNativeTag(name)) {
     fail("VDOM_REGISTRY", "/registry", "Primitive names must be uppercase identifiers and cannot override natives");
   }
   const definition: RegistryDefinition = Object.freeze({
