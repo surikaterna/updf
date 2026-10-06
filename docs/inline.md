@@ -3,7 +3,8 @@
 Current private/unreleased content contract. Historical delivery/audit records are
 retained under `docs/evidence`. See [documents](documents.md) for final contexts and
 deferred decorations and [tables](tables.md) for table-cell content. No shaping,
-bidi, images or CSS engine is implied.
+bidi, automatic inline images or CSS engine is implied. Optional JPEG uses generic
+native XObjects/atomic fixed blocks, not implicit Paragraph adaptation; see [images](jpeg-images.md).
 
 ## One content model, one JSX runtime
 
@@ -44,7 +45,7 @@ prove arbitrary wrapper output. Runtime normalization always checks actual roles
 Paragraph/Block inside Paragraph/Span and Span outside Paragraph fail with their
 actual child source path. There is no implicit paragraph (later table slice F).
 Known invalid roles reject before expanding their descendants. Internal content
-capabilities validate deeply frozen data, permitting only already owned font/VNode
+capabilities validate deeply frozen data, permitting only already owned resource/VNode
 exceptions: they cannot mint mutable or callback-bearing props.
 
 Strings are text, arrays flatten in order, null/booleans are ignored. Numbers are
@@ -75,7 +76,7 @@ Blank paragraphs occupy one strut line; trailing LF
 reserves a trailing empty line. `whiteSpace: 'preserve'` retains space advances;
 collapse operates across Span boundaries. LF is a hard break in either mode.
 
-Span `style` overrides font/fontSize/color/lineHeight and inherits the **whole effective
+Span `style` overrides font/fontSize/color/lineHeight/backgroundColor and inherits the **whole effective
 parent style**. Siblings resume their parent, not the previous run. Span boundaries
 are never artificial word-break opportunities. `breakLongWords: 'codePoint'` uses
 the existing scalar splitter, preserving UTF16 spans and supplementary scalars;

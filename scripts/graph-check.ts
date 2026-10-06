@@ -31,6 +31,7 @@ for (const build of builds) {
   }
   const optional = build === "dist-fontkit" || build === "font-browser";
   portableGraph(modules, optional, build === "dist");
+  assert.ok(!modules.some((id) => /\/packages\/jpeg\//u.test(id)), `${build} imported unrequested JPEG`);
   assert.ok(
     modules.some((id) => /\/packages\/(?:core|layout|geometry|svg|fontkit)\/dist\/.*\.js$/u.test(id)),
     "Must inspect emitted package JS",

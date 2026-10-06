@@ -1,9 +1,10 @@
-# GitHub Pages showcase — local configuration only
+# GitHub Pages showcase — manual publishing contract
 
 The private `apps/showcase` Vite/TypeScript workspace builds a static site at
-`apps/showcase/dist`. No server, React, Fontkit, font asset, code editor or source
-evaluation is shipped. SVG/geometry is a dynamic chunk, loaded only when its
-predefined demo is generated. Displayed snippets are raw imports of the same
+`apps/showcase/dist`. No rendering server, React, code editor or source evaluation
+is shipped. SVG/geometry and Fontkit/prepared freight font assets are optional lazy
+chunks, loaded only by their predefined demos; neither parser is in the initial
+entry. Displayed snippets are raw imports of the same
 example modules used by the build, not separately maintained pseudo-code.
 
 The preview lazy-loads `pdfjs-dist` and a Vite-bundled worker from the configured
@@ -23,10 +24,11 @@ render/loading tasks are cancelled and documents/workers destroyed; object URLs
 are revoked on replacement and pagehide. Resizing debounces a fresh preview, and
 back/forward-cache restoration regenerates after pagehide cleanup.
 
-This configuration is **implemented, not independently verified or deployed**.
-The supplied Pages API lookup returned 404; that is not a live-site claim.
-Expected URL after authorized activation: **https://surikaterna.github.io/updf/**.
-No workflow has been run and no Pages settings have been changed.
+This guide describes current source, not which revision is deployed. Earlier Pages
+API observations and delivery records are dated evidence, not live status. This
+assignment does not query or change Pages settings, dispatch a workflow, or publish
+the JPEG worktree. Publishing is user-deferred until after the docs sweep and requires
+separate delivery authorization. Configured URL: **https://surikaterna.github.io/updf/**.
 
 ## Local build and preview
 
@@ -54,7 +56,8 @@ runtime and notice assets inherit the configured base. See
 [plasma evidence and measurements](../evidence/plasma-showcase.md); no deployment
 or guaranteed frame rate is claimed.
 
-`build:showcase` builds only core → geometry → SVG → site, with an independent
+`build:showcase` builds kernel → core → fonts/text → layout/tables/geometry/SVG/Fontkit
+→ site, with an independent
 site typecheck. It does not redefine root `build`, `test`, or legacy gates.
 `test:showcase` checks actual production assets and Chromium PDFs against Node,
 source synchronization, keyboard/mobile behavior, structured validation, Blob
@@ -71,7 +74,8 @@ It uses `/usr/bin/chromium`, or the explicit `SHOWCASE_CHROMIUM` executable over
    blocker is resolved; see [resolution evidence](../evidence/project-license.md).
    Fontello notices remain included byte-for-byte because optional geometry ships
    in the browser chunk. PDF.js's Apache-2.0 license is retained at
-   `notices/LICENSE.pdfjs`. License links use the configured site base.
+    `notices/LICENSE.pdfjs`. Lazy freight assets retain OFL and parser/dependency notices
+    too. License links use the configured site base.
 2. Obtain independent audit before the separately authorized commit/push step.
    Npm publication, Pages activation and deployment are not authorized by that push.
    Commit and push the intended audited scope; do not commit the existing dirty
@@ -103,13 +107,15 @@ environment fails instead of changing repository settings.
 ## Limits and inherited failures
 
 This showcase is the unreleased native checkout, not legacy 0.4.15 or an
-operational CMR. Geometry is fixed, Helvetica ASCII, pages explicit: no raster
-images, shaping, bidi, rich-text/flow/tables or full SVG. Fonts can be prepared
-through the optional adapter/resources contract but are not loaded here.
-Roadmap #25–#33 remains planned; #34/#35 are locally audited, not released.
+operational CMR. It uses canonical rich text, flow, paged tables, Rows/Columns,
+contexts, native painting and optional SVG/Fontkit; core has no implicit font.
+Helvetica is ASCII and prepared fonts retain the simple LTR profile, not shaping,
+bidi or full SVG. JPEG is supported by the separate optional library but no JPEG
+demo is added here; the [Node example](../jpeg-images.md) is the delivery proof.
+Use the [current roadmap](../roadmap/current.md) rather than historical planning statuses.
 
 The manual workflow's scoped success does not declare the inherited legacy suite
-or whole dependency audit green. Prior evidence records raw legacy failure and
+or whole dependency audit green. Dated prior evidence records raw legacy failure and
 45 inherited audit findings (8 moderate, 10 high, 27 critical); production-only
 audit had 0 vulnerabilities. See [implementation evidence](../evidence/pages-showcase.md)
 for commands actually run here and [prior evidence](../evidence/ghost-biome-alignment.md)

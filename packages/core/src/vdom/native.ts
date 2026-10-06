@@ -24,13 +24,15 @@ function drawing(node: NativeVNode, location: Location, path: string, state: Sta
   if (location.mode !== "draw" || !location.page) fail("VDOM_HIERARCHY", path, "Drawing nodes belong inside a page");
   const boxKeys = ["x", "y", "width", "height"];
   const allowed =
-    node.tag === "richText"
-      ? [...boxKeys, "paragraphs"]
-      : node.tag === "path"
-        ? ["commands", "paint", "transform"]
-        : node.tag === "line"
-          ? ["x", "y", "x2", "y2", "paint", "transform"]
-          : [...boxKeys, "paint", "transform"];
+    node.tag === "xObject"
+      ? [...boxKeys, "resource"]
+      : node.tag === "richText"
+        ? [...boxKeys, "paragraphs"]
+        : node.tag === "path"
+          ? ["commands", "paint", "transform"]
+          : node.tag === "line"
+            ? ["x", "y", "x2", "y2", "paint", "transform"]
+            : [...boxKeys, "paint", "transform"];
   keys(node.props, allowed, `${path}/props`);
   const props = { ...node.props };
   translateProps(props, node.tag === "path", location, path);

@@ -7,6 +7,7 @@ import { installedGraph } from "./consumer/graphs.js";
 import { dualProof } from "./consumer/dual.js";
 import { absent, execute, install, pack, root } from "./consumer/install.js";
 import { kernelProof } from "./consumer/kernel.js";
+import { jpegProof } from "./consumer/jpeg.js";
 import { coreRuntime, fontkitRuntime, geometryRuntime, svgRuntime } from "./consumer/runtime.js";
 import { allTypes, coreTypes, typeConsumer } from "./consumer/types.js";
 import { smokeFixture } from "./migration/legacy-smoke-fixture.js";
@@ -36,6 +37,7 @@ try {
   for (const name of [
     "layout-kernel",
     "core",
+    "jpeg",
     "fonts",
     "text",
     "layout",
@@ -50,6 +52,8 @@ try {
   for (const names of [
     ["layout-kernel"],
     ["layout-kernel", "core"],
+    ["layout-kernel", "core", "jpeg"],
+    ["layout-kernel", "core", "jpeg", "fonts", "text"],
     ["layout-kernel", "core", "text"],
     ["layout-kernel", "core", "fonts", "text", "cmr"],
     ["core", "layout-kernel", "fonts", "text", "layout"],
@@ -69,11 +73,17 @@ try {
     await absent(directory, ["fontkit", "react", "react-dom"]);
     await absent(
       directory,
-      ["layout-kernel", "fonts", "text", "tables", "geometry", "svg", "fontkit", "legacy"]
+      ["layout-kernel", "jpeg", "fonts", "text", "tables", "geometry", "svg", "fontkit", "legacy"]
         .filter((name) => !names.includes(name))
         .map((name) => `@updf/${name}`),
     );
     if (names.includes("core")) await coreProof(directory, graphs);
+    if (names.includes("jpeg")) {
+      await jpegProof(directory, names.includes("fonts"));
+      graphs.jpeg = await installedGraph(directory, "@updf/jpeg");
+      await typeConsumer(directory, ["jpeg-template.tsx"]);
+      await typeConsumer(directory, ["jpeg-template.tsx"], true);
+    }
     if (names.includes("text")) graphs.text = await installedGraph(directory, "@updf/text");
     if (names.includes("text") && !names.includes("fonts")) {
       await typeConsumer(directory, ["host-metrics-template.ts"]);
@@ -198,7 +208,7 @@ try {
   await mkdir(join(root, "artifacts"), { recursive: true });
   await writeFile(join(root, "artifacts/installed-graphs.json"), `${JSON.stringify(graphs, null, 2)}\n`);
   console.log(
-    "Ten clean external tarball closures passed: kernel, drawing-only core, host-metrics text, fonts/text/CMR, layout, tables, geometry, SVG, Fontkit absent/present, legacy; NodeNext/Bundler declarations without source aliases.",
+    "Twelve clean external tarball closures passed: kernel, drawing-only core, JPEG-only, mixed JPEG/fonts/text, host-metrics text, fonts/text/CMR, layout, tables, geometry, SVG, Fontkit absent/present, legacy; NodeNext/Bundler declarations without source aliases.",
   );
 } finally {
   for (const directory of directories) await rm(directory, { recursive: true, force: true });

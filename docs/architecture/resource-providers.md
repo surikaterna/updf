@@ -27,4 +27,24 @@ used; drawing-only and prepared-only PDFs have no synthetic Helvetica resource.
 The serializer still writes the whole-document resource dictionary on every page.
 Resource aliases share identity. `limits.resourceBytes` counts unique private owned
 bytes, including unused bindings, not mutable public metadata or runtime callbacks.
-No global registry, additional numeric quotas, or JPEG integration is introduced.
+No global registry or additional numeric quotas are introduced.
+
+## Generic XObjects and optional JPEG
+
+Core owns `XObjectNode`, `ResourceProvider.collectXObject`, `XObjectSite` and
+`xObjectSlot`. A provider must claim each committed leaf through the current
+collection; missing/foreign/unclaimed/conflicting bindings fail `RESOURCE` before
+serialization. Keys are valid PDF names, escaped by core's writer; placement wraps
+the provider's normalized unit rectangle with an explicit point-box matrix and
+isolated `q`/`Q`. There is no implicit clip.
+
+`@updf/jpeg` owns structural parsing, private copied bytes and metadata. Its provider
+claims only identities in its private JPEG registry, not lookalike metadata or
+generic handles forged with `createOwnedResource`. Reusable providers intern per
+collection/handle; aliases and pages share one original DCT stream. Separate
+preparations of equal bytes remain separate objects. Unused handles have no PDF
+objects but still count toward `resourceBytes`. See [image guide](../jpeg-images.md).
+
+Generic binding IDs/foreign handles now report `RESOURCE` at `/resources/<id>`,
+including font-only callers. Font-specific diagnostics remain unchanged; this is
+a documented prerelease compatibility delta, not a claim that all errors are stable.

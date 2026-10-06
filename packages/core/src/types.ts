@@ -15,6 +15,12 @@ export interface RichTextNode extends Box {
   readonly paragraphs: readonly ParagraphDefinition[];
 }
 
+/** Named normalized unit-square XObject, stretched to an explicit point box. Use groups for transforms/clips. */
+export interface XObjectNode extends Box {
+  readonly type: "xObject";
+  readonly resource: string;
+}
+
 /** Painted rectangle in local top-left points; default is a black 0.5-point outline. */
 export interface RectangleNode extends Box, Painting {
   readonly type: "rect";
@@ -32,7 +38,7 @@ export interface LineNode extends Painting {
 /** Recursive native drawing container with local transform/clip, without style inheritance. */
 export type PaintingGroupNode = PaintGroup<NodeDefinition>;
 /** Supported fixed-page drawing data; arbitrary objects and unknown keys are rejected. */
-export type NodeDefinition = RichTextNode | RectangleNode | LineNode | PathNode | PaintingGroupNode;
+export type NodeDefinition = RichTextNode | RectangleNode | LineNode | PathNode | PaintingGroupNode | XObjectNode;
 
 /** Positive page dimensions in points; children paint in array order within page bounds. */
 export interface PageDefinition {
@@ -67,6 +73,9 @@ export type DiagnosticCode =
   | "LAYOUT_OVERSIZED"
   | "FONT_DATA"
   | "FONT_RESOURCE"
+  | "RESOURCE"
+  | "JPEG_DATA"
+  | "JPEG_PROFILE"
   | "FONT_PROFILE"
   | "FONT_INK"
   | "GLYPH_MISSING"

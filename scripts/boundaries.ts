@@ -163,6 +163,11 @@ export function portableGraph(modules: readonly string[], optional = false, reac
   if (!react) assert.ok(!modules.some((id) => /(?:^|\/)(?:react|react-dom)(?:\/|$)/u.test(id)), "React leaked");
 }
 export function packageEdge(owner: string, specifier: string): void {
+  if (owner === "jpeg")
+    assert.ok(
+      specifier.startsWith(".") || ["@updf/core", "@updf/core/resources", "@updf/core/pdf"].includes(specifier),
+      "JPEG must use public core data/resource/PDF surfaces only",
+    );
   if (owner === "core")
     assert.ok(
       specifier === "@updf/layout-kernel/arithmetic" || specifier.startsWith("."),
@@ -266,7 +271,18 @@ export async function checkSeams(root: string): Promise<void> {
     "whitespace",
     "Scanner",
   ]);
-  for (const owner of ["core", "layout-kernel", "layout", "tables", "geometry", "svg", "fonts", "text", "fontkit"]) {
+  for (const owner of [
+    "core",
+    "layout-kernel",
+    "layout",
+    "tables",
+    "geometry",
+    "svg",
+    "fonts",
+    "text",
+    "fontkit",
+    "jpeg",
+  ]) {
     for (const path of await files(join(root, "packages", owner, "src"))) {
       const text = await readFile(path, "utf8");
       sourceEdges(owner, text, path, root);
@@ -300,6 +316,8 @@ const resourceExports = [
   "ResourceProvider",
   "ResourceSlot",
   "TextSite",
+  "XObjectSite",
+  "xObjectSlot",
   "paintingSlot",
   "resourceSlot",
   "textSlot",

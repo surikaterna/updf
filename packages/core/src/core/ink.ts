@@ -61,6 +61,10 @@ function shape(
   clip: Bounds | undefined,
   output: InkBounds[],
 ): void {
+  if (node.type === "xObject") {
+    addBounds(rectangle(node.x, node.y, node.width, node.height, transform), clip, output);
+    return;
+  }
   const painting = node.painting ?? drawing({ ...node }, "");
   const paint = {
     ...painting.paint,

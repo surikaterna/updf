@@ -11,6 +11,7 @@ function leaf(node: Exclude<NodeDefinition, PaintingGroupNode>): VNode {
   if (node.type === "richText") return h("richText", props(node));
   if (node.type === "rect") return h("rect", props(node));
   if (node.type === "line") return h("line", props(node));
+  if (node.type === "xObject") return h("xObject", props(node));
   return h("path", props(node));
 }
 interface Frame {

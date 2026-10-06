@@ -14,9 +14,9 @@ export function resolveBindings(
     dataRecord(resources, "/resources");
     for (const id of Object.keys(resources)) {
       const path = `/resources/${pointer(id)}`;
-      if (!/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(id)) fail("FONT_RESOURCE", path, "Invalid resource id");
+      if (!/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(id)) fail("RESOURCE", path, "Invalid resource id");
       const resource = ownDataValue(resources, id, path);
-      if (!isOwnedResource(resource)) fail("FONT_RESOURCE", path, "Expected owned resource");
+      if (!isOwnedResource(resource)) fail("RESOURCE", path, "Expected owned resource");
       bindings.set(id, resource);
     }
   }

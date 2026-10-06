@@ -44,6 +44,10 @@ function box(node: Record<string, unknown>, view: View, path: string): void {
   const y = view.local ? finite(node.y, `${path}/y`) : number(node.y, `${path}/y`);
   const width = number(node.width, `${path}/width`, true),
     height = number(node.height, `${path}/height`, node.type !== "richText");
+  if (node.type === "xObject") {
+    finite(x + width, `${path}/width`);
+    finite(y + height, `${path}/height`);
+  }
   inPage(rectangle(x, y, width, height, view.matrix), view, path, node.type === "richText");
 }
 function line(node: Record<string, unknown>, view: View, path: string): void {
@@ -86,6 +90,12 @@ function group(node: Record<string, unknown>, view: View, path: string, state: C
   }
 }
 function contents(node: Record<string, unknown>, view: View, path: string, state: Counts, depth: number): void {
+  if (node.type === "xObject") {
+    box(node, view, path);
+    if (typeof node.resource !== "string" || !/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(node.resource))
+      fail("RESOURCE", `${path}/resource`, "Expected a named resource id");
+    return;
+  }
   if (node.type === "richText") {
     box(node, view, path);
     textService(state.fonts, path).validate(
@@ -116,17 +126,20 @@ function pathLength(value: unknown, path: string, state: Counts): number {
 function nodeRecord(value: unknown, path: string): asserts value is Record<string, unknown> {
   dataRecord(value, path);
   const allowed =
-    value.type === "richText"
-      ? ["type", "x", "y", "width", "height", "paragraphs"]
-      : value.type === "rect"
-        ? ["type", "x", "y", "width", "height", "paint", "transform"]
-        : value.type === "line"
-          ? ["type", "x", "y", "x2", "y2", "paint", "transform"]
-          : value.type === "path"
-            ? ["type", "commands", "paint", "transform"]
-            : ["type", "children", "clip", "transform"];
+    value.type === "xObject"
+      ? ["type", "x", "y", "width", "height", "resource"]
+      : value.type === "richText"
+        ? ["type", "x", "y", "width", "height", "paragraphs"]
+        : value.type === "rect"
+          ? ["type", "x", "y", "width", "height", "paint", "transform"]
+          : value.type === "line"
+            ? ["type", "x", "y", "x2", "y2", "paint", "transform"]
+            : value.type === "path"
+              ? ["type", "commands", "paint", "transform"]
+              : ["type", "children", "clip", "transform"];
   if (
     value.type !== "richText" &&
+    value.type !== "xObject" &&
     value.type !== "rect" &&
     value.type !== "line" &&
     value.type !== "path" &&

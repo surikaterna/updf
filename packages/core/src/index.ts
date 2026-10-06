@@ -43,6 +43,7 @@ export type {
   TextAlign,
   TextRun,
   TextStyle,
+  XObjectNode,
 } from "./types.js";
 
 /**

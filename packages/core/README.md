@@ -47,8 +47,15 @@ deeply readonly synchronous provider values. Core operations default to trusted
 workloads; `profile: "service"`, frozen `SERVICE_LIMITS` and validated `limits`
 offer optional budgets without weakening geometry/font/schema checks. See
 `docs/architecture/composable-layout.md` for units, remaining optional parser caps
-and current layout architecture. No page hooks/images
-or public serializer plans are exposed. Independent foundation audit is pending.
+and current layout architecture. Generic `XObjectNode`/native `<xObject>` placements
+use explicit named resources and point boxes; core owns normalized unit-rectangle
+painting and `q`/`Q` isolation, not JPEG parsing. Install `@updf/jpeg` and its provider
+only when needed; see [JPEG images](../../docs/jpeg-images.md).
+No public serializer plans or page hooks are exposed.
+
+Generic binding failures (invalid IDs or foreign handles) now use `RESOURCE`,
+including font-only resource maps. Font-specific selection/run diagnostics still
+use `FONT_RESOURCE`; not all error codes are unchanged.
 
 MIT licensed; the full `LICENSE` contains the user-confirmed project attribution,
 Copyright (c) 2026 Surikat AB. No npm publication or deployment is authorized.

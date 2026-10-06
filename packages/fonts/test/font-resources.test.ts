@@ -106,7 +106,7 @@ test("font data descriptors/prototypes and malformed resources never invoke call
       resources: { Helvetica: font },
     }).length,
   );
-  rejects(() => renderUnknown(fontDocument([fontText("A")]), { resources: { Demo: { ...font } } }), "FONT_RESOURCE");
+  rejects(() => renderUnknown(fontDocument([fontText("A")]), { resources: { Demo: { ...font } } }), "RESOURCE");
   assert.equal(calls, 0);
 });
 

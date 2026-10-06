@@ -91,7 +91,7 @@ test("unused resources count once per identity and enforce the exact cap on each
   equivalent(input, { resources, limits: { resourceBytes: 9 } });
   const options = fontMeasurementOptions({ resources, limits: { resourceBytes: 10 } });
   for (let i = 0; i < 2; i++) assert.equal(measureTextUnknown(input, options).lineCount, 1);
-  diagnostic({ ...options, resources: { Fake: { ...resource } } }, "FONT_RESOURCE", "/resources/Fake");
+  diagnostic({ ...options, resources: { Fake: { ...resource } } }, "RESOURCE", "/resources/Fake");
   const other = createOwnedResource({}, { byteLength: 1 });
   diagnostic({ ...options, resources: { ...options.resources, Other: other } }, "LIMIT", "/resources/Other");
 });

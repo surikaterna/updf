@@ -12,6 +12,7 @@ Private/unreleased API change; no compatibility facade or publication is implied
 | standalone `measureText(input, RenderOptions)` | `measureText(input, MeasureOptions)` with required `measurer` |
 | discriminated plain/rich measurement inputs | `{ width, height?, paragraphs }` only, no `kind` |
 | `TextNode`, native `<text>` and text children concatenation | `RichTextNode`, native `<richText paragraphs={...} />` only |
+| invalid generic resource IDs / foreign handles reported as `FONT_RESOURCE` | `RESOURCE` at the generic binding path, including font-only maps; font-specific selection/run errors unchanged |
 
 ```ts
 import { render } from "@updf/core";
@@ -98,3 +99,5 @@ render/lower/layout calls do not inherit those application defaults.
 Root tests/typecheck include extraction regressions; `test:consumer` installs real
 tarballs externally and compiles NodeNext/Bundler declarations without source aliases.
 Historical `docs/evidence` reports retain their revision-specific contracts.
+JPEG handles can coexist in the resource map without fonts/text importing JPEG;
+add `jpegProvider()` explicitly to image-bearing operations. See [images](../jpeg-images.md).

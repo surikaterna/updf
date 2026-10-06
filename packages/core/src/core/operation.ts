@@ -24,10 +24,15 @@ function ownProviders(value: readonly ResourceProvider[] | undefined): readonly 
       const slot = ownDataValue(provider, "slot", `${path}/slot`);
       if (!slot || typeof slot !== "object") fail("FONT_RESOURCE", `${path}/slot`, "Expected provider slot");
       const callbacks = Object.assign(Object.create(null), { slot });
-      for (const key of ["initialize", "collectText", "collectDrawing"] as const) {
+      for (const key of ["initialize", "collectText", "collectDrawing", "collectXObject"] as const) {
         if (!Object.hasOwn(provider, key)) continue;
         const callback = ownDataValue(provider, key, `${path}/${key}`);
-        if (typeof callback !== "function") fail("FONT_RESOURCE", `${path}/${key}`, "Expected provider capability");
+        if (typeof callback !== "function")
+          fail(
+            key === "collectXObject" ? "RESOURCE" : "FONT_RESOURCE",
+            `${path}/${key}`,
+            "Expected provider capability",
+          );
         Object.defineProperty(callbacks, key, { value: callback.bind(provider), enumerable: true });
       }
       return Object.freeze(callbacks);

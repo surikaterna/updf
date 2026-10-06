@@ -24,6 +24,7 @@ export const nativeTags: readonly string[] = Object.freeze([
   "line",
   "path",
   "paintGroup",
+  "xObject",
 ]);
 
 function isComponent<P extends object>(type: NativeTag | typeof Fragment | Component<P>): type is Component<P> {
@@ -85,7 +86,9 @@ export function h<P extends object>(type: NativeTag | typeof Fragment | Componen
 }
 
 /** Bind complete data props; expansion still happens afresh in the lower context. */
-export function bind<P extends object>(component: Component<P>, props: P): Component<Record<never, never>> {
-  const node = h(component, props);
+export function bind<Tag extends NativeTag>(component: Tag, props: NativeProps[Tag]): Component<Record<never, never>>;
+export function bind<P extends object>(component: Component<P>, props: P): Component<Record<never, never>>;
+export function bind<P extends object>(component: NativeTag | Component<P>, props: P): Component<Record<never, never>> {
+  const node = createNode(component, props);
   return () => node;
 }

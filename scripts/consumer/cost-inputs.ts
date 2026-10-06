@@ -45,3 +45,12 @@ export function hostCostInput(discriminated: boolean, measurer: boolean): string
       ${measurer ? "measurer:createTextMeasurer" : "text:createTextService"}({runtime})};
     export const measure=text=>measureText({${discriminated ? "kind:'rich'," : ""}width:100,${paragraphs}},options);`;
 }
+
+export function jpegCostInputs(): Record<string, string> {
+  const image = `import {render} from '@updf/core'; import {prepareJpeg,jpeg,jpegProvider} from '@updf/jpeg';`;
+  const caption = `{type:'richText',x:10,y:70,width:180,height:24,paragraphs:[{runs:[{text:'JPEG caption'}],defaultStyle:{font:'Demo',fontSize:10,color:[0,0,0]},lineHeight:12,align:'left',whiteSpace:'preserve',breakLongWords:'error'}]}`;
+  return {
+    jpeg: `${image} export const pdf = bytes => { const photo=prepareJpeg(bytes); return render({version:1,pages:[{width:200,height:100,children:[jpeg('photo',{x:10,y:10,width:120,height:50})]}]},{resources:{photo},providers:[jpegProvider()]}); };`,
+    jpegMixed: `${image} export {createPreparedFont as prepareFontResource} from '@updf/fonts'; import {fontRuntime,fontProvider} from '@updf/fonts'; import {createTextService} from '@updf/text'; export const pdf = (font,bytes) => { const photo=prepareJpeg(bytes), runtime=fontRuntime(); return render({version:1,pages:[{width:200,height:100,children:[jpeg('photo',{x:10,y:10,width:120,height:50}),${caption}]}]},{resources:{photo,Demo:font},text:createTextService({runtime}),providers:[jpegProvider(),fontProvider(runtime)]}); };`,
+  };
+}

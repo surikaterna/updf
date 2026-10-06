@@ -107,7 +107,13 @@ test("inline visual metrics remain numeric and do not require fabricated text ru
 
 test("resource binding diagnostics escape ids and unique byte budgets retain the binding path", () => {
   const resource = createOwnedResource({ bytes: 999 }, { byteLength: 5 });
-  missing(() => operation({ resources: { "bad/~": resource } }), "/resources/bad~1~0");
+  assert.throws(
+    () => operation({ resources: { "bad/~": resource } }),
+    (error: unknown) =>
+      error instanceof DocumentError &&
+      error.diagnostics[0]?.code === "RESOURCE" &&
+      error.diagnostics[0]?.path === "/resources/bad~1~0",
+  );
   assert.doesNotThrow(() => operation({ resources: { A: resource, Alias: resource }, limits: { resourceBytes: 5 } }));
   assert.throws(
     () =>

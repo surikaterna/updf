@@ -7,6 +7,12 @@ Use the native [document](../documents.md), [content](../inline.md),
 surfaces are removed as described in [migration](../authoring-migration.md).
 The dated blueprint/delivery notes below are historical, not current audit status
 or API instructions. Historical audit records under `docs/evidence` are unchanged.
+Current optional [baseline JPEG](../jpeg-images.md) uses generic core XObject leaves;
+the historical blueprint's "no images" statements below describe those dated
+slices, not the current source. Core `resourceBytes` counts JPEG handles as well as
+fonts; JPEG has separate fixed structural-profile caps. Current text is rich-only,
+with five runtime callbacks, seven full-service methods and one standalone-measurer
+method; [measurement](../measurement.md) supersedes historical plain/rich proposals.
 
 ## Historical E delivery — 2026-10-03
 

@@ -3,6 +3,7 @@ import { matrix } from "../painting/affine.js";
 import { clip, drawing } from "../painting/read.js";
 import type { DocumentDefinition, NodeDefinition } from "../types.js";
 import type { MeasuredNode, MeasuredPage } from "./plan.js";
+import { measureXObject } from "./xobject-measure.js";
 import { emptyTextResources, type ResolvedTextResources as ResolvedFonts, textService } from "./text-resources.js";
 
 function measuredNode(
@@ -12,6 +13,7 @@ function measuredNode(
   budget: WorkLedger,
   tasks: (() => void)[],
 ): MeasuredNode {
+  if (node.type === "xObject") return measureXObject(node, path, fonts.bindings);
   if (node.type === "richText") {
     const plan = textService(fonts, path).rich(
       { width: node.width, height: node.height, paragraphs: node.paragraphs },

@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { gzipSync } from "node:zlib";
 import { createRequire } from "node:module";
 import { build, version } from "esbuild";
-import { costInputs, hostCostInput } from "./consumer/cost-inputs.js";
+import { costInputs, hostCostInput, jpegCostInputs } from "./consumer/cost-inputs.js";
 
 const root = resolve(process.argv[2] ?? process.cwd());
 const historical = process.argv[3] === "baseline";
@@ -16,6 +17,7 @@ const output = resolve(
 await mkdir(output, { recursive: true });
 const profiles = [];
 const textExports = historical ? undefined : createRequire(resolve(root, "package.json"))("@updf/text");
+const jpegEnabled = !historical && existsSync(resolve(root, "packages/jpeg/package.json"));
 // Historical libraries need the discriminator; both sides still author the identical rich workload.
 const inputs = costInputs(
   historical,
@@ -27,6 +29,7 @@ if (!historical)
     process.argv[5] === "discriminated",
     typeof textExports?.createTextMeasurer === "function",
   );
+if (jpegEnabled) Object.assign(inputs, jpegCostInputs());
 for (const [profile, contents] of Object.entries(inputs)) {
   const result = await build({
     stdin: { contents, resolveDir: root, sourcefile: `${profile}.ts`, loader: "ts" },
@@ -57,11 +60,21 @@ for (const [profile, contents] of Object.entries(inputs)) {
   if (profile === "measurementHost")
     assert.ok(!modules.some((path) => /packages\/fonts\//u.test(path)), "Host measurement imported fonts");
   if (profile !== "fontkit") assert.ok(!modules.some((path) => /node_modules\/fontkit\//u.test(path)));
+  if (!profile.startsWith("jpeg"))
+    assert.ok(!modules.some((path) => /packages\/jpeg\//u.test(path)), "JPEG leaked into existing profile");
+  if (profile === "jpeg")
+    assert.ok(!modules.some((path) => /packages\/(?:fonts|text)\//u.test(path)), "JPEG imported fonts/text");
   await writeFile(resolve(output, `${profile}.mjs`), bytes);
   profiles.push({ profile, raw: bytes.length, gzip: gzipSync(bytes).length, modules, contributions, input: contents });
 }
 const packages = [];
-for (const name of ["layout-kernel", "core", ...(historical ? [] : ["fonts", "text"]), "fontkit"]) {
+for (const name of [
+  "layout-kernel",
+  "core",
+  ...(historical ? [] : ["fonts", "text"]),
+  ...(jpegEnabled ? ["jpeg"] : []),
+  "fontkit",
+]) {
   const [pack]: { size: number; unpackedSize: number; files: { path: string; size: number }[] }[] = JSON.parse(
     execFileSync("npm", ["pack", "--ignore-scripts", "--json", "--pack-destination", output], {
       cwd: resolve(root, "packages", name),
@@ -76,6 +89,10 @@ const assets = [];
 for (const name of ["LiberationSans-Regular.ttf", "liberation-sans.json"]) {
   const bytes = await readFile(resolve(root, "tests/fixtures/fonts", name));
   assets.push({ name, raw: bytes.length, gzip: gzipSync(bytes).length });
+}
+if (jpegEnabled) {
+  const bytes = await readFile(resolve(root, "tests/fixtures/jpeg/color-1x1.jpg"));
+  assets.push({ name: "color-1x1.jpg", raw: bytes.length, gzip: gzipSync(bytes).length });
 }
 const report = {
   root,

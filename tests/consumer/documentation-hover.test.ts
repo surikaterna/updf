@@ -8,7 +8,9 @@ const root = fileURLToPath(new URL("../../", import.meta.url));
 const file = join(root, "tests/consumer/documentation-hover-fixture.mts");
 const source = `import { bits } from "@updf/layout-kernel/numeric";
 import { Page, resolveWidths } from "@updf/layout";
-bits(0); Page; resolveWidths({ availableWidth: 10, tracks: [10] });`;
+import { prepareJpeg, jpeg, jpegProvider } from "@updf/jpeg";
+bits(0); Page; resolveWidths({ availableWidth: 10, tracks: [10] });
+prepareJpeg(new Uint8Array()); jpeg('photo',{x:0,y:0,width:10,height:10}); jpegProvider();`;
 
 function languageService(): ts.LanguageService {
   const options: ts.CompilerOptions = {
@@ -41,9 +43,13 @@ test("public import hovers retain scoped package prose without custom JSDoc tags
       ["bits", "From `@updf/layout-kernel/numeric`: encode finite nonnegative binary64"],
       ["Page", "Fixed native drawing section, exported as Page from `@updf/layout`; children do not flow."],
       ["resolveWidths", "Defaults and exact rounding follow `@updf/layout-kernel`; returns frozen widths/result."],
+      ["prepareJpeg", "does not decode entropy or pixels"],
+      ["jpeg", "without DPI/orientation/aspect fitting or implicit clipping"],
+      ["jpegProvider", "PDF references belong to the current operation"],
     ]) {
       assert.ok(name && expected);
-      const hover = service.getQuickInfoAtPosition(file, source.lastIndexOf(name));
+      const call = source.lastIndexOf(`${name}(`);
+      const hover = service.getQuickInfoAtPosition(file, call < 0 ? source.lastIndexOf(name) : call);
       assert.ok(hover, name);
       assert.ok(ts.displayPartsToString(hover.documentation).includes(expected), name);
       assert.ok(!hover.tags?.some((tag) => tag.name === "updf"), name);

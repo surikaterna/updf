@@ -134,4 +134,6 @@ renderable fit. No clips, page dimensions or core bounds comparisons are adjuste
 
 See [content](../../docs/inline.md), [blocks](../../docs/blocks.md),
 [documents](../../docs/documents.md), [tables](../../docs/tables.md) and
-[historical flow evidence](../../docs/evidence/flow.md) for detailed contracts.
+[JPEG native placement](../../docs/jpeg-images.md) for detailed contracts. No layout
+`Image` component is added; native XObjects can use existing declared-height atomic
+FixedBlock data and reserved/fixed drawing regions.

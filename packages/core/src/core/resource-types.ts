@@ -46,7 +46,15 @@ export interface ResourceProvider {
   ) => void;
   readonly collectText?: (site: TextSite, collection: ResourceCollection) => void;
   readonly collectDrawing?: (drawing: ResolvedDrawing, collection: ResourceCollection) => void;
+  readonly collectXObject?: (site: XObjectSite, collection: ResourceCollection) => void;
 }
+export interface XObjectSite {
+  readonly identity: object;
+  readonly resource: OwnedResource;
+  readonly path: string;
+}
+/** Providers supply normalized unit-square content (Forms must normalize BBox/Matrix themselves). */
+export const xObjectSlot: PaintingSlot<null> = paintingSlot<null>("XObject");
 export interface TextSite {
   readonly identity: object;
   readonly run: TextRun;

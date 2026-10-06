@@ -1,4 +1,4 @@
-import { fail } from "./error.js";
+import { DocumentError, fail } from "./error.js";
 import type { OwnedResource } from "./owned-resource.js";
 import type { PdfRef, PdfWriter } from "./pdf-writer.js";
 import type { MeasuredNode, MeasuredPage } from "./plan.js";
@@ -14,6 +14,7 @@ import type {
   ResourceSlot,
 } from "./resource-types.js";
 import { textSlot } from "./text-paint.js";
+import { xObjectSlot } from "./resource-types.js";
 import { descendants } from "./traversal.js";
 
 type Bindings = Map<object, Map<object, Resource<unknown>>>;
@@ -40,6 +41,7 @@ export function documentResources(
   }
   collection.closed = true;
   const resources = [...collection.interned.values()].flatMap((entries) => [...entries.values()]);
+  checkXObjectKeys(resources, collection.xObjectPaths);
   return Object.freeze({
     page(page: MeasuredPage): PageResources {
       const selected = bindings.get(page);
@@ -68,6 +70,10 @@ export function documentResources(
 }
 
 function collectNode(node: MeasuredNode, providers: readonly ResourceProvider[], collection: Collection): void {
+  if (node.type === "xObject") {
+    collectXObject(node, providers, collection);
+    return;
+  }
   if (node.type === "richText") {
     const sites = node.fragments;
     for (const site of sites) {
@@ -82,9 +88,42 @@ function collectNode(node: MeasuredNode, providers: readonly ResourceProvider[],
   }
 }
 
+function collectXObject(
+  node: Extract<MeasuredNode, { type: "xObject" }>,
+  providers: readonly ResourceProvider[],
+  collection: Collection,
+): void {
+  try {
+    for (const provider of providers)
+      provider.collectXObject?.({ identity: node, resource: node.owned, path: node.path }, collection);
+    const binding = collection.paintings?.get(node)?.get(xObjectSlot);
+    if (!binding) fail("RESOURCE", node.path, "No provider bound the XObject");
+    collection.xObjectPaths.set(binding.resource, node.path);
+  } catch (error) {
+    if (error instanceof DocumentError) throw error;
+    fail("RESOURCE", node.path, "Invalid or conflicting XObject binding");
+  }
+}
+
+function checkXObjectKeys(
+  resources: readonly Resource<unknown>[],
+  paths: ReadonlyMap<Resource<unknown>, string>,
+): void {
+  const keys = new Set<string>();
+  for (const resource of resources) {
+    if (resource.category !== "XObject") continue;
+    const path = paths.get(resource) ?? "/resources";
+    if (typeof resource.key !== "string" || /[\u0100-\uffff]/u.test(resource.key))
+      fail("RESOURCE", path, "Expected PDF name bytes for XObject key");
+    if (keys.has(resource.key)) fail("RESOURCE", path, "Conflicting XObject resource key");
+    keys.add(resource.key);
+  }
+}
+
 class Collection implements ResourceCollection {
   readonly interned: Map<object, Map<unknown, Resource<unknown>>>;
   private readonly owned = new Map<Resource<unknown>, object>();
+  readonly xObjectPaths = new Map<Resource<unknown>, string>();
   current: Bindings | undefined;
   paintings: Paintings | undefined;
   closed = false;

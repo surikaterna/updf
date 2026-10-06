@@ -1,5 +1,7 @@
 import { painted } from "../painting/pdf.js";
-import { decimal as n } from "./pdf-values.js";
+import { decimal as n, name, value } from "./pdf-values.js";
+import { finite } from "./schema.js";
+import { xObjectSlot } from "./resource-types.js";
 import type { MeasuredNode, MeasuredPage, MeasuredPaintGroup, MeasuredRichText } from "./plan.js";
 import { checkLimit } from "./policy.js";
 import type { PageResources } from "./resource-types.js";
@@ -71,6 +73,14 @@ function leaf(
   resources: PageResources,
   push: Push,
 ): void {
+  if (node.type === "xObject") {
+    const key = resources.painting(node, xObjectSlot).key;
+    const y = finite(local ? node.y + node.height : height - node.y - node.height, node.path);
+    push(
+      `q\n${n(node.width)} 0 0 ${n(local ? -node.height : node.height)} ${n(node.x)} ${n(y)} cm\n${value(name(key))} Do\nQ\n`,
+    );
+    return;
+  }
   if (node.painting) {
     painted(node.painting, height, local, resources).forEach(push);
     return;

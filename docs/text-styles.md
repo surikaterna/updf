@@ -288,11 +288,12 @@ at the clip cut. This is a deterministic UPDF policy, **not CSS border-collapse*
 - Block `padding: { top: 2, right: 3, bottom: 2, left: 3 }` →
   `padding: 3, paddingTop: 2, paddingBottom: 2`. All scalar geometry stays points.
 
-Fixed core `text`/`richText` and `ParagraphDefinition` are a separate low-level
+Fixed core `richText` and `ParagraphDefinition` are a separate low-level
 point-valued contract; do not migrate them to ratios. Legacy and historical audit
 documents are unchanged. No selectors, cascade interpreter, CSS parser, browser
 layout, full shorthand set, or
 flex are added. Any future stylesheet adapter is a distinct optional boundary.
+The former core/native `text` node is removed, not a point-style compatibility alias.
 
 Compile-checked NodeNext/Bundler public examples live in
 `tests/consumer/types/text-style-template.tsx`; geometry, inheritance, strict

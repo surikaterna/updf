@@ -8,8 +8,9 @@ tables for the ordinary `@updf/core` JSX/runtime and `@updf/layout` block protoc
 ```
 
 No SVG, Fontkit, React, Node, private layout import or table-specific paginator.
-SVG/charts are application-owned public block/inline adapters. Images remain future
-backend work (#33), not an implemented cell feature.
+SVG/charts are application-owned public block/inline adapters. Optional
+[JPEG native placement](../../docs/jpeg-images.md) is separate; no built-in cell
+Image, inline adaptation or image fragmentation API is introduced.
 
 Text resources, service and providers are installed explicitly at the application
 boundary, as shown in the [layout composition example](../layout/README.md).

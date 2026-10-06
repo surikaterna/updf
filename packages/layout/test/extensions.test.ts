@@ -257,7 +257,7 @@ test("owned font props retain opaque identity while forged resource handles stil
         { resources: { Demo: { ...font } } },
         createExtensions([adapter]),
       ),
-    "FONT_RESOURCE",
+    "RESOURCE",
   );
 });
 test("mutating callback results afterward cannot change delivered native nodes", () => {

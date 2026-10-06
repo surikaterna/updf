@@ -40,7 +40,8 @@ Core owns only generic resource handles and text service contracts, exposed by
 Resource metadata is snapshotted/frozen; private bytes are never exposed.
 Other generic resource kinds may coexist in the binding map. Text selection
 validates font ownership separately, with structured `FONT_RESOURCE` diagnostics
-for missing services, resources, providers, or foreign runs. Paragraph
+for missing services, resources, providers, or foreign runs. Invalid generic binding
+IDs or foreign handles instead use `RESOURCE` even in font-only maps. Paragraph
 `defaultStyle.font` is explicit. Only full-service authoring style resolution can
 select the service's `defaultFont` on omission; standalone measurement cannot.
 Private font program bytes are counted by core's owned-resource registry, not

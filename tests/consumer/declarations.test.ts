@@ -21,6 +21,7 @@ const compilerOptions = {
 
 const names = [
   "native-template.ts",
+  "jpeg-template.tsx",
   "measurement-template.tsx",
   "flow-template.tsx",
   "content-template.tsx",
@@ -44,26 +45,41 @@ function assertCanonicalDeclarations(files: string, root: string, name: string, 
   assert.ok(files.includes(join(root, `packages/${name}/dist/cjs/${entry}.d.ts`)));
 }
 
+async function prepareConsumer(directory: string, root: string): Promise<void> {
+  await mkdir(join(directory, "node_modules/@updf"), { recursive: true });
+  for (const name of [
+    "core",
+    "jpeg",
+    "fonts",
+    "text",
+    "layout-kernel",
+    "layout",
+    "tables",
+    "geometry",
+    "svg",
+    "fontkit",
+  ]) {
+    await symlink(join(root, "packages", name), join(directory, "node_modules/@updf", name), "dir");
+  }
+  await symlink(join(root, "apps/cmr"), join(directory, "node_modules/@updf/example-cmr"), "dir");
+  for (const name of [...names, "text-options.ts", "layout-options.ts"]) {
+    await writeFile(join(directory, name), await readFile(new URL(`types/${name}`, import.meta.url)));
+  }
+  await writeFile(join(directory, "package.json"), '{"type":"module"}\n');
+  await writeFile(
+    join(directory, "tsconfig.json"),
+    JSON.stringify({
+      compilerOptions,
+      files: names,
+    }),
+  );
+}
+
 test("temporary strict consumer resolves emitted declarations, DX negatives and executable compositions", async () => {
   const directory = await mkdtemp("/tmp/opencode/updf-declarations-");
   const root = fileURLToPath(new URL("../../", import.meta.url));
   try {
-    await mkdir(join(directory, "node_modules/@updf"), { recursive: true });
-    for (const name of ["core", "fonts", "text", "layout-kernel", "layout", "tables", "geometry", "svg", "fontkit"]) {
-      await symlink(join(root, "packages", name), join(directory, "node_modules/@updf", name), "dir");
-    }
-    await symlink(join(root, "apps/cmr"), join(directory, "node_modules/@updf/example-cmr"), "dir");
-    for (const name of [...names, "text-options.ts", "layout-options.ts"]) {
-      await writeFile(join(directory, name), await readFile(new URL(`types/${name}`, import.meta.url)));
-    }
-    await writeFile(join(directory, "package.json"), '{"type":"module"}\n');
-    await writeFile(
-      join(directory, "tsconfig.json"),
-      JSON.stringify({
-        compilerOptions,
-        files: names,
-      }),
-    );
+    await prepareConsumer(directory, root);
     const tsc = join(root, "node_modules/typescript/bin/tsc");
     execFileSync(process.execPath, [tsc, "-p", directory], { cwd: directory, stdio: "pipe" });
     const files = execFileSync(process.execPath, [tsc, "-p", directory, "--listFilesOnly"], {

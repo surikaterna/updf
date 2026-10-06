@@ -40,7 +40,7 @@ test("tables use snapshot resources, reject forged handles and close retained lo
   assert.ok(retained);
   const closed = retained;
   failure(() => Tables.Document(input, closed), "MEASUREMENT_CONTEXT");
-  failure(() => lower(h(Tables.Document, input), { resources: { Demo: { ...font } } }), "FONT_RESOURCE");
+  failure(() => lower(h(Tables.Document, input), { resources: { Demo: { ...font } } }), "RESOURCE");
 });
 test("table run diagnostic is remapped through the ordinary component source context", () => {
   const input = tableProofDefinition();

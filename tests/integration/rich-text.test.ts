@@ -43,7 +43,7 @@ test("prepared rich Unicode/NBSP, actual bounds, scalar ranges, owned resources 
     h("document", { version: 1, children: h("page", { width: 200, height: 200, children: h(component, {}) }) }),
     options,
   );
-  rejects(() => measureText(input, { resources: { Demo: { ...font } } }), "FONT_RESOURCE");
+  rejects(() => measureText(input, { resources: { Demo: { ...font } } }), "RESOURCE");
 });
 
 test("prepared ink reports actual below-baseline bounds; frozen caller data and resource-map snapshots remain intact", async () => {

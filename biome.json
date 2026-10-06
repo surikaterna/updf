@@ -12,6 +12,7 @@
       "packages/fontkit/**",
       "packages/fonts/**",
       "packages/text/**",
+      "packages/jpeg/**",
       "apps/**",
       "examples/**",
       "scripts/**",
