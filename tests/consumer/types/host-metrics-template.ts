@@ -1,5 +1,5 @@
 import { createOwnedResource, type TextRun, type TextRuntime } from "@updf/core/resources";
-import { createTextService, measureText } from "@updf/text";
+import { createTextMeasurer, measureText } from "@updf/text";
 
 const resource = createOwnedResource({ host: true });
 const runtime: TextRuntime = {
@@ -20,7 +20,7 @@ const runtime: TextRuntime = {
   }),
   joinRuns: () => Object.freeze({}) as TextRun,
 };
-const options = { resources: { Host: resource }, text: createTextService({ runtime, defaultFont: "Host" }) };
+const options = { resources: { Host: resource }, measurer: createTextMeasurer({ runtime, defaultFont: "Host" }) };
 const result = measureText(
   { kind: "plain", text: "AB", width: 100, fontSize: 10, lineHeight: 12, align: "left" },
   options,

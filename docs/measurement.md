@@ -9,7 +9,14 @@ this document is not a tracker transition, release or deployment claim.
 
 `@updf/text` exports `measureText(input, options)` and
 `measureTextUnknown(unknown, options)`. Required options bind resources and an
-explicit text service; see [composition and migration](migration/fonts-text.md).
+explicit `TextMeasurer`; see [composition and migration](migration/fonts-text.md).
+`MeasureOptions` accepts only `resources`, required `measurer`, `profile`, and
+`limits`. `text`, `providers`, and unknown keys are rejected even when empty;
+the measurer accepts only an own `measure` function. This breaking prerelease
+contract has no rendering-options overload or silent key projection.
+`createTextMeasurer({ runtime, defaultFont? })` validates all six runtime
+capabilities and installs no automatic default font. All supplied limits validate,
+including limits not consumed by standalone measurement; no new quota is added.
 Each independent call has a fresh ledger.
 Results are deeply frozen ordinary readonly data, in top-left PDF points:
 `width`, `consumedHeight`, `lineCount`, ordered `lines`. Every line gives

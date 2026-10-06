@@ -4,6 +4,8 @@ import { type Component, createContext, lower, useContext } from "@updf/core/vdo
 import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
 import {
   createTextService,
+  createTextMeasurer,
+  type MeasureOptions,
   measureText,
   measureTextUnknown,
   type ParagraphDefinition,
@@ -29,7 +31,13 @@ const composition = {
   text: createTextService({ runtime, defaultFont: "Helvetica" }),
   providers: [fontProvider(runtime)],
 };
-const result: TextMeasurement = measureText(input, composition);
+const measurementOptions: MeasureOptions = {
+  resources: composition.resources,
+  measurer: createTextMeasurer({ runtime, defaultFont: "Helvetica" }),
+  profile: "service",
+  limits: { ...SERVICE_LIMITS, pages: 21 },
+};
+const result: TextMeasurement = measureText(input, measurementOptions);
 const node: RichTextNode = { type: "richText", x: 0, y: 0, width: 100, height: result.consumedHeight, paragraphs };
 const Theme = createContext({ heading: { height: 100 } });
 const options: OperationOptions = { ...composition, profile: "service", limits: { ...SERVICE_LIMITS, pages: 21 } };
@@ -52,7 +60,7 @@ const bytes = render(
   ),
   options,
 );
-if (!bytes.length || measureTextUnknown(input, options).lineCount !== 1 || node.type !== "richText")
+if (!bytes.length || measureTextUnknown(input, measurementOptions).lineCount !== 1 || node.type !== "richText")
   throw new Error("measurement");
 if (bytes.length === 0) {
   // @ts-expect-error Hook values are deeply readonly snapshots.
@@ -76,7 +84,15 @@ if (bytes.length === 0) {
   );
   void children;
   // @ts-expect-error Optional undefined is not accepted.
-  measureText({ ...input, height: undefined }, options);
+  measureText({ ...input, height: undefined }, measurementOptions);
+  // @ts-expect-error Rendering options do not provide a standalone measurer.
+  measureText(input, options);
+  // @ts-expect-error Standalone measurement rejects rendering capabilities.
+  const unsupported: MeasureOptions = { ...measurementOptions, text: composition.text };
+  void unsupported;
+  // @ts-expect-error The measurer capability has only one method.
+  const extra: MeasureOptions = { measurer: { measure: measurementOptions.measurer.measure, fixed() {} } };
+  void extra;
   // @ts-expect-error No raw font bytes or trusted plans are exposed.
   void result.lines[0].fragments[0].glyphs;
   // @ts-expect-error DOM-like spans are not a native tag.

@@ -7,7 +7,10 @@ audit-status wording are not current instructions. Use root `readme.md` commands
 
 ## Core contracts
 
-- `@updf/text`: public readonly plain/rich measurement with required explicit options. Separate
+- `@updf/text`: public readonly plain/rich measurement with required `MeasureOptions`
+  (`resources`, `measurer`, `profile`, `limits` only). `createTextMeasurer` is the
+  standalone factory; rendering `text`/`providers` options are rejected, not projected.
+  `createTextService` remains the full render/layout service. Separate
   `RichTextNode`/native `<richText>` paragraph data supports font/size/RGB runs.
   Trusted components use operation-bound `context.measurement.measureText`.
   See [full semantics, caps and lifetime contract](measurement.md). Local #26

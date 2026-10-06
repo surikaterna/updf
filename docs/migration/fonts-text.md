@@ -9,20 +9,26 @@ Private/unreleased API change; no compatibility facade or publication is implied
 | implicit Helvetica/default font/provider | explicit resources + text service + provider |
 | `limits.fontBytes` | `limits.resourceBytes` (all unique owned resource identities) |
 | unconditional `/F1` | Helvetica `/F1` only when committed text uses it |
+| standalone `measureText(input, RenderOptions)` | `measureText(input, MeasureOptions)` with required `measurer` |
 
 ```ts
 import { render } from "@updf/core";
 import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
-import { createTextService, measureText } from "@updf/text";
+import { createTextMeasurer, createTextService, measureText, type MeasureOptions } from "@updf/text";
 
 const runtime = fontRuntime();
+const resources = { Helvetica: createHelvetica() };
+const measurementOptions: MeasureOptions = {
+  resources,
+  measurer: createTextMeasurer({ runtime, defaultFont: "Helvetica" }),
+};
 const options = {
-  resources: { Helvetica: createHelvetica() },
+  resources,
   text: createTextService({ runtime, defaultFont: "Helvetica" }),
   providers: [fontProvider(runtime)],
 };
-// Pass the same options to measureText(input, options), lower(tree, options),
-// layout(document, options), and render(document, options).
+// measureText(input, measurementOptions);
+// Pass options to lower(tree, options), layout(document, options), and render(document, options).
 ```
 
 Drawing-only core needs none of these packages or options. Binding a font does not
@@ -38,11 +44,23 @@ contracts through `/resources` and narrow PDF primitives through `/pdf`, not fon
 programs, glyphs, metrics implementations, wrapping, or a global font registry.
 
 Host-only measurement can implement `TextRuntime` from `@updf/core/resources` and
-use `createTextService` without fonts. See
+use `createTextMeasurer` without fonts. See
 `tests/consumer/types/host-metrics-template.ts`; rendering host runs additionally
 requires a matching provider. Layout depends on text/core/kernel, not fonts;
 tables depend on layout/core. The core install still installs the whole kernel
 package although drawing runtime imports only its arithmetic entry.
+
+Standalone measurement accepts **only** `resources`, `measurer`, `profile`, and
+`limits`; both `measureText` and `measureTextUnknown` reject old `text`/`providers`
+keys or any other option, even if empty. Define a separate typed composition,
+sharing resource handles and runtime intentionally; do not pass rendering options
+or expect keys to be dropped. Custom structural measurers must expose only an own
+`measure` function, not a full service. Its complete numerical DTO is snapshotted,
+validated and frozen by core. `createTextService` remains the legitimate full
+nine-method API for render/layout and scoped component/table measurement;
+those call sites do not migrate to the standalone capability.
+Both factories still require all six runtime capabilities (including unused
+`lineMetrics`) and only an explicit factory `defaultFont` selects an omitted font.
 
 Application convenience wrappers deliberately own defaults: CMR exposes
 `renderCMR(document, options?)`, while `createCmrDocument(data)` stays pure data.

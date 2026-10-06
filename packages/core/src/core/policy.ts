@@ -50,7 +50,10 @@ const limitKeys = Object.keys(SERVICE_LIMITS);
 const trusted = Object.freeze(Object.fromEntries(limitKeys.map((key) => [key, Number.MAX_SAFE_INTEGER]))) as Policy;
 
 export function policy(options: unknown = {}, additional: readonly string[] = []): Policy {
-  record(options, ["profile", "limits", "resources", "text", "providers", ...additional], "/options");
+  return policyWithKeys(options, ["profile", "limits", "resources", "text", "providers", ...additional]);
+}
+export function policyWithKeys(options: unknown, keys: readonly string[]): Policy {
+  record(options, keys, "/options");
   if ("profile" in options && options.profile !== "trusted" && options.profile !== "service")
     fail("VALUE", "/options/profile", "Expected trusted or service profile");
   if (Object.hasOwn(options, "resources") && ownDataValue(options, "resources", "/options/resources") === undefined)

@@ -4,7 +4,7 @@ import { type DocumentDefinition, render } from "@updf/core";
 import { createPreparedFont, type PreparedFontInput } from "@updf/fonts";
 import { measureText } from "@updf/text";
 import { lower } from "@updf/core/vdom";
-import { textOptions } from "../../../tests/fixtures/text-options.js";
+import { measurementOptions, textOptions } from "../../../tests/fixtures/text-options.js";
 
 export const document: DocumentDefinition = {
   version: 1,
@@ -43,7 +43,7 @@ export function prepareAndMeasure(input: PreparedFontInput) {
   const Demo = createPreparedFont(input);
   return measureText(
     { kind: "plain", text: "Hello", font: "Demo", width: 180, fontSize: 12, lineHeight: 16, align: "left" },
-    textOptions({ resources: { Demo } }),
+    measurementOptions({ resources: { Demo } }),
   );
 }
 

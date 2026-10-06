@@ -12,7 +12,7 @@ import {
   textSlot,
 } from "@updf/core/resources";
 import { type ComponentContext, h, lower } from "@updf/core/vdom";
-import { createTextService, measureText, measureTextUnknown } from "@updf/text";
+import { createTextMeasurer, createTextService, measureText, measureTextUnknown } from "@updf/text";
 
 function runtimeHost() {
   const resource = createOwnedResource({ host: true });
@@ -83,6 +83,10 @@ function host() {
   return {
     ...state,
     collected,
+    measurementOptions: {
+      resources: { Host: resource },
+      measurer: createTextMeasurer({ runtime, defaultFont: "Host" }),
+    },
     options: {
       resources: { Host: resource },
       text: createTextService({ runtime, defaultFont: "Host" }),
@@ -109,13 +113,13 @@ function diagnostic(run: () => unknown, code: string, path: string) {
 }
 
 test("native own undefined font is malformed, while omitted font uses the explicit default", () => {
-  const { options } = host();
+  const { options, measurementOptions } = host();
   const { kind, ...input } = plain;
   assert.equal(kind, "plain");
   const node = { type: "text", x: 0, y: 0, height: 30, ...input } as const;
   const document = (child: unknown) => ({ version: 1, pages: [{ width: 100, height: 100, children: [child] }] });
   diagnostic(() => renderUnknown(document({ ...node, font: undefined }), options), "TYPE", "/pages/0/children/0/font");
-  diagnostic(() => measureTextUnknown({ ...plain, font: undefined }, options), "TYPE", "/font");
+  diagnostic(() => measureTextUnknown({ ...plain, font: undefined }, measurementOptions), "TYPE", "/font");
   const bad = h("text", { ...input, x: 0, y: 0, height: 30, font: undefined as unknown as string });
   diagnostic(
     () =>
@@ -127,17 +131,17 @@ test("native own undefined font is malformed, while omitted font uses the explic
 });
 
 test("runtime intrinsic metrics reject nonfinite values before fixed and rich wrapping", () => {
-  const { options, runtime } = host();
+  const { measurementOptions, runtime } = host();
   for (const key of ["advance", "left", "right", "ascent", "descent", "top", "bottom"] as const) {
     for (const value of [NaN, Infinity, -Infinity]) {
       const broken = {
         ...runtime,
         measure: (...args: Parameters<TextRuntime["measure"]>) => ({ ...runtime.measure(...args), [key]: value }),
       };
-      const text = createTextService({ runtime: broken, defaultFont: "Host" });
-      diagnostic(() => measureText(plain, { ...options, text }), "GEOMETRY", `/${key}`);
+      const measurer = createTextMeasurer({ runtime: broken, defaultFont: "Host" });
+      diagnostic(() => measureText(plain, { ...measurementOptions, measurer }), "GEOMETRY", `/${key}`);
       diagnostic(
-        () => measureText({ kind: "rich", width: 20, paragraphs: [paragraph] }, { ...options, text }),
+        () => measureText({ kind: "rich", width: 20, paragraphs: [paragraph] }, { ...measurementOptions, measurer }),
         "GEOMETRY",
         `/paragraphs/0/runs/0/text/${key}`,
       );
@@ -220,8 +224,8 @@ test("finite service positions reject overflow in page conversion and rich node 
 });
 
 test("custom metrics work without any font implementation; native providers receive the exact retained run", () => {
-  const { options, collected } = host();
-  const measured = measureText(plain, options);
+  const { options, measurementOptions, collected } = host();
+  const measured = measureText(plain, measurementOptions);
   assert.equal(measured.lineCount, 2);
   assert.equal(measured.lines[0]?.baseline, 8);
   const fixed = { type: "text", x: 0, y: 0, height: 30, ...plain } as const;
@@ -259,23 +263,24 @@ test("VDOM measurement uses the selected service and closes retained callbacks",
 });
 
 test("font omission never selects Helvetica without explicit defaultFont", () => {
-  const { options, runtime } = host();
+  const { measurementOptions, runtime } = host();
   assert.throws(
-    () => measureText(plain, { ...options, text: createTextService({ runtime }) }),
+    () => measureText(plain, { ...measurementOptions, measurer: createTextMeasurer({ runtime }) }),
     (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.path === "/font",
   );
   assert.throws(
-    () => measureText(plain, { ...options, text: createTextService({ runtime, defaultFont: "Missing" }) }),
+    () =>
+      measureText(plain, { ...measurementOptions, measurer: createTextMeasurer({ runtime, defaultFont: "Missing" }) }),
     DocumentError,
   );
 });
 
 test("service and runtime closures capture callbacks; legitimate callback failures keep their identity", () => {
-  const { options, runtime } = host();
+  const { options, measurementOptions, runtime } = host();
   const mutable = { ...options.text };
   const saved = { ...options, text: mutable };
   const sentinel = new Error("host callback");
-  const broken = createTextService({
+  const broken = createTextMeasurer({
     runtime: {
       ...runtime,
       measure() {
@@ -285,7 +290,7 @@ test("service and runtime closures capture callbacks; legitimate callback failur
     defaultFont: "Host",
   });
   assert.throws(
-    () => measureText(plain, { ...options, text: broken }),
+    () => measureText(plain, { ...measurementOptions, measurer: broken }),
     (error: unknown) => error === sentinel,
   );
   const component = h((_props: object, context: ComponentContext) => {
@@ -299,10 +304,10 @@ test("service and runtime closures capture callbacks; legitimate callback failur
 });
 
 test("service data outputs are cloned/frozen and malformed numeric output is rejected", () => {
-  const { options } = host();
+  const { measurementOptions } = host();
   const result = { width: 20, consumedHeight: 0, lineCount: 0, lines: [] };
-  const mutable = { ...options.text, measure: () => result };
-  const measured = measureText(plain, { ...options, text: mutable });
+  const mutable = { measure: () => result };
+  const measured = measureText(plain, { ...measurementOptions, measurer: mutable });
   result.width = 100;
   assert.equal(measured.width, 20);
   assert.ok(Object.isFrozen(measured) && Object.isFrozen(measured.lines));
@@ -313,13 +318,13 @@ test("service data outputs are cloned/frozen and malformed numeric output is rej
     {},
   ])
     assert.throws(
-      () => measureText(plain, { ...options, text: { ...options.text, measure: () => bad as typeof result } }),
+      () => measureText(plain, { ...measurementOptions, measurer: { measure: () => bad as typeof result } }),
       DocumentError,
     );
 });
 
 test("service capabilities and returned data reject accessors without invoking them", () => {
-  const { options } = host();
+  const { measurementOptions } = host();
   let calls = 0;
   const accessor = Object.defineProperty({}, "measure", {
     enumerable: true,
@@ -328,7 +333,10 @@ test("service capabilities and returned data reject accessors without invoking t
       throw new Error("getter");
     },
   });
-  assert.throws(() => measureText(plain, { ...options, text: accessor as typeof options.text }), DocumentError);
+  assert.throws(
+    () => measureText(plain, { ...measurementOptions, measurer: accessor as typeof measurementOptions.measurer }),
+    DocumentError,
+  );
   const outputGetter = Object.defineProperty({}, "width", {
     enumerable: true,
     get() {
@@ -339,8 +347,8 @@ test("service capabilities and returned data reject accessors without invoking t
   assert.throws(
     () =>
       measureText(plain, {
-        ...options,
-        text: { ...options.text, measure: () => outputGetter as ReturnType<typeof measureText> },
+        ...measurementOptions,
+        measurer: { measure: () => outputGetter as ReturnType<typeof measureText> },
       }),
     DocumentError,
   );

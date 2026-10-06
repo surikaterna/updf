@@ -3,17 +3,18 @@ import test from "node:test";
 import { render as coreRender, type DocumentDefinition, DocumentError, type OperationOptions } from "@updf/core";
 import {
   type ParagraphDefinition,
+  type MeasureOptions,
   type RichTextInput,
   type TextMeasurementInput,
   measureText as textMeasure,
   measureTextUnknown as textMeasureUnknown,
 } from "@updf/text";
-import { fontOptions } from "../../../tests/fixtures/fonts/font-options.js";
+import { fontMeasurementOptions, fontOptions } from "../../../tests/fixtures/fonts/font-options.js";
 
-const measureText = (input: TextMeasurementInput, options: OperationOptions = {}) =>
-  textMeasure(input, fontOptions(options));
-const measureTextUnknown = (input: unknown, options: OperationOptions = {}) =>
-  textMeasureUnknown(input, fontOptions(options));
+const measureText = (input: TextMeasurementInput, options: Partial<MeasureOptions> = {}) =>
+  textMeasure(input, fontMeasurementOptions(options));
+const measureTextUnknown = (input: unknown, options: Partial<MeasureOptions> = {}) =>
+  textMeasureUnknown(input, fontMeasurementOptions(options));
 const render = (input: DocumentDefinition, options: OperationOptions = {}) => coreRender(input, fontOptions(options));
 
 export const paragraph = (text: string, props: Partial<ParagraphDefinition> = {}): ParagraphDefinition => ({

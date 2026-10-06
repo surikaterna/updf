@@ -72,8 +72,8 @@ Neither profile limits arbitrary execution time in trusted JavaScript components
 ## Prepared font and natural-height measurement
 
 ```ts
-import { createPreparedFont, fontProvider, fontRuntime, type PreparedFontInput } from "@updf/fonts";
-import { createTextService, measureText } from "@updf/text";
+import { createPreparedFont, fontRuntime, type PreparedFontInput } from "@updf/fonts";
+import { createTextMeasurer, measureText } from "@updf/text";
 
 function prepareAndMeasure(input: PreparedFontInput) {
   const Demo = createPreparedFont(input);
@@ -82,11 +82,15 @@ function prepareAndMeasure(input: PreparedFontInput) {
     width: 180, fontSize: 12, lineHeight: 16, align: "left",
   }, {
     resources: { Demo },
-    text: createTextService({ runtime }),
-    providers: [fontProvider(runtime)],
+    measurer: createTextMeasurer({ runtime }),
   });
 }
 ```
+
+Standalone measurement accepts only `MeasureOptions` (`resources`, required
+`measurer`, `profile`, `limits`). Old rendering `text`/`providers` keys are errors,
+not compatibility inputs. `TextMeasurer` is structural in `@updf/core/resources`;
+the full `createTextService` is still required for render/layout/component measurement.
 
 The host supplies corresponding static TrueType bytes/metrics and declared
 embedding rights. `@updf/fonts` validates metadata and owns copied bytes, but does not parse or

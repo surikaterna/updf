@@ -1,26 +1,19 @@
 import { dataRecord, fail, ownDataValue } from "@updf/core/internal";
-import type { TextRuntime, TextService, TextServiceContext } from "@updf/core/resources";
+import type { TextService } from "@updf/core/resources";
 import { measureFixedText } from "./fixed-text.js";
 import { measureInline } from "./inline.js";
 import { participant } from "./line-height.js";
-import { measureInput, rich } from "./measure.js";
+import { rich } from "./measure.js";
+import { measurementClosure, type TextMeasurerOptions } from "./measurer.js";
 import { ink, metrics } from "./metrics.js";
-import { fontId, ownRuntime, resolved } from "./text-resources.js";
+import { fontId } from "./text-resources.js";
 import { effectiveStyle, validateInput, validateStyle } from "./validate.js";
 
-export interface TextServiceOptions {
-  readonly runtime: TextRuntime;
-  readonly defaultFont?: string;
-}
+export interface TextServiceOptions extends TextMeasurerOptions {}
 export function createTextService(options: TextServiceOptions): TextService {
-  dataRecord(options, "/text");
-  const runtime = ownRuntime(ownDataValue(options, "runtime", "/text/runtime"));
-  const defaultFont = ownDataValue(options, "defaultFont", "/text/defaultFont");
-  if (defaultFont !== undefined && typeof defaultFont !== "string")
-    fail("TYPE", "/text/defaultFont", "Expected font id");
-  const fonts = (context: TextServiceContext) => resolved(context, runtime, defaultFont);
+  const { fonts, measure } = measurementClosure(options);
   return Object.freeze({
-    measure: (input, context, path) => measureInput(input, fonts(context), context.budget, path),
+    measure,
     validate: (input, context, path) => validateInput(input, fonts(context), context.budget, path),
     fixed: (node, context, path) => measureFixedText(node, path, fonts(context), context.budget),
     rich: (input, context, path) => rich(input, fonts(context), context.budget, path),

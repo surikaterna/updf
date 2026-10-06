@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { gzipSync } from "node:zlib";
+import { createRequire } from "node:module";
 import { build, version } from "esbuild";
 import { costInputs } from "./consumer/cost-inputs.js";
 
@@ -14,7 +15,8 @@ const output = resolve(
 );
 await mkdir(output, { recursive: true });
 const profiles = [];
-const inputs = costInputs(historical);
+const textExports = historical ? undefined : createRequire(resolve(root, "package.json"))("@updf/text");
+const inputs = costInputs(historical, typeof textExports?.createTextMeasurer === "function");
 if (!historical)
   inputs.measurementHost = await readFile(resolve(root, "tests/consumer/types/host-metrics-template.ts"), "utf8");
 for (const [profile, contents] of Object.entries(inputs)) {

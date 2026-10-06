@@ -1,6 +1,12 @@
 import { type DocumentDefinition, render, type TextNode } from "@updf/core";
 import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
-import { createTextService, measureText, type TextLineMeasurement } from "@updf/text";
+import {
+  createTextMeasurer,
+  createTextService,
+  measureText,
+  type MeasureOptions,
+  type TextLineMeasurement,
+} from "@updf/text";
 import { PlaygroundError } from "./error.js";
 import type { Projection } from "./projection.js";
 
@@ -12,6 +18,10 @@ const textOptions = {
   resources: { Helvetica: createHelvetica() },
   text: createTextService({ runtime, defaultFont: "Helvetica" }),
   providers: [fontProvider(runtime)],
+};
+const measurementOptions: MeasureOptions = {
+  resources: textOptions.resources,
+  measurer: createTextMeasurer({ runtime, defaultFont: "Helvetica" }),
 };
 
 export interface PreparedParagraph {
@@ -35,7 +45,7 @@ export function prepareParagraph(text: string, width: number): PreparedParagraph
       lineHeight: LINE_HEIGHT,
       align: "left",
     },
-    textOptions,
+    measurementOptions,
   );
   return Object.freeze({ text, width, height: measured.consumedHeight, lines: measured.lines });
 }

@@ -11,10 +11,10 @@ async function probe(source: string, entry = "@updf/text") {
         entry === "@updf/layout-kernel/arithmetic"
           ? ""
           : `
-      import {createHelvetica,fontProvider,fontRuntime} from '@updf/fonts';
-      import {createTextService} from '${entry}';
+       import {createHelvetica,fontRuntime} from '@updf/fonts';
+       import {createTextMeasurer} from '${entry}';
       const runtime=fontRuntime();
-      export const options={resources:{Helvetica:createHelvetica()},text:createTextService({runtime,defaultFont:'Helvetica'}),providers:[fontProvider(runtime)]};`
+       export const options={resources:{Helvetica:createHelvetica()},measurer:createTextMeasurer({runtime,defaultFont:'Helvetica'})};`
       }`,
       resolveDir: process.cwd(),
     },
