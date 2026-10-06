@@ -2,7 +2,8 @@
 
 This is the current private, unreleased document contract. Tables are provided by
 the separate `@updf/tables` package. Dated delivery and audit records are retained
-under `docs/evidence`; they are not current API instructions. There is no Image API.
+under `docs/evidence`; they are not current API instructions. Optional JPEG uses
+generic core `xObject` drawings, not a layout `Image` component; see [images](jpeg-images.md).
 
 ## One authoring/runtime path
 
@@ -104,7 +105,7 @@ const result = layout(document({ children: [
     flowBody({ children: paragraph({ children: "Data-authored body" }) }),
     flowFooter({ height: 12, children: [] }),
   ] }),
-] }));
+] }), options);
 ```
 
 Native node arrays are supported by fixed data pages and flow regions. Native
@@ -125,7 +126,7 @@ layout(document({ children: flow({ pageSize: PageSize.A5, children: [
   paragraph({ children: "Before" }),
   { type: "pageBreak" },
   paragraph({ children: "After" }),
-] }) }));
+] }) }), options);
 ```
 
 Each break advances to a new page, including at an empty/zero-height boundary.
@@ -216,7 +217,10 @@ fixed bounds/ink validation also remains mandatory. Explicit constrained Block
 `overflow: "hidden"` can clip inside the reservation; clipping is not redaction.
 Operation fonts and installed Flow extensions are shared with body and late
 emissions, with captured adapter measurement contexts closing on success/error.
-Late regions do not install a separate adapter registry. The new showcase uses
+Late regions do not install a separate adapter registry. Positioned JPEG leaves
+can use these native regions with the same named resources/provider as the body;
+in flow bodies wrap native drawings in a declared-height atomic `FixedBlock`.
+Images never fragment automatically. The existing mixed showcase uses
 core drawings and prose, not a table/image migration.
 
 Source normalization and measurement share the owned operation. Page allocation

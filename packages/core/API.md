@@ -8,8 +8,8 @@ so builds retain them in `.d.ts` files and editor hovers. Core is private/unrele
 
 | Import from `@updf/core…` | Operations/values | Types (including aliases) |
 | --- | --- | --- |
-| root | `render`, `renderUnknown`, `DocumentError`, `SERVICE_LIMITS` | `Limits`, `OperationOptions`, `RenderOptions` (alias), `Box`, `TextAlign`, `RichTextNode`, `RectangleNode`, `LineNode`, `PaintingGroupNode` (alias), `NodeDefinition`, `PageDefinition`, `DocumentDefinition`, `DiagnosticCode`, `DocumentDiagnostic`, `SourceSpan`; painting/measurement data reexports listed below |
-| `/resources` | `createOwnedResource`, `isOwnedResource`, `ownedResourceBytes`, `paintingSlot`, `resourceSlot`, `textSlot` | `OwnedResource`, `MeasuredRichText`, `PageResources`, `PaintingBinding`, `PaintingSlot`, `Resource`, `ResourceCollection`, `ResourcePhase`, `ResourceProvider`, `ResourceSlot`, `TextSite`, `TextMetrics`, `TextRun`, `TextRuntime`, `TextService`, `TextServiceContext`, `InlineLine`, `InlineMetric`, `InlineLineHeights`, `LineEnvelope`, `LineHeight`, `PrivateFragment`; measurement data types below |
+| root | `render`, `renderUnknown`, `DocumentError`, `SERVICE_LIMITS` | `Limits`, `OperationOptions`, `RenderOptions` (alias), `Box`, `TextAlign`, `RichTextNode`, `RectangleNode`, `LineNode`, `XObjectNode`, `PaintingGroupNode` (alias), `NodeDefinition`, `PageDefinition`, `DocumentDefinition`, `DiagnosticCode`, `DocumentDiagnostic`, `SourceSpan`; painting/measurement data reexports listed below |
+| `/resources` | `createOwnedResource`, `isOwnedResource`, `ownedResourceBytes`, `paintingSlot`, `resourceSlot`, `textSlot`, `xObjectSlot` | `OwnedResource`, `MeasuredRichText`, `PageResources`, `PaintingBinding`, `PaintingSlot`, `Resource`, `ResourceDefinition`, `ResourceCollection`, `ResourcePhase`, `ResourceProvider`, `ResourceSlot`, `TextSite`, `XObjectSite`, `TextMetrics`, `TextRun`, `TextRuntime`, `TextService`, `TextServiceContext`, `TextMeasurer`, `MeasureOptions`, `InlineLine`, `InlineMetric`, `InlineLineHeights`, `LineEnvelope`, `LineHeight`, `PrivateFragment`; measurement data types below |
 | `/pdf` | `hex`, `literal`, `name` | `PdfScalar`, `PdfString`, `PdfDictionary`, `PdfRef`, `PdfValue`, `PdfWriter` |
 | `/painting` | `identity`, `multiply`, `point` | `ClipRect`, `CloseCommand`, `CubicCommand`, `LineCommand`, `Matrix`, `MoveCommand`, `Paint`, `PaintGroup`, `Painting`, `PathCommand`, `PathNode`, `RGB` |
 | `/vdom` | `Fragment`, `bind`, `h`, `lower`, `definePrimitive`, `createContext`, `useContext` | `Context`, `ReadContext`, `Component`, `ComponentContext`, `DeepReadonly`, `Key`, `LowerOptions`, `NativeProps`, `NativeTag`, `Primitive`, `RegistryDefinition`, `ResourceMetadata`, `VDOMChild`, `VNode` |
@@ -136,3 +136,10 @@ lower call. No React elements, DOM tags or asynchronous hooks are involved.
 Companion executable examples: `test/documentation-examples.tsx` and
 `test/documentation.test.ts`, including the existing Liberation Sans fixture.
 These are focused smoke/type examples, not a Markdown doctest engine.
+## Internal native integration
+
+The unstable sibling-only `@updf/core/internal-drawing` bridge owns shallow native
+data classification and iterative AST-to-owned-VDOM conversion. Classification is
+not validation; lowering retains strict schemas, operation budgets and origins.
+This adds no supported public authoring API or plugin registry. See
+[native ownership](../../docs/architecture/native-nodes.md).

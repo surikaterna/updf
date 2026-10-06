@@ -65,6 +65,7 @@ const reports = [];
 try {
   for (const name of [
     "core",
+    "jpeg",
     "fonts",
     "text",
     "layout-kernel",

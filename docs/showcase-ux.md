@@ -1,8 +1,9 @@
 # Showcase UX rationale and acceptance scope
 
-The showcase is a private, unreleased local artifact. The current workspace and
-sample SVG branding await final integrated audit; no deployment or WCAG
-conformance is claimed. Prior dated evidence remains historical.
+The showcase source is private/unreleased; local build/test results are not a
+deployment or WCAG conformance claim. Prior dated audit/delivery evidence remains
+historical. JPEG delivery adds a runnable Node example, not a showcase redesign;
+publishing remains deferred pending the docs sweep and separate authorization.
 
 ## Reference-informed decisions
 
@@ -33,7 +34,8 @@ and following external links still involve ordinary network requests.
 The vector brand letterhead uses the same original MIT-licensed Northstar Studio
 sample SVG in the UI and PDF. Header size is bounded to 32–80 PDF points with
 three palettes; the card mark remains 56 points. This is not an official corporate
-identity, arbitrary SVG upload support, raster rendering or a new Image API.
+identity or arbitrary SVG upload support. This demo remains vector-only; optional
+[JPEG library support](jpeg-images.md) does not change it or add a layout Image API.
 
 Existing acceptance tests are in `tests/showcase/ux.test.ts` (desktop geometry,
 keyboard disclosure, stable focus, result/argument consistency, associated errors,
@@ -47,4 +49,4 @@ npm run test:showcase
 
 Browser automation and screenshots are bounded evidence, not a comprehensive
 screen-reader, browser, zoom or WCAG audit. Independent final audit must review
-the integrated S7 branding and these current docs before delivery is considered.
+the actual delivered scope and these current docs before further authorized delivery.

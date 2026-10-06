@@ -2,7 +2,8 @@
 
 Status: current private/unreleased measurement contract. Dated delivery and audit
 records are preserved under `docs/evidence`; use native layout `measure` for authoring.
-No flow, page templates or tables (#27/#28) are included. Issue #26 remains OPEN;
+This low-level measurement surface does not paginate; optional layout supplies
+flow/page templates/tables separately. Issue #26 remains OPEN;
 this document is not a tracker transition, release or deployment claim.
 
 ## Portable public boundary
@@ -92,7 +93,8 @@ replacement resources or diagnostic path prefixes. Contexts close in `finally`
 after successful or failed lowering; retained use fails `MEASUREMENT_CONTEXT`.
 Pure component code is still trusted, not a sandbox.
 
-Descriptor/prototype/dense-array checks reject unknown keys and present optional
+Generic binding IDs/foreign handles report `RESOURCE` (including font-only maps);
+font-specific errors retain `FONT_RESOURCE`. Descriptor/prototype/dense-array checks reject unknown keys and present optional
 undefined values. Existing structured diagnostic codes remain; rich character and
 token errors preserve run paths and original scalar spans through component remapping.
 The B foundation replaces mandatory legacy ceilings with trusted defaults and
@@ -105,7 +107,7 @@ This local foundation is not independent verification or closure of #25.
 
 ## Showcase and evidence
 
-The core-only rich example displays its exact imported source, bounded width/font
+The rich example explicitly composes core/fonts/text and displays its exact imported source, bounded width/font
 size/alignment/whitespace/long-word controls, and measured line count/height. It
 reuses the existing Blob cleanup, cancellation, readable diagnostics and mobile
 open/download fallback. SVG stays optional; Fontkit/React remain outside the initial

@@ -75,7 +75,7 @@ test("final lines use alias identity, include later-page CIDs and exclude discar
     laterLine = laterNode.fragments[0],
     lostLine = lostNode.fragments[0];
   assert.ok(firstLine && laterLine && lostLine);
-  assert.equal(resources.page(first).painting(firstLine, textSlot).key, "F2");
+  assert.equal(resources.page(first).painting(firstLine, textSlot).key, "F1");
   assert.throws(() => resources.page(first).painting(laterLine, textSlot), /Missing/);
   assert.throws(() => resources.page(first).painting(lostLine, textSlot), /Missing/);
   assert.deepEqual(
@@ -112,8 +112,8 @@ test("production providers share preorder bindings without reserving unused Helv
   assert.throws(() => alphaAt(resources.page(second), resolvedDrawing), /Missing/);
   const bytes = render(document, options),
     raw = Buffer.from(bytes).toString("latin1");
-  assert.match(raw, /\/Font << \/F2 \d+ 0 R >> \/ExtGState << \/GS1 \d+ 0 R >>/);
-  assert.doesNotMatch(raw, /\/BaseFont \/Helvetica|\/F1 /);
+  assert.match(raw, /\/Font << \/F1 \d+ 0 R >> \/ExtGState << \/GS1 \d+ 0 R >>/);
+  assert.doesNotMatch(raw, /\/BaseFont \/Helvetica|\/F2 /);
   assert.equal((raw.match(/\/GS1 gs/g) ?? []).length, 2);
   assert.deepEqual(bytes, serialize(pages, resources));
 });
@@ -157,9 +157,9 @@ test("rich fragments bind final encodings with shared measured objects across pa
   assert.ok(fragment && builtin);
   const shared = { ...first };
   const resources = collected([first, shared], options);
-  assert.equal(resources.page(first).painting(fragment, textSlot).key, "F2");
-  assert.equal(resources.page(shared).painting(fragment, textSlot).key, "F2");
-  assert.equal(resources.page(shared).painting(builtin, textSlot).key, "F1");
+  assert.equal(resources.page(first).painting(fragment, textSlot).key, "F1");
+  assert.equal(resources.page(shared).painting(fragment, textSlot).key, "F1");
+  assert.equal(resources.page(shared).painting(builtin, textSlot).key, "F2");
   const next = collected([first], options);
   assert.deepEqual(serialize([first], next), serialize([first], collected([first], options)));
   assert.throws(() => next.page(shared), /Foreign/);

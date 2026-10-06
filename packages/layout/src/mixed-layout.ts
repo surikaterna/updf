@@ -22,7 +22,7 @@ import {
   pageIdentity,
   sectionRecipe,
 } from "./document-data.js";
-import { nativeData } from "./document-native.js";
+import { isNativeNodeDataArray as nativeData } from "@updf/core/internal-drawing";
 import { documentProps as validateDataObject } from "./document-props.js";
 import type { DocumentContentData, DocumentProps, FlowProps, PageProps } from "./document-types.js";
 import type { Extensions } from "./extension-types.js";

@@ -38,6 +38,13 @@ export async function installedGraph(directory: string, entry: string, optional 
   }
   const modules = [...visited].map((path) => path.replace(`${directory}/node_modules/`, ""));
   portableGraph(modules, optional);
+  if (entry !== "@updf/jpeg")
+    assert.ok(!modules.some((path) => path.startsWith("@updf/jpeg/")), "JPEG implementation leaked");
+  if (entry === "@updf/jpeg")
+    assert.ok(
+      !modules.some((path) => /^@updf\/(?:fonts|text|fontkit)\//u.test(path)),
+      "JPEG imported font/text implementation",
+    );
   if (/^@updf\/(?:core|text)(?:\/|$)/u.test(entry))
     assert.ok(!modules.some((path) => path.startsWith("@updf/fonts/")), "Font implementation leaked");
   if (entry.startsWith("@updf/core") || entry === "@updf/fonts")

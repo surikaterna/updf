@@ -10,7 +10,7 @@ CommonJS implementations and explicit ESM facades; no default export is added.
   generated `package.json` with `type: commonjs`.
 - `dist/node/**/*.mjs` consists of generated, named ESM exports referring to the
   **same values** from that CommonJS graph. Node import and require therefore
-  share prepared-font ownership, contexts, semantic recipes, adapters, classes,
+  share generic/prepared-font/JPEG ownership, contexts, semantic recipes, adapters, classes,
   functions, and error identity, regardless of which loader runs first.
 - The `browser` export condition selects the existing native `dist/**/*.js` ESM
   graph. It remains independently tree-shakeable and preserves optional/lazy
@@ -64,5 +64,22 @@ both orders, and compares every exported value by identity. A separate process
 uses `--no-experimental-require-module` to prove genuine CJS loading. Mixed
 runtime proofs cover JSX, providers, recipes, adapters, cross-loader errors,
 prepared fonts and rendering. Optional-peer absence and presence are exercised.
+JPEG-only and mixed fonts/text/JPEG consumers verify private ownership across both
+loaders and both orders, with qpdf/Poppler checks and NodeNext/Bundler JSX. JPEG's
+runtime exports are exactly `prepareJpeg`, `jpeg`, `jpegProvider`; metadata/handle
+types do not become runtime facade exports. Drawing/Helvetica/measurement graphs
+exclude JPEG, and the JPEG-only closure excludes fonts/text/Fontkit/decoders.
 `npm run build:browser` and `npm run check:graphs` check browser ESM isolation,
 tree-shaking boundaries and emitted rather than source-aliased package code.
+
+The six native source-owner modules are private implementation paths, not new
+consumer exports. The existing unstable `@updf/core/internal-drawing` entry reexports
+`nativeNodeKinds`/`isNativeNodeKind` metadata plus `isNativeNodeData`,
+`isNativeNodeDataArray` and `nativeNodeToVdom` alongside its drawing coordinator.
+Core owns classification and iterative AST-to-VDOM conversion; layout delegates
+generically and assembles documents/pages without a duplicated native leaf list
+or conversion logic.
+Its generated ESM facades still reference canonical CJS values. Separate
+function-local phase maps allow unused owner phases to tree-shake; metafile input
+presence is not evidence that their handlers survive in minified output. See
+[native node ownership](architecture/native-nodes.md) for the current ownership boundary.

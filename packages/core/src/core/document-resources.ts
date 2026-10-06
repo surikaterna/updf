@@ -1,4 +1,4 @@
-import { fail } from "./error.js";
+import { collection as nodeCollection } from "../nodes/wiring.js";
 import type { OwnedResource } from "./owned-resource.js";
 import type { PdfRef, PdfWriter } from "./pdf-writer.js";
 import type { MeasuredNode, MeasuredPage } from "./plan.js";
@@ -14,7 +14,10 @@ import type {
   ResourceSlot,
 } from "./resource-types.js";
 import { textSlot } from "./text-paint.js";
+import { xObjectSlot } from "./resource-types.js";
 import { descendants } from "./traversal.js";
+import { namedResource, resourceDefinition } from "./resource-definition.js";
+import type { ResourceDefinition } from "./resource-types.js";
 
 type Bindings = Map<object, Map<object, Resource<unknown>>>;
 type Paintings = Map<object, Map<object, PaintingBinding<unknown>>>;
@@ -68,23 +71,19 @@ export function documentResources(
 }
 
 function collectNode(node: MeasuredNode, providers: readonly ResourceProvider[], collection: Collection): void {
-  if (node.type === "richText") {
-    const sites = node.fragments;
-    for (const site of sites) {
-      if (!site.run) fail("FONT_RESOURCE", site.path, "Missing text run");
-      for (const provider of providers)
-        provider.collectText?.({ identity: site, run: site.run, path: site.path }, collection);
-      if (!collection.paintings?.get(site)?.has(textSlot))
-        fail("FONT_RESOURCE", site.path, "No provider bound the text run");
-    }
-  } else if (node.type !== "paintGroup" && node.painting) {
-    for (const provider of providers) provider.collectDrawing?.(node.painting, collection);
-  }
+  nodeCollection(node.type)?.(node, {
+    providers,
+    collection,
+    textSlot,
+    xObjectSlot,
+    hasPainting: (site, slot) => collection.paintings?.get(site)?.has(slot) ?? false,
+  });
 }
 
 class Collection implements ResourceCollection {
   readonly interned: Map<object, Map<unknown, Resource<unknown>>>;
   private readonly owned = new Map<Resource<unknown>, object>();
+  private readonly sequences = new Map<string, number>();
   current: Bindings | undefined;
   paintings: Paintings | undefined;
   closed = false;
@@ -94,14 +93,17 @@ class Collection implements ResourceCollection {
     if (this.interned.size !== providers.length) throw new Error("Duplicate resource slot");
   }
 
-  intern<T>(slot: ResourceSlot<T>, identity: unknown, create: () => Resource<T>): Resource<T> {
+  intern<T>(slot: ResourceSlot<T>, identity: unknown, create: () => ResourceDefinition<T>): Resource<T> {
     if (this.closed) throw new Error("Resource collection is closed");
     const entries = this.interned.get(slot);
     if (!entries) throw new Error("Foreign resource slot");
     const existing = entries.get(identity);
     // Each bucket and binding can only be populated through its typed slot.
     if (existing) return existing as Resource<T>;
-    const resource = Object.freeze(create());
+    const definition = resourceDefinition(create());
+    const sequence = (this.sequences.get(definition.category) ?? 0) + 1;
+    const resource = namedResource(definition, sequence);
+    this.sequences.set(definition.category, sequence);
     entries.set(identity, resource);
     this.owned.set(resource, slot);
     return resource;

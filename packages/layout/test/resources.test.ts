@@ -41,7 +41,7 @@ test("prepared resources are owned and operation-bound, aliases work and retaine
   );
   assert.throws(
     () => layoutFlow(definition, { resources: { Alias: { ...font } } }),
-    (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === "FONT_RESOURCE",
+    (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === "RESOURCE",
   );
 });
 test("materialized lines preserve whitespace, alignment, mixed styles and measured baseline/ink", async () => {

@@ -5,6 +5,8 @@ import { point, identity } from '@updf/core/painting';
 import { lower } from '@updf/core/vdom';
 import { jsx } from '@updf/core/jsx-runtime';
 import { jsxDEV } from '@updf/core/jsx-dev-runtime';
+assert.deepEqual(Object.keys(await import('@updf/core')).sort(),['DocumentError','SERVICE_LIMITS','render','renderUnknown']);
+assert.deepEqual(Object.keys(await import('@updf/core/resources')).sort(),['createOwnedResource','isOwnedResource','ownedResourceBytes','paintingSlot','resourceSlot','textSlot','xObjectSlot']);
 const page = jsx('page', { width: 100, height: 100 });
 const tree = jsxDEV('document', { version: 1, children: page });
 assert.ok(render(lower(tree)) instanceof Uint8Array);

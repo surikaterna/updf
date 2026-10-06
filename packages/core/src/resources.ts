@@ -7,12 +7,14 @@ export type {
   PaintingSlot,
   Resource,
   ResourceCollection,
+  ResourceDefinition,
   ResourcePhase,
   ResourceProvider,
   ResourceSlot,
   TextSite,
+  XObjectSite,
 } from "./core/resource-types.js";
-export { paintingSlot, resourceSlot } from "./core/resource-types.js";
+export { paintingSlot, resourceSlot, xObjectSlot } from "./core/resource-types.js";
 export { textSlot } from "./core/text-paint.js";
 export type { TextMetrics, TextRun, TextRuntime } from "./core/text-runtime.js";
 export type { TextService, TextServiceContext } from "./core/text-service.js";

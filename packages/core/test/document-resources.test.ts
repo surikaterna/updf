@@ -3,16 +3,20 @@ import test from "node:test";
 import { documentResources } from "../dist/cjs/core/document-resources.js";
 import { PdfWriter } from "../dist/cjs/core/pdf-writer.js";
 import type { MeasuredPage } from "../dist/cjs/core/plan.js";
-import { type Resource, type ResourceCollection, resourceSlot } from "../dist/cjs/core/resource-types.js";
+import {
+  type Resource,
+  type ResourceDefinition,
+  type ResourceCollection,
+  resourceSlot,
+} from "../dist/cjs/core/resource-types.js";
 import { drawing as resolveDrawing } from "../dist/cjs/painting/read.js";
 
 const drawing = resolveDrawing({ type: "rect", x: 0, y: 0, width: 10, height: 10 }, "");
 const node = { type: "rect", x: 0, y: 0, width: 10, height: 10, painting: drawing } as const;
 const page = (children = [node]): MeasuredPage => ({ width: 100, height: 100, children });
-function entry(key: string, category = "Example"): Resource<string> {
+function entry(key: string, category = "Example"): ResourceDefinition<string> {
   return {
     category,
-    key,
     payload: key,
     phase: "content",
     reserve(writer) {
@@ -46,7 +50,7 @@ test("shared engine interns, binds per page, reserves provider-major and defines
   }));
   const resources = documentResources([first, first, second, shared], providers);
   assert.deepEqual(visited, ["0", "1", "0", "1", "0", "1"]);
-  assert.equal(resources.page(first).resolve(drawing, a).key, "R0");
+  assert.equal(resources.page(first).resolve(drawing, a).key, "R1");
   assert.equal(resources.page(shared).resolve(drawing, a), resources.page(first).resolve(drawing, a));
   assert.throws(() => resources.page(second).resolve(drawing, a), /Missing/);
   assert.throws(() => resources.page(page()), /Foreign/);
@@ -60,14 +64,14 @@ test("shared engine interns, binds per page, reserves provider-major and defines
   writer.define(root, { Resources: reserved.dictionary });
   reserved.define("bootstrap");
   reserved.define("content");
-  assert.match(Buffer.from(writer.seal()).toString(), /\/R0 2 0 R \/R1 3 0 R/);
+  assert.match(Buffer.from(writer.seal()).toString(), /\/R1 2 0 R \/R2 3 0 R/);
   assert.throws(() => reserved.reserve("content"), /already reserved/);
 });
 
 const dictionaryNames = ["Example", "__proto__", "constructor", "toString"];
 const builtins = [Object.prototype, Object, Object.prototype.toString];
 
-function namedResources(entries: readonly Resource<string>[]) {
+function namedResources(entries: readonly ResourceDefinition<string>[]) {
   const slot = resourceSlot<string>();
   return documentResources(
     [],
@@ -101,26 +105,27 @@ test("resource dictionaries preserve special PDF names without inherited state o
     const dictionary = reserved.dictionary[category];
     assert.ok(dictionary);
     assert.equal(Object.getPrototypeOf(dictionary), null);
-    assert.deepEqual(Object.keys(dictionary), dictionaryNames);
-    for (const key of dictionaryNames) assert.ok(Object.hasOwn(dictionary, key));
+    assert.deepEqual(Object.keys(dictionary), ["R1", "R2", "R3", "R4"]);
+    for (const key of Object.keys(dictionary)) assert.ok(Object.hasOwn(dictionary, key));
   }
   writer.define(root, { Resources: reserved.dictionary });
   reserved.define("content");
   const raw = Buffer.from(writer.seal()).toString("latin1");
   dictionaryNames.forEach((category, i) => {
-    const keys = dictionaryNames.map((key, j) => `/${key} ${2 + i * dictionaryNames.length + j} 0 R`);
+    const keys = dictionaryNames.map((_key, j) => `/R${j + 1} ${2 + i * dictionaryNames.length + j} 0 R`);
     assert.ok(raw.includes(`/${category} << ${keys.join(" ")} >>`));
   });
   assert.equal((raw.match(/\n\d+ 0 obj\n/g) ?? []).length, entries.length + 1);
   assert.equal(new Set(Object.values(reserved.dictionary).flatMap(Object.values)).size, entries.length);
 });
 
-test("duplicate special resource keys conflict in every category", () => {
+test("independent definitions receive unique names in every category", () => {
   for (const category of dictionaryNames) {
     for (const key of dictionaryNames) {
       const writer = new PdfWriter();
       const reserved = namedResources([entry(key, category), entry(key, category)]).open(writer);
-      assert.throws(() => reserved.reserve("content"), /Conflicting resource key/);
+      reserved.reserve("content");
+      assert.deepEqual(Object.keys(reserved.dictionary[category]!), ["R1", "R2"]);
     }
   }
 });
@@ -138,7 +143,7 @@ test("collection rejects foreign/conflicting bindings and closes both mutation p
           captured = collection;
           bound = collection.intern(slot, "first", () => entry("A"));
           collection.bind(site, slot, bound);
-          assert.throws(() => collection.bind(site, slot, entry("foreign")), /Foreign/);
+          assert.throws(() => collection.bind(site, slot, { ...entry("foreign"), key: "Foreign" }), /Foreign/);
           const other = collection.intern(slot, "other", () => entry("B"));
           assert.throws(() => collection.bind(site, slot, other), /Conflicting/);
           assert.throws(() => collection.intern(resourceSlot<string>(), "x", () => entry("X")), /Foreign/);

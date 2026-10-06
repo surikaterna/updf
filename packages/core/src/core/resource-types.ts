@@ -22,19 +22,24 @@ export interface PaintingBinding<T> {
   readonly finish: () => T;
 }
 export type ResourcePhase = "bootstrap" | "content";
-export interface Resource<T> {
+/** Key-free own-data schema. Payload stays mutable; reserve runs with the frozen core Resource as this. */
+export interface ResourceDefinition<T> {
   readonly category: string;
-  readonly key: string;
   readonly payload: T;
   readonly phase: ResourcePhase;
   readonly reserve: (writer: PdfWriter) => { readonly ref: PdfRef; readonly define: () => void };
+}
+/** Fresh, shallow-frozen document-local record; key is assigned exclusively by core. */
+export interface Resource<T> extends ResourceDefinition<T> {
+  readonly key: string;
 }
 export interface PageResources {
   resolve<T>(site: object, slot: ResourceSlot<T>): Resource<T>;
   painting<T>(site: object, slot: PaintingSlot<T>): { readonly key: string; readonly payload: T };
 }
 export interface ResourceCollection {
-  intern<T>(slot: ResourceSlot<T>, identity: unknown, create: () => Resource<T>): Resource<T>;
+  /** Intern by slot and identity; only successful new definitions consume a category-local name. */
+  intern<T>(slot: ResourceSlot<T>, identity: unknown, create: () => ResourceDefinition<T>): Resource<T>;
   bind<T>(site: object, slot: ResourceSlot<T>, resource: Resource<T>): void;
   bindPainting<T>(site: object, slot: PaintingSlot<T>, binding: PaintingBinding<T>): void;
 }
@@ -46,7 +51,15 @@ export interface ResourceProvider {
   ) => void;
   readonly collectText?: (site: TextSite, collection: ResourceCollection) => void;
   readonly collectDrawing?: (drawing: ResolvedDrawing, collection: ResourceCollection) => void;
+  readonly collectXObject?: (site: XObjectSite, collection: ResourceCollection) => void;
 }
+export interface XObjectSite {
+  readonly identity: object;
+  readonly resource: OwnedResource;
+  readonly path: string;
+}
+/** Providers supply normalized unit-square content (Forms must normalize BBox/Matrix themselves). */
+export const xObjectSlot: PaintingSlot<null> = paintingSlot<null>("XObject");
 export interface TextSite {
   readonly identity: object;
   readonly run: TextRun;

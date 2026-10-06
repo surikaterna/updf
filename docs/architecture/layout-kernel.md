@@ -1,11 +1,11 @@
 # Layout kernel: authoritative current architecture and API contract
 
 This is the current contract, not an ADR proposal. Allocation, atomic boxes,
-fragment selection and the optional playground are implemented on the local
-`feature/layout-kernel` branch through `da0b23f`. Its base is merged
-`origin/develop` at `12e485b9`; the five branch commits are not yet merged or
-released. All native packages remain private `2.0.0-poc.0`. This document does not
-claim a PR, publication, deployment, or fresh independent audit of this doc/CI slice.
+fragment selection and the optional playground are implemented. The original
+`feature/layout-kernel` delivery through `da0b23f` on `12e485b9` is historical
+lineage, not this worktree's branch, base or current merge status. All native packages
+remain private `2.0.0-poc.0`. See root README/current delivery evidence for the actual
+revision. This contract does not authorize publication/deployment or claim fresh audit.
 
 ## One algorithm owner, host-specific bindings
 

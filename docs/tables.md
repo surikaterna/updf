@@ -51,7 +51,8 @@ separate, application-owned optional chunk and inline adapter: text/chart select
 does not load SVG, and core entry does not load layout/tables. Preview/download are
 the exact Node/browser bytes; source display is the actual raw JSX module.
 
-Images/#33, nested tables, row splitting, spans, CSS, auto/percentage
+Optional JPEG is available as [generic native placement](jpeg-images.md), not a
+built-in table-cell Image or inline adaptation. Nested tables, row splitting, spans, CSS, auto/percentage
 columns, formula evaluation and global plugin installation are not implemented.
 Rows use `keepTogether?: true`: omission stays atomic, `false` rejects unsupported
 splitting, and the obsolete `atomic` field rejects at compile time and runtime.

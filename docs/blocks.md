@@ -4,7 +4,9 @@ Current private/unreleased contract. `paragraph`/`span` data and imported
 `Block`/`Paragraph`/`Span` use the core-owned normalization bridge. Native
 `Document` contains `Page`/`Flow` sections; Flow accepts block children and local
 extension scopes. See [inline](inline.md), [documents](documents.md) and
-[tables](tables.md). The native renderer and numeric kernel are unchanged; the
+[tables](tables.md). Optional [JPEG](jpeg-images.md) can use existing atomic
+declared-height FixedBlock data; no image fragmentation or implicit clip is added. The
+numeric kernel is unchanged; the
 bounded paginator auto-margin behavior is documented below.
 Historical C delivery/audit records remain under `docs/evidence`.
 
@@ -73,7 +75,7 @@ Border and padding are subtracted before measuring children. Derived content axe
 use the existing private 32-local-ULP dyadic certificates; native associations and
 part/fragment reservations remain checked. No global tolerance change is made.
 Border strips paint wholly inside the allocated border box. Top/bottom own corners;
-side strips fill the remaining height. See the [reusable border policy](text-styles.md#reusable-edge-border-policy-42-a)
+side strips fill the remaining height. See the [reusable border policy](text-styles.md#reusable-edge-border-policy-42)
 for typed objects, strict source-path validation and per-layer shorthand expansion.
 
 Natural height sums child natural heights, between-child gaps and vertical insets.

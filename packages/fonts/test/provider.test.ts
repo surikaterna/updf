@@ -31,8 +31,8 @@ test("only committed embedded text emits a font when Helvetica is bound but unus
     }),
   ).toString("latin1");
   assert.equal((raw.match(/\/Subtype \/Type0/g) ?? []).length, 1);
-  assert.doesNotMatch(raw, /\/BaseFont \/Helvetica|\/F1 /);
-  assert.match(raw, /\/F2 /);
+  assert.doesNotMatch(raw, /\/BaseFont \/Helvetica|\/F2 /);
+  assert.match(raw, /\/F1 /);
 });
 
 test("aliases of explicit Helvetica share one lazily committed F1", () => {

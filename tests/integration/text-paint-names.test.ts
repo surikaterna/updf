@@ -9,7 +9,7 @@ import { commands } from "../../packages/core/dist/cjs/core/content.js";
 import { documentResources } from "../../packages/core/dist/cjs/core/document-resources.js";
 import { literal, name } from "../../packages/core/dist/cjs/core/pdf-values.js";
 import type { MeasuredPage } from "../../packages/core/dist/cjs/core/plan.js";
-import { resourceSlot } from "../../packages/core/dist/cjs/core/resource-types.js";
+import { type DocumentResources, resourceSlot } from "../../packages/core/dist/cjs/core/resource-types.js";
 import { serialize } from "../../packages/core/dist/cjs/core/serialize.js";
 import { textSlot } from "../../packages/core/dist/cjs/core/text-paint.js";
 
@@ -43,7 +43,7 @@ const page: MeasuredPage = {
 
 function syntheticDocument(key: string) {
   const slot = resourceSlot<undefined>();
-  const resources = documentResources(
+  const collected = documentResources(
     [page],
     [
       {
@@ -51,7 +51,6 @@ function syntheticDocument(key: string) {
         collectText(text, collection) {
           const resource = collection.intern(slot, key, () => ({
             category: "Font",
-            key,
             phase: "bootstrap",
             payload: undefined,
             reserve(writer) {
@@ -73,9 +72,40 @@ function syntheticDocument(key: string) {
       },
     ],
   );
+  const resources = trustedNames(collected, key);
   return {
     content: commands(page, { length: 0, maximum: Infinity }, resources.page(page)).join(""),
     bytes: serialize([page], resources),
+  };
+}
+
+function trustedNames(collected: DocumentResources, key: string): DocumentResources {
+  // Exercise trusted serializer boundaries independently of the core-owned naming allocator.
+  return {
+    page(page) {
+      const selected = collected.page(page);
+      return {
+        resolve: selected.resolve,
+        painting<T>(site: object, slot: Parameters<typeof selected.painting<T>>[1]) {
+          return { ...selected.painting(site, slot), key };
+        },
+      };
+    },
+    open(writer) {
+      const reserved = collected.open(writer);
+      return {
+        ...reserved,
+        reserve(phase) {
+          reserved.reserve(phase);
+          const fonts = reserved.dictionary.Font;
+          if (fonts && Object.hasOwn(fonts, "F1")) {
+            const ref = fonts.F1!;
+            delete fonts.F1;
+            fonts[key] = ref;
+          }
+        },
+      };
+    },
   };
 }
 
@@ -86,7 +116,7 @@ for (const [key, escaped] of [
   ["A/B", "A#2FB"],
   ["A()<>[]{}/%B", "A#28#29#3C#3E#5B#5D#7B#7D#2F#25B"],
 ]) {
-  test(`synthetic font key ${JSON.stringify(key)} resolves in a complete PDF`, () => {
+  test(`trusted lower-level font name ${JSON.stringify(key)} resolves in a complete PDF`, () => {
     assert.ok(key && escaped);
     const { content, bytes } = syntheticDocument(key);
     assert.equal(content, `0.5 w\nq\n0 0 0 rg\nBT /${escaped} 12 Tf 1 0 0 1 10 80 Tm (Expected text) Tj ET\nQ\n`);

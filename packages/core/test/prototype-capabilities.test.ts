@@ -50,7 +50,7 @@ for (const descriptor of [getter, inherited]) {
   contaminated("byteLength", descriptor, () => assert.equal(ownedResourceBytes(createOwnedResource({})), 0));
   contaminated("slot", descriptor, () =>
     missing(() => operation({ providers: [{}] }), "/options/providers/0/slot"));
-  for (const key of ["initialize", "collectText", "collectDrawing"]) {
+   for (const key of ["initialize", "collectText", "collectDrawing", "collectXObject"]) {
     contaminated(key, descriptor, () => {
       const owned = operation({ providers: [{ slot: {} }] });
       assert.equal(owned.providers[0][key], undefined);

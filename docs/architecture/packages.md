@@ -8,6 +8,7 @@ stays `0.4.15` under the checkout name `@updf/legacy`.
 Dependency direction: layout-kernel has zero runtime dependencies; core →
 layout-kernel (runtime retains only `/arithmetic`); geometry → core;
 fonts → core; text → core + kernel arithmetic;
+JPEG → core only (core's installation includes the kernel; JPEG has no direct kernel dependency);
 layout → core + text + layout-kernel (native data and VDOM/TSX bindings at root);
 tables → core + layout;
 SVG → core + geometry; Fontkit adapter → core + fonts, with optional peer Fontkit ^2.0.4.
@@ -20,13 +21,13 @@ for loader identity, declaration graphs and private direct-import limits.
 
 Native manifests use explicit browser/import/require exports with matching types:
 core root, resources, pdf, painting,
-VDOM and both JSX runtimes; fonts/text roots; layout root; tables root; geometry root;
+VDOM and both JSX runtimes; JPEG/fonts/text roots; layout root; tables root; geometry root;
 SVG root/tree; Fontkit adapter root. Layout's removed `/vdom` and `/tables*`
 exports are not compatibility aliases. Kernel exports root, numeric, arithmetic,
 geometry, boxes and fragmentation; see the authoritative
 [layout-kernel contract](layout-kernel.md).
 There are no wildcard exports. `lib: [ES2022]`, `types: []`, strict NodeNext and
-no TS paths apply to native builds. Build order is kernel → core → fonts/text → layout/tables/geometry/Fontkit → SVG
+no TS paths apply to native builds. Build order is kernel → core → JPEG/fonts/text → layout/tables/geometry/Fontkit → SVG
 → CMR/node examples. Legacy uses TypeScript `allowJs` CommonJS compilation and
 a bounded Node test runner; Babel/Mocha/ESLint are retired from active tooling.
 Preserved historical configs and archives are inert; see
@@ -36,6 +37,14 @@ Public API inventories: [core](../../packages/core/API.md),
 [layout](../../packages/layout/API.md), [tables](../../packages/tables/API.md).
 
 ## Narrow internal seams
+
+All six core native kinds have cohesive source owners and narrow exhaustive phase
+wiring; see [native node ownership](native-nodes.md). The existing unstable
+`@updf/core/internal-drawing` seam supplies `nativeNodeKinds`/`isNativeNodeKind`
+metadata plus `isNativeNodeData`, `isNativeNodeDataArray` and `nativeNodeToVdom`.
+Core owns classification and iterative AST-to-VDOM conversion; layout delegates
+generically and assembles documents/pages without duplicating a native leaf list
+or conversion logic.
 
 For explicit optional text/font composition and the PDF resource pipeline,
 see [resource providers](resource-providers.md) and [migration](../migration/fonts-text.md).
@@ -74,7 +83,10 @@ cmap/index/metadata/sfnt may use core/internal. Only SVG numbers may use
 geometry/internal. A noninventoried importer fails. Tests and the private Node
 prepared-font proof may inspect private built modules outside production exports
 to retain prior coverage/preparation behavior; no new public validator is exposed
-solely for proof tooling.
+solely for proof tooling. JPEG uses only the public `@updf/core`,
+`@updf/core/resources` and `@updf/core/pdf` error/data/resource/PDF surfaces;
+`scripts/boundaries.ts` and JPEG boundary tests reject `@updf/core/internal`.
+The parser is package-local and never imported by core.
 PreparedFont ownership belongs to fonts; generic owned-resource/VNode ownership and
 DocumentError identity belong to one installed core instance across packages.
 Real tarball/runtime consumers check those seams.
@@ -92,13 +104,15 @@ builds regenerate twelve targets from emitted package JS. The non-deploying
 including separate SVG-reference failure visibility; runner success is not yet known.
 Graph checks reject source alias rescue, forbidden closures and unexpected
 internal importers; negative controls test the checker. External tarball closures
-cover kernel-only, drawing-only core, host-metrics text, fonts/text/CMR,
+cover twelve scenarios: kernel-only, drawing-only core, JPEG-only, mixed JPEG/fonts/text,
+host-metrics text, fonts/text/CMR,
 layout root data/VDOM, tables, geometry, SVG/tree,
 Fontkit absent/present and legacy. Their
 portable NodeNext/bundler type consumers have no ambient Node/DOM/React types.
 
 Font + OFL/provenance are shared test assets. Known Fontello MIT notices stay in
 geometry/legacy tarballs. The full project MIT license, Copyright (c) 2026 Surikat AB,
-ships in all ten checked package tarballs and the showcase. The user-confirmed
+ships in all eleven checked package tarballs and the showcase. Original JPEG fixtures
+are repository MIT artwork and do not ship in the package. The user-confirmed
 [attribution resolution](../evidence/project-license.md) removes the earlier
 missing-notice caveat; npm publication and deployment still need authorization.

@@ -60,7 +60,6 @@ function runProvider({ resource, runs, produced }: ReturnType<typeof runtimeHost
       collected.push(site.run);
       const binding = collection.intern(slot, resource, () => ({
         category: "Font",
-        key: "Host",
         payload: null,
         phase: "content",
         reserve(writer) {
@@ -265,7 +264,7 @@ test("custom metrics work without any font implementation; native providers rece
     ],
   } as const;
   const raw = Buffer.from(render(document, options)).toString("latin1");
-  assert.match(raw, /\/Host 10 Tf/);
+  assert.match(raw, /\/F1 10 Tf/);
   assert.equal(collected.length, 3);
   assert.equal(new Set(collected).size, 3);
 });

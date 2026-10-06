@@ -1,0 +1,9 @@
+{
+  "encoder": "Version: ImageMagick 7.1.2-31 Q16-HDRI x86_64 8309dc92a:20260903 https://imagemagick.org",
+  "hashes": {
+    "color-1x1.jpg": "e95cfc5971981478747057a62347283903bfb36ce3ccf4d857a8e263e754be30",
+    "color-2x1.jpg": "8cfb99269b79abd154baca88038f809323d0aa015429c907d4cced9b34653cb4",
+    "color-2x2.jpg": "746e367b4fc3086f149bc7e655a16da22f4aa7817cf2fb89d53986272b97a48d",
+    "gray.jpg": "443b75777b4a151ef61181348a0a2eb8ccf2448cc0cc266fe966076a7ba375f3"
+  }
+}

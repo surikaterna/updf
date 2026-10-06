@@ -46,6 +46,13 @@ audit-status wording are not current instructions. Use root `readme.md` commands
 
 ## Optional packages
 
+`@updf/jpeg` prepares privately owned baseline JPEG bytes and supplies an explicitly
+installed PDF Image XObject provider. Core's generic `xObject` leaf names a resource
+and positive point box; native JSX/helpers use the same path. No image parser is
+loaded by drawing/text consumers. Pixel metadata never sets placement geometry.
+See [JPEG images](jpeg-images.md) for the exact supported profile, ownership,
+budgets, transforms and atomic layout; PNG/alpha images remain unsupported.
+
 `@updf/layout` exports native Document/Page/Flow/Block/Paragraph/Span/Row/Column, readonly
 data constructors, layout/measure, contexts, decorations and adapters. `layout`
 returns frozen fixed core documents and source placements; serialize explicitly
@@ -84,11 +91,15 @@ Node resolves its public Node module entry. Optional cost is measured separately
 
 Default core operations use `profile: "trusted"`, without arbitrary workload caps.
 `profile: "service"` selects frozen `SERVICE_LIMITS`; optional `limits` override
-nonnegative safe-integer depth/node/page/scalar-text/path/font-byte/output budgets.
+nonnegative safe-integer depth/node/page/scalar-text/path/resource-byte/output budgets.
 Render, lower, measurement and optional flow/tables use the same explicit policy.
-Resource maps are operation-owned; aliases charge font programs once. Geometry,
+Resource maps are operation-owned; aliases charge each owned identity once, including
+unused font and JPEG resources. Geometry,
 font profiles, cycles/progress, safe counters and PDF representation always validate.
-No image-byte budget, public work counter or CPU sandbox is promised.
+No separate image-byte budget, public work counter or CPU sandbox is promised.
+JPEG preparation retains separate fixed 8 MiB/64M-pixel profile limits.
+Invalid generic resource IDs/foreign handles now fail `RESOURCE`, even in font-only
+maps; font-specific errors retain `FONT_RESOURCE` and their existing codes.
 
 `createContext`/`useContext` in `/vdom` provide deeply readonly snapshots and scoped
 providers, not async/state/effect/page hooks. Transitional measurement contexts close
@@ -102,10 +113,14 @@ the CMR form geometry but adopts rich line baselines and a new guarded PDF diges
 
 ## Document authoring
 
+For a task-oriented starting point, see the [agent documentation map](agents/README.md)
+and [runnable template workflow](agents/pdf-authoring.md). These guides link current
+contracts and examples rather than historical evidence or unpublished API-site URLs.
+
 The current `@updf/layout` Document/Page/Flow components, readonly data constructors,
 PageSize presets/custom point sizes, sealed final PageContext/FragmentContext and
 reserved deferred decorations are documented in [documents.md](documents.md).
 Core's fixed document/page grammar remains version 1; native text is canonical
 `richText` paragraph data only. Former plain tags/props are rejected. Existing rich
-engine bytes remain unchanged, not the former plain baseline policy. No Image API,
-release, issue closure or deployment is implied.
+engine bytes remain unchanged, not the former plain baseline policy. JPEG placement
+does not add a layout `Image` component, release, issue closure or deployment.

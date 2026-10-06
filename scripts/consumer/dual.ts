@@ -4,6 +4,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { execute, root } from "./install.js";
 import { fontsRuntime, hostRuntime } from "./dual-text.js";
+import { jpegDualRuntime } from "./jpeg.js";
 
 export async function publicEntries(directory: string, names: readonly string[]): Promise<string[]> {
   const entries: string[] = [];
@@ -41,6 +42,7 @@ export async function dualProof(directory: string, names: readonly string[]): Pr
         assert.ok(Object.keys(require.cache).every(path => !path.endsWith('.mjs')), 'require must load only CJS');
       }
       ${names.includes("core") ? mixedRuntime : ""}
+      ${names.includes("jpeg") ? jpegDualRuntime : ""}
       ${names.includes("text") && !names.includes("fonts") ? hostRuntime : ""}
       ${names.includes("fonts") && names.includes("text") ? fontsRuntime : ""}
       ${names.includes("layout") ? layoutRuntime : ""}

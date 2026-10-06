@@ -1,5 +1,5 @@
 import type { ResolvedTextResources as ResolvedFonts } from "../core/text-resources.js";
-import { textService } from "../core/text-resources.js";
+import { measurementProof } from "../nodes/wiring.js";
 import type { WorkLedger } from "../measurement/ledger.js";
 import type { DocumentDefinition, NodeDefinition } from "../types.js";
 
@@ -10,12 +10,7 @@ function visit(nodes: readonly NodeDefinition[], fonts: ResolvedFonts, budget: W
       tasks.push(() => {
         const at = `${pointer}/${i}`;
         if (node.type === "paintGroup") schedule(node.children, `${at}/children`);
-        else if (node.type === "richText")
-          textService(fonts, at).rich(
-            { width: node.width, height: node.height, paragraphs: node.paragraphs },
-            { bindings: fonts.bindings, budget },
-            at,
-          );
+        else measurementProof(node.type)?.(node, at, fonts, budget);
       });
     });
   };

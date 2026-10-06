@@ -9,6 +9,9 @@ import { lowerDrawing } from "./vdom/lower.js";
 import { operationState } from "./vdom/operation-state.js";
 import type { LowerOptions } from "./vdom/types.js";
 
+export { isNativeNodeKind, nativeNodeKinds } from "./nodes/metadata.js";
+export { isNativeNodeData, isNativeNodeDataArray, nativeNodeToVdom } from "./vdom/native-data.js";
+
 /** Optional document coordinator entry; measurement and table entries do not import it. */
 export function createDrawingLayoutOperation(options: LowerOptions) {
   const owned = operation(options, ["registry", "resourceMetadata"]);

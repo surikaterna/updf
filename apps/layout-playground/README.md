@@ -64,7 +64,7 @@ region width/height plus 40, **not A4** and not the user-declared page cap. Blan
 retain geometry but emit no text node. Allocated rectangles are painted; dashed content
 and dotted line guides are SVG inspection aids, not claims of kernel border painting.
 
-PDF download lowers only accepted nonempty measured lines to native fixed text at
+PDF download lowers only accepted nonempty measured lines to native `richText` at
 the selected width/font/line height and accepted region position. It validates line
 reconstruction through public `measureText`; public `render` also validates and
 remeasures native text. This is **not zero-remeasurement**. The whole paragraph,
@@ -84,7 +84,7 @@ from replacing newer selections.
 
 ## Validation scope and non-goals
 
-App tests are separate from root's 687-test A–C regression suite. They exercise public
+App tests are separate from the root suite (687 was the dated A–C count). They exercise public
 PDF reconstruction, whitespace/LF/UTF-16 coverage, one-operation bounded selection,
 atomic row positions, native qpdf/Poppler bbox/raw extraction and raster checks,
 actual negative PDFs, mobile controls/keyboard, download-byte parity, lazy request
@@ -92,7 +92,7 @@ boundaries, and stale-import supersession. SVG fonts are illustrative; native PD
 bbox/raster evidence is the font/geometry proof. See
 `../../docs/evidence/layout-kernel-d.md` for the real execution manifest.
 
-Kernel/core/layout production code is unchanged. No public Box TSX API is implemented
+The playground does not change kernel/core/layout production code. No public Box TSX API is implemented
 or claimed, no arbitrary code editor is included, and no deployment is authorized.
 No Changeset is needed for this private app. The only local lint exception is Vite's
 required default config export, matching existing workspace config conventions.

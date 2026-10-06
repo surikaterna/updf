@@ -6,3 +6,5 @@ or `node apps/node/dist/server.js`. Text examples use application-owned
 Prepared font examples select their bound IDs; Fontkit decoding is opt-in and needs
 its external peer. Core drawing calls require no font/text composition.
 See [migration](../../docs/migration/fonts-text.md) and the root README for complete sources.
+For the optional JPEG-only proof run `npx tsx scripts/jpeg-example.ts` from the root;
+see [image guide](../../docs/jpeg-images.md). The host script owns file I/O, not core/JPEG.

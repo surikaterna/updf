@@ -19,6 +19,12 @@ Helvetica metrics and CID/PDF font providers now belong to `@updf/fonts`.
 `/resources` exposes generic owned handles, text-runtime/run contracts, typed
 collection/painting slots and provider callbacks. `/pdf` exposes only the typed
 writer/value primitives required by resource providers, not internal directories.
+Providers intern key-free `ResourceDefinition<T>` records (own data `category`,
+`phase`, `payload`, `reserve`); core returns a fresh shallow-frozen `Resource<T>`
+with its document/category-local readonly `key`. Payloads remain mutable and
+`reserve` receives the core record as `this`. Provider-assigned or inherited keys,
+accessors and extra fields reject `RESOURCE`; no prefix option is exposed.
+Names are private, assigned by first successful use, not logical binding IDs.
 Text requires explicit `resources`, `text`, and rendering `providers`.
 Use `createTextService({ runtime, defaultFont? })` from `@updf/text`; an omitted
 layout authoring font requires its explicit `defaultFont`; native paragraphs always
@@ -47,8 +53,24 @@ deeply readonly synchronous provider values. Core operations default to trusted
 workloads; `profile: "service"`, frozen `SERVICE_LIMITS` and validated `limits`
 offer optional budgets without weakening geometry/font/schema checks. See
 `docs/architecture/composable-layout.md` for units, remaining optional parser caps
-and current layout architecture. No page hooks/images
-or public serializer plans are exposed. Independent foundation audit is pending.
+and current layout architecture. Generic `XObjectNode`/native `<xObject>` placements
+use explicit named resources and point boxes; core owns normalized unit-rectangle
+painting and `q`/`Q` isolation, not JPEG parsing. Install `@updf/jpeg` and its provider
+only when needed; see [JPEG images](../../docs/jpeg-images.md).
+No public serializer plans or page hooks are exposed.
+
+The six native wire kinds have cohesive source owners in `src/nodes`, assembled
+by separate exhaustive phase maps in `wiring.ts`; AST nodes remain plain data.
+Iterative traversal, budgets and operation state stay in their drivers. See
+[native node ownership](../../docs/architecture/native-nodes.md) for boundaries,
+measurement retention evidence and the core-owned iterative AST-to-VDOM bridge.
+Layout delegates native classification and conversion through the existing unstable
+`@updf/core/internal-drawing` seam, retaining only document/page assembly rather
+than a duplicated native leaf list or conversion logic.
+
+Generic binding failures (invalid IDs or foreign handles) now use `RESOURCE`,
+including font-only resource maps. Font-specific selection/run diagnostics still
+use `FONT_RESOURCE`; not all error codes are unchanged.
 
 MIT licensed; the full `LICENSE` contains the user-confirmed project attribution,
 Copyright (c) 2026 Surikat AB. No npm publication or deployment is authorized.
