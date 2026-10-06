@@ -20,7 +20,11 @@ export async function fontsProof(directory: string): Promise<void> {
     const runtime = fontRuntime();
     const resources = { Helvetica: createHelvetica(), Demo: prepared };
     const options = { resources, text: createTextService({ runtime, defaultFont: 'Helvetica' }), providers: [fontProvider(runtime)] };
-    const document = (font, text) => ({version: 1, pages: [{width: 200, height: 100, children: [{type: 'text', x: 10, y: 10, width: 180, height: 40, text, font, fontSize: 10, lineHeight: 12, align: 'left'}]}]});
+    const document = (font, text) => ({version: 1, pages: [{width: 200, height: 100, children: [{
+      type: 'richText', x: 10, y: 10, width: 180, height: 40,
+      paragraphs: [{runs: [{text}], defaultStyle: {font, fontSize: 10, color: [0, 0, 0]},
+        lineHeight: 12, align: 'left', whiteSpace: 'preserve', breakLongWords: 'error'}],
+    }]}]});
     const helvetica = Buffer.from(render(document('Helvetica', 'Hello'), options)).toString('latin1');
     assert.ok(helvetica.includes('/BaseFont /Helvetica'));
     const unicode = Buffer.from(render(document('Demo', 'Москва'), options)).toString('latin1');

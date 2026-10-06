@@ -5,6 +5,7 @@ import { type Bounds, intersection, pathBounds, rectangle } from "../painting/bo
 import { clip, drawing } from "../painting/read.js";
 import type { Matrix } from "../painting/types.js";
 import type { DocumentDefinition } from "../types.js";
+import { dataRecord } from "./data.js";
 import { fail } from "./error.js";
 import { checkLimit } from "./policy.js";
 import { array, finite, number, validateDataObject as record } from "./schema.js";
@@ -44,23 +45,6 @@ function box(node: Record<string, unknown>, view: View, path: string): void {
   const width = number(node.width, `${path}/width`, true),
     height = number(node.height, `${path}/height`, node.type !== "richText");
   inPage(rectangle(x, y, width, height, view.matrix), view, path, node.type === "richText");
-}
-function text(node: Record<string, unknown>, path: string, state: Counts): void {
-  if (typeof node.text !== "string") fail("TYPE", `${path}/text`, "Expected text");
-  textService(state.fonts, path).validate(
-    {
-      kind: "plain",
-      width: node.width,
-      height: node.height,
-      text: node.text,
-      fontSize: node.fontSize,
-      lineHeight: node.lineHeight,
-      align: node.align,
-      ...(Object.hasOwn(node, "font") ? { font: node.font } : {}),
-    },
-    { bindings: state.fonts.bindings, budget: state.budget },
-    path,
-  );
 }
 function line(node: Record<string, unknown>, view: View, path: string): void {
   const x = view.local ? finite(node.x, `${path}/x`) : number(node.x, `${path}/x`);
@@ -105,7 +89,7 @@ function contents(node: Record<string, unknown>, view: View, path: string, state
   if (node.type === "richText") {
     box(node, view, path);
     textService(state.fonts, path).validate(
-      { kind: "rich", width: node.width, height: node.height, paragraphs: node.paragraphs },
+      { width: node.width, height: node.height, paragraphs: node.paragraphs },
       { bindings: state.fonts.bindings, budget: state.budget },
       path,
     );
@@ -113,11 +97,6 @@ function contents(node: Record<string, unknown>, view: View, path: string, state
   }
   if (node.type === "paintGroup") {
     group(node, view, path, state, depth);
-    return;
-  }
-  if (node.type === "text") {
-    box(node, view, path);
-    text(node, path, state);
     return;
   }
   if (node.type === "path" || node.type === "rect" || node.type === "line") {
@@ -135,44 +114,18 @@ function pathLength(value: unknown, path: string, state: Counts): number {
   return value.length;
 }
 function nodeRecord(value: unknown, path: string): asserts value is Record<string, unknown> {
-  record(
-    value,
-    [
-      "type",
-      "x",
-      "y",
-      "width",
-      "height",
-      "text",
-      "fontSize",
-      "lineHeight",
-      "align",
-      "font",
-      "x2",
-      "y2",
-      "commands",
-      "paint",
-      "transform",
-      "clip",
-      "children",
-      "paragraphs",
-    ],
-    path,
-  );
+  dataRecord(value, path);
   const allowed =
     value.type === "richText"
       ? ["type", "x", "y", "width", "height", "paragraphs"]
-      : value.type === "text"
-        ? ["type", "x", "y", "width", "height", "text", "fontSize", "lineHeight", "align", "font"]
-        : value.type === "rect"
-          ? ["type", "x", "y", "width", "height", "paint", "transform"]
-          : value.type === "line"
-            ? ["type", "x", "y", "x2", "y2", "paint", "transform"]
-            : value.type === "path"
-              ? ["type", "commands", "paint", "transform"]
-              : ["type", "children", "clip", "transform"];
+      : value.type === "rect"
+        ? ["type", "x", "y", "width", "height", "paint", "transform"]
+        : value.type === "line"
+          ? ["type", "x", "y", "x2", "y2", "paint", "transform"]
+          : value.type === "path"
+            ? ["type", "commands", "paint", "transform"]
+            : ["type", "children", "clip", "transform"];
   if (
-    value.type !== "text" &&
     value.type !== "richText" &&
     value.type !== "rect" &&
     value.type !== "line" &&

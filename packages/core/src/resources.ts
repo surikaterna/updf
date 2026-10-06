@@ -1,6 +1,6 @@
 export type { OwnedResource } from "./core/owned-resource.js";
 export { createOwnedResource, isOwnedResource, ownedResourceBytes } from "./core/owned-resource.js";
-export type { MeasuredRichText, MeasuredText } from "./core/plan.js";
+export type { MeasuredRichText } from "./core/plan.js";
 export type {
   PageResources,
   PaintingBinding,
@@ -14,7 +14,7 @@ export type {
 } from "./core/resource-types.js";
 export { paintingSlot, resourceSlot } from "./core/resource-types.js";
 export { textSlot } from "./core/text-paint.js";
-export type { TextMetrics, TextMode, TextRun, TextRuntime } from "./core/text-runtime.js";
+export type { TextMetrics, TextRun, TextRuntime } from "./core/text-runtime.js";
 export type { TextService, TextServiceContext } from "./core/text-service.js";
 export type { MeasureOptions, TextMeasurer } from "./core/text-measurer.js";
 export type { InlineLine, InlineMetric } from "./measurement/inline.js";
@@ -23,7 +23,6 @@ export type { PrivateFragment } from "./measurement/lines.js";
 export type {
   InkBounds,
   ParagraphDefinition,
-  PlainTextInput,
   RichTextInput,
   TextFragmentMeasurement,
   TextLineMeasurement,

@@ -111,7 +111,7 @@ flow/table and measurement preflight count distinct source data containers
 (including paragraph/run/style arrays and objects). Generated document nodes count each occurrence,
 including containers and repeated regions. Those are separate checks against the
 same ceiling, not one inflated sum. Measurement reuses logical content identities:
-paragraph run arrays/plain input objects retain the maximum text charge observed
+paragraph run arrays/native fixed nodes retain the maximum text charge observed
 for that identity. Repeated measurement does not charge again; a larger mutated
 input charges the positive delta. Generated text counts each emitted occurrence.
 Generated/fixed validation uses separate ledgers under the **same policy** so

@@ -20,10 +20,12 @@ import {
   pageSize,
 } from "@updf/layout";
 import { createLayoutOperation, layout, lower, render } from "../fixtures/text-options.js";
+import { richNode } from "../fixtures/rich-input.js";
 
 const margins = { top: 10, right: 10, bottom: 10, left: 10 };
 function nativeText(text: string, width = 180) {
-  return h("text", { x: 0, y: 0, width, height: 12, text, fontSize: 10, lineHeight: 12, align: "left" });
+  const { type: _type, ...props } = richNode(text, { width });
+  return h("richText", props);
 }
 test("mixed sections retain order, empty-flow page, sizes and exact lower/layout bytes", () => {
   const content = h(Document, {
@@ -175,19 +177,7 @@ test("readonly explicit document data and invalid hierarchy", () => {
   );
 });
 test("pure readonly native data pages and regions need neither JSX nor VNodes", () => {
-  const children = [
-    {
-      type: "text" as const,
-      x: 0,
-      y: 0,
-      width: 180,
-      height: 12,
-      text: "Pure data",
-      fontSize: 10,
-      lineHeight: 12,
-      align: "left" as const,
-    },
-  ] as const;
+  const children = [richNode("Pure data", { width: 180 })] as const;
   const content = document({
     children: [
       page({ size: pageSize(200, 100), children }),
@@ -196,7 +186,7 @@ test("pure readonly native data pages and regions need neither JSX nor VNodes", 
   });
   const result = layout(content);
   assert.equal(result.pageCount, 2);
-  assert.equal(result.document.pages[0]?.children[0]?.type, "text");
+  assert.equal(result.document.pages[0]?.children[0]?.type, "richText");
   assert.ok(render(result.document).length > 0);
   assert.throws(
     () => page({ size: PageSize.A4, orientation: undefined } as unknown as Parameters<typeof page>[0]),

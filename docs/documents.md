@@ -24,10 +24,11 @@ const options = { resources: { Helvetica: createHelvetica() },
 
 function ReportFooter() {
   const page = useContext(PageContext);
-  return <text x={0} y={0} width={200} height={12}
-    fontSize={10} lineHeight={12} align="left">
-    {`Page ${page.docPageNumber}/${page.docPageCount}`}
-  </text>;
+  return <richText x={0} y={0} width={200} height={12} paragraphs={[{
+    runs: [{ text: `Page ${page.docPageNumber}/${page.docPageCount}` }],
+    defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
+    lineHeight: 12, align: "left", whiteSpace: "preserve", breakLongWords: "error",
+  }]} />;
 }
 const content = <Document>
   <Page size={PageSize.A5}><ReportFooter /></Page>
@@ -94,8 +95,10 @@ and `flowFooter`. Their branded readonly descriptors form a pure data tree:
 ```ts
 const result = layout(document({ children: [
   page({ size: PageSize.A4, children: [
-    { type: "text", x: 20, y: 20, width: 200, height: 12,
-      text: "Fixed data cover", fontSize: 10, lineHeight: 12, align: "left" },
+    { type: "richText", x: 20, y: 20, width: 200, height: 12,
+      paragraphs: [{ runs: [{ text: "Fixed data cover" }],
+        defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
+        lineHeight: 12, align: "left", whiteSpace: "preserve", breakLongWords: "error" }] },
   ] }),
   flow({ pageSize: PageSize.A5, margins, children: [
     flowBody({ children: paragraph({ children: "Data-authored body" }) }),

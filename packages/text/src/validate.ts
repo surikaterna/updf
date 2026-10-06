@@ -107,26 +107,11 @@ export function validateInput(
   path: string,
 ): asserts input is TextMeasurementInput {
   preflight(input, budget, path);
-  data(input, ["kind", "width", "height", "paragraphs", "text", "font", "fontSize", "lineHeight", "align"], path);
+  data(input, ["width", "height", "paragraphs"], path);
   number(input.width, `${path}/width`, true);
   if ("height" in input) number(input.height, `${path}/height`);
-  if (input.kind === "rich") {
-    data(input, ["kind", "width", "height", "paragraphs"], path);
-    validateParagraphs(input.paragraphs, budget, `${path}/paragraphs`);
-    input.paragraphs.forEach((item, i) => {
-      fontStyles(item, fonts, `${path}/paragraphs/${i}`);
-    });
-    return;
-  }
-  if (input.kind !== "plain") fail("VALUE", `${path}/kind`, "Expected plain or rich text");
-  data(input, ["kind", "width", "height", "text", "font", "fontSize", "lineHeight", "align"], path);
-  if (typeof input.text !== "string") fail("TYPE", `${path}/text`, "Expected text");
-  textOnce(budget, input, codePoints(input.text), `${path}/text`);
-  work(budget, 2, path);
-  const size = number(input.fontSize, `${path}/fontSize`, true);
-  if (number(input.lineHeight, `${path}/lineHeight`, true) < size)
-    fail("GEOMETRY", `${path}/lineHeight`, "Font exceeds line height");
-  choice(input.align, ["left", "center", "right"], `${path}/align`);
-  if ("font" in input && typeof input.font !== "string") fail("TYPE", `${path}/font`, "Expected font id");
-  validateCharacters(input.text, selectedFont(input.font, fonts, `${path}/font`), fonts, `${path}/text`);
+  validateParagraphs(input.paragraphs, budget, `${path}/paragraphs`);
+  input.paragraphs.forEach((item, i) => {
+    fontStyles(item, fonts, `${path}/paragraphs/${i}`);
+  });
 }

@@ -9,15 +9,21 @@ const document: DocumentDefinition = {
       height: 842,
       children: [
         {
-          type: "text",
+          type: "richText",
           x: 40,
           y: 40,
           width: 200,
           height: 24,
-          text: "Hello PDF",
-          fontSize: 10,
-          lineHeight: 12,
-          align: "left",
+          paragraphs: [
+            {
+              runs: [{ text: "Hello PDF" }],
+              defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
+              lineHeight: 12,
+              align: "left",
+              whiteSpace: "preserve",
+              breakLongWords: "error",
+            },
+          ],
         },
       ],
     },

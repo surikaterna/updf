@@ -56,14 +56,14 @@ test("materialized lines preserve whitespace, alignment, mixed styles and measur
     whiteSpace: "collapse",
   });
   const input = flow([{ type: "paragraph", paragraph: p }], { width: 80, height: 32 });
-  const original = measureText({ kind: "rich", width: 80, paragraphs: [p] }, options);
+  const original = measureText({ width: 80, paragraphs: [p] }, options);
   const result = layoutFlow(input, options);
   const nodes = result.document.pages.flatMap((page) => page.children);
   assert.equal(nodes.length, original.lines.length);
   nodes.forEach((node, i) => {
     assert.equal(node.type, "richText");
     if (node.type !== "richText") return;
-    const measured = measureText({ kind: "rich", width: node.width, paragraphs: node.paragraphs }, options).lines[0];
+    const measured = measureText({ width: node.width, paragraphs: node.paragraphs }, options).lines[0];
     const line = original.lines[i];
     assert.ok(measured && line);
     assert.ok(Math.abs(measured.baseline - (line.baseline - line.top)) < 1e-12);

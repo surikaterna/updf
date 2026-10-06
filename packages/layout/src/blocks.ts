@@ -39,7 +39,7 @@ function measured(
   const previous = cache?.paragraphs.get(block)?.get(width);
   if (previous) return previous;
   try {
-    const result = operation.measureText({ kind: "rich", width, paragraphs: [block.paragraph] }, path);
+    const result = operation.measureText({ width, paragraphs: [block.paragraph] }, path);
     const widths = cache?.paragraphs.get(block) ?? new Map<number, TextMeasurement>();
     widths.set(width, result);
     cache?.paragraphs.set(block, widths);

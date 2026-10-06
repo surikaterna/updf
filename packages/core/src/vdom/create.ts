@@ -19,7 +19,6 @@ export const nativeTags: readonly string[] = Object.freeze([
   "document",
   "page",
   "group",
-  "text",
   "richText",
   "rect",
   "line",

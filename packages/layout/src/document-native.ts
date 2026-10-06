@@ -5,6 +5,6 @@ export function nativeData(input: unknown): input is readonly NodeDefinition[] {
   return input.every((node) => {
     if (!node || typeof node !== "object") return false;
     const type = Object.getOwnPropertyDescriptor(node, "type")?.value;
-    return ["text", "richText", "rect", "line", "path", "paintGroup"].includes(type);
+    return ["richText", "rect", "line", "path", "paintGroup"].includes(type);
   });
 }

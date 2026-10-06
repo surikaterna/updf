@@ -1,4 +1,4 @@
-import type { DocumentDefinition, PathCommand } from "@updf/core";
+import type { DocumentDefinition, PathCommand, RichTextNode } from "@updf/core";
 import { render } from "./text-options.js";
 
 const triangle: readonly PathCommand[] = Object.freeze([
@@ -8,6 +8,26 @@ const triangle: readonly PathCommand[] = Object.freeze([
   { type: "close" },
 ]);
 
+function paintingTitle(title: string): RichTextNode {
+  return {
+    type: "richText",
+    x: 24,
+    y: 24,
+    width: 372,
+    height: 32,
+    paragraphs: [
+      {
+        runs: [{ text: title }],
+        defaultStyle: { font: "Helvetica", fontSize: 16, color: [0, 0, 0] },
+        lineHeight: 20,
+        align: "left",
+        whiteSpace: "preserve",
+        breakLongWords: "error",
+      },
+    ],
+  };
+}
+
 export function paintingDemo(title: string): Uint8Array {
   const document: DocumentDefinition = {
     version: 1,
@@ -16,17 +36,7 @@ export function paintingDemo(title: string): Uint8Array {
         width: 420,
         height: 300,
         children: [
-          {
-            type: "text",
-            x: 24,
-            y: 24,
-            width: 372,
-            height: 32,
-            text: title,
-            fontSize: 16,
-            lineHeight: 20,
-            align: "left",
-          },
+          paintingTitle(title),
           {
             type: "path",
             commands: triangle,

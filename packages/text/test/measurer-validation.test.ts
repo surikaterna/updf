@@ -4,8 +4,9 @@ import { DocumentError } from "@updf/core";
 import type { TextRuntime } from "@updf/core/resources";
 import { fontRuntime } from "@updf/fonts";
 import { createTextMeasurer, createTextService, measureTextUnknown } from "@updf/text";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 
-const input = { kind: "plain", text: "A", width: 10, fontSize: 10, lineHeight: 12, align: "left" } as const;
+const input = richInput("A", 10);
 const output = () => ({
   width: 10,
   consumedHeight: 12,
@@ -81,16 +82,9 @@ test("measurement DTO validation requires complete lines, styles, source spans, 
   invalid({ ...result, lines: [{ ...line, fragments: [getter] }] }, "/lines/0/fragments/0/advance");
 });
 
-test("both factories validate all six runtime capabilities, including unused lineMetrics, without calls", () => {
+test("both factories validate all five runtime capabilities, including unused lineMetrics, without calls", () => {
   for (const factory of [createTextMeasurer, createTextService]) {
-    for (const key of [
-      "validateResource",
-      "validateText",
-      "fixedPolicy",
-      "lineMetrics",
-      "measure",
-      "joinRuns",
-    ] as const) {
+    for (const key of ["validateResource", "validateText", "lineMetrics", "measure", "joinRuns"] as const) {
       const callbacks = Object.fromEntries(
         Object.keys(fontRuntime()).map((key) => [key, () => assert.fail("runtime callback")]),
       );

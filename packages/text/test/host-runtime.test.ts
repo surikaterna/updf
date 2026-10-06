@@ -13,6 +13,7 @@ import {
 } from "@updf/core/resources";
 import { type ComponentContext, h, lower } from "@updf/core/vdom";
 import { createTextMeasurer, createTextService, measureText, measureTextUnknown } from "@updf/text";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 
 function runtimeHost() {
   const resource = createOwnedResource({ host: true });
@@ -29,7 +30,6 @@ function runtimeHost() {
       assert.equal(value, resource);
     },
     validateText() {},
-    fixedPolicy: () => ({ baseline: "ascent", checkInk: false }),
     lineMetrics: () => ({ ascent: 8, descent: 2 }),
     measure: (_resource, text) => ({
       advance: text.length * 5,
@@ -85,7 +85,7 @@ function host() {
     collected,
     measurementOptions: {
       resources: { Host: resource },
-      measurer: createTextMeasurer({ runtime, defaultFont: "Host" }),
+      measurer: createTextMeasurer({ runtime }),
     },
     options: {
       resources: { Host: resource },
@@ -94,7 +94,8 @@ function host() {
     },
   };
 }
-const plain = { kind: "plain", width: 20, text: "AB AB", fontSize: 10, lineHeight: 12, align: "left" } as const;
+const plain = richInput("AB AB", 20, 10, 12, "Host");
+const native = richInput("AB AB", 20, 10, 12, "Host");
 const paragraph = {
   defaultStyle: { font: "Host", fontSize: 10, color: [0, 0, 0] },
   runs: [{ text: "AB" }],
@@ -112,25 +113,50 @@ function diagnostic(run: () => unknown, code: string, path: string) {
   );
 }
 
-test("native own undefined font is malformed, while omitted font uses the explicit default", () => {
+test("native paragraph font is explicit; own undefined is malformed even with a service default", () => {
   const { options, measurementOptions } = host();
-  const { kind, ...input } = plain;
-  assert.equal(kind, "plain");
-  const node = { type: "text", x: 0, y: 0, height: 30, ...input } as const;
+  const input = native;
+  const node = { type: "richText", x: 0, y: 0, ...input, height: 30 } as const;
   const document = (child: unknown) => ({ version: 1, pages: [{ width: 100, height: 100, children: [child] }] });
-  diagnostic(() => renderUnknown(document({ ...node, font: undefined }), options), "TYPE", "/pages/0/children/0/font");
-  diagnostic(() => measureTextUnknown({ ...plain, font: undefined }, measurementOptions), "TYPE", "/font");
-  const bad = h("text", { ...input, x: 0, y: 0, height: 30, font: undefined as unknown as string });
+  const malformed = {
+    ...node,
+    paragraphs: [{ ...paragraph, defaultStyle: { ...paragraph.defaultStyle, font: undefined } }],
+  };
+  diagnostic(
+    () => renderUnknown(document(malformed), options),
+    "TYPE",
+    "/pages/0/children/0/paragraphs/0/defaultStyle/font",
+  );
+  diagnostic(
+    () =>
+      renderUnknown(
+        document({ ...node, paragraphs: [{ ...paragraph, defaultStyle: { fontSize: 10, color: [0, 0, 0] } }] }),
+        options,
+      ),
+    "TYPE",
+    "/pages/0/children/0/paragraphs/0/defaultStyle/font",
+  );
+  diagnostic(
+    () =>
+      measureTextUnknown(
+        { width: 20, paragraphs: [{ ...paragraph, defaultStyle: { ...paragraph.defaultStyle, font: undefined } }] },
+        measurementOptions,
+      ),
+    "TYPE",
+    "/paragraphs/0/defaultStyle/font",
+  );
+  const { type: _type, ...props } = malformed;
+  const bad = h("richText", props as never);
   diagnostic(
     () =>
       lower(h("document", { version: 1, children: h("page", { width: 100, height: 100, children: bad }) }), options),
     "TYPE",
-    "/tree/props/children/props/children/props/font",
+    "/tree/props/children/props/children/props/paragraphs/0/defaultStyle/font",
   );
   assert.ok(renderUnknown(document(node), options).length);
 });
 
-test("runtime intrinsic metrics reject nonfinite values before fixed and rich wrapping", () => {
+test("runtime intrinsic metrics reject nonfinite values before native and standalone rich wrapping", () => {
   const { measurementOptions, runtime } = host();
   for (const key of ["advance", "left", "right", "ascent", "descent", "top", "bottom"] as const) {
     for (const value of [NaN, Infinity, -Infinity]) {
@@ -138,10 +164,20 @@ test("runtime intrinsic metrics reject nonfinite values before fixed and rich wr
         ...runtime,
         measure: (...args: Parameters<TextRuntime["measure"]>) => ({ ...runtime.measure(...args), [key]: value }),
       };
-      const measurer = createTextMeasurer({ runtime: broken, defaultFont: "Host" });
-      diagnostic(() => measureText(plain, { ...measurementOptions, measurer }), "GEOMETRY", `/${key}`);
+      const measurer = createTextMeasurer({ runtime: broken });
+      const service = createTextService({ runtime: broken, defaultFont: "Host" });
       diagnostic(
-        () => measureText({ kind: "rich", width: 20, paragraphs: [paragraph] }, { ...measurementOptions, measurer }),
+        () =>
+          service.rich(
+            native,
+            { bindings: new Map(Object.entries(measurementOptions.resources)), budget: ledger() },
+            "",
+          ),
+        "GEOMETRY",
+        `/paragraphs/0/runs/0/text/${key}`,
+      );
+      diagnostic(
+        () => measureText({ width: 20, paragraphs: [paragraph] }, { ...measurementOptions, measurer }),
         "GEOMETRY",
         `/paragraphs/0/runs/0/text/${key}`,
       );
@@ -149,7 +185,7 @@ test("runtime intrinsic metrics reject nonfinite values before fixed and rich wr
   }
 });
 
-test("finite intrinsic values whose fixed baseline composition overflows fail structurally", () => {
+test("finite oversized intrinsic ascent rejects at the rich envelope before baseline composition", () => {
   const { options, runtime } = host();
   const huge = {
     ...runtime,
@@ -160,51 +196,35 @@ test("finite intrinsic values whose fixed baseline composition overflows fail st
   };
   const text = createTextService({ runtime: huge, defaultFont: "Host" });
   const node = {
-    type: "text",
+    type: "richText",
     x: 0,
     y: 1e308,
     width: 20,
     height: 30,
-    text: "AB",
-    fontSize: 10,
-    lineHeight: 12,
-    align: "left",
+    paragraphs: [paragraph],
   } as const;
   diagnostic(
     () =>
       render({ version: 1, pages: [{ width: 100, height: Number.MAX_VALUE, children: [node] }] }, { ...options, text }),
-    "GEOMETRY",
-    "/pages/0/children/0/text/lines/0/y",
+    "FONT_INK",
+    "/pages/0/children/0/paragraphs/0/lineHeight",
   );
 });
 
 test("finite service positions reject overflow in page conversion and rich node composition", () => {
-  const { options, produced, runtime } = host();
-  runtime.measure(options.resources.Host, "AB", 10, "fixed", "");
-  const path = "/pages/0/children/0/text";
-  const text = {
-    ...options.text,
-    fixed: (input: Parameters<typeof options.text.fixed>[0]) => ({
-      ...input,
-      lines: [{ text: "AB", x: 0, y: -Number.MAX_VALUE, run: produced[0]!, path }],
-    }),
-  };
+  const { options } = host();
   const node = {
-    type: "text",
+    type: "richText",
     x: 0,
     y: 0,
     width: 20,
     height: 30,
-    text: "AB",
-    fontSize: 10,
-    lineHeight: 12,
-    align: "left",
+    paragraphs: [paragraph],
   } as const;
   const document = { version: 1, pages: [{ width: 100, height: 1e308, children: [node] }] } as const;
-  diagnostic(() => render(document, { ...options, text }), "GEOMETRY", `${path}/y`);
   const rich = { type: "richText", x: 0, y: 1e308, width: 20, height: 12, paragraphs: [paragraph] } as const;
   const output = options.text.rich(
-    { kind: "rich", width: 20, height: 12, paragraphs: [paragraph] },
+    { width: 20, height: 12, paragraphs: [paragraph] },
     { bindings: new Map([["Host", options.resources.Host]]), budget: ledger() },
     "/pages/0/children/0",
   );
@@ -212,6 +232,11 @@ test("finite service positions reject overflow in page conversion and rich node 
     ...options.text,
     rich: () => ({ fragments: output.fragments.map((fragment) => ({ ...fragment, baseline: Number.MAX_VALUE })) }),
   };
+  const pageOverflow = {
+    ...options.text,
+    rich: () => ({ fragments: output.fragments.map((fragment) => ({ ...fragment, baseline: -Number.MAX_VALUE })) }),
+  };
+  diagnostic(() => render(document, { ...options, text: pageOverflow }), "GEOMETRY", `${output.fragments[0]!.path}/y`);
   diagnostic(
     () =>
       render(
@@ -227,10 +252,8 @@ test("custom metrics work without any font implementation; native providers rece
   const { options, measurementOptions, collected } = host();
   const measured = measureText(plain, measurementOptions);
   assert.equal(measured.lineCount, 2);
-  assert.equal(measured.lines[0]?.baseline, 8);
-  const fixed = { type: "text", x: 0, y: 0, height: 30, ...plain } as const;
-  const { kind, ...node } = fixed;
-  assert.equal(kind, "plain");
+  assert.equal(measured.lines[0]?.baseline, 9);
+  const node = { type: "richText", x: 0, y: 0, ...native, height: 30 } as const;
   const document = {
     version: 1,
     pages: [
@@ -262,15 +285,20 @@ test("VDOM measurement uses the selected service and closes retained callbacks",
   );
 });
 
-test("font omission never selects Helvetica without explicit defaultFont", () => {
+test("measurement requires explicit paragraph font even when a service default is configured", () => {
   const { measurementOptions, runtime } = host();
   assert.throws(
-    () => measureText(plain, { ...measurementOptions, measurer: createTextMeasurer({ runtime }) }),
-    (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.path === "/font",
+    () =>
+      measureTextUnknown(
+        { width: 20, paragraphs: [{ ...paragraph, defaultStyle: { fontSize: 10, color: [0, 0, 0] } }] },
+        { ...measurementOptions, measurer: createTextMeasurer({ runtime }) },
+      ),
+    (error: unknown) =>
+      error instanceof DocumentError && error.diagnostics[0]?.path === "/paragraphs/0/defaultStyle/font",
   );
   assert.throws(
     () =>
-      measureText(plain, { ...measurementOptions, measurer: createTextMeasurer({ runtime, defaultFont: "Missing" }) }),
+      createTextMeasurer({ runtime, defaultFont: "Missing" } as unknown as Parameters<typeof createTextMeasurer>[0]),
     DocumentError,
   );
 });
@@ -287,7 +315,6 @@ test("service and runtime closures capture callbacks; legitimate callback failur
         throw sentinel;
       },
     },
-    defaultFont: "Host",
   });
   assert.throws(
     () => measureText(plain, { ...measurementOptions, measurer: broken }),

@@ -1,6 +1,7 @@
 /** @jsxImportSource @updf/core */
 import type { Component, VNode } from "@updf/core/vdom";
 import type { CmrData, CmrGoodsRow } from "./cmr-types.js";
+import { cmrParagraph } from "./cmr-paragraph.js";
 
 export interface CellProps {
   readonly x: number;
@@ -21,20 +22,8 @@ const fontProps = (font: string | undefined) => (font === undefined ? {} : { fon
 export const Cell: Component<CellProps> = ({ x, y, width, height, label, content, font }) => (
   <group x={x} y={y}>
     <rect x={0} y={0} width={width} height={height} />
-    <text {...fontProps(font)} x={3} y={3} width={width - 6} height={16} fontSize={5} lineHeight={5 * 1.2} align="left">
-      {label}
-    </text>
-    <text
-      {...fontProps(font)}
-      x={3}
-      y={22}
-      width={width - 6}
-      height={height - 25}
-      fontSize={6}
-      lineHeight={6 * 1.2}
-      align="left"
-      text={content}
-    />
+    <richText x={3} y={3} width={width - 6} height={16} paragraphs={cmrParagraph(label, 5, "left", font)} />
+    <richText x={3} y={22} width={width - 6} height={height - 25} paragraphs={cmrParagraph(content, 6, "left", font)} />
   </group>
 );
 
@@ -80,11 +69,29 @@ export const GoodsGrid: Component<CmrProps> = ({ data, font }) => {
   });
 };
 
+const CmrTitle: Component<{ readonly font?: string }> = ({ font }) => (
+  <richText
+    x={40}
+    y={32}
+    width={515}
+    height={18}
+    paragraphs={cmrParagraph("CMR - International consignment note (subset)", 12, "right", font)}
+  />
+);
+
+const CmrDisclaimer: Component<{ readonly font?: string }> = ({ font }) => (
+  <richText
+    x={40}
+    y={620}
+    width={515}
+    height={16}
+    paragraphs={cmrParagraph("Experimental CMR subset - not operational", 9, "center", font)}
+  />
+);
+
 export const CmrPage: Component<CmrProps> = ({ data, font }) => (
   <page width={595} height={842}>
-    <text {...fontProps(font)} x={40} y={32} width={515} height={18} fontSize={12} lineHeight={12 * 1.2} align="right">
-      CMR - International consignment note (subset)
-    </text>
+    <CmrTitle {...fontProps(font)} />
     <MainGrid {...fontProps(font)} data={data} />
     <GoodsGrid {...fontProps(font)} data={data} />
     <Cell
@@ -123,9 +130,7 @@ export const CmrPage: Component<CmrProps> = ({ data, font }) => (
       label="22. Delivery conditions"
       content={data.conditions}
     />
-    <text {...fontProps(font)} x={40} y={620} width={515} height={16} fontSize={9} lineHeight={9 * 1.2} align="center">
-      Experimental CMR subset - not operational
-    </text>
+    <CmrDisclaimer {...fontProps(font)} />
   </page>
 );
 

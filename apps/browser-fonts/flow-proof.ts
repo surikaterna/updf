@@ -14,15 +14,21 @@ export function flowProofDefinition() {
           height: 20,
           children: [
             {
-              type: "text",
+              type: "richText",
               x: 0,
               y: 0,
               width: 150,
               height: 16,
-              text: "Flow header",
-              fontSize: 10,
-              lineHeight: 16,
-              align: "left",
+              paragraphs: [
+                {
+                  runs: [{ text: "Flow header" }],
+                  defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
+                  lineHeight: 16,
+                  align: "left",
+                  whiteSpace: "preserve",
+                  breakLongWords: "error",
+                },
+              ],
             },
           ],
         }),

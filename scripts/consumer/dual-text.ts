@@ -17,10 +17,10 @@ export const fontsRuntime = `
       cv.lower(ej.jsxDEV('document',{version:1,children:cj.jsx('page',{width:100,height:100,children:ev.h(Reader,{})})}));
       for (const service of [ct,et]) for (const provider of [cf,ef]) {
         const options = {resources:{Demo:font},text:service.createTextService({runtime:rt}),providers:[provider.fontProvider(rt)]};
-        const node = {type:'text',x:0,y:0,width:90,height:12,text:'mixed',font:'Demo',fontSize:10,lineHeight:12,align:'left'};
+         const node = {type:'richText',x:0,y:0,width:90,height:12,paragraphs:[{runs:[{text:'mixed'}],defaultStyle:{font:'Demo',fontSize:10,color:[0,0,0]},lineHeight:12,align:'left',whiteSpace:'preserve',breakLongWords:'error'}]};
         const definition = {version:1,pages:[{width:100,height:100,children:[node]}]};
         assert.deepEqual(c.render(definition,options),e.render(definition,options));
-        const measurement = {kind:'plain',text:'mixed',font:'Demo',fontSize:10,lineHeight:12,align:'left',width:90};
+         const measurement = {width:90,paragraphs:[{runs:[{text:'mixed'}],defaultStyle:{font:'Demo',fontSize:10,color:[0,0,0]},lineHeight:12,align:'left',whiteSpace:'preserve',breakLongWords:'error'}]};
         const measureOptions = {resources:{Demo:font},measurer:service.createTextMeasurer({runtime:rt})};
         assert.deepEqual(ct.measureText(measurement,measureOptions),et.measureText(measurement,measureOptions));
         const foreign = provider.fontRuntime();
@@ -38,11 +38,10 @@ export const hostRuntime = `
     validateResource:r=>assert.equal(er.isOwnedResource(r),true),
     validateText:()=>{},
     lineMetrics:()=>({ascent:8,descent:2}),
-    fixedPolicy:()=>({baseline:'ascent',checkInk:false}),
     measure:(_r,s,size)=>({advance:s.length*size/2,left:0,right:s.length*size/2,ascent:size*.8,descent:size*.2,top:-size*.8,bottom:size*.2,empty:!s.length,run:{}}),
     joinRuns:()=>({}),
   };
-  const measurement = {kind:'plain',text:'host',font:'Host',fontSize:10,lineHeight:12,align:'left',width:90};
+   const measurement = {width:90,paragraphs:[{runs:[{text:'host'}],defaultStyle:{font:'Host',fontSize:10,color:[0,0,0]},lineHeight:12,align:'left',whiteSpace:'preserve',breakLongWords:'error'}]};
   for (const service of [ct,et]) {
     const options = {resources:{Host:resource},measurer:service.createTextMeasurer({runtime})};
     assert.deepEqual(ct.measureText(measurement,options),et.measureText(measurement,options));

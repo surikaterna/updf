@@ -30,7 +30,7 @@ export const measure: typeof contentMeasure = (input, constraints, options = {})
   contentMeasure(input, constraints, textOptions(options));
 export function measurementOptions(options: Partial<MeasureOptions> = {}): MeasureOptions {
   return {
-    measurer: createTextMeasurer({ runtime, defaultFont: "Helvetica" }),
+    measurer: createTextMeasurer({ runtime }),
     ...options,
     resources: { ...defaults.resources, ...options.resources },
   };

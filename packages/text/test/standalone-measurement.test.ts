@@ -5,8 +5,9 @@ import { createLayoutOperation } from "@updf/core/internal";
 import { createOwnedResource, type TextServiceContext } from "@updf/core/resources";
 import { measureTextUnknown, type MeasureOptions, type TextMeasurementInput } from "@updf/text";
 import { fontMeasurementOptions, fontOptions } from "../../../tests/fixtures/fonts/font-options.js";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 
-const input = { kind: "plain", text: "AB", width: 100, fontSize: 10, lineHeight: 12, align: "left" } as const;
+const input = richInput("AB");
 function reference(value: unknown, options: OperationOptions) {
   const operation = createLayoutOperation(options);
   try {
@@ -39,9 +40,15 @@ function diagnostic(options: unknown, code: string, path: string) {
 }
 
 test("standalone measurement preserves operation DTOs, input diagnostics, and fresh budgets", () => {
-  for (const value of [null, {}, { ...input, font: undefined }, { ...input, width: Infinity }, input])
-    equivalent(value);
-  const getter = Object.defineProperty({ ...input }, "text", { get: () => assert.fail("getter invoked") });
+  const undefinedFont = {
+    ...input,
+    paragraphs: [{ ...input.paragraphs[0], defaultStyle: { font: undefined, fontSize: 10, color: [0, 0, 0] } }],
+  };
+  for (const value of [null, {}, undefinedFont, { ...input, width: Infinity }, input]) equivalent(value);
+  const getter = Object.defineProperty({ ...input }, "paragraphs", {
+    enumerable: true,
+    get: () => assert.fail("getter invoked"),
+  });
   equivalent(getter);
   equivalent(Object.create(input));
   equivalent(input, { limits: { textCodePoints: 0 } });
@@ -99,12 +106,12 @@ test("callbacks retain receiver, error identity, owned snapshots and post-call c
       assert.equal(this, measurer);
       contexts.push(context);
       assert.equal(path, "");
-      if (value.kind === "plain" && value.text === "fail") throw failure;
+      if (value.paragraphs[0]?.runs[0]?.text === "fail") throw failure;
       return original.measure(value, context, path);
     },
   };
   assert.throws(
-    () => measureTextUnknown({ ...input, text: "fail" }, { ...options, measurer }),
+    () => measureTextUnknown(richInput("fail"), { ...options, measurer }),
     (e) => e === failure,
   );
   const result = measureTextUnknown(input, { ...options, measurer });

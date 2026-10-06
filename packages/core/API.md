@@ -8,11 +8,11 @@ so builds retain them in `.d.ts` files and editor hovers. Core is private/unrele
 
 | Import from `@updf/core…` | Operations/values | Types (including aliases) |
 | --- | --- | --- |
-| root | `render`, `renderUnknown`, `DocumentError`, `SERVICE_LIMITS` | `Limits`, `OperationOptions`, `RenderOptions` (alias), `Box`, `TextAlign`, `TextNode`, `RichTextNode`, `RectangleNode`, `LineNode`, `PaintingGroupNode` (alias), `NodeDefinition`, `PageDefinition`, `DocumentDefinition`, `DiagnosticCode`, `DocumentDiagnostic`, `SourceSpan`; painting/measurement data reexports listed below |
-| `/resources` | `createOwnedResource`, `isOwnedResource`, `ownedResourceBytes`, `paintingSlot`, `resourceSlot`, `textSlot` | `OwnedResource`, `MeasuredRichText`, `MeasuredText`, `PageResources`, `PaintingBinding`, `PaintingSlot`, `Resource`, `ResourceCollection`, `ResourcePhase`, `ResourceProvider`, `ResourceSlot`, `TextSite`, `TextMetrics`, `TextMode`, `TextRun`, `TextRuntime`, `TextService`, `TextServiceContext`, `InlineLine`, `InlineMetric`, `InlineLineHeights`, `LineEnvelope`, `LineHeight`, `PrivateFragment`; measurement data types below |
+| root | `render`, `renderUnknown`, `DocumentError`, `SERVICE_LIMITS` | `Limits`, `OperationOptions`, `RenderOptions` (alias), `Box`, `TextAlign`, `RichTextNode`, `RectangleNode`, `LineNode`, `PaintingGroupNode` (alias), `NodeDefinition`, `PageDefinition`, `DocumentDefinition`, `DiagnosticCode`, `DocumentDiagnostic`, `SourceSpan`; painting/measurement data reexports listed below |
+| `/resources` | `createOwnedResource`, `isOwnedResource`, `ownedResourceBytes`, `paintingSlot`, `resourceSlot`, `textSlot` | `OwnedResource`, `MeasuredRichText`, `PageResources`, `PaintingBinding`, `PaintingSlot`, `Resource`, `ResourceCollection`, `ResourcePhase`, `ResourceProvider`, `ResourceSlot`, `TextSite`, `TextMetrics`, `TextRun`, `TextRuntime`, `TextService`, `TextServiceContext`, `InlineLine`, `InlineMetric`, `InlineLineHeights`, `LineEnvelope`, `LineHeight`, `PrivateFragment`; measurement data types below |
 | `/pdf` | `hex`, `literal`, `name` | `PdfScalar`, `PdfString`, `PdfDictionary`, `PdfRef`, `PdfValue`, `PdfWriter` |
 | `/painting` | `identity`, `multiply`, `point` | `ClipRect`, `CloseCommand`, `CubicCommand`, `LineCommand`, `Matrix`, `MoveCommand`, `Paint`, `PaintGroup`, `Painting`, `PathCommand`, `PathNode`, `RGB` |
-| `/vdom` | `Fragment`, `bind`, `h`, `lower`, `definePrimitive`, `createContext`, `useContext` | `Context`, `ReadContext`, `Component`, `ComponentContext`, `DeepReadonly`, `Key`, `LowerOptions`, `NativeProps`, `NativeTag`, `Primitive`, `RegistryDefinition`, `ResourceMetadata`, `TextChildren`, `TextProps`, `VDOMChild`, `VNode` |
+| `/vdom` | `Fragment`, `bind`, `h`, `lower`, `definePrimitive`, `createContext`, `useContext` | `Context`, `ReadContext`, `Component`, `ComponentContext`, `DeepReadonly`, `Key`, `LowerOptions`, `NativeProps`, `NativeTag`, `Primitive`, `RegistryDefinition`, `ResourceMetadata`, `VDOMChild`, `VNode` |
 | `/jsx-runtime` | `Fragment` (same VDOM declaration), `jsx`, `jsxs` (alias) | `JSX` namespace: `Element`, `ElementType`, `ElementChildrenAttribute`, `IntrinsicAttributes`, `IntrinsicElements` |
 | `/jsx-dev-runtime` | `Fragment`, `jsxDEV` | `JSX` (same runtime namespace) |
 
@@ -24,7 +24,7 @@ documented `Point` tuple in its defining module, but `Point` is not a barrel exp
 excluded from consumer coverage and new support guarantees. No private-helper
 documentation or exhaustive per-field hover coverage is claimed.
 
-`/resources` also exports `InkBounds`, `ParagraphDefinition`, `PlainTextInput`,
+`/resources` also exports `InkBounds`, `ParagraphDefinition`,
 `RichTextInput`, `TextFragmentMeasurement`, `TextLineMeasurement`, `TextMeasurement`,
 `TextMeasurementInput`, `SourceTextRun` (source paragraph run, distinct from runtime
 `TextRun`), and `TextStyle`. Font preparation/handles belong to `@updf/fonts`;
@@ -47,8 +47,10 @@ const options = {
 const document: DocumentDefinition = {
   version: 1,
   pages: [{ width: 200, height: 100, children: [{
-    type: "text", x: 10, y: 10, width: 180, height: 40,
-    text: "Hello PDF", fontSize: 12, lineHeight: 16, align: "left",
+    type: "richText", x: 10, y: 10, width: 180, height: 40,
+    paragraphs: [{ runs: [{ text: "Hello PDF" }],
+      defaultStyle: { font: "Helvetica", fontSize: 12, color: [0, 0, 0] },
+      lineHeight: 16, align: "left", whiteSpace: "preserve", breakLongWords: "error" }],
   }] }],
 };
 const pdf = render(document, { ...options, profile: "service" });
@@ -78,9 +80,11 @@ import { createTextMeasurer, measureText } from "@updf/text";
 function prepareAndMeasure(input: PreparedFontInput) {
   const Demo = createPreparedFont(input);
   const runtime = fontRuntime();
-  return measureText({ kind: "plain", text: "Hello", font: "Demo",
-    width: 180, fontSize: 12, lineHeight: 16, align: "left",
-  }, {
+  return measureText({ width: 180, paragraphs: [{
+    runs: [{ text: "Hello" }],
+    defaultStyle: { font: "Demo", fontSize: 12, color: [0, 0, 0] },
+    lineHeight: 16, align: "left", whiteSpace: "preserve", breakLongWords: "error",
+  }] }, {
     resources: { Demo },
     measurer: createTextMeasurer({ runtime }),
   });
@@ -112,8 +116,11 @@ import { render } from "@updf/core";
 import { lower } from "@updf/core/vdom";
 
 const tree = <document version={1}><page width={200} height={100}>
-  <text x={10} y={10} width={180} height={40}
-    fontSize={12} lineHeight={16} align="left">Hello PDF</text>
+  <richText x={10} y={10} width={180} height={40} paragraphs={[{
+    runs: [{ text: "Hello PDF" }],
+    defaultStyle: { font: "Helvetica", fontSize: 12, color: [0, 0, 0] },
+    lineHeight: 16, align: "left", whiteSpace: "preserve", breakLongWords: "error",
+  }]} />
 </page></document>;
 // Reuse the explicit options from the fixed-page example for both operations.
 const pdf = render(lower(tree, options), options);

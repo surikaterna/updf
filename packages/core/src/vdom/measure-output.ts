@@ -12,7 +12,7 @@ function visit(nodes: readonly NodeDefinition[], fonts: ResolvedFonts, budget: W
         if (node.type === "paintGroup") schedule(node.children, `${at}/children`);
         else if (node.type === "richText")
           textService(fonts, at).rich(
-            { kind: "rich", width: node.width, height: node.height, paragraphs: node.paragraphs },
+            { width: node.width, height: node.height, paragraphs: node.paragraphs },
             { bindings: fonts.bindings, budget },
             at,
           );

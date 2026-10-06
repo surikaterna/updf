@@ -48,7 +48,6 @@ function hostRuntime(): TextRuntime {
   return {
     validateResource() {},
     validateText() {},
-    fixedPolicy: () => ({ baseline: "ascent", checkInk: false }),
     lineMetrics: () => ({ ascent: 8, descent: 2 }),
     measure: (_resource, text) => ({
       advance: text.length * 5,
@@ -71,11 +70,16 @@ function composition(library: ReturnType<typeof load>, mode: string, current: bo
       : mode === "prepared"
         ? library.fonts.createPreparedFont(fontInput)
         : library.fonts.createHelvetica();
-  const runtime = mode === "host" ? hostRuntime() : library.fonts.fontRuntime();
-  const configured = { runtime, defaultFont: "Demo" };
+  const runtime =
+    mode === "host"
+      ? current
+        ? hostRuntime()
+        : { ...hostRuntime(), fixedPolicy: () => ({ baseline: "ascent", checkInk: false }) }
+      : library.fonts.fontRuntime();
+  const configured = { runtime };
   return current
     ? { resources: { Demo: resource }, measurer: library.text.createTextMeasurer(configured) }
-    : { resources: { Demo: resource }, text: library.text.createTextService(configured) };
+    : { resources: { Demo: resource }, text: library.text.createTextService({ ...configured, defaultFont: "Demo" }) };
 }
 function outcome(library: ReturnType<typeof load>, input: unknown, options: object) {
   try {
@@ -107,30 +111,49 @@ for (const mode of ["helvetica", "prepared", "host"]) {
     whiteSpace: "preserve",
     breakLongWords: "codePoint",
   };
-  const rich = { kind: "rich", width: 20, paragraphs: [paragraph] };
-  for (const input of [
-    plain,
-    rich,
-    { ...plain, text: "" },
-    null,
-    {},
-    { ...plain, font: undefined },
-    { ...plain, font: "Missing" },
-    { ...rich, height: 1 },
-    { ...rich, width: Infinity },
-    { ...plain, text: "😀" },
-  ]) {
+  const rich = { width: 20, paragraphs: [paragraph] };
+  for (const input of [null, {}]) {
     assert.deepEqual(outcome(after, input, newOptions), outcome(before, input, oldOptions));
     cases.push({ mode, input });
   }
+  for (const input of [
+    rich,
+    { ...rich, paragraphs: [{ ...paragraph, runs: [{ text: "" }] }] },
+    { ...rich, paragraphs: [{ ...paragraph, defaultStyle: { ...paragraph.defaultStyle, font: undefined } }] },
+    { ...rich, paragraphs: [{ ...paragraph, defaultStyle: { ...paragraph.defaultStyle, font: "Missing" } }] },
+    { ...rich, height: 1 },
+    { ...rich, width: Infinity },
+    { ...rich, paragraphs: [{ ...paragraph, runs: [{ text: "😀" }] }] },
+  ]) {
+    assert.deepEqual(outcome(after, input, newOptions), outcome(before, { ...input, kind: "rich" }, oldOptions));
+    cases.push({ mode, input });
+  }
+  cases.push({
+    mode,
+    input: plain,
+    comparison: "accepted E1 semantic change; historical plain parity not asserted",
+    before: outcome(before, plain, oldOptions),
+    after: outcome(after, plain, newOptions),
+  });
   for (const limits of [{ textCodePoints: 0 }, { nodes: 0 }, { resourceBytes: 0 }, { pages: 0, outputBytes: 0 }])
-    assert.deepEqual(outcome(after, rich, { ...newOptions, limits }), outcome(before, rich, { ...oldOptions, limits }));
+    assert.deepEqual(
+      outcome(after, rich, { ...newOptions, limits }),
+      outcome(before, { ...rich, kind: "rich" }, { ...oldOptions, limits }),
+    );
 }
 const reports = [];
 for (const profile of ["drawing", "helvetica", "prepared", "measurementFonts"]) {
   const old = await import(pathToFileURL(join(beforeDirectory, `${profile}.mjs`)).href);
   const current = await import(pathToFileURL(join(afterDirectory, `${profile}.mjs`)).href);
   if (profile === "measurementFonts") {
+    for (const directory of [beforeDirectory, afterDirectory]) {
+      const report = JSON.parse(await readFile(join(directory, "report.json"), "utf8"));
+      assert.match(
+        report.profiles.find((item: { profile: string }) => item.profile === profile).input,
+        /paragraphs:/u,
+        "Regenerate both profiles with equivalent rich workloads; use sizes.ts baseline-root current output discriminated for the old library",
+      );
+    }
     for (const text of ["Hello", "A B\nA", ""]) assert.deepEqual(current.measure(text), old.measure(text));
   } else {
     const arg = profile === "prepared" ? fontInput : "Hello";

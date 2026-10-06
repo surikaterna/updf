@@ -1,4 +1,4 @@
-import { type DocumentDefinition, render, type TextNode } from "@updf/core";
+import { type DocumentDefinition, render, type RichTextNode } from "@updf/core";
 import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
 import {
   createTextMeasurer,
@@ -21,7 +21,7 @@ const textOptions = {
 };
 const measurementOptions: MeasureOptions = {
   resources: textOptions.resources,
-  measurer: createTextMeasurer({ runtime, defaultFont: "Helvetica" }),
+  measurer: createTextMeasurer({ runtime }),
 };
 
 export interface PreparedParagraph {
@@ -37,13 +37,17 @@ export function prepareParagraph(text: string, width: number): PreparedParagraph
   }
   const measured = measureText(
     {
-      kind: "plain",
-      text,
       width,
-      font: "Helvetica",
-      fontSize: FONT_SIZE,
-      lineHeight: LINE_HEIGHT,
-      align: "left",
+      paragraphs: [
+        {
+          runs: [{ text }],
+          defaultStyle: { font: "Helvetica", fontSize: FONT_SIZE, color: [0, 0, 0] },
+          lineHeight: LINE_HEIGHT,
+          align: "left",
+          whiteSpace: "preserve",
+          breakLongWords: "error",
+        },
+      ],
     },
     measurementOptions,
   );
@@ -57,7 +61,7 @@ export interface AcceptedLine {
   readonly width: number;
 }
 
-export function lowerLine(accepted: AcceptedLine): TextNode | undefined {
+export function lowerLine(accepted: AcceptedLine): RichTextNode | undefined {
   const text = accepted.line.fragments.map((fragment) => fragment.text).join("");
   if (!text) return undefined;
   const check = prepareParagraph(text, accepted.width);
@@ -69,19 +73,24 @@ export function lowerLine(accepted: AcceptedLine): TextNode | undefined {
     line.advance !== accepted.line.advance ||
     line.height !== accepted.line.height
   ) {
-    throw new PlaygroundError("RECONSTRUCTION", "/line", "native fixed text changed measured geometry");
+    throw new PlaygroundError("RECONSTRUCTION", "/line", "line reconstruction changed rich measurement geometry");
   }
-  return Object.freeze({
-    type: "text",
-    text,
+  return Object.freeze<RichTextNode>({
+    type: "richText",
     x: accepted.x,
     y: accepted.y,
     width: accepted.width,
     height: accepted.line.height,
-    font: "Helvetica",
-    fontSize: FONT_SIZE,
-    lineHeight: LINE_HEIGHT,
-    align: "left",
+    paragraphs: [
+      {
+        runs: [{ text }],
+        defaultStyle: { font: "Helvetica", fontSize: FONT_SIZE, color: [0, 0, 0] },
+        lineHeight: LINE_HEIGHT,
+        align: "left",
+        whiteSpace: "preserve",
+        breakLongWords: "error",
+      },
+    ],
   });
 }
 

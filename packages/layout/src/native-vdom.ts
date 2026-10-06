@@ -8,7 +8,6 @@ function props<T extends NodeDefinition>(node: T): Omit<T, "type"> {
   return result;
 }
 function leaf(node: Exclude<NodeDefinition, PaintingGroupNode>): VNode {
-  if (node.type === "text") return h("text", props(node));
   if (node.type === "richText") return h("richText", props(node));
   if (node.type === "rect") return h("rect", props(node));
   if (node.type === "line") return h("line", props(node));

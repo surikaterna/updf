@@ -143,16 +143,21 @@ function recursiveFontDocument() {
       transform: [1, 0, 0, 1, 10, 10],
       children: [
         {
-          type: "text",
+          type: "richText",
           x: 0,
           y: 0,
           width: 70,
           height: 20,
-          text: "Москва",
-          font: "Demo",
-          fontSize: 10,
-          lineHeight: 12,
-          align: "left",
+          paragraphs: [
+            {
+              runs: [{ text: "Москва" }],
+              defaultStyle: { font: "Demo", fontSize: 10, color: [0, 0, 0] },
+              lineHeight: 12,
+              align: "left",
+              whiteSpace: "preserve",
+              breakLongWords: "error",
+            },
+          ],
         },
         {
           type: "rect",
@@ -184,7 +189,7 @@ test("recursive groups collect embedded fonts and alpha resources without shifti
   const digest = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
   assert.equal(
     digest(render(createCmrDocument(cmrFixture))),
-    "8316f7de647590dbfad97a7dff0aac7dd6dbde1ff98cbdff544387ca59c49a22",
+    "cb826a04f161a18e472d9ed70aa9342be20356a91527eb90d1f46cfe1fc5a7bb",
   );
   const unicode = render(createUnicodeCmrDocument(font), { resources: { CmrFont: font } });
   assert.doesNotMatch(Buffer.from(unicode).toString("latin1"), /\/BaseFont \/Helvetica/);

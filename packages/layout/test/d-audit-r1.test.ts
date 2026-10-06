@@ -101,7 +101,7 @@ function verifyFractional(fontSize: number, align: ParagraphDefinition["align"])
   verifyRichControl(definition(fontSize, align, text), expected);
 }
 function verifyRichControl(old: ParagraphDefinition, expected: ContentMeasurement): void {
-  const oldMeasured = measureText({ kind: "rich", width: 100, paragraphs: [old] });
+  const oldMeasured = measureText({ width: 100, paragraphs: [old] });
   near(oldMeasured.lines[0]?.baseline ?? NaN, expected.lines[0]?.baseline ?? NaN);
   assert.ok(
     render({
@@ -198,7 +198,7 @@ function readPainted(
     return;
   }
   if (node.type !== "richText") return;
-  const measured = measureText({ kind: "rich", width: node.width, height: node.height, paragraphs: node.paragraphs });
+  const measured = measureText({ width: node.width, height: node.height, paragraphs: node.paragraphs });
   for (const line of measured.lines) {
     for (const fragment of line.fragments) {
       const ink = fragment.inkBounds;

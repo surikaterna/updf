@@ -4,7 +4,6 @@ declare const textRunBrand: unique symbol;
 export interface TextRun {
   readonly [textRunBrand]: true;
 }
-export type TextMode = "fixed" | "rich";
 export interface TextMetrics {
   readonly advance: number;
   readonly left: number;
@@ -19,15 +18,11 @@ export interface TextMetrics {
 export interface TextRuntime {
   validateResource(resource: OwnedResource, path: string): void;
   validateText(resource: OwnedResource, text: string, path: string): void;
-  fixedPolicy(
-    resource: OwnedResource,
-    path: string,
-  ): { readonly baseline: "ascent" | "center-envelope"; readonly checkInk: boolean };
   lineMetrics(
     resource: OwnedResource,
     fontSize: number,
     path: string,
   ): { readonly ascent: number; readonly descent: number };
-  measure(resource: OwnedResource, text: string, fontSize: number, mode: TextMode, path: string): TextMetrics;
+  measure(resource: OwnedResource, text: string, fontSize: number, path: string): TextMetrics;
   joinRuns(runs: readonly TextRun[], path: string): TextRun;
 }

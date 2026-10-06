@@ -24,7 +24,7 @@ const paragraphs: readonly ParagraphDefinition[] = [
     breakLongWords: "codePoint",
   },
 ];
-const input = { kind: "rich", width: 100, paragraphs } as const;
+const input = { width: 100, paragraphs } as const;
 const runtime = fontRuntime();
 const composition = {
   resources: { Helvetica: createHelvetica() },
@@ -33,7 +33,7 @@ const composition = {
 };
 const measurementOptions: MeasureOptions = {
   resources: composition.resources,
-  measurer: createTextMeasurer({ runtime, defaultFont: "Helvetica" }),
+  measurer: createTextMeasurer({ runtime }),
   profile: "service",
   limits: { ...SERVICE_LIMITS, pages: 21 },
 };
@@ -63,6 +63,13 @@ const bytes = render(
 if (!bytes.length || measureTextUnknown(input, measurementOptions).lineCount !== 1 || node.type !== "richText")
   throw new Error("measurement");
 if (bytes.length === 0) {
+  // @ts-expect-error The runtime mode type was removed, not aliased.
+  const oldMode: import("@updf/core/resources").TextMode = "rich";
+  void oldMode;
+  // @ts-expect-error Runtime measurement has no mode argument or legacy overload.
+  runtime.measure(composition.resources.Helvetica, "A", 10, "rich", "/old");
+  // @ts-expect-error Fixed policy is not a runtime capability.
+  runtime.fixedPolicy(composition.resources.Helvetica, "/old");
   // @ts-expect-error Hook values are deeply readonly snapshots.
   useContext(Theme).heading.height = 1;
   // @ts-expect-error Async component output is not VDOM.
@@ -85,6 +92,17 @@ if (bytes.length === 0) {
   void children;
   // @ts-expect-error Optional undefined is not accepted.
   measureText({ ...input, height: undefined }, measurementOptions);
+  // @ts-expect-error The root input is structured paragraphs, never a string.
+  measureText("native rich", measurementOptions);
+  measureText(
+    // @ts-expect-error The former plain measurement form is removed.
+    { kind: "plain", text: "A", width: 100, fontSize: 10, lineHeight: 12, align: "left" },
+    measurementOptions,
+  );
+  // @ts-expect-error Even the former rich discriminator is an unknown key.
+  measureText({ ...input, kind: "rich" }, measurementOptions);
+  // @ts-expect-error Standalone factories do not resolve authoring font defaults.
+  createTextMeasurer({ runtime, defaultFont: "Helvetica" });
   // @ts-expect-error Rendering options do not provide a standalone measurer.
   measureText(input, options);
   // @ts-expect-error Standalone measurement rejects rendering capabilities.

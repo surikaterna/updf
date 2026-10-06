@@ -12,6 +12,7 @@ import {
   Paragraph,
 } from "../../../tests/fixtures/transitional-layout.js";
 import { flow } from "./fixtures.js";
+import { richNode } from "../../../tests/fixtures/rich-input.js";
 
 test("F-AUD01 R2 generic fixed transport retains owned recipes without a table-specific branch", () => {
   let calls = 0;
@@ -68,19 +69,7 @@ test("F-AUD01 R2 generic fixed unowned data still rejects malformed schemas/gett
     (error: unknown) => error instanceof DocumentError,
   );
   assert.equal(reads, 0);
-  const children = [
-    {
-      type: "text" as const,
-      x: 0,
-      y: 0,
-      width: 80,
-      height: 12,
-      fontSize: 10,
-      lineHeight: 12,
-      align: "left" as const,
-      text: "ABC",
-    },
-  ];
+  const children = [richNode("ABC", { width: 80 })];
   assert.throws(
     () =>
       layoutFlow(flow([{ type: "fixed", height: 20, children }]), {

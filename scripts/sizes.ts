@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 import { gzipSync } from "node:zlib";
 import { createRequire } from "node:module";
 import { build, version } from "esbuild";
-import { costInputs } from "./consumer/cost-inputs.js";
+import { costInputs, hostCostInput } from "./consumer/cost-inputs.js";
 
 const root = resolve(process.argv[2] ?? process.cwd());
 const historical = process.argv[3] === "baseline";
@@ -16,9 +16,17 @@ const output = resolve(
 await mkdir(output, { recursive: true });
 const profiles = [];
 const textExports = historical ? undefined : createRequire(resolve(root, "package.json"))("@updf/text");
-const inputs = costInputs(historical, typeof textExports?.createTextMeasurer === "function");
+// Historical libraries need the discriminator; both sides still author the identical rich workload.
+const inputs = costInputs(
+  historical,
+  typeof textExports?.createTextMeasurer === "function",
+  historical || process.argv[5] === "discriminated",
+);
 if (!historical)
-  inputs.measurementHost = await readFile(resolve(root, "tests/consumer/types/host-metrics-template.ts"), "utf8");
+  inputs.measurementHost = hostCostInput(
+    process.argv[5] === "discriminated",
+    typeof textExports?.createTextMeasurer === "function",
+  );
 for (const [profile, contents] of Object.entries(inputs)) {
   const result = await build({
     stdin: { contents, resolveDir: root, sourcefile: `${profile}.ts`, loader: "ts" },
@@ -69,6 +77,20 @@ for (const name of ["LiberationSans-Regular.ttf", "liberation-sans.json"]) {
   const bytes = await readFile(resolve(root, "tests/fixtures/fonts", name));
   assets.push({ name, raw: bytes.length, gzip: gzipSync(bytes).length });
 }
-const report = { root, historical, node: process.version, esbuild: version, profiles, packages, assets };
+const report = {
+  root,
+  historical,
+  generation: historical
+    ? "pre-extraction"
+    : process.argv[5] === "discriminated"
+      ? "ad052-compatible"
+      : "canonical-rich",
+  unavailableProfiles: historical ? ["measurementHost"] : [],
+  node: process.version,
+  esbuild: version,
+  profiles,
+  packages,
+  assets,
+};
 await writeFile(resolve(output, "report.json"), `${JSON.stringify(report, null, 2)}\n`);
 console.log({ profiles: profiles.map(({ profile, raw, gzip }) => ({ profile, raw, gzip })), packages, assets });

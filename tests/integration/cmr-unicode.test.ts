@@ -14,7 +14,9 @@ test("all CMR fields use selected font and actual Cyrillic addresses/instruction
   );
   const document = createUnicodeCmrDocument(font);
   assert.ok(
-    document.pages[0]?.children.filter((node) => node.type === "text").every((node) => node.font === "CmrFont"),
+    document.pages[0]?.children
+      .filter((node) => node.type === "richText")
+      .every((node) => node.paragraphs.every((paragraph) => paragraph.defaultStyle.font === "CmrFont")),
   );
   const bytes = render(document, { resources: { CmrFont: font } });
   const directory = await mkdtemp(join(tmpdir(), "cmr-unicode-"));

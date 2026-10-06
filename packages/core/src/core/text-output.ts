@@ -1,7 +1,7 @@
 import { fail } from "./error.js";
 import { array, finite, number } from "./schema.js";
 import { validateMeasurement } from "./text-measurement-output.js";
-import { bounds, field, fragments, record } from "./text-output-shapes.js";
+import { field, fragments, record } from "./text-output-shapes.js";
 
 export function validateRich(value: unknown, path: string): void {
   fragments(record(value, path).fragments, `${path}/fragments`, true);
@@ -18,12 +18,6 @@ export function validateInline(value: unknown, path: string): void {
     inline(item, `${path}/${i}`);
   });
 }
-export function validateFixedInk(value: unknown, path: string): void {
-  array(value, Number.MAX_SAFE_INTEGER, path);
-  value.forEach((item, i) => {
-    bounds(item, `${path}/${i}`);
-  });
-}
 function inline(value: unknown, path: string): void {
   const result = record(value, path);
   validateMeasurement({ width: 0, consumedHeight: 0, lineCount: 1, lines: [result.line] }, path);
@@ -38,16 +32,4 @@ function inline(value: unknown, path: string): void {
       else number(item, `${path}/${key}/${i}`);
     });
   }
-}
-export function validateFixed(value: unknown, path: string): void {
-  const result = record(value, path);
-  array(result.lines, Number.MAX_SAFE_INTEGER, `${path}/lines`);
-  result.lines.forEach((value, i) => {
-    const at = `${path}/lines/${i}`;
-    const line = record(value, at);
-    for (const key of ["x", "y"]) field(line, key, at);
-    if (typeof line.text !== "string" || typeof line.path !== "string")
-      fail("TYPE", at, "Expected text and diagnostic path");
-    if (!line.run || typeof line.run !== "object") fail("FONT_RESOURCE", `${at}/run`, "Expected opaque text run");
-  });
 }

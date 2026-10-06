@@ -163,15 +163,21 @@ const document: DocumentDefinition = {
       height: 842,
       children: [
         {
-          type: "text",
+          type: "richText",
           x: 40,
           y: 40,
           width: 200,
           height: 24,
-          text: "Hello PDF",
-          fontSize: 10,
-          lineHeight: 12,
-          align: "left",
+          paragraphs: [
+            {
+              runs: [{ text: "Hello PDF" }],
+              defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
+              lineHeight: 12,
+              align: "left",
+              whiteSpace: "preserve",
+              breakLongWords: "error",
+            },
+          ],
         },
       ],
     },
@@ -193,9 +199,22 @@ import type { Component } from "@updf/core/vdom";
 import { lower, render } from "./text-options.js";
 
 const Heading: Component<{ readonly title: string }> = ({ title }) => (
-  <text x={0} y={0} width={200} height={24} fontSize={10} lineHeight={12} align="left">
-    {title}
-  </text>
+  <richText
+    x={0}
+    y={0}
+    width={200}
+    height={24}
+    paragraphs={[
+      {
+        runs: [{ text: title }],
+        defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
+        lineHeight: 12,
+        align: "left",
+        whiteSpace: "preserve",
+        breakLongWords: "error",
+      },
+    ]}
+  />
 );
 const tree = (
   <document version={1}>
@@ -239,7 +258,7 @@ const options = {
   text: createTextService({ runtime, defaultFont: 'Demo' }),
   providers: [fontProvider(runtime)],
 };
-// Set font: 'Demo' on text nodes; pass options to both lower and render.
+// Set defaultStyle.font: 'Demo' on paragraphs; pass options to both lower and render.
 ```
 
 Those fragments explain requirements; the linked complete optional example
@@ -294,9 +313,15 @@ available for supported adapter contracts, not as a compatibility authoring faca
 independently verified per the #27 assignment, not released. The separate `richText` AST/native TSX
 variant supports paragraph runs with actual font/size/RGB styles. Public
 `@updf/text` and operation-scoped component measurement share rendering
-truth with explicit composition. Fixed wrapping/baselines and ASCII CMR bytes remain
-unchanged; prepared-only CMR drops unused Helvetica while retaining extraction and raster.
-See [integrated extraction evidence](docs/evidence/font-package-extraction.md).
+truth with explicit composition. Native text uses only canonical rich paragraphs;
+the former native `text` tag and plain measurement forms are rejected, not forwarded.
+Rich baselines include per-line leading. ASCII CMR bytes therefore have a new rich
+golden guarded by text/order/bbox/raster checks; existing rich engine output remains
+unchanged. Prepared-only CMR drops unused Helvetica while retaining extraction and raster.
+The runtime has five callbacks and a single canonical rich metric envelope, with
+no mode argument or fixed policy. See [final rich-only integration evidence](docs/evidence/rich-only-text.md)
+for the current contract and measured rich-vs-rich costs; the earlier
+[extraction evidence](docs/evidence/font-package-extraction.md) is historical.
 
 - Optional [#27 bounded flow](packages/layout/README.md) is implemented locally,
   independently verified per #28 assignment, not released. Explicit templates reserve repeated header/footer

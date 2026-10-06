@@ -36,7 +36,7 @@ ascent/descent. The line box combines maxima above and below the shared baseline
 
 Tight positive line heights are allowed: glyph ink may extend beyond line boxes,
 and adjacent lines can overlap. No silent clamping or implicit glyph clip occurs.
-The native fixed-text reconstruction bounds nominal em-box/side-bearing padding
+The native rich-text reconstruction bounds nominal em-box/side-bearing padding
 with an envelope containing **all actual ink plus the line box**, not just the
 line box. Thus a tight line at the top/bottom of a page still rejects if its full
 ink/envelope leaves page bounds; add explicit space or an explicit closed Block

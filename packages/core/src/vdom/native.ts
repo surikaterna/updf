@@ -1,13 +1,7 @@
-import { scheduleArray } from "../core/data.js";
 import { fail } from "../core/error.js";
 import { checkLimit, codePoints } from "../core/policy.js";
-import { work } from "../measurement/ledger.js";
 import { matrix, multiply } from "../painting/affine.js";
-import { enterProvider } from "./context.js";
 import { keys } from "./data.js";
-import { expand } from "./expand.js";
-import { isVNode } from "./ownership.js";
-import { beginExpansion } from "./progress.js";
 import type { Location, State, Walk } from "./state.js";
 import { Fragment, type NativeVNode } from "./types.js";
 
@@ -26,78 +20,7 @@ function group(node: NativeVNode, location: Location, path: string, depth: numbe
   walk(node.props.children, { ...location, x, y }, `${path}/props/children`, depth + 1);
 }
 
-function textContent(value: unknown, path: string, depth: number, state: State): string {
-  const output: TextOutput = { tasks: [], chunks: [], points: 0, state };
-  const environment = state.environment;
-  const expansionCount = state.expansions.length;
-  try {
-    textStep(value, path, depth, output);
-    while (output.tasks.length) output.tasks.pop()?.();
-    return output.chunks.join("");
-  } finally {
-    state.environment = environment;
-    state.expansions.length = expansionCount;
-  }
-}
-interface TextOutput {
-  readonly tasks: (() => void)[];
-  readonly chunks: string[];
-  points: number;
-  readonly state: State;
-}
-function textStep(value: unknown, path: string, depth: number, output: TextOutput): void {
-  const { state, tasks } = output;
-  checkLimit(depth, state.budget.policy.depth, path, "VDOM depth");
-  work(state.budget, 1, path);
-  if (value == null || typeof value === "boolean") return;
-  if (typeof value === "string") {
-    output.points = checkLimit(
-      output.points + codePoints(value),
-      state.budget.policy.textCodePoints,
-      path,
-      "Text code points",
-    );
-    output.chunks.push(value);
-    return;
-  }
-  if (!value || typeof value !== "object") fail("TYPE", path, "Text children must resolve to strings, not numbers");
-  if (state.active.has(value)) fail("VDOM_CYCLE", path, "Cyclic text children");
-  state.active.add(value);
-  const expansionCount = state.expansions.length;
-  beginExpansion(value, state.expansions, state.environment, path);
-  const previous = state.environment;
-  tasks.push(() => {
-    state.active.delete(value);
-    state.expansions.length = expansionCount;
-    state.environment = previous;
-  });
-  state.sourceNodes = checkLimit(state.sourceNodes + 1, state.budget.policy.nodes, path, "VDOM source nodes");
-  textContainer(value, path, depth, output);
-}
-
-function textContainer(value: object, path: string, depth: number, output: TextOutput): void {
-  const { state, tasks } = output;
-  if (Array.isArray(value)) {
-    scheduleArray(value, path, tasks, (item, i) => textStep(item, `${path}/${i}`, depth + 1, output));
-    return;
-  }
-  if (!isVNode(value)) fail("TYPE", path, "Expected a library fragment or component resolving to text");
-  if (value.kind === "provider") {
-    const { children } = enterProvider(value, state);
-    tasks.push(() => textStep(children, `${path}/provider`, depth + 1, output));
-    return;
-  }
-  if (value.kind !== "native") {
-    const child = expand(value, state, path);
-    tasks.push(() => textStep(child, `${path}/expanded`, depth + 1, output));
-    return;
-  }
-  if (value.tag !== Fragment) fail("TYPE", path, "Rich text and drawing children inside text are unsupported");
-  keys(value.props, ["children"], `${path}/props`);
-  tasks.push(() => textStep(value.props.children, `${path}/props/children`, depth + 1, output));
-}
-
-function drawing(node: NativeVNode, location: Location, path: string, depth: number, state: State): void {
+function drawing(node: NativeVNode, location: Location, path: string, state: State): void {
   if (location.mode !== "draw" || !location.page) fail("VDOM_HIERARCHY", path, "Drawing nodes belong inside a page");
   const boxKeys = ["x", "y", "width", "height"];
   const allowed =
@@ -107,19 +30,9 @@ function drawing(node: NativeVNode, location: Location, path: string, depth: num
         ? ["commands", "paint", "transform"]
         : node.tag === "line"
           ? ["x", "y", "x2", "y2", "paint", "transform"]
-          : node.tag === "text"
-            ? [...boxKeys, "text", "children", "fontSize", "lineHeight", "align", "font"]
-            : [...boxKeys, "paint", "transform"];
+          : [...boxKeys, "paint", "transform"];
   keys(node.props, allowed, `${path}/props`);
   const props = { ...node.props };
-  if (node.tag === "text") {
-    if ("text" in props && "children" in props)
-      fail("KEY", `${path}/props/children`, "Use text or string children, not both");
-    if (!("text" in props) && !("children" in props))
-      fail("TYPE", `${path}/props/text`, "Provide text or string children");
-    if (!("text" in props)) props.text = textContent(props.children, `${path}/props/children`, depth + 1, state);
-    delete props.children;
-  }
   translateProps(props, node.tag === "path", location, path);
   const target = location.target ?? location.page.children;
   const base = location.astPath ?? `/pages/${state.pages.indexOf(location.page)}`;
@@ -127,9 +40,6 @@ function drawing(node: NativeVNode, location: Location, path: string, depth: num
   reserveNode(state, path);
   reserveContent(props, node.tag, state, path);
   target.push({ type: node.tag, ...props });
-  if (node.tag === "text" && !("text" in node.props)) {
-    state.origins.set(`${base}/children/${target.length - 1}/text`, `${path}/props/children`);
-  }
 }
 function translateProps(props: Record<string, unknown>, pathNode: boolean, location: Location, path: string): void {
   if ("transform" in props && props.transform === undefined)
@@ -188,7 +98,7 @@ export function native(
   else if (node.tag === "page") page(node, location, path, depth, state, walk);
   else if (node.tag === "group") group(node, location, path, depth, walk);
   else if (node.tag === "paintGroup") paintingGroup(node, location, path, depth, state, walk);
-  else drawing(node, location, path, depth, state);
+  else drawing(node, location, path, state);
 }
 
 function document(node: NativeVNode, location: Location, path: string, depth: number, state: State, walk: Walk): void {
@@ -214,7 +124,7 @@ function reserveNode(state: State, path: string): void {
   state.generatedNodes = checkLimit(state.generatedNodes + 1, state.budget.policy.nodes, path, "Generated nodes");
 }
 function reserveContent(props: Record<string, unknown>, tag: NativeVNode["tag"], state: State, path: string): void {
-  let points = typeof props.text === "string" ? codePoints(props.text) : 0;
+  let points = 0;
   if (tag === "richText" && Array.isArray(props.paragraphs)) {
     for (const paragraph of props.paragraphs) points += paragraphPoints(paragraph);
   }

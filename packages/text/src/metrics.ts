@@ -13,16 +13,9 @@ export interface RunMetrics {
   readonly empty: boolean;
   readonly run?: TextRun;
 }
-export function metrics(text: string, style: TextStyle, fonts: ResolvedFonts, path: string): RunMetrics {
-  const font = selectedFont(style.font, fonts, path);
-  const runtime = textRuntime(fonts, path);
-  // Plain/native ink retains fixed conservative arithmetic but uses actual ink for centered envelopes.
-  const mode = runtime.fixedPolicy(font, path).baseline === "ascent" ? "fixed" : "rich";
-  return runtime.measure(font, text, style.fontSize, mode, path);
-}
 export function richMetrics(text: string, style: TextStyle, fonts: ResolvedFonts, path: string): RunMetrics {
   const font = selectedFont(style.font, fonts, path);
-  return textRuntime(fonts, path).measure(font, text, style.fontSize, "rich", path);
+  return textRuntime(fonts, path).measure(font, text, style.fontSize, path);
 }
 export function ink(run: RunMetrics, x: number, baseline: number): InkBounds {
   return Object.freeze(

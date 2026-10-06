@@ -13,7 +13,7 @@ export function textOptions(options: OperationOptions = {}): OperationOptions {
 }
 export function measurementOptions(options: Partial<MeasureOptions> = {}): MeasureOptions {
   return {
-    measurer: createTextMeasurer({ runtime: fontRuntime(), defaultFont: "Helvetica" }),
+    measurer: createTextMeasurer({ runtime: fontRuntime() }),
     ...options,
     resources: { Helvetica: createHelvetica(), ...options.resources },
   };

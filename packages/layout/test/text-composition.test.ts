@@ -90,18 +90,19 @@ test("generic owned handles retain exact identity in authoring snapshots and ada
 test("style resolution callbacks are captured, bound to the original service, and reject getters", () => {
   const options = composition("Custom");
   const original = options.text.resolveStyle;
+  const receiverState = new WeakMap<object, string>();
   const service = {
     ...options.text,
-    selected: "Custom",
     resolveStyle(...args: Parameters<typeof original>) {
       assert.equal(this, service);
-      assert.equal(this.selected, "Custom");
+      assert.equal(receiverState.get(this), "Custom");
       service.resolveStyle = () => {
         throw new Error("replacement must not execute");
       };
       return original(...args);
     },
   };
+  receiverState.set(service, "Custom");
   measure([paragraph({ children: "A" }), paragraph({ children: "B" })], { width: 100 }, { ...options, text: service });
   let getters = 0;
   Object.defineProperty(service, "resolveStyle", {

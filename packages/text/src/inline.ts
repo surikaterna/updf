@@ -45,7 +45,7 @@ export function measureInline(
         ),
       }
     : paragraph;
-  validateInput({ kind: "rich", width, paragraphs: [validation] }, fonts, budget, path);
+  validateInput({ width, paragraphs: [validation] }, fonts, budget, path);
   const input = inlineAtoms(paragraph, visuals(), fonts, path);
   const result: InlineLine[] = [];
   const height = new MetricSum();

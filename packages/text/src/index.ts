@@ -1,5 +1,5 @@
 /**
- * `@updf/text`: portable plain/rich text fitting, without PDF serialization.
+ * `@updf/text`: portable paragraph text fitting, without PDF serialization.
  * Inputs and results use top-left points and explicitly installed text/font capabilities.
  * @module
  */

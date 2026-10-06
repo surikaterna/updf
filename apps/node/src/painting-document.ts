@@ -29,15 +29,21 @@ export const paintingDocument = {
         },
         { type: "rect", x: 80, y: 20, width: 40, height: 40, paint: { fill: [0, 1, 0], stroke: null } },
         {
-          type: "text",
+          type: "richText",
           x: 20,
           y: 80,
           width: 100,
           height: 20,
-          text: "TEXT",
-          fontSize: 12,
-          lineHeight: 14,
-          align: "left",
+          paragraphs: [
+            {
+              runs: [{ text: "TEXT" }],
+              defaultStyle: { font: "Helvetica", fontSize: 12, color: [0, 0, 0] },
+              lineHeight: 14,
+              align: "left",
+              whiteSpace: "preserve",
+              breakLongWords: "error",
+            },
+          ],
         },
         { type: "path", commands: rings, paint: { fill: [0, 0, 1], fillRule: "evenodd" } },
         {

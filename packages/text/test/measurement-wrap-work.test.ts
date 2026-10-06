@@ -87,10 +87,7 @@ test("service rendering retains large short-word lines and scalar-split tokens",
     const text = split ? "a".repeat(32000) : "a ".repeat(16000);
     const p = paragraph(text, split);
     const width = split ? 60 : 600;
-    const measured = measureText(
-      { kind: "rich", width, paragraphs: [p] },
-      fontMeasurementOptions({ profile: "service" }),
-    );
+    const measured = measureText({ width, paragraphs: [p] }, fontMeasurementOptions({ profile: "service" }));
     assert.equal(measured.lineCount, split ? 3 : 1);
     assert.equal(
       measured.lines.flatMap((line) => line.fragments.map((fragment) => fragment.text)).join(""),

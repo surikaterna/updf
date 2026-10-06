@@ -2,23 +2,25 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, type RenderOptions } from "@updf/core";
 import { renderUnknown as render, textOptions } from "../../../tests/fixtures/text-options.js";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 import { measure as measureValidated } from "../dist/cjs/core/measure.js";
 import { decimal, literal, value } from "../dist/cjs/core/pdf-values.js";
 import { policy } from "../dist/cjs/core/policy.js";
 import { resolveResources } from "../dist/cjs/core/text-resources.js";
 import { validate } from "../dist/cjs/core/validate.js";
 
-const text = (overrides: Record<string, unknown> = {}) => ({
-  type: "text",
+const text = (content = "Hello", geometry: Record<string, unknown> = {}, paragraph: Record<string, unknown> = {}) => ({
+  type: "richText",
   x: 10,
   y: 10,
   width: 80,
   height: 50,
-  text: "Hello",
-  fontSize: 10,
-  lineHeight: 12,
-  align: "left",
-  ...overrides,
+  paragraphs: [{ ...richInput(content).paragraphs[0], ...paragraph }],
+  ...geometry,
+});
+const typography = (fontSize: number, lineHeight: number) => ({
+  defaultStyle: { font: "Helvetica", fontSize, color: [0, 0, 0] },
+  lineHeight,
 });
 const document = (children: readonly unknown[] = [text()]) => ({
   version: 1,
@@ -30,7 +32,7 @@ function measuredText(input: unknown) {
   const options = resolveResources(textOptions({}), policy({}));
   validate(input, options);
   const node = measureValidated(input, options)[0]?.children[0];
-  assert.ok(node?.type === "text");
+  assert.ok(node?.type === "richText");
   return node;
 }
 
@@ -62,7 +64,7 @@ test("frozen shared nodes, repeated/interleaved render and JSON roundtrip are im
   const input = freeze(document([shared, shared]));
   const before = JSON.stringify(input);
   const a = render(input);
-  render(document([text({ text: "different" })]));
+  render(document([text("different")]));
   assert.deepEqual(render(input), a);
   assert.deepEqual(render(JSON.parse(before)), a);
   assert.equal(JSON.stringify(input), before);
@@ -71,7 +73,7 @@ test("frozen shared nodes, repeated/interleaved render and JSON roundtrip are im
 });
 
 test("exact byte offsets, stream lengths, binary header and startxref", () => {
-  const bytes = render(document([text({ text: "(x)\\ /Name endstream", fontSize: 5 })]));
+  const bytes = render(document([text("(x)\\ /Name endstream", {}, typography(5, 12))]));
   const raw = Array.from(bytes, (byte) => String.fromCharCode(byte)).join("");
   assert.deepEqual(Array.from(bytes.slice(10, 14)), [226, 227, 207, 211]);
   const match = raw.match(/startxref\n(\d+)/);
@@ -90,40 +92,41 @@ test("exact byte offsets, stream lengths, binary header and startxref", () => {
 });
 
 test("Helvetica widths, LF, spaces, wrapping, alignment and empty text", () => {
-  const plan = measuredText(document([text({ text: "Hello Hello\nX", width: 30, align: "right" })]));
+  const plan = measuredText(document([text("Hello Hello\nX", { width: 30 }, { align: "right" })]));
   assert.deepEqual(
-    plan.lines.map((line) => line.text),
+    plan.fragments.map((fragment) => fragment.text),
     ["Hello ", "Hello", "X"],
   );
-  const first = plan.lines[0];
+  const first = plan.fragments[0];
   assert.ok(first);
-  assert.ok(Math.abs(first.x - 14.44) < 1e-12);
-  assert.deepEqual(measuredText(document([text({ text: "" })])).lines, []);
-  assert.ok(render(document([text({ text: "" })])) instanceof Uint8Array);
-  assert.equal(measuredText(document([text({ text: "X", align: "center" })])).lines[0]?.x, 46.665);
+  assert.ok(Math.abs(plan.x + first.x - 14.44) < 1e-12);
+  assert.deepEqual(measuredText(document([text("")])).fragments, []);
+  assert.ok(render(document([text("")])) instanceof Uint8Array);
+  const centered = measuredText(document([text("X", {}, { align: "center" })]));
+  assert.equal(centered.x + centered.fragments[0]!.x, 46.665);
 });
 
 test("wrapping rejects tokens and vertical overflow, including explicit empty LF lines", () => {
-  rejects(document([text({ text: "WW", width: 10 })]), "TOKEN_OVERFLOW");
-  rejects(document([text({ text: "a\nb", height: 12 })]), "VERTICAL_OVERFLOW");
-  rejects(document([text({ text: "\n", height: 12 })]), "VERTICAL_OVERFLOW");
+  rejects(document([text("WW", { width: 10 })]), "TOKEN_OVERFLOW");
+  rejects(document([text("a\nb", { height: 12 })]), "VERTICAL_OVERFLOW");
+  rejects(document([text("\n", { height: 12 })]), "VERTICAL_OVERFLOW");
 });
 
 test("strict schema diagnostics, JSONPointer, cycles and data-only objects", () => {
   rejects({ ...document(), version: 2 }, "VERSION", "/version");
   rejects({ ...document(), "a/b~c": 1 }, "KEY", "/a~1b~0c");
   rejects(document([{ ...text(), type: "image" }]), "TYPE");
-  rejects(document([text({ fontFamily: "Times" })]), "KEY");
-  rejects(document([text({ align: "justify" })]), "VALUE");
+  rejects(document([text("Hello", { fontFamily: "Times" })]), "KEY");
+  rejects(document([text("Hello", {}, { align: "justify" })]), "VALUE");
   const node: Record<string, unknown> = text();
   const cycle = document([node]);
-  node.text = cycle;
+  node.paragraphs = cycle as never;
   rejects(cycle, "TYPE");
   rejects(document([null]), "TYPE");
   rejects(document([new Date()]), "TYPE");
   rejects(
     document([
-      Object.defineProperty(text(), "text", {
+      Object.defineProperty(text(), "paragraphs", {
         get() {
           throw new Error("invoked");
         },
@@ -136,7 +139,7 @@ test("strict schema diagnostics, JSONPointer, cycles and data-only objects", () 
 
 test("ASCII rejection includes Cyrillic, surrogate pairs and controls; no transliteration", () => {
   for (const unsupported of ["Привет", "é", "😀", "\t", "\r", "\0", "\x7f", "\ud800"]) {
-    rejects(document([text({ text: unsupported })]), "CHARACTER", "/pages/0/children/0/text");
+    rejects(document([text(unsupported)]), "CHARACTER", "/pages/0/children/0/paragraphs/0/runs/0/text");
   }
 });
 
@@ -198,22 +201,22 @@ test("unsupported array prototypes and caller traversal overrides are never invo
 });
 
 test("ASCII ink envelope baseline, tight exact-fit multiline and blank line capacity", () => {
-  const input = document([text({ text: "|\n$g_", x: 0, y: 0, fontSize: 20, lineHeight: 20, height: 40 })]);
-  const lines = measuredText(input).lines;
+  const input = document([text("|\n$g_", { x: 0, y: 0, height: 40 }, typography(20, 20))]);
+  const lines = measuredText(input).fragments;
   assert.deepEqual(
-    lines.map((line) => line.y),
+    lines.map((line) => line.baseline),
     [15.5, 35.5],
   );
   assert.ok(render(input).length);
-  rejects(document([text({ text: "|\n|", fontSize: 20, lineHeight: 20, height: 39.99 })]), "VERTICAL_OVERFLOW");
-  assert.ok(render(document([text({ text: "|\n", fontSize: 20, lineHeight: 20, height: 40 })])).length);
-  rejects(document([text({ text: "|\n", fontSize: 20, lineHeight: 20, height: 20 })]), "VERTICAL_OVERFLOW");
+  rejects(document([text("|\n|", { height: 39.99 }, typography(20, 20))]), "VERTICAL_OVERFLOW");
+  assert.ok(render(document([text("|\n", { height: 40 }, typography(20, 20))])).length);
+  rejects(document([text("|\n", { height: 20 }, typography(20, 20))]), "VERTICAL_OVERFLOW");
 });
 
 test("finite bounded geometry and line endpoints", () => {
-  for (const width of [0, -1, NaN, Infinity, "10"]) rejects(document([text({ width })]), "GEOMETRY");
-  rejects(document([text({ x: 99 })]), "BOUNDS");
-  rejects(document([text({ lineHeight: 9 })]), "GEOMETRY");
+  for (const width of [0, -1, NaN, Infinity, "10"]) rejects(document([text("Hello", { width })]), "GEOMETRY");
+  rejects(document([text("Hello", { x: 99 })]), "BOUNDS");
+  rejects(document([text("Hello", {}, { lineHeight: 9 })]), "GEOMETRY");
   rejects(document([{ type: "line", x: 0, y: 0, x2: 0, y2: 0 }]), "GEOMETRY");
   rejects(document([{ type: "line", x: 0, y: 0, x2: 101, y2: 0 }]), "BOUNDS");
   assert.ok(render(document([{ type: "line", x: 0, y: 0, x2: 100, y2: 100 }])).length);
@@ -240,7 +243,7 @@ test("accepted page/node caps and aggregate node counting across pages", () => {
   rejects({ version: 1, pages: Array(20).fill({ ...page, children: Array(501).fill(rect) }) }, "LIMIT", undefined, {
     profile: "service",
   });
-  const boundaryText = text({ text: "x".repeat(4096), width: 80, fontSize: 0.00001, lineHeight: 0.00002 });
+  const boundaryText = text("x".repeat(4096), { width: 80 }, typography(0.00001, 0.00002));
   assert.ok(render(document([boundaryText])).length);
 });
 
@@ -248,8 +251,8 @@ test("optional service page/node/aggregate text/output caps replace mandatory le
   const service = { profile: "service" } as const;
   rejects({ version: 1, pages: Array(21).fill(document().pages[0]) }, "LIMIT", undefined, service);
   rejects(document(Array(10001).fill(text())), "LIMIT", undefined, service);
-  rejects(document([text({ text: "x".repeat(4097) })]), "LIMIT", undefined, { limits: { textCodePoints: 4096 } });
-  rejects(document(Array(25).fill(text({ text: "a".repeat(4096) }))), "LIMIT", undefined, service);
-  const tiny = text({ text: "a\n".repeat(2048), fontSize: Number.MIN_VALUE, lineHeight: Number.MIN_VALUE });
+  rejects(document([text("x".repeat(4097))]), "LIMIT", undefined, { limits: { textCodePoints: 4096 } });
+  rejects(document(Array(25).fill(text("a".repeat(4096)))), "LIMIT", undefined, service);
+  const tiny = text("a\n".repeat(2048), {}, typography(Number.MIN_VALUE, Number.MIN_VALUE));
   rejects(document(Array(24).fill(tiny)), "LIMIT", undefined, service);
 });

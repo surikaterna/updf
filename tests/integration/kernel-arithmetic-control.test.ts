@@ -14,7 +14,7 @@ async function probe(source: string, entry = "@updf/text") {
        import {createHelvetica,fontRuntime} from '@updf/fonts';
        import {createTextMeasurer} from '${entry}';
       const runtime=fontRuntime();
-       export const options={resources:{Helvetica:createHelvetica()},measurer:createTextMeasurer({runtime,defaultFont:'Helvetica'})};`
+       export const options={resources:{Helvetica:createHelvetica()},measurer:createTextMeasurer({runtime})};`
       }`,
       resolveDir: process.cwd(),
     },
@@ -44,7 +44,6 @@ test("public text measurement executes the replaced arithmetic body", async () =
   assert.equal(source.split(needle).length, 2);
   const runtime = await probe(source.replace(needle, `${needle} throw new Error('PRE_KERNEL_ARITHMETIC_EXECUTED');`));
   const input = {
-    kind: "rich",
     width: 100,
     paragraphs: [
       {

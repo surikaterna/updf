@@ -4,22 +4,17 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { type DocumentDefinition, DocumentError, type NodeDefinition, type TextNode } from "@updf/core";
+import { type DocumentDefinition, DocumentError, type NodeDefinition, type RichTextNode } from "@updf/core";
 import { type ParagraphDefinition, paintInlineText } from "@updf/text";
 import { createLayoutOperation, render } from "../fixtures/text-options.js";
+import { richNode } from "../fixtures/rich-input.js";
 
-const text = (value: string, overrides: Partial<TextNode> = {}): TextNode => ({
-  type: "text",
-  x: 10,
-  y: 10,
-  width: 80,
-  height: 10,
-  text: value,
-  fontSize: 10,
-  lineHeight: 10,
-  align: "left",
-  ...overrides,
-});
+const text = (
+  value: string,
+  geometry: Partial<RichTextNode> = {},
+  paragraph: Partial<ParagraphDefinition> = {},
+): RichTextNode =>
+  richNode(value, { x: 10, y: 10, width: 80, height: 10, ...geometry }, { lineHeight: 10, ...paragraph });
 const document = (children: readonly NodeDefinition[]): DocumentDefinition => ({
   version: 1,
   pages: [{ width: 200, height: 300, children }],
@@ -62,9 +57,9 @@ test("WinAnsi quotes/backticks extract exactly and independent bbox widths/align
   const graves = "`".repeat(20);
   const input = document([
     text(quotes, { width: 38.2 }),
-    text(graves, { y: 40, align: "center" }),
-    text(quotes, { y: 70, align: "right" }),
-    text("'''' ````", { x: 50, y: 100, width: 15, height: 20, align: "right" }),
+    text(graves, { y: 40 }, { align: "center" }),
+    text(quotes, { y: 70 }, { align: "right" }),
+    text("'''' ````", { x: 50, y: 100, width: 15, height: 20 }, { align: "right" }),
   ]);
   await withPdf(input, (path) => {
     const extracted = execFileSync("pdftotext", ["-raw", path, "-"], { encoding: "utf8" });
@@ -137,9 +132,21 @@ test("internal tight line boxes paint actual ink beyond the line box without cli
 
 test("Poppler raster retains full bar ink at page top and within tight multiline boxes", async () => {
   const input = document([
-    text("|", { x: 20, y: 0, width: 30, height: 100, fontSize: 100, lineHeight: 100 }),
-    text("|", { x: 80, y: 50, width: 30, height: 100, fontSize: 100, lineHeight: 100 }),
-    text("|\n|", { x: 140, y: 50, width: 30, height: 200, fontSize: 100, lineHeight: 100 }),
+    text(
+      "|",
+      { x: 20, y: 0, width: 30, height: 100 },
+      { defaultStyle: { font: "Helvetica", fontSize: 100, color: [0, 0, 0] }, lineHeight: 100 },
+    ),
+    text(
+      "|",
+      { x: 80, y: 50, width: 30, height: 100 },
+      { defaultStyle: { font: "Helvetica", fontSize: 100, color: [0, 0, 0] }, lineHeight: 100 },
+    ),
+    text(
+      "|\n|",
+      { x: 140, y: 50, width: 30, height: 200 },
+      { defaultStyle: { font: "Helvetica", fontSize: 100, color: [0, 0, 0] }, lineHeight: 100 },
+    ),
   ]);
   await withPdf(input, async (path, directory) => {
     const image = await raster(path, directory);

@@ -68,8 +68,8 @@ export function documentResources(
 }
 
 function collectNode(node: MeasuredNode, providers: readonly ResourceProvider[], collection: Collection): void {
-  if (node.type === "text" || node.type === "richText") {
-    const sites = node.type === "text" ? node.lines : node.fragments;
+  if (node.type === "richText") {
+    const sites = node.fragments;
     for (const site of sites) {
       if (!site.run) fail("FONT_RESOURCE", site.path, "Missing text run");
       for (const provider of providers)

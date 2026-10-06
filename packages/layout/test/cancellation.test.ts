@@ -71,7 +71,7 @@ test("R1 translated width fits nine Helvetica As in every alignment and remeasur
     });
     const node = agrees(input).pages[0]?.children[0];
     assert.ok(node?.type === "richText");
-    const result = measureText({ kind: "rich", width: node.width, paragraphs: node.paragraphs });
+    const result = measureText({ width: node.width, paragraphs: node.paragraphs });
     assert.equal(result.lineCount, 1);
     assert.equal(result.lines[0]?.advance, 60.03);
     assert.ok(node.x + node.width <= input.pageTemplate.width);
@@ -141,11 +141,17 @@ test("capacity cannot mask empty/negative regions, reserved overlap or explicit 
     "GEOMETRY",
     "/pageTemplate/height",
   );
-  rejects(flow([{ type: "fixed", height: value(bits(10) - 1n), children: [fixed()] }]), "BOUNDS", "/body/0/children/0");
+  rejects(
+    flow([
+      { type: "fixed", height: value(bits(10) - 1n), children: [{ type: "rect", x: 0, y: 0, width: 80, height: 10 }] },
+    ]),
+    "BOUNDS",
+    "/body/0/children/0",
+  );
 });
 test("materialized association must fit: local measurement tolerance cannot move a generated baseline", () => {
   rejects(flow([{ type: "paragraph", paragraph: heightParagraph }], { height: 30.9 }), "GEOMETRY", "/body/0");
-  assert.equal(measureText({ kind: "rich", width: 100, height: 30.9, paragraphs: [heightParagraph] }).lineCount, 3);
+  assert.equal(measureText({ width: 100, height: 30.9, paragraphs: [heightParagraph] }).lineCount, 3);
 });
 test("native line/block association cannot overlap another body reservation or a repeated region", () => {
   const p = paragraph("A\nB\nC", {

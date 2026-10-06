@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 import { DocumentError } from "@updf/core";
 import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
 import { render } from "../../../tests/fixtures/text-options.js";
@@ -201,41 +202,18 @@ test("measure context closes on success and failure and unknown resources cannot
   });
   layoutFlow(flow([extension(adapter, {})]), {}, createExtensions([adapter]));
   assert.ok(retained);
-  rejects(
-    () =>
-      retained?.measureText({
-        kind: "plain",
-        text: "A",
-        width: 100,
-        font: "forged",
-        fontSize: 10,
-        lineHeight: 10,
-        align: "left",
-      }),
-    "MEASUREMENT_CONTEXT",
-  );
+  rejects(() => retained?.measureText(richInput("A", 100, 10, 10, "forged")), "MEASUREMENT_CONTEXT");
   const bad = defineBlockAdapter({
     name: "bad-resource",
     validate: (input) => input,
     measure(_props, context) {
       retained = context;
-      context.measureText({
-        kind: "plain",
-        text: "A",
-        width: 100,
-        font: "forged",
-        fontSize: 10,
-        lineHeight: 10,
-        align: "left",
-      });
+      context.measureText(richInput("A", 100, 10, 10, "forged"));
       return measured(() => empty());
     },
   });
   rejects(() => layoutFlow(flow([extension(bad, {})]), {}, createExtensions([bad])), "FONT_RESOURCE");
-  rejects(
-    () => retained?.measureText({ kind: "plain", text: "A", width: 100, fontSize: 10, lineHeight: 10, align: "left" }),
-    "MEASUREMENT_CONTEXT",
-  );
+  rejects(() => retained?.measureText(richInput("A", 100, 10, 10)), "MEASUREMENT_CONTEXT");
 });
 test("generated policy reserves aggregate wrapper output before snapshotting another fragment", () => {
   const adapter = defineBlockAdapter({
@@ -246,9 +224,7 @@ test("generated policy reserves aggregate wrapper output before snapshotting ano
         status: "placed",
         nextOffset: 1,
         height: 10,
-        nodes: [
-          { type: "text", text: "A", x: 0, y: 0, width: 100, height: 10, fontSize: 10, lineHeight: 10, align: "left" },
-        ],
+        nodes: [{ type: "richText", x: 0, y: 0, height: 10, ...richInput("A", 100, 10, 10) }],
       })),
   });
   const input = flow([extension(adapter, {}), extension(adapter, {}), extension(adapter, {})]);

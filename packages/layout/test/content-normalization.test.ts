@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 import { DocumentError } from "@updf/core";
 import { type ComponentContext, h } from "@updf/core/vdom";
 import { Block, block, Paragraph, paragraph, Span, span } from "@updf/layout";
@@ -75,16 +76,5 @@ test("D: the shared compiler normalizes authored prose in the existing mixed tab
   assert.equal(result.pageCount, 1);
   assert.ok(retained);
   const context = retained;
-  reject(
-    () =>
-      context.measurement.measureText({
-        kind: "plain",
-        text: "x",
-        width: 10,
-        fontSize: 10,
-        lineHeight: 12,
-        align: "left",
-      }),
-    "MEASUREMENT_CONTEXT",
-  );
+  reject(() => context.measurement.measureText(richInput("x", 10)), "MEASUREMENT_CONTEXT");
 });

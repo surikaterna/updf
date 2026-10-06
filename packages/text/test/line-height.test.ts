@@ -69,9 +69,7 @@ test("tight line boxes retain overflowing ink and paint without a line clip", ()
   };
   const clippedInk = operation.nativeInk([clipped]);
   assert.ok(!clippedInk.empty && clippedInk.top >= 0 && clippedInk.bottom <= 4);
-  assert.throws(() =>
-    operation.measureText({ kind: "rich", width: 200, paragraphs: [{ ...value, lineHeight: 4 }] }, "/fixed"),
-  );
+  assert.throws(() => operation.measureText({ width: 200, paragraphs: [{ ...value, lineHeight: 4 }] }, "/fixed"));
 });
 test("inline visuals contribute declared ascent and descent", () => {
   const operation = createLayoutOperation({});

@@ -8,7 +8,6 @@ export function richProof(font: PreparedFont) {
   const setup = { profile: "service", resources: { Demo: font } } as const;
   const options = textOptions(setup);
   const input = {
-    kind: "rich",
     width: 250,
     paragraphs: [
       {

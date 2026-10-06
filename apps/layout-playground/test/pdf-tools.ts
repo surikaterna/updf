@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { prepareParagraph } from "../src/pdf.js";
+import { FONT_SIZE, prepareParagraph } from "../src/pdf.js";
 import type { Projection } from "../src/projection.js";
 
 export function artifactDirectory(): string {
@@ -49,7 +49,10 @@ export function assertPDFGeometry(projection: Projection, actual: ReturnType<typ
       return Array.from(text.matchAll(/[^ ]+/gu), (match) => {
         const prefix = text.slice(0, match.index);
         const advance = prefix ? (prepareParagraph(prefix, line.width).lines[0]?.advance ?? 0) : 0;
-        return { text: match[0], y: line.y, x: line.x + advance };
+        // Poppler uses Helvetica's physical Ascender (718/1000 em), not the
+        // rich line-box origin or the supported-glyph ink envelope (775/1000).
+        const baseline = line.y + line.line.baseline - line.line.top;
+        return { text: match[0], y: baseline - FONT_SIZE * 0.718, x: line.x + advance };
       });
     }),
   );
@@ -66,7 +69,7 @@ export function assertPDFGeometry(projection: Projection, actual: ReturnType<typ
       reference = expected[index];
     assert.ok(word && reference);
     assert.ok(
-      Math.abs(word.y - reference.y - 0.798) < 0.02,
+      Math.abs(word.y - reference.y) < 0.02,
       `word ${index}: PDF bbox top ${word.y} vs accepted ${reference.y}`,
     );
     assert.ok(Math.abs(word.x - reference.x) < 0.002, `word ${index}: PDF x ${word.x} vs accepted ${reference.x}`);

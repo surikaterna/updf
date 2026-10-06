@@ -174,7 +174,7 @@ function paintLine(
     const node = native.next().value;
     return node ? [node] : [];
   });
-  // Bound nominal fixed-text overhang, not glyph ink. Tight line boxes may
+  // Include inline ink overhang in the clip. Tight line boxes may
   // overlap; their full ink envelope must still fit the page or an explicit clip.
   const top = line.inkBounds.empty ? 0 : Math.min(0, line.inkBounds.top - line.top);
   const bottom = line.inkBounds.empty ? line.height : Math.max(line.height, line.inkBounds.bottom - line.top);

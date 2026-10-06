@@ -71,15 +71,11 @@ function leaf(
   resources: PageResources,
   push: Push,
 ): void {
-  if (node.type !== "text" && node.painting) {
+  if (node.painting) {
     painted(node.painting, height, local, resources).forEach(push);
     return;
   }
-  if (node.type === "text") {
-    if (local) push("q\n0 0 0 rg\n");
-    for (const line of node.lines) push(textCommand(line, line.x, line.y, node.fontSize, height, local, resources));
-    if (local) push("Q\n");
-  } else if (node.type === "rect") {
+  if (node.type === "rect") {
     push(
       local
         ? `q\n0 0 0 RG\n0.5 w\n${n(node.x)} ${n(node.y)} ${n(node.width)} ${n(node.height)} re S\nQ\n`

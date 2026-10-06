@@ -4,9 +4,22 @@ import type { Component } from "@updf/core/vdom";
 import { lower, render } from "./text-options.js";
 
 const Heading: Component<{ readonly title: string }> = ({ title }) => (
-  <text x={0} y={0} width={200} height={24} fontSize={10} lineHeight={12} align="left">
-    {title}
-  </text>
+  <richText
+    x={0}
+    y={0}
+    width={200}
+    height={24}
+    paragraphs={[
+      {
+        runs: [{ text: title }],
+        defaultStyle: { font: "Helvetica", fontSize: 10, color: [0, 0, 0] },
+        lineHeight: 12,
+        align: "left",
+        whiteSpace: "preserve",
+        breakLongWords: "error",
+      },
+    ]}
+  />
 );
 const tree = (
   <document version={1}>

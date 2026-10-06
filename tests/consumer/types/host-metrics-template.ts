@@ -5,7 +5,6 @@ const resource = createOwnedResource({ host: true });
 const runtime: TextRuntime = {
   validateResource() {},
   validateText() {},
-  fixedPolicy: () => ({ baseline: "ascent", checkInk: false }),
   lineMetrics: () => ({ ascent: 8, descent: 2 }),
   measure: (_resource, text) => ({
     advance: text.length * 5,
@@ -20,9 +19,21 @@ const runtime: TextRuntime = {
   }),
   joinRuns: () => Object.freeze({}) as TextRun,
 };
-const options = { resources: { Host: resource }, measurer: createTextMeasurer({ runtime, defaultFont: "Host" }) };
+const options = { resources: { Host: resource }, measurer: createTextMeasurer({ runtime }) };
 const result = measureText(
-  { kind: "plain", text: "AB", width: 100, fontSize: 10, lineHeight: 12, align: "left" },
+  {
+    width: 100,
+    paragraphs: [
+      {
+        runs: [{ text: "AB" }],
+        defaultStyle: { font: "Host", fontSize: 10, color: [0, 0, 0] },
+        lineHeight: 12,
+        align: "left",
+        whiteSpace: "preserve",
+        breakLongWords: "error",
+      },
+    ],
+  },
   options,
 );
 if (result.lines.length !== 1) throw new Error("Host metrics did not produce one line");

@@ -6,6 +6,7 @@ import type { DocumentDefinition } from "@updf/core";
 import { flow, paragraph } from "../../packages/layout/test/fixtures.js";
 import { render } from "../fixtures/text-options.js";
 import { block, type FlowBlock, layoutFlow } from "../fixtures/transitional-layout.js";
+import { richNode } from "../fixtures/rich-input.js";
 
 const padding = 4;
 function definition(nested = false): DocumentDefinition {
@@ -14,17 +15,14 @@ function definition(nested = false): DocumentDefinition {
     height: 60,
     children: [
       { type: "rect", x: 0, y: 0, width: nested ? 80 : 88, height: 60, paint: { fill: [1, 0, 0], stroke: null } },
-      {
-        type: "text",
-        x: 0,
-        y: 40,
-        width: 80,
-        height: 8,
-        fontSize: 6,
-        lineHeight: 8,
-        align: "left",
-        text: "HIDDEN SECRET",
-      },
+      richNode(
+        "HIDDEN SECRET",
+        { y: 40, width: 80, height: 8 },
+        {
+          defaultStyle: { font: "Helvetica", fontSize: 6, color: [0, 0, 0] },
+          lineHeight: 8,
+        },
+      ),
     ],
   };
   const child = nested

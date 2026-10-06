@@ -9,7 +9,6 @@ import { fontMeasurementOptions, fontOptions } from "../../../tests/fixtures/fon
 
 function input(text: string, fontSize: number, lineHeight: number, width: number, height?: number): RichTextInput {
   return {
-    kind: "rich",
     width,
     ...(height === undefined ? {} : { height }),
     paragraphs: [

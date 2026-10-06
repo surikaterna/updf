@@ -6,6 +6,7 @@ import { type Component, createContext, h, useContext, type VDOMChild } from "@u
 import { createPreparedFont } from "@updf/fonts";
 import { fontInput } from "../../../tests/fixtures/fonts/font-fixture.js";
 import { lower } from "../../../tests/fixtures/text-options.js";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 
 const document = (children: VDOMChild = []) =>
   h("document", {
@@ -18,14 +19,9 @@ const document = (children: VDOMChild = []) =>
   });
 const textDocument = (children: VDOMChild) =>
   document(
-    h("text", {
+    h("group", {
       x: 0,
       y: 0,
-      width: 100,
-      height: 12,
-      fontSize: 10,
-      lineHeight: 12,
-      align: "left",
       children,
     }),
   );
@@ -57,7 +53,7 @@ test("F1: source limit stops sibling descriptor inspection before enumerating th
   assert.deepEqual(input.probes, { indices: 1, keys: 0 });
 });
 test("F1: text expansion also advances only one sibling before its source budget fails", () => {
-  const Word: Component<object> = () => "word";
+  const Word: Component<object> = () => h("richText", { x: 0, y: 0, height: 12, ...richInput("word") });
   const input = instrumented(h(Word, {}));
   const Words: Component<object> = () => input.children;
   diagnostic(() => lower(textDocument(h(Words, {})), { profile: "service", limits: { nodes: 5 } }), "LIMIT");
@@ -74,9 +70,9 @@ test("F1: million-sibling source/text limit probes finish under a constrained ch
     const siblings = Array(1000000).fill(null);
     siblings[0] = doc();
     check(siblings, 1);
-    siblings[0] = h(() => 'word', {});
+    siblings[0] = h(() => h('richText', {x:0,y:0,width:100,height:12,paragraphs:[]}), {});
     const words = h(() => siblings, {});
-    check(doc(h('text', { x: 0, y: 0, width: 100, height: 12, fontSize: 10, lineHeight: 12, align: 'left', children: words })), 5);
+    check(doc(h('group', { x: 0, y: 0, children: words })), 5);
   `;
   execFileSync(process.execPath, ["--max-old-space-size=64", "--input-type=module", "--eval", source], {
     timeout: 15000,
@@ -121,7 +117,7 @@ test("F2: changing effective context data is legitimate progress in drawing and 
       const value = useContext(context);
       return value === 2
         ? text
-          ? "done"
+          ? h("richText", { x: 0, y: 0, height: 12, ...richInput("done") })
           : document()
         : h(context.Provider, { value: value + 1, children: h(Finite, {}) });
     };
@@ -177,7 +173,11 @@ test("F3: ordered enumerable props keys are observable progress in drawing and t
     let calls = 0;
     const Finite: Component<{ a: number; b: number }> = (props) => {
       calls++;
-      return Object.keys(props)[0] === "a" ? h(Finite, { b: 2, a: 1 }) : text ? "done" : document();
+      return Object.keys(props)[0] === "a"
+        ? h(Finite, { b: 2, a: 1 })
+        : text
+          ? h("richText", { x: 0, y: 0, height: 12, ...richInput("done") })
+          : document();
     };
     const node = h(Finite, { a: 1, b: 2 });
     assert.equal(lower(text ? textDocument(node) : node).pages.length, 1);
@@ -193,7 +193,7 @@ test("F3: ordered provider keys differ from declaration defaults in drawing and 
       return Object.keys(useContext(context))[0] === "a"
         ? h(context.Provider, { value: { b: 2, a: 1 }, children: h(Finite, {}) })
         : text
-          ? "done"
+          ? h("richText", { x: 0, y: 0, height: 12, ...richInput("done") })
           : document();
     };
     const node = h(Finite, {});

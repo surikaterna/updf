@@ -18,6 +18,7 @@ import {
   Row,
 } from "@updf/layout";
 import { layout, measure, render } from "../../../tests/fixtures/text-options.js";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 
 const margins = { top: 0, right: 0, bottom: 0, left: 0 };
 const Theme = createContext("default");
@@ -104,15 +105,11 @@ test("#53 reused terminal owners capture providers; page/fragment callbacks run 
   const calls: unknown[] = [];
   function final() {
     calls.push([useContext(Theme), useContext(PageContext), useContext(FragmentContext)]);
-    return h("text", {
+    return h("richText", {
       x: 0,
       y: 0,
-      width: 80,
       height: 10,
-      fontSize: 10,
-      lineHeight: 10,
-      align: "left",
-      children: useContext(Theme),
+      ...richInput(useContext(Theme), 80, 10, 10),
     });
   }
   const shared = h(Block, {

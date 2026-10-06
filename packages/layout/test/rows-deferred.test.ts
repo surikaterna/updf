@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { richInput } from "../../../tests/fixtures/rich-input.js";
 import { DocumentError } from "@updf/core";
 import { type ComponentContext, createContext, h, useContext } from "@updf/core/vdom";
 import {
@@ -60,15 +61,7 @@ test("#44 Rows retain measured deferred recipes until selected page/fragment and
 });
 function checkClosed(retained: ComponentContext): void {
   assert.throws(
-    () =>
-      retained.measurement.measureText({
-        kind: "plain",
-        text: "x",
-        width: 100,
-        fontSize: 10,
-        lineHeight: 10,
-        align: "left",
-      }),
+    () => retained.measurement.measureText(richInput("x", 100, 10, 10)),
     (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === "MEASUREMENT_CONTEXT",
   );
 }

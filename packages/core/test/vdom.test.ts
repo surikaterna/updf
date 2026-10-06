@@ -8,12 +8,16 @@ import { bind, type Component, definePrimitive, Fragment, h, type VDOMChild, typ
 import { cmrFixture, createCmrDocument } from "@updf/example-cmr/cmr";
 import { createCmrTree } from "@updf/example-cmr/cmr-tree";
 import { lower, render, renderUnknown } from "../../../tests/fixtures/text-options.js";
+import { richNode } from "../../../tests/fixtures/rich-input.js";
 
 const rect = () => h("rect", { x: 0, y: 0, width: 10, height: 10 });
 const page = (children: VDOMChild) => h("page", { width: 100, height: 100, children });
 const doc = (children: VDOMChild) => h("document", { version: 1, children });
 const tree = (children: VDOMChild) => doc(page(children));
-const textProps = { x: 0, y: 0, width: 90, height: 24, fontSize: 10, lineHeight: 12, align: "left" } as const;
+const label = (text: string) => {
+  const { type: _type, ...props } = richNode(text, { width: 90, height: 24 });
+  return h("richText", props);
+};
 
 function rejects(run: () => unknown, code: DiagnosticCode, path?: string): void {
   assert.throws(run, (error: unknown) => {
@@ -33,7 +37,7 @@ test("component CMR lowers to independent reference AST and unchanged PDF bytes"
   assert.deepEqual(lower(input), ast);
   assert.equal(
     createHash("sha256").update(render(ast)).digest("hex"),
-    "8316f7de647590dbfad97a7dff0aac7dd6dbde1ff98cbdff544387ca59c49a22",
+    "cb826a04f161a18e472d9ed70aa9342be20356a91527eb90d1f46cfe1fc5a7bb",
   );
   assert.ok(Object.isFrozen(ast) && Object.isFrozen(ast.pages) && Object.isFrozen(ast.pages[0]?.children));
 });
@@ -74,15 +78,15 @@ test("owned deep snapshots never freeze callers; component props and metadata ca
     observed = props;
     assert.ok(Object.isFrozen(props) && Object.isFrozen(props.data) && Object.isFrozen(props.data.labels));
     assert.ok(Object.isFrozen(context) && Object.isFrozen(context.resources));
-    return h("text", { ...textProps, text: props.data.labels.join("") });
+    return label(props.data.labels.join(""));
   };
   const node = h(Box, input);
   input.data.labels[0] = "after";
   const metadata = [{ id: "future-resource", kind: "metadata" }];
   const first = lower(tree(node), { resourceMetadata: metadata });
   assert.notEqual(observed, input);
-  assert.equal(first.pages[0]?.children[0]?.type, "text");
-  assert.deepEqual(first.pages[0]?.children[0], { type: "text", ...textProps, text: "before" });
+  assert.equal(first.pages[0]?.children[0]?.type, "richText");
+  assert.deepEqual(first.pages[0]?.children[0], richNode("before", { width: 90, height: 24 }));
   assert.ok(!Object.isFrozen(input) && !Object.isFrozen(input.data.labels) && !Object.isFrozen(metadata));
   lower(tree(rect()));
   assert.deepEqual(lower(tree(node), { resourceMetadata: metadata }), first);
@@ -121,28 +125,25 @@ test("callback/accessor/class props and malformed arrays are rejected without ca
   assert.equal(calls, 0);
 });
 
-test("text children concatenate strings only, with explicit empty text and no rich text", () => {
-  const ast = lower(tree(h("text", { ...textProps, children: ["Hello", [null, false, " PDF"], "\nX"] })));
-  assert.deepEqual(ast.pages[0]?.children[0], { type: "text", ...textProps, text: "Hello PDF\nX" });
-  assert.ok(render(lower(tree(h("text", { ...textProps, text: "" })))).length);
-  const Word: Component<object> = () => "component";
+test("native rich text accepts explicit runs, rejects implicit children and enforces text quotas", () => {
+  const node = richNode("Hello PDF\nX", { width: 90, height: 24 });
+  const { type: _type, ...props } = node;
+  assert.deepEqual(lower(tree(h("richText", props))).pages[0]?.children[0], node);
+  assert.ok(render(lower(tree(label("")))).length);
+  const Word: Component<object> = () => label("component");
   assert.deepEqual(
-    lower(tree(h("text", { ...textProps, children: h(Fragment, { children: h(Word, {}) }) }))).pages[0]?.children[0],
-    { type: "text", ...textProps, text: "component" },
+    lower(tree(h(Fragment, { children: h(Word, {}) }))).pages[0]?.children[0],
+    richNode("component", { width: 90, height: 24 }),
   );
-  const Both: Component<object> = () => jsx("text", { ...textProps, text: "a", children: "b" });
-  rejects(() => lower(tree(h(Both, {}))), "KEY");
-  const NumberChild: Component<object> = () => jsx("text", { ...textProps, children: 42 });
-  rejects(() => lower(tree(h(NumberChild, {}))), "TYPE");
-  const Rich: Component<object> = () => jsx("text", { ...textProps, children: rect() });
-  rejects(() => lower(tree(h(Rich, {}))), "TYPE");
-  const Missing: Component<object> = () => jsx("text", textProps);
+  for (const children of ["text", 42, rect()]) {
+    const Invalid: Component<object> = () => jsx("richText", { ...props, children } as never);
+    rejects(() => lower(tree(h(Invalid, {}))), "KEY");
+  }
+  const Missing: Component<object> = () => jsx("richText", { x: 0, y: 0, width: 90, height: 24 } as never);
   rejects(() => lower(tree(h(Missing, {}))), "TYPE");
-  rejects(
-    () =>
-      lower(tree(h("text", { ...textProps, children: ["x".repeat(4096), "x"] })), { limits: { textCodePoints: 4096 } }),
-    "LIMIT",
-  );
+  rejects(() => lower(tree(label("x".repeat(4097))), { limits: { textCodePoints: 4096 } }), "LIMIT");
+  // @ts-expect-error Removed native text must fail typed construction as well as runtime lowering.
+  rejects(() => lower(tree(h("text", { text: "old" }))), "TYPE");
 });
 
 test("post-expansion hierarchy and final geometry diagnostics map to VDOM paths", () => {
@@ -154,9 +155,9 @@ test("post-expansion hierarchy and final geometry diagnostics map to VDOM paths"
   rejects(() => lower(tree("outside text")), "TYPE");
   rejects(() => lower(doc([])), "VALUE", "/tree/props/children");
   rejects(
-    () => lower(tree(h("text", { ...textProps, children: "Москва" }))),
+    () => lower(tree(label("Москва"))),
     "CHARACTER",
-    "/tree/props/children/props/children/props/children",
+    "/tree/props/children/props/children/props/paragraphs/0/runs/0/text",
   );
   const Bad: Component<object> = () => h("rect", { x: 95, y: 0, width: 10, height: 10 });
   rejects(() => lower(tree(h(Bad, {}))), "BOUNDS", "/tree/props/children/props/children/expanded/props");
@@ -168,7 +169,7 @@ interface BadgeProps {
 function isBadge(value: unknown): value is BadgeProps {
   return typeof value === "object" && value !== null && "label" in value && typeof value.label === "string";
 }
-const Badge = definePrimitive<BadgeProps>("Badge", isBadge, (props) => h("text", { ...textProps, text: props.label }));
+const Badge = definePrimitive<BadgeProps>("Badge", isBadge, (props) => label(props.label));
 
 test("registry installation is local and identity-based; no native override or duplicate name", () => {
   const input = tree(h(Badge.Type, { label: "registry" }));
@@ -177,7 +178,7 @@ test("registry installation is local and identity-based; no native override or d
   rejects(() => lower(input, { registry: [Badge.definition, Badge.definition] }), "VDOM_REGISTRY");
   const other = definePrimitive<BadgeProps>("Badge", isBadge, () => rect());
   rejects(() => lower(input, { registry: [other.definition] }), "VDOM_REGISTRY");
-  rejects(() => definePrimitive("Text", isBadge, () => rect()), "VDOM_REGISTRY");
+  rejects(() => definePrimitive("Rect", isBadge, () => rect()), "VDOM_REGISTRY");
   rejects(
     () =>
       Badge.definition.expand(
