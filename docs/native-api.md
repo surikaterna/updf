@@ -113,6 +113,10 @@ the CMR form geometry but adopts rich line baselines and a new guarded PDF diges
 
 ## Document authoring
 
+For a task-oriented starting point, see the [agent documentation map](agents/README.md)
+and [runnable template workflow](agents/pdf-authoring.md). These guides link current
+contracts and examples rather than historical evidence or unpublished API-site URLs.
+
 The current `@updf/layout` Document/Page/Flow components, readonly data constructors,
 PageSize presets/custom point sizes, sealed final PageContext/FragmentContext and
 reserved deferred decorations are documented in [documents.md](documents.md).

@@ -12,9 +12,9 @@ This checkout contains private, **unreleased** native packages (`2.0.0-poc.0`)
 and the compatibility-preserving legacy implementation (`0.4.15`). Workspace
 migration and README (#34/#35) were independently audited and merged via
 [PR #36](https://github.com/surikaterna/updf/pull/36) (`ac60f80`), **not released**
-or published. This JPEG worktree is stacked on the rich-only PR #65 head
-`bb8395b`; PR #65 is not merged by this assignment. JPEG delivery awaits independent
-integrated audit. Current local source is not a claim about the deployed showcase;
+or published. This JPEG worktree is based on the rich-only PR #65 head
+`bb8395b`; PR #65 subsequently merged as `a7678e3`. The JPEG follow-up is draft
+PR #66; this documentation slice awaits independent audit. Current local source is not a claim about the deployed showcase;
 publishing is deferred until after the documentation sweep and separate authorization.
 The prior painting/SVG proof was independently verified before
 migration; its [dated historical evidence](docs/evidence/native-poc.md) is not
@@ -150,6 +150,11 @@ extra-frame buffer (default 10), not a guaranteed production or mobile frame rat
 See [implementation and reproducible measurements](docs/evidence/plasma-showcase.md).
 
 ## Small typed PDF
+
+For coding agents, start with the [task-oriented documentation map](docs/agents/README.md)
+and [template authoring workflow](docs/agents/pdf-authoring.md). The linked typed
+notice includes reusable resource composition, measure-before-placement and a
+runnable Node proof; paginated business examples are linked separately.
 
 Complete source: [`apps/node/src/hello.ts`](apps/node/src/hello.ts).
 The application-owned [`text-options.ts`](apps/node/src/text-options.ts) composes
