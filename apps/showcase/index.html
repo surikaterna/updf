@@ -137,36 +137,47 @@
       <section id="limits" aria-labelledby="limits-heading">
         <h2 id="limits-heading">Core first. Optional means optional.</h2>
         <p>The entry loads core, not React, Fontkit, Node APIs or SVG. Native VDOM, measured TSX templates and layout demos load on demand, as do the SVG adapter and geometry. Native paths need no geometry adapter.</p>
-        <p>Fonts can use prepared resources through <code>@updf/core/fonts</code>; the optional <code>@updf/fontkit</code> adapter prepares trusted static TrueType bytes. The initial entry remains parser-free; opting into the freight invoice loads Fontkit and two licensed Liberation Sans font assets (regular and bold).</p>
+        <p>Fonts can use prepared resources through <code>@updf/fonts</code>; the optional <code>@updf/fontkit</code> adapter prepares trusted static TrueType bytes. The initial entry remains parser-free; opting into the freight invoice loads Fontkit and two licensed Liberation Sans font assets (regular and bold).</p>
         <ul>
            <li>Core uses fixed point geometry and explicit pages. Optional layout supports measured blocks, padding/border/gap and error/hidden overflow, repeated regions and explicit-width atomic table rows, not general CSS layout or row/column spans.</li>
-          <li>Built-in Helvetica: printable ASCII and LF. No shaping, bidi, raster images or full SVG.</li>
+           <li>Built-in Helvetica: printable ASCII and LF. No shaping, bidi or full SVG. Optional <code>@updf/jpeg</code> supports bounded baseline JPEG resources in the engine; this showcase has no image demo. PNG/alpha and broader image profiles are not delivered.</li>
           <li>Prepared fonts support a documented simple LTR Latin/Cyrillic profile, not general typography.</li>
           <li>Runtime validation and current resource caps still apply. Trusted components are not a sandbox.</li>
         </ul>
-        <p>This is the unreleased native checkout, not legacy 0.4.15 and not a claim that roadmap features are delivered. Legacy remains separate; a fixed CMR reference is not operational freight paperwork.</p>
-        <p><a href="https://github.com/surikaterna/updf/blob/feature/declarative-cmr-poc/docs/native-api.md">Native API contract</a> · <a href="https://github.com/surikaterna/updf/blob/feature/declarative-cmr-poc/readme.md">Checkout instructions</a></p>
+         <p>This previews the private, unreleased native implementation, not legacy 0.4.15. Merged features are not a package release; open roadmap acceptance is not delivered. Legacy remains separate; a fixed CMR reference is not operational freight paperwork.</p>
+         <p><a href="https://github.com/surikaterna/updf/blob/develop/docs/native-api.md">Native API contract</a> · <a href="https://github.com/surikaterna/updf/tree/develop">Native source checkout</a></p>
       </section>
       <section id="roadmap" aria-labelledby="roadmap-heading">
         <h2 id="roadmap-heading">Roadmap, not promises</h2>
-        <ul>
-          <li><a href="https://github.com/surikaterna/updf/issues/25">#25 Configurable budgets</a></li>
-           <li><a href="https://github.com/surikaterna/updf/issues/26">#26 Rich text and measurement</a> · independently verified per assignment, not released</li>
-          <li><a href="https://github.com/surikaterna/updf/issues/27">#27 Flow and page templates</a> · independently verified per assignment, not released</li>
-           <li><a href="https://github.com/surikaterna/updf/issues/28">#28 Paged tables</a> · independently verified including spatial R1, not released or deployed</li>
-          <li><a href="https://github.com/surikaterna/updf/issues/29">#29 Markdown lists</a></li>
-          <li><a href="https://github.com/surikaterna/updf/issues/30">#30 Native Code39</a></li>
-          <li><a href="https://github.com/surikaterna/updf/issues/31">#31 QR codes</a></li>
-          <li><a href="https://github.com/surikaterna/updf/issues/32">#32 Bundle-cost regression budgets</a> (graph checks and measurements are not completion)</li>
-          <li><a href="https://github.com/surikaterna/updf/issues/33">#33 Raster images</a></li>
-           <li><a href="https://github.com/surikaterna/updf/issues/34">#34 Workspace restructuring</a> · merged via PR #36 (ac60f80), not released</li>
-           <li><a href="https://github.com/surikaterna/updf/issues/35">#35 README, examples and roadmap</a> · merged via PR #36 (ac60f80), not released</li>
-        </ul>
+         <p>Compared with GitHub issues on <time datetime="2026-10-07">October 7, 2026</time>, against merged <a href="https://github.com/surikaterna/updf/tree/21dcd483dcd84961a24f5823e95a586ea25dd534">develop revision 21dcd48</a>. Native packages remain private and unreleased. This is a dated comparison, not a release or deployment record; linked issues carry current acceptance details. Ordering below is by issue number, not priority or a delivery commitment.</p>
+         <h3>Open acceptance scope</h3>
+         <ul id="roadmap-open">
+           <li><a href="https://github.com/surikaterna/updf/issues/29">#29 Bounded Markdown lists</a> · structured input versus an optional constrained parser is undecided; markers, wrapping, nesting and pagination remain unimplemented. No CommonMark/GFM promise.</li>
+           <li><a href="https://github.com/surikaterna/updf/issues/30">#30 Native Code 39</a> · legacy support is not native TypeScript support. Validation, sizing, quiet zones and independent decoding evidence remain open.</li>
+           <li><a href="https://github.com/surikaterna/updf/issues/31">#31 QR codes</a> · native generation is absent; a bounded encoding/error-correction profile, quiet-zone/fit rules and independent decoder tests are still needed.</li>
+           <li><a href="https://github.com/surikaterna/updf/issues/32">#32 Bundle-cost and feature regression gates</a> · graph checks and measurements exist; reviewed numeric thresholds and CI material-regression/baseline-approval policy remain incomplete. No size caps are promised here.</li>
+           <li><a href="https://github.com/surikaterna/updf/issues/35">#35 README, examples and roadmap</a> · earlier documentation merged, but final status reconciliation, review and authorized delivery remain open. This Pages comparison does not close the wider documentation acceptance.</li>
+           <li><a href="https://github.com/surikaterna/updf/issues/47">#47 Optional SVG string/TSX authoring and adapters</a> · XML compilation and the tree entry exist; typed SVG TSX and supported block/inline exports, sizing/baseline contracts and isolated consumer-graph proof remain open. App-owned adapters are examples, not supported exports.</li>
+           <li><a href="https://github.com/surikaterna/updf/issues/54">#54 Positioned Blocks</a> · relative/absolute/fixed positioning, containing-block and fragmentation rules, paint ordering and fit diagnostics remain unimplemented. Fixed image coordinates are not positioned Blocks.</li>
+           <li><a href="https://github.com/surikaterna/updf/issues/55">#55 Auto-height regions with final pagination context</a> · explicit-height final context works; auto-height convergence, cycle detection, cumulative iteration/work budgets and trial-resource ownership remain open.</li>
+           <li><a href="https://github.com/surikaterna/updf/issues/56">#56 Kernel-backed Row/Column alignment</a> · width resolution and placement foundations exist; positive residual-space distribution, consistent Column cross-axis alignment, legacy style migration and definite-height/fragmentation rules remain open. No full flexbox promise.</li>
+         </ul>
+         <h3>Merged implementation · closed issues, not a native release</h3>
+         <ul id="roadmap-merged">
+           <li><a href="https://github.com/surikaterna/updf/issues/25">#25 Configurable resource budgets</a> · accepted trusted/service profiles and resource-byte accounting; does not deliver #55 cumulative trial-work guarantees.</li>
+           <li><a href="https://github.com/surikaterna/updf/issues/26">#26 Rich text and measurement</a>, <a href="https://github.com/surikaterna/updf/issues/27">#27 Flow and page templates</a>, and <a href="https://github.com/surikaterna/updf/issues/28">#28 Paged tables</a> · merged foundations, not open/unmerged local proofs.</li>
+           <li><a href="https://github.com/surikaterna/updf/issues/33">#33 Raster images: bounded JPEG v1 only</a> · merged via PR #66 with optional <code>@updf/jpeg</code> and shared resource/XObject support. PNG/alpha, progressive/CMYK/EXIF/ICC and decoders remain unsupported/future work; the broad image roadmap is not complete.</li>
+           <li><a href="https://github.com/surikaterna/updf/issues/34">#34 Workspace restructuring</a> · merged via PR #36; #35 documentation acceptance remains open.</li>
+           <li><a href="https://github.com/surikaterna/updf/issues/41">#41 Public authoring APIs</a>, <a href="https://github.com/surikaterna/updf/issues/42">#42 Per-edge borders</a>, <a href="https://github.com/surikaterna/updf/issues/43">#43 Inline backgrounds</a>, <a href="https://github.com/surikaterna/updf/issues/44">#44 Row/Column composition</a>, <a href="https://github.com/surikaterna/updf/issues/45">#45 Flexible table widths</a>, and <a href="https://github.com/surikaterna/updf/issues/46">#46 Invoice/manifest examples</a> · merged bounded capabilities.</li>
+           <li><a href="https://github.com/surikaterna/updf/issues/49">#49 Typed style conventions</a>, <a href="https://github.com/surikaterna/updf/issues/51">#51 Fractional geometry</a>, <a href="https://github.com/surikaterna/updf/issues/52">#52 PageBreak</a>, and <a href="https://github.com/surikaterna/updf/issues/53">#53 Normal-flow auto margins</a> · merged; not full CSS or completion of #54–#56.</li>
+         </ul>
+         <p><a href="https://github.com/surikaterna/updf/issues/48">#48 Intermittent Chromium black frames</a> is closed / not planned: investigation is deferred, root cause remains unknown and no production fix is claimed. <a href="https://github.com/surikaterna/updf/issues/50">#50 SVG signature reference mismatch</a> was fixed separately; it does not resolve #48.</p>
+         <p>For changes after this comparison, consult <a href="https://github.com/surikaterna/updf/issues?q=is%3Aissue%20is%3Aopen">current open GitHub issues</a>, not historical roadmap snapshots.</p>
       </section>
     </main>
     <footer>
-       <p>Prior #26–#28 demos were audited locally and remain OPEN and unmerged. The new C block demo is implemented, awaiting independent audit. No release or live deployment is claimed.</p>
-      <p>UPDF is MIT licensed. Copyright (c) 2026 Surikat AB. <a data-local="notices/LICENSE" href="./notices/LICENSE">Project MIT license</a>. Project attribution is confirmed; deployment still requires separate authorization.</p>
+       <p>Demo availability is not a native package release or completion of open roadmap acceptance. See the dated issue comparison above for merged and remaining scope.</p>
+       <p>UPDF is MIT licensed. Copyright (c) 2026 Surikat AB. <a data-local="notices/LICENSE" href="./notices/LICENSE">Project MIT license</a>.</p>
       <p>Optional geometry incorporates Fontello svgpath code. <a data-local="notices/LICENSE.svgpath" href="./notices/LICENSE.svgpath">Fontello MIT notice</a> · <a data-local="notices/REUSE.md" href="./notices/REUSE.md">Reuse provenance</a></p>
       <p>Canvas preview uses PDF.js (Apache-2.0). <a data-local="notices/LICENSE.pdfjs" href="./notices/LICENSE.pdfjs">PDF.js license</a></p>
     </footer>
