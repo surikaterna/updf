@@ -1,28 +1,13 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 import test from "node:test";
 import { gzipSync } from "node:zlib";
-import { build, type Plugin } from "esbuild";
-import ts from "typescript";
+import { build } from "esbuild";
+import { baselineCommit as base, baselinePlugin } from "./svg-baseline.js";
 
-const base = "21dcd483dcd84961a24f5823e95a586ea25dd534";
 const contents = `import { compileSVG } from "@updf/svg";
 export function operationSource(source, target) { return compileSVG(source, target); }`;
 
-// Compile baseline SVG modules in memory; all unchanged dependencies use the same built packages.
-const baseline: Plugin = {
-  name: "baseline-emitted-svg",
-  setup(builder) {
-    builder.onLoad({ filter: /packages\/svg\/dist\/[^/]+\.js$/ }, ({ path }) => {
-      const name = path.slice(path.lastIndexOf("/") + 1).replace(/\.js$/u, ".ts");
-      const source = execFileSync("git", ["show", `${base}:packages/svg/src/${name}`], { encoding: "utf8" });
-      const compiled = ts.transpileModule(source, {
-        compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 },
-      });
-      return { contents: compiled.outputText, loader: "js" };
-    });
-  },
-};
+const baseline = baselinePlugin();
 test("same exported XML operation reports baseline/current emitted consumer cost", async () => {
   for (const [revision, plugins] of [
     [base, [baseline]],
@@ -93,4 +78,5 @@ test("frozen baseline and current XML rendering use identical dynamic graphic an
     );
   }
   for (const fill of ["red", "blue"]) assert.deepEqual(consumers[0]?.pdf(fill), consumers[1]?.pdf(fill));
+  for (const consumer of consumers) assert.notDeepEqual(consumer.pdf("red"), consumer.pdf("blue"));
 });
