@@ -63,8 +63,8 @@ for (const build of builds) {
     );
   if (build === "font-browser") {
     assert.ok(
-      modules.some((id) => id.endsWith("/showcase/src/optional-inline-svg.ts")),
-      "Local inline SVG proof missing",
+      modules.some((id) => id.endsWith("/svg/dist/layout.js")),
+      "Optional SVG layout adapter proof missing",
     );
     assert.ok(
       modules.some((id) => id.endsWith("/svg/dist/index.js")),

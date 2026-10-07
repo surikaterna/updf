@@ -40,7 +40,12 @@ export function cascade(
   for (const name of properties) {
     const attribute = node.attrs[name];
     if (attribute) {
-      const entry = { name, value: attribute.value, span: attribute.span, path: `${node.path}/@${name}` };
+      const entry = {
+        name,
+        value: attribute.value,
+        ...(attribute.span ? { span: attribute.span } : {}),
+        path: `${node.path}/@${name}`,
+      };
       validateDeclaration(entry);
       presentation.push(entry);
     }

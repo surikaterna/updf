@@ -6,7 +6,7 @@ import { mapped, svgFail } from "./error.js";
 import { numbers } from "./numbers.js";
 import { range } from "./source.js";
 
-function operation(name: string, values: readonly number[], path: string, span: SourceSpan): Matrix {
+function operation(name: string, values: readonly number[], path: string, span: SourceSpan | undefined): Matrix {
   const a = values[0] ?? 0,
     b = values[1] ?? 0;
   if (name === "matrix" && values.length === 6) return matrix(values, path);
@@ -27,7 +27,7 @@ function operation(name: string, values: readonly number[], path: string, span: 
 export function transform(
   input: string | undefined,
   path: string,
-  span: SourceSpan,
+  span: SourceSpan | undefined,
   offsets?: readonly number[],
 ): Matrix {
   if (input === undefined || !input.trim()) return identity;

@@ -61,13 +61,13 @@ export const metadata: Record<DemoId, Metadata> = {
     "Side-by-side composition",
     "Arrange charts, SVG and nested columns with fixed and weighted widths.",
     ["Layout · lazy", "SVG · lazy"],
-    "rows.tsx · chart.ts · optional-table-svg.ts · optional-inline-svg.ts",
+    "rows.tsx · chart.ts · optional-table-svg.ts",
   ),
   "rows-overflow": entry(
     "Atomic overflow diagnostic",
     "An intentionally oversized row demonstrates a readable engine diagnostic.",
     ["Layout · lazy", "Intentional error"],
-    "rows.tsx · chart.ts · optional-table-svg.ts · optional-inline-svg.ts",
+    "rows.tsx · chart.ts · optional-table-svg.ts",
   ),
   painting: entry(
     "Native painting",

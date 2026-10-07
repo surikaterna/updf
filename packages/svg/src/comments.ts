@@ -5,7 +5,12 @@ import { range } from "./source.js";
 /** One forward scan; unterminated comments reject at the first opener. Quotes
  * preserve CSS string contents and offsets, including the quoted-none warning.
  */
-export function comments(input: string, path: string, span: SourceSpan, offsets?: readonly number[]): string {
+export function comments(
+  input: string,
+  path: string,
+  span: SourceSpan | undefined,
+  offsets?: readonly number[],
+): string {
   const pieces: string[] = [];
   let offset = 0;
   let quote = "";

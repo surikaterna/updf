@@ -27,13 +27,13 @@ test("#44 actual lazy Row showcase: Node/browser PDF parity, displayed source, a
     await rendered(page, 5);
     await page.getByLabel("Generated PDF preview", { exact: true }).waitFor();
     const sources = await Promise.all(
-      ["rows.tsx", "chart.ts", "optional-table-svg.ts", "optional-inline-svg.ts"].map((name) =>
+      ["rows.tsx", "chart.ts", "optional-table-svg.ts"].map((name) =>
         readFile(new URL(`../../apps/showcase/src/${name}`, import.meta.url), "utf8"),
       ),
     );
     assert.equal(
       await page.locator("#source").textContent(),
-      `${sources[0]}\n// Imported external producer: chart.ts\n${sources[1]}\n// Imported SVG adapters: optional-table-svg.ts, optional-inline-svg.ts\n${sources[2]}\n${sources[3]}`,
+      `${sources[0]}\n// Imported external producer: chart.ts\n${sources[1]}\n// Imported SVG placement: optional-table-svg.ts (@updf/svg/layout)\n${sources[2]}`,
     );
     assert.ok(requests.some((url) => /optional-rows-/.test(url)));
     await screenshot(page, "rows");

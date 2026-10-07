@@ -12,7 +12,10 @@ export async function publicEntries(directory: string, names: readonly string[])
     const manifest: { name: string; exports: Record<string, unknown> } = JSON.parse(
       await readFile(join(directory, "node_modules/@updf", name, "package.json"), "utf8"),
     );
-    for (const path of Object.keys(manifest.exports)) entries.push(manifest.name + (path === "." ? "" : path.slice(1)));
+    for (const path of Object.keys(manifest.exports)) {
+      if (name === "svg" && path === "./layout" && !names.includes("layout")) continue;
+      entries.push(manifest.name + (path === "." ? "" : path.slice(1)));
+    }
   }
   return entries;
 }
@@ -45,7 +48,7 @@ export async function dualProof(directory: string, names: readonly string[]): Pr
       ${names.includes("jpeg") ? jpegDualRuntime : ""}
       ${names.includes("text") && !names.includes("fonts") ? hostRuntime : ""}
       ${names.includes("fonts") && names.includes("text") ? fontsRuntime : ""}
-      ${names.includes("layout") ? layoutRuntime : ""}
+      ${names.includes("layout") && names.includes("fonts") ? layoutRuntime : ""}
       ${names.includes("svg") ? svgRuntime : ""}
       ${names.includes("fontkit") ? fontkitRuntime : ""}
     `,
@@ -153,6 +156,17 @@ const svgRuntime = `
   const cs = require('@updf/svg'), es = await import('@updf/svg');
   assert.ok(new cs.SVGError('SVG_XML','','mixed',{start:0,end:1}) instanceof e.DocumentError);
   assert.throws(()=>es.renderSVG('???',{x:0,y:0,w:10,h:10}),c.DocumentError);
+  const ca = require('@updf/svg/authoring'), ea = await import('@updf/svg/authoring');
+  const sj = require('@updf/svg/jsx-runtime');
+  assert.deepEqual(Object.keys(ea).sort(), ['SVGError','compilePreparedSVG','createSVGComponent','prepareSVGTree']);
+  for (const prepare of [ca.prepareSVGTree,ea.prepareSVGTree]) {
+    const painting = prepare(sj.jsx('svg',{viewBox:'0 0 10 10',children:sj.jsx('rect',{width:3,height:4})}));
+    const target = {x:2,y:3,w:10,h:20};
+    assert.deepEqual(ca.compilePreparedSVG(painting,target),ea.compilePreparedSVG(painting,target));
+    const Logo = ea.createSVGComponent(painting);
+    const tree = cv.h('document',{version:1,children:ev.h('page',{width:100,height:100,children:cv.h(Logo,target)})});
+    assert.deepEqual(c.render(ev.lower(tree)),e.render({version:1,pages:[{width:100,height:100,children:[ca.compilePreparedSVG(painting,target).node]}]}));
+  }
 `;
 
 const fontkitRuntime = `

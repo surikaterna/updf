@@ -24,6 +24,62 @@
         "default": "./dist/cjs/index.js"
       }
     },
+    "./authoring": {
+      "browser": {
+        "types": "./dist/node/authoring.d.mts",
+        "default": "./dist/authoring.js"
+      },
+      "import": {
+        "types": "./dist/node/authoring.d.mts",
+        "default": "./dist/node/authoring.mjs"
+      },
+      "require": {
+        "types": "./dist/node/authoring.d.cts",
+        "default": "./dist/cjs/authoring.js"
+      }
+    },
+    "./jsx-runtime": {
+      "browser": {
+        "types": "./dist/node/jsx-runtime.d.mts",
+        "default": "./dist/jsx-runtime.js"
+      },
+      "import": {
+        "types": "./dist/node/jsx-runtime.d.mts",
+        "default": "./dist/node/jsx-runtime.mjs"
+      },
+      "require": {
+        "types": "./dist/node/jsx-runtime.d.cts",
+        "default": "./dist/cjs/jsx-runtime.js"
+      }
+    },
+    "./jsx-dev-runtime": {
+      "browser": {
+        "types": "./dist/node/jsx-dev-runtime.d.mts",
+        "default": "./dist/jsx-dev-runtime.js"
+      },
+      "import": {
+        "types": "./dist/node/jsx-dev-runtime.d.mts",
+        "default": "./dist/node/jsx-dev-runtime.mjs"
+      },
+      "require": {
+        "types": "./dist/node/jsx-dev-runtime.d.cts",
+        "default": "./dist/cjs/jsx-dev-runtime.js"
+      }
+    },
+    "./layout": {
+      "browser": {
+        "types": "./dist/node/layout.d.mts",
+        "default": "./dist/layout.js"
+      },
+      "import": {
+        "types": "./dist/node/layout.d.mts",
+        "default": "./dist/node/layout.mjs"
+      },
+      "require": {
+        "types": "./dist/node/layout.d.cts",
+        "default": "./dist/cjs/layout.js"
+      }
+    },
     "./tree": {
       "browser": {
         "types": "./dist/node/tree.d.mts",
@@ -42,6 +98,17 @@
   "dependencies": {
     "@updf/core": "2.0.0-poc.0",
     "@updf/geometry": "2.0.0-poc.0"
+  },
+  "peerDependencies": {
+    "@updf/layout": "2.0.0-poc.0"
+  },
+  "peerDependenciesMeta": {
+    "@updf/layout": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@updf/layout": "2.0.0-poc.0"
   },
   "scripts": {
     "build": "tsx ../../scripts/packaging/build.ts"
