@@ -5,6 +5,7 @@ import { join } from "node:path";
 
 export const internalImporters: Readonly<Record<string, readonly string[]>> = {
   "@updf/core/internal-drawing": [
+    "svg/src/bridge.ts",
     "layout/src/mixed-layout.ts",
     "layout/src/index.ts",
     "layout/src/native-vdom.ts",
@@ -99,6 +100,9 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "svg/src/compile.ts",
     "svg/src/declaration.ts",
     "svg/src/index.ts",
+    "svg/src/prepared.ts",
+    "svg/src/layout.ts",
+    "svg/src/layout-size.ts",
     "svg/src/style.ts",
     "svg/src/transform.ts",
     "svg/src/viewport.ts",

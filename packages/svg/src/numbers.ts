@@ -3,7 +3,7 @@ import { hasArguments, numeric, type Scanner, whitespace } from "@updf/geometry/
 import { mapped, svgFail } from "./error.js";
 import type { XMLElement } from "./types.js";
 
-export function length(value: string, path: string, span: SourceSpan): number {
+export function length(value: string, path: string, span: SourceSpan | undefined): number {
   if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?(?:px)?$/.test(value.trim()))
     svgFail("SVG_GEOMETRY", path, "Only finite unitless/px lengths are supported", span);
   const result = Number(value.trim().replace(/px$/, ""));
@@ -17,7 +17,7 @@ export function attribute(node: XMLElement, key: string, fallback = 0, nonnegati
     svgFail("SVG_GEOMETRY", `${node.path}/@${key}`, "Negative size/radius", value?.span ?? node.span);
   return result;
 }
-export function numbers(input: string, path: string, span: SourceSpan): readonly number[] {
+export function numbers(input: string, path: string, span: SourceSpan | undefined): readonly number[] {
   const scan: Scanner = { input, offset: 0, units: 0 };
   const result: number[] = [];
   try {

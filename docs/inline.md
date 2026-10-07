@@ -181,11 +181,12 @@ Candidate-local forks charge selected inline painting once and discard probes.
 
 Real application examples: [native badge](../apps/showcase/src/inline-badge.ts),
 [actual TSX showcase](../apps/showcase/src/rich.tsx), and
-[local optional SVG adapter](../apps/showcase/src/optional-inline-svg.ts). SVG is
-compiled to native nodes with `compileSVG`; warnings are explicitly rejected in
-this example. The application-owned adapter is the approved optional integration
-choice: neither SVG's root/declarations nor layout acquires the other's dependency,
-and no package/lockfile change is needed. The showcase Paragraph module is lazy,
+[optional SVG placement](../apps/showcase/src/optional-table-svg.ts). The separate
+[`@updf/svg/layout` entry](svg-authoring.md) provides `svgBlock`, `svgInline` and
+`svgAdapters`: prepared XML/structured graphics become native snapshots before
+descriptor creation, and warnings reject before placement. Layout is an optional
+peer only for that entry; SVG's root/authoring and layout's root remain independent.
+The showcase Paragraph module is lazy,
 keeping SVG/Fontkit/React and table code out of its closure and the initial bundle.
 The prepared-font [browser proof](../apps/browser-fonts/inline-proof.tsx) exercises
 both visuals and a provider with exact Node/Chromium metrics/PDF parity.

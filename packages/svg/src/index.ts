@@ -1,13 +1,17 @@
-import type { PaintingGroupNode, SourceSpan } from "@updf/core";
-import { finite, number, validateDataObject as record } from "@updf/core/internal";
-import { compile } from "./compile.js";
-import { mapped, svgFail } from "./error.js";
-import { inspect } from "./inspect.js";
-import type { SVGCompilation, SVGDiagnostic, SVGTarget } from "./types.js";
+import type { PaintingGroupNode } from "@updf/core";
+import { svgFail } from "./error.js";
+import { checkedTarget, compilePreparedSVG, type PreparedSvg, prepareRoot } from "./prepared.js";
+import type { SVGCompilation, SVGTarget } from "./types.js";
 import { parseXML } from "./xml.js";
 
 export { SVGError } from "./error.js";
 export type { SVGCompilation, SVGDiagnostic, SVGTarget } from "./types.js";
+export type { PreparedSvg } from "./prepared.js";
+
+/** Parse, inspect and validate SVG geometry once, independently of placement. */
+export function prepareSVG(source: string): PreparedSvg {
+  return prepareRoot(parseXML(source));
+}
 
 /**
  * Compile a strict SVG shape subset to native painting, without DOM or resource loading.
@@ -23,22 +27,8 @@ export type { SVGCompilation, SVGDiagnostic, SVGTarget } from "./types.js";
  */
 export function compileSVG(source: string, target: SVGTarget): SVGCompilation {
   const root = parseXML(source);
-  const diagnostics: SVGDiagnostic[] = [];
-  const span: SourceSpan = { start: 0, end: 0 };
-  let checked: SVGTarget;
-  try {
-    record(target, ["x", "y", "w", "h"], "/target");
-    checked = {
-      x: finite(target.x, "/target/x"),
-      y: finite(target.y, "/target/y"),
-      w: number(target.w, "/target/w", true),
-      h: number(target.h, "/target/h", true),
-    };
-  } catch (error: unknown) {
-    mapped(error, "/svg", span);
-  }
-  const node = compile(root, checked, inspect(root, diagnostics), diagnostics);
-  return Object.freeze({ node, diagnostics: Object.freeze(diagnostics) });
+  const checked = checkedTarget(target, { start: 0, end: 0 });
+  return compilePreparedSVG(prepareRoot(root), checked);
 }
 /**
  * Compile using compileSVG's subset, limits and viewport semantics, rejecting any warning.
