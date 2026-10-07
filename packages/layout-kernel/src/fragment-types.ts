@@ -52,7 +52,11 @@ export interface SelectedRange<C> {
   readonly height: number;
   readonly units: readonly FragmentUnit<C>[];
 }
-/** Safe integer source offset; nonnegative finite host width/height/usedHeight with usedHeight ≤ height. */
+/**
+ * Safe integer source offset; nonnegative finite host width/height/usedHeight.
+ * Occupied usedHeight fits height under the shared two-relative-epsilon metric policy,
+ * including previously computed metrics supplied by callers. Values are never clamped.
+ */
 export interface RangeRequest {
   readonly offset: number;
   readonly width: number;
@@ -69,7 +73,10 @@ declare const cursorBrand: unique symbol;
 export interface FragmentCursor {
   readonly [cursorBrand]: true;
 }
-/** Host region with nonempty ID and nonnegative finite lengths; kernel does not create pages or retry blocked regions. */
+/**
+ * Host region with nonempty ID and nonnegative finite lengths; usedHeight fits height
+ * under the RangeRequest metric policy. Kernel does not create pages or retry blocked regions.
+ */
 export interface FragmentRegion {
   readonly id: string;
   readonly width: number;
