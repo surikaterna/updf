@@ -1,3 +1,4 @@
+import { exceeds } from "./arithmetic.js";
 import { fail } from "./error.js";
 import type { FragmentSource, RangeRequest } from "./fragment-types.js";
 import { number, record, trackLimit } from "./width-validation.js";
@@ -33,7 +34,7 @@ export function rangeRequest(input: RangeRequest): RangeRequest {
   const data = record(input, ["offset", "width", "height", "usedHeight"], "/request");
   const height = number(data.height, "/request/height");
   const usedHeight = number(data.usedHeight, "/request/usedHeight");
-  if (usedHeight > height) fail("GEOMETRY", "/request/usedHeight", "Used height exceeds region height");
+  if (exceeds(usedHeight, height)) fail("GEOMETRY", "/request/usedHeight", "Used height exceeds region height");
   return Object.freeze({
     offset: safeInteger(data.offset, "/request/offset"),
     width: number(data.width, "/request/width"),
