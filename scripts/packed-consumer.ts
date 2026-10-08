@@ -35,7 +35,7 @@ const graphs: Record<string, readonly string[]> = {};
 try {
   const tarballs = new Map<string, string>();
   for (const name of [
-    "layout-kernel",
+    "layout-boxes",
     "core",
     "jpeg",
     "fonts",
@@ -50,17 +50,17 @@ try {
     tarballs.set(name, await pack(`packages/${name}`, packs));
   tarballs.set("cmr", await pack("apps/cmr", packs));
   for (const names of [
-    ["layout-kernel"],
-    ["layout-kernel", "core"],
-    ["layout-kernel", "core", "jpeg"],
-    ["layout-kernel", "core", "jpeg", "fonts", "text"],
-    ["layout-kernel", "core", "text"],
-    ["layout-kernel", "core", "fonts", "text", "cmr"],
-    ["core", "layout-kernel", "fonts", "text", "layout"],
-    ["core", "layout-kernel", "fonts", "text", "layout", "tables"],
-    ["layout-kernel", "core", "geometry"],
-    ["layout-kernel", "core", "fonts", "text", "geometry", "svg", "cmr"],
-    ["layout-kernel", "core", "fonts", "text", "fontkit"],
+    ["layout-boxes"],
+    ["layout-boxes", "core"],
+    ["layout-boxes", "core", "jpeg"],
+    ["layout-boxes", "core", "jpeg", "fonts", "text"],
+    ["layout-boxes", "core", "text"],
+    ["layout-boxes", "core", "fonts", "text", "cmr"],
+    ["core", "layout-boxes", "fonts", "text", "layout"],
+    ["core", "layout-boxes", "fonts", "text", "layout", "tables"],
+    ["layout-boxes", "core", "geometry"],
+    ["layout-boxes", "core", "fonts", "text", "geometry", "svg", "cmr"],
+    ["layout-boxes", "core", "fonts", "text", "fontkit"],
     ["legacy"],
   ]) {
     const paths = names.map((name) => {
@@ -73,7 +73,7 @@ try {
     await absent(directory, ["fontkit", "react", "react-dom"]);
     await absent(
       directory,
-      ["layout-kernel", "jpeg", "fonts", "text", "tables", "geometry", "svg", "fontkit", "legacy"]
+      ["layout-boxes", "jpeg", "fonts", "text", "tables", "geometry", "svg", "fontkit", "legacy"]
         .filter((name) => !names.includes(name))
         .map((name) => `@updf/${name}`),
     );
@@ -95,7 +95,7 @@ try {
       await typeConsumer(directory, ["measurement-template.tsx", "fonts-template.ts"]);
       await typeConsumer(directory, ["measurement-template.tsx", "fonts-template.ts"], true);
     }
-    if (names.length === 1 && names.includes("layout-kernel")) graphs.kernel = await kernelProof(directory);
+    if (names.length === 1 && names.includes("layout-boxes")) graphs.kernel = await kernelProof(directory);
     if (names.includes("layout")) {
       await typeConsumer(directory, [
         "content-template.tsx",

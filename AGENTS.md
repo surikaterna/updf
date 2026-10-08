@@ -13,7 +13,7 @@ with agents. Existing authoring documentation under `docs/agents/` is separate.
   [numerical policy](docs/architecture/numerical-policy.md). Classify each touched
   operation/API before changing comparisons: exact input/identity validation,
   approximate derived fit/containment, or a named exact native certificate.
-- Validate operand domains separately. Reuse `@updf/layout-kernel/arithmetic`
+- Validate operand domains separately. Reuse `@updf/layout-boxes/arithmetic`
   for approximate comparisons with justified immediate-local operation scales;
   do not introduce unit-sized epsilon allowances or blanket comparison rewrites.
   Preserve exact certificates and exact request/cache identity.

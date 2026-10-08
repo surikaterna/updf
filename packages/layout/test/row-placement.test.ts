@@ -27,8 +27,13 @@ test("Row owns frozen prepared offsets reused across selections without changing
   const row = rowProducer(
     sizing({ gap: 1, paddingTop: 1, paddingBottom: 2 }, 80, "/row"),
     [observed, column(5)],
-    "bottom",
-    13,
+    Object.freeze({
+      height: 13,
+      children: Object.freeze([
+        Object.freeze({ left: 0, top: 7, width: 20, height: 3 }),
+        Object.freeze({ left: 21, top: 5, width: 20, height: 5 }),
+      ]),
+    }),
     "/row",
   );
   assert.deepEqual(row.rowPlacement?.children, [
@@ -45,7 +50,12 @@ test("Row owns frozen prepared offsets reused across selections without changing
   assert.equal(selected.usedHeight, 0);
 });
 test("complete Row children must retain prepared sizes instead of triggering placement reflow", () => {
-  const row = rowProducer(sizing(undefined, 80, "/row"), [column(10, 9)], "top", 10, "/row");
+  const row = rowProducer(
+    sizing(undefined, 80, "/row"),
+    [column(10, 9)],
+    { height: 10, children: [{ left: 0, top: 0, width: 20, height: 10 }] },
+    "/row",
+  );
   assert.throws(
     () => row.fragment(request),
     (error) =>

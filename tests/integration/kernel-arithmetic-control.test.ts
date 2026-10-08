@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { build } from "esbuild";
-import { arithmeticControl, arithmeticSource, certifyArithmetic } from "../../scripts/layout-kernel-control.js";
+import { arithmeticControl, arithmeticSource, certifyArithmetic } from "../../scripts/layout-boxes-control.js";
 
 async function probe(source: string, entry = "@updf/text") {
   const control = arithmeticControl(source);
   const result = await build({
     stdin: {
       contents: `export * from '${entry}';${
-        entry === "@updf/layout-kernel/arithmetic"
+        entry === "@updf/layout-boxes/arithmetic"
           ? ""
           : `
        import {createHelvetica,fontRuntime} from '@updf/fonts';
@@ -34,7 +34,7 @@ test("historical arithmetic certificate rejects source bytes and hook requires t
   assert.throws(() => certifyArithmetic(`${source} `), /pre-kernel source certificate/);
   await probe(source);
   await probe(source, "./packages/text/src/index.ts");
-  await assert.rejects(probe(source, "@updf/layout-kernel/arithmetic"), /exactly one text arithmetic input/);
+  await assert.rejects(probe(source, "@updf/layout-boxes/arithmetic"), /exactly one text arithmetic input/);
   await assert.rejects(probe("export const = ;"), /arithmetic\.js.*Expected/s);
 });
 

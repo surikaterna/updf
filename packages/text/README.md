@@ -2,7 +2,7 @@
 
 Owns rich paragraph measurement, wrapping, alignment, line envelopes,
 inline layout, and intrinsic text ink. Depends on generic `@updf/core` contracts
-and `@updf/layout-kernel/arithmetic`, never a concrete font implementation.
+and `@updf/layout-boxes/arithmetic`, never a concrete font implementation.
 
 ```ts
 import { render } from "@updf/core";

@@ -29,6 +29,17 @@ export interface StackSelection {
   readonly advance: boolean;
 }
 
+export function stackHeight(children: readonly PreparedBlock[], gap: number, blank = 0): number {
+  const height = new MetricSum();
+  let boxes = 0;
+  for (const child of children) {
+    if (!child.control && boxes++ > 0) height.add(gap);
+    height.add(child.naturalSize.height);
+  }
+  height.add(blank);
+  return height.value;
+}
+
 export function stack(
   children: readonly PreparedBlock[],
   gap: number,
@@ -37,7 +48,6 @@ export function stack(
   path: string,
 ): Stack {
   const entries: StackEntry[] = [];
-  const height = new MetricSum();
   let extent = 0,
     boxes = 0;
   const append = (block: PreparedBlock | undefined, space?: StackEntry["space"]): void => {
@@ -51,16 +61,13 @@ export function stack(
   for (const child of children) {
     if (!child.control && boxes++ > 0 && gap) {
       append(undefined, { height: gap, capacity: capacity > 0 ? capacity : gap });
-      height.add(gap);
     }
     append(child);
-    height.add(child.naturalSize.height);
   }
   if (blank > 0 || !extent) {
     append(undefined, { height: blank, capacity: capacity > 0 ? capacity : Math.max(blank, 1) });
-    height.add(blank);
   }
-  return { entries, extent, height: height.value };
+  return { entries, extent, height: stackHeight(children, gap, blank) };
 }
 function locate(entries: readonly StackEntry[], offset: number): StackEntry {
   let low = 0,

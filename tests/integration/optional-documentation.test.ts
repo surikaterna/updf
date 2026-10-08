@@ -40,7 +40,7 @@ test("documented optional font loading prepares trusted fixture bytes", async ()
 
 test("optional defining contracts survive ESM and canonical CJS declaration emission", async () => {
   const contracts = [
-    ["layout-kernel", "width-resolver", "residual ULPs are assigned in stable input order"],
+    ["layout-boxes", "width-resolver", "residual ULPs are assigned in stable input order"],
     ["geometry", "arc", "Readonly typing does not imply freezing"],
     ["geometry", "color", "Not runtime-frozen"],
     ["svg", "index", "no redaction"],

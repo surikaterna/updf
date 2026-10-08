@@ -52,8 +52,8 @@ function baselineSources(builder) {
 
 function configure(builder, root, baseline) {
   if (baseline) baselineSources(builder);
-  builder.onResolve({ filter: /^@updf\/layout-kernel(?:\/(?:numeric|boxes|arithmetic|geometry))?$/ }, ({ path }) => ({
-    path: resolve(here, `../../packages/layout-kernel/src/${path.split("/")[2] ?? "index"}.ts`),
+  builder.onResolve({ filter: /^@updf\/layout-boxes(?:\/(?:numeric|boxes|arithmetic|geometry))?$/ }, ({ path }) => ({
+    path: resolve(here, `../../packages/layout-boxes/src/${path.split("/")[2] ?? "index"}.ts`),
   }));
   builder.onResolve({ filter: /^proof:/ }, ({ path }) => ({
     path: join(root, "apps/demos/src", path === "proof:compile" ? "fsx/compile.ts" : "runtime/kalada-demo-install.ts"),

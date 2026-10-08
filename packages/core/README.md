@@ -2,7 +2,7 @@
 
 Private, unreleased `2.0.0-poc.0`. Portable immutable declarative PDF data,
 generic owned resources, native painting, VDOM and native JSX runtimes. Its only
-runtime dependency is portable layout-kernel arithmetic. See repository
+runtime dependency is portable layout-boxes arithmetic. See repository
 `docs/native-api.md` for contracts and limitations.
 See [API inventory and compiled examples](API.md) for entry-point coverage,
 imports, units, defaults, lifecycle and trust boundaries. Public declarations carry

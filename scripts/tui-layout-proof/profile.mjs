@@ -17,7 +17,7 @@ const scopes = {
 async function persist(result, scope) {
   const destination = resolve(
     here,
-    `../../artifacts/${baseline ? "layout-kernel-a/baseline-profile" : "layout-kernel-b/profile"}`,
+    `../../artifacts/${baseline ? "layout-boxes-a/baseline-profile" : "layout-boxes-b/profile"}`,
     scope,
   );
   await mkdir(destination, { recursive: true });
@@ -64,12 +64,12 @@ async function report(entry, scope) {
   }
   if (!baseline && ["allocator", "terminalAdapter", "combinedCLI"].includes(scope))
     assert.ok(
-      retained.some(([path]) => path.endsWith("layout-kernel/src/width-resolver.ts")),
+      retained.some(([path]) => path.endsWith("layout-boxes/src/width-resolver.ts")),
       "Kernel positive bytes control missing",
     );
   if (!baseline && ["terminalAdapter", "combinedCLI"].includes(scope))
     assert.ok(
-      retained.some(([path]) => path.endsWith("layout-kernel/src/box-placement.ts")),
+      retained.some(([path]) => path.endsWith("layout-boxes/src/box-placement.ts")),
       "Box placement positive control missing",
     );
   const label = (path) => resolve(path).replace(root, "FORMBAR_ROOT").replace(resolve(here, "../.."), "UPDF_ROOT");
@@ -98,7 +98,7 @@ for (const [scope, entry] of Object.entries(scopes)) {
 await writeFile(
   resolve(
     here,
-    `../../artifacts/${baseline ? "layout-kernel-a/baseline-profile" : "layout-kernel-b/profile"}/report.json`,
+    `../../artifacts/${baseline ? "layout-boxes-a/baseline-profile" : "layout-boxes-b/profile"}/report.json`,
   ),
   `${JSON.stringify(reports, null, 2)}\n`,
 );

@@ -6,7 +6,7 @@ import ts from "typescript";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const file = join(root, "tests/consumer/documentation-hover-fixture.mts");
-const source = `import { bits } from "@updf/layout-kernel/numeric";
+const source = `import { bits } from "@updf/layout-boxes/numeric";
 import { Page, resolveWidths } from "@updf/layout";
 import { prepareJpeg, jpeg, jpegProvider } from "@updf/jpeg";
 bits(0); Page; resolveWidths({ availableWidth: 10, tracks: [10] });
@@ -40,9 +40,9 @@ test("public import hovers retain scoped package prose without custom JSDoc tags
   try {
     assert.deepEqual(service.getSemanticDiagnostics(file), []);
     for (const [name, expected] of [
-      ["bits", "From `@updf/layout-kernel/numeric`: encode finite nonnegative binary64"],
+      ["bits", "From `@updf/layout-boxes/numeric`: encode finite nonnegative binary64"],
       ["Page", "Fixed native drawing section, exported as Page from `@updf/layout`; children do not flow."],
-      ["resolveWidths", "Defaults and exact rounding follow `@updf/layout-kernel`; returns frozen widths/result."],
+      ["resolveWidths", "Defaults and exact rounding follow `@updf/layout-boxes`; returns frozen widths/result."],
       ["prepareJpeg", "does not decode entropy or pixels"],
       ["jpeg", "without DPI/orientation/aspect fitting or implicit clipping"],
       ["jpegProvider", "PDF references belong to the current operation"],

@@ -52,13 +52,13 @@ for (const build of builds) {
   if (build === "dist-core")
     assert.ok(
       modules
-        .filter((id) => /\/packages\/layout-kernel\//u.test(id))
-        .every((id) => id.endsWith("/layout-kernel/dist/arithmetic.js")),
+        .filter((id) => /\/packages\/layout-boxes\//u.test(id))
+        .every((id) => id.endsWith("/layout-boxes/dist/arithmetic.js")),
       "Non-arithmetic kernel code leaked into core",
     );
   if (["dist-flow", "dist-tables", "dist-composable-tables"].includes(build))
     assert.ok(
-      modules.some((id) => /\/layout-kernel\/dist\/width-resolver\.js$/u.test(id)),
+      modules.some((id) => /\/layout-boxes\/dist\/width-resolver\.js$/u.test(id)),
       "Kernel allocation missing",
     );
   if (build === "font-browser") {

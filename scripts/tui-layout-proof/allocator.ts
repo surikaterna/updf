@@ -1,1 +1,1 @@
-export { LayoutInputError, resolveWidths } from "@updf/layout-kernel";
+export { LayoutInputError, resolveWidths } from "@updf/layout-boxes";

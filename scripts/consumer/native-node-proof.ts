@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { gzipSync } from "node:zlib";
 import { build } from "esbuild";
+import { layoutPackageTarball } from "../layout-package-identity.js";
 import { nativeNodeInput } from "./native-node-input.js";
 
 const before = resolve(process.argv[2] ?? "/tmp/opencode/updf-slice-a-current");
@@ -12,9 +13,10 @@ const after = resolve(process.argv[3] ?? "/tmp/opencode/updf-slice-b-current");
 const bridge = process.argv[4] === "--bridge";
 const installed = await mkdtemp("/tmp/opencode/updf-slice-b-post-a-");
 await writeFile(resolve(installed, "package.json"), '{"private":true,"type":"module"}\n');
-const packages = ["layout-kernel", "core", "fonts", "text", "jpeg"].map((name) =>
-  resolve(before, `updf-${name}-2.0.0-poc.0.tgz`),
-);
+const packages = [
+  await layoutPackageTarball(before, "2.0.0-poc.0"),
+  ...["core", "fonts", "text", "jpeg"].map((name) => resolve(before, `updf-${name}-2.0.0-poc.0.tgz`)),
+];
 execFileSync("npm", ["install", "--ignore-scripts", "--package-lock=false", "--no-audit", "--no-fund", ...packages], {
   cwd: installed,
   stdio: "pipe",

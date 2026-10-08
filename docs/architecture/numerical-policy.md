@@ -3,7 +3,7 @@
 This is the canonical contributor policy for numerical changes, not a claim that
 every current guard implements it. The bounded adoption below intentionally changes
 the public occupied-height fit relation, not operand domains or stored geometry. See
-[layout-kernel architecture](layout-kernel.md) and [code quality](../code-quality.md).
+[layout-boxes architecture](layout-boxes.md) and [code quality](../code-quality.md).
 
 ## Classify the operation, not the number's provenance
 
@@ -47,7 +47,7 @@ comparisons with `!exceeds` by search-and-replace.
 ## One existing arithmetic owner
 
 Use `MetricSum`, `sum` and `exceeds` from
-`@updf/layout-kernel/arithmetic` (`packages/layout-kernel/src/arithmetic.ts`).
+`@updf/layout-boxes/arithmetic` (`packages/layout-boxes/src/arithmetic.ts`).
 Text reexports these from `packages/text/src/arithmetic.ts`; core's internal
 `packages/core/src/measurement/arithmetic.ts` seam also shares this implementation.
 There is no third numerical library or new geometry export needed for this policy.
@@ -108,9 +108,9 @@ replacement of an exact native certificate.
 
 ## Exact certificates and host responsibilities
 
-`packages/layout-kernel/src/binary64.ts` and `/numeric` bit/dyadic/floor helpers
+`packages/layout-boxes/src/binary64.ts` and `/numeric` bit/dyadic/floor helpers
 are distinct from approximate metric arithmetic. `derivedAxis` and
-`materializedStart` in `packages/layout-kernel/src/geometry.ts` remain exact
+`materializedStart` in `packages/layout-boxes/src/geometry.ts` remain exact
 native binary64 certificates under their existing validated domains, association
 rules and local conditioning budgets. “Exact” here describes those native API
 contracts, not arbitrary real-number arithmetic. Do not replace their checks
@@ -132,6 +132,7 @@ loosening PDF certificate boundaries or modifying SVG/host behavior.
 | Metric arithmetic | Existing kernel implementation; text and core share/reexport it; unchanged in this change |
 | Public request occupied-height fit relation | Implemented in this change using unchanged `exceeds` default scale; operand domains remain exact |
 | Derived geometry containment | Policy for future bounded changes, not a region-engine implementation in this change |
+| Generic `layoutBoxes` | Optional `containment: "metric"` adopts bounded natural-height fit and immediate-parent lower/upper endpoint containment; default `"native"` remains strict, result reports its guarantee; production Row and standalone Column use staged boxes with metric containment while the host retains pagination and body/fragment extents |
 | Native exact certificates | Unchanged; their named contracts remain authoritative |
 | Production core page guards | Mixed strict/tolerant, not migrated here |
 | Layout adapter measurement bounds, table-column width bounds | Remain exact/unmigrated; no blanket adoption claim |

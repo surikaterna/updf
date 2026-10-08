@@ -1,11 +1,5 @@
-import {
-  type BoxAllocation,
-  type BoxLayout,
-  type BoxStyle,
-  type BoxView,
-  layoutBoxes,
-} from "@updf/layout-kernel/boxes";
-import { bits, dyadic } from "@updf/layout-kernel/numeric";
+import { type BoxAllocation, type BoxLayout, type BoxStyle, type BoxView, layoutBoxes } from "@updf/layout-boxes/boxes";
+import { bits, dyadic } from "@updf/layout-boxes/numeric";
 import type { Row } from "./profile.js";
 
 interface Root {
@@ -34,7 +28,7 @@ export interface TerminalBox {
 }
 const unit = dyadic(bits(1));
 
-function cells(allocation: BoxAllocation) {
+export function cells(allocation: BoxAllocation) {
   if (allocation.exactStart === undefined || allocation.exactEnd === undefined)
     throw new Error("Exact inline allocation required");
   const start = Number(allocation.exactStart / unit),

@@ -1,5 +1,5 @@
 export const fragmentationRuntime = `
-const {createFragmentOperation} = await import('@updf/layout-kernel/fragmentation');
+const {createFragmentOperation} = await import('@updf/layout-boxes/fragmentation');
 const content = {};
 const op = createFragmentOperation({next: (_, {offset}, work) => {work.consume(1);return {end:offset+1,height:1,content};}});
 const source = {id:'a',path:'/a',descriptor:{},extent:3,mode:'splittable',width:{mode:'reflow'}};
