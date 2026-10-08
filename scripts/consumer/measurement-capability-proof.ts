@@ -21,6 +21,7 @@ for (const line of inventory.trim().split("\n")) {
   const hash = createHash("sha1").update(`blob ${bytes.length}\0`).update(bytes).digest("hex");
   assert.equal(hash, line.slice(0, 40), `Merged baseline modified: ${line.slice(41)}`);
 }
+// This pinned revision predates the layout-boxes rename; its certified links stay historical.
 for (const name of ["core", "fonts", "text", "layout-kernel"])
   assert.equal(await realpath(join(baseline, "node_modules/@updf", name)), join(baseline, "packages", name));
 for (const name of ["typescript", "esbuild", "vite"]) {

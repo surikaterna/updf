@@ -73,7 +73,7 @@ function sourceIndex(root: SourceNode): ReadonlyMap<string, SourceNode> {
 
 function projectBoxes(
   root: SourceNode,
-  boxes: import("@updf/layout-kernel/boxes").BoxLayout<never>["boxes"],
+  boxes: import("@updf/layout-boxes/boxes").BoxLayout<never>["boxes"],
   originX: number,
   originY: number,
 ): readonly Rect[] {

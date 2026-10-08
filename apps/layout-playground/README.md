@@ -7,7 +7,7 @@ external dependencies. This is a bounded inspector, not an arbitrary document ed
 From the workspace root:
 
 ```sh
-npm run build -w @updf/layout-kernel
+npm run build -w @updf/layout-boxes
 npm run build -w @updf/core
 npm run build -w @updf/fonts
 npm run build -w @updf/text
@@ -28,7 +28,7 @@ The static build includes the complete project MIT notice in `dist/notices/LICEN
 
 ## Contract and controls
 
-- Boxes use public `@updf/layout-kernel/boxes` `layoutBoxes` with a typed readonly
+- Boxes use public `@updf/layout-boxes/boxes` `layoutBoxes` with a typed readonly
   indexed view borrowing the actual source records; there is no input-tree clone.
   Width, gap, padding and row cross alignment are real kernel inputs. Height is the
   minimum canvas height or the finite page region height, not a CSS geometry trick.

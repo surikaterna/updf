@@ -8,9 +8,9 @@ const view =
   "const view={id:n=>n.id,path:n=>'/'+n.id,style:n=>n.style??{},childCount:n=>n.children?.length??0,childAt:(n,i)=>n.children[i],content:n=>n.content};";
 const scopes = {
   allocator:
-    'export {resolveWidths,LayoutInputError} from "@updf/layout-kernel"; export {bits,dyadic} from "@updf/layout-kernel/numeric";',
-  emptyBox: `import {layoutBoxes} from '@updf/layout-kernel/boxes'; ${view} export const layout=layoutBoxes({root:{id:'empty'},view,width:80});`,
-  measuredRow: `import {layoutBoxes} from '@updf/layout-kernel/boxes'; ${view} export const layout=layoutBoxes({root:{id:'row',style:{flexDirection:'row',gap:1},children:[{id:'one',content:'Host text'},{id:'two',content:'Other text'}]},view,width:80,measure:(text,{allocation})=>({height:Math.ceil(text.length/allocation.width)})});`,
+    'export {resolveWidths,LayoutInputError} from "@updf/layout-boxes"; export {bits,dyadic} from "@updf/layout-boxes/numeric";',
+  emptyBox: `import {layoutBoxes} from '@updf/layout-boxes/boxes'; ${view} export const layout=layoutBoxes({root:{id:'empty'},view,width:80});`,
+  measuredRow: `import {layoutBoxes} from '@updf/layout-boxes/boxes'; ${view} export const layout=layoutBoxes({root:{id:'row',style:{flexDirection:'row',gap:1},children:[{id:'one',content:'Host text'},{id:'two',content:'Other text'}]},view,width:80,measure:(text,{allocation})=>({height:Math.ceil(text.length/allocation.width)})});`,
 };
 async function profile(scope: string, contents: string) {
   const result = await build({
@@ -27,7 +27,7 @@ async function profile(scope: string, contents: string) {
     metadata = Object.values(result.metafile.outputs)[0];
   assert.ok(output && metadata);
   const inputs = Object.keys(result.metafile.inputs).filter((path) => path !== "<stdin>");
-  assert.ok(inputs.every((path) => path.startsWith("packages/layout-kernel/dist/")));
+  assert.ok(inputs.every((path) => path.startsWith("packages/layout-boxes/dist/")));
   assert.deepEqual(metadata.imports, []);
   const retained = Object.entries(metadata.inputs).filter(([, info]) => info.bytesInOutput > 0);
   assert.ok(
@@ -36,7 +36,7 @@ async function profile(scope: string, contents: string) {
   );
   const control = scope === "allocator" ? "/width-resolver.js" : "/box-placement.js";
   assert.ok(retained.some(([path]) => path.endsWith(control)));
-  const directory = new URL(`../artifacts/layout-kernel-b/standalone/${scope}/`, import.meta.url);
+  const directory = new URL(`../artifacts/layout-boxes-b/standalone/${scope}/`, import.meta.url);
   await mkdir(directory, { recursive: true });
   await writeFile(new URL("bundle.mjs", directory), output.contents);
   await writeFile(new URL("bundle.mjs.gz", directory), gzipSync(output.contents));
@@ -53,7 +53,7 @@ async function profile(scope: string, contents: string) {
 const reports = [];
 for (const [scope, contents] of Object.entries(scopes)) reports.push(await profile(scope, contents));
 const [installed] = JSON.parse(
-  execFileSync("npm", ["pack", "--dry-run", "--json", "./packages/layout-kernel"], { encoding: "utf8" }),
+  execFileSync("npm", ["pack", "--dry-run", "--json", "./packages/layout-boxes"], { encoding: "utf8" }),
 );
 const report = {
   reports,
@@ -64,7 +64,7 @@ const report = {
   },
 };
 await writeFile(
-  new URL("../artifacts/layout-kernel-b/standalone/report.json", import.meta.url),
+  new URL("../artifacts/layout-boxes-b/standalone/report.json", import.meta.url),
   `${JSON.stringify(report, null, 2)}\n`,
 );
 console.log(JSON.stringify(report, null, 2));

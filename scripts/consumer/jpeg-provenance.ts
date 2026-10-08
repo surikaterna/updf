@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFile, realpath, writeFile } from "node:fs/promises";
+import { mkdir, readFile, realpath, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { assertJpegLockProvenance } from "./jpeg-lock-provenance.js";
+import { jpegSourceInventory } from "./jpeg-source-provenance.js";
 
 const baseline = resolve(process.argv[2] ?? "");
 const revision = "bb8395b07be4586ea3be181625de1e71ed301d37";
@@ -22,28 +24,13 @@ for (const name of ["typescript", "esbuild", "vite", "@biomejs/biome"]) {
   assert.equal(before.version, after.version, `Tool mismatch: ${name}`);
   tools[name] = after.version;
 }
+// This pinned revision predates the layout-boxes rename; its certified links stay historical.
 for (const name of ["core", "fonts", "text", "layout-kernel"])
   assert.equal(await realpath(join(baseline, "node_modules/@updf", name)), join(baseline, "packages", name));
 const beforeLock = JSON.parse(await readFile(join(baseline, "package-lock.json"), "utf8"));
 const afterLock = JSON.parse(await readFile(join(root, "package-lock.json"), "utf8"));
-for (const [path, record] of Object.entries(beforeLock.packages))
-  assert.deepEqual(afterLock.packages[path], record, path);
-assert.deepEqual(
-  Object.keys(afterLock.packages)
-    .filter((path) => !(path in beforeLock.packages))
-    .sort(),
-  ["node_modules/@updf/jpeg", "packages/jpeg"],
-);
-const paths = execFileSync("git", ["ls-files", "--modified", "--others", "--exclude-standard", "-z"], {
-  encoding: "utf8",
-})
-  .split("\0")
-  .filter(Boolean);
-const files = [];
-for (const path of [...new Set(paths)].sort()) {
-  const bytes = await readFile(join(root, path));
-  files.push({ path, bytes: bytes.length, sha256: createHash("sha256").update(bytes).digest("hex") });
-}
+assertJpegLockProvenance(beforeLock, afterLock);
+const files = await jpegSourceInventory(root, revision);
 const report = {
   root,
   baseline,
@@ -57,5 +44,6 @@ const report = {
   status: execFileSync("git", ["status", "--short", "--untracked-files=all"], { encoding: "utf8" }),
   files,
 };
+await mkdir("artifacts/jpeg-resources", { recursive: true });
 await writeFile("artifacts/jpeg-resources/provenance.json", `${JSON.stringify(report, null, 2)}\n`);
 console.log({ ...report, files: files.length });

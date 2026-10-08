@@ -20,5 +20,5 @@ test("text extraction has no core facade or reverse font/text edges", async () =
   ])
     await assert.rejects(stat(new URL(`packages/core/src/${path}`, root)), { code: "ENOENT" });
   const text = JSON.parse(await readFile(new URL("packages/text/package.json", root), "utf8"));
-  assert.deepEqual(Object.keys(text.dependencies).sort(), ["@updf/core", "@updf/layout-kernel"]);
+  assert.deepEqual(Object.keys(text.dependencies).sort(), ["@updf/core", "@updf/layout-boxes"]);
 });

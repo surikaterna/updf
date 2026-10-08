@@ -1,1 +1,1 @@
-export { bits, dyadic, floorDyadic, spacing, successor, value } from "@updf/layout-kernel/numeric";
+export { bits, dyadic, floorDyadic, spacing, successor, value } from "@updf/layout-boxes/numeric";

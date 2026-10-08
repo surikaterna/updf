@@ -1,10 +1,6 @@
 import { fail } from "@updf/core/internal";
-import { LayoutInputError } from "@updf/layout-kernel";
-import {
-  type DerivedAxis,
-  derivedAxis as derive,
-  materializedStart as materialize,
-} from "@updf/layout-kernel/geometry";
+import { LayoutInputError } from "@updf/layout-boxes";
+import { type DerivedAxis, derivedAxis as derive, materializedStart as materialize } from "@updf/layout-boxes/geometry";
 
 export type { DerivedAxis };
 export function derivedAxis(start: number, end: number, path: string): DerivedAxis {

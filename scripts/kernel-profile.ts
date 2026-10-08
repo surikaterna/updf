@@ -7,7 +7,7 @@ export async function kernelProfile() {
   const result = await build({
     stdin: {
       contents:
-        'export { LayoutInputError, resolveWidths } from "@updf/layout-kernel"; export { bits, dyadic } from "@updf/layout-kernel/numeric";',
+        'export { LayoutInputError, resolveWidths } from "@updf/layout-boxes"; export { bits, dyadic } from "@updf/layout-boxes/numeric";',
       resolveDir: process.cwd(),
     },
     bundle: true,
@@ -23,7 +23,7 @@ export async function kernelProfile() {
   const inputs = Object.keys(result.metafile.inputs).filter((path) => path !== "<stdin>");
   assert.ok(inputs.length > 0);
   assert.ok(
-    inputs.every((path) => path.startsWith("packages/layout-kernel/dist/")),
+    inputs.every((path) => path.startsWith("packages/layout-boxes/dist/")),
     "Nonkernel source resolved",
   );
   const metadata = Object.values(result.metafile.outputs)[0];
@@ -38,7 +38,7 @@ export async function kernelProfile() {
     retained.some(([path]) => path.endsWith("/binary64.js")),
     "Numeric bytes absent",
   );
-  const directory = new URL("../artifacts/layout-kernel-a/standalone/", import.meta.url);
+  const directory = new URL("../artifacts/layout-boxes-a/standalone/", import.meta.url);
   await mkdir(directory, { recursive: true });
   await writeFile(new URL("bundle.mjs", directory), output.contents);
   await writeFile(new URL("bundle.mjs.gz", directory), gzipSync(output.contents));

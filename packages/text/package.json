@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@updf/core": "2.0.0-poc.0",
-    "@updf/layout-kernel": "2.0.0-poc.0"
+    "@updf/layout-boxes": "2.0.0-poc.0"
   },
   "scripts": {
     "build": "tsx ../../scripts/packaging/build.ts"

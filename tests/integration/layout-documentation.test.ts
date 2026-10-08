@@ -3,9 +3,9 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { DocumentError } from "@updf/core";
 import { measure, paragraph, pt } from "@updf/layout";
-import { LayoutInputError } from "@updf/layout-kernel";
-import { createFragmentOperation } from "@updf/layout-kernel/fragmentation";
-import { derivedAxis } from "@updf/layout-kernel/geometry";
+import { LayoutInputError } from "@updf/layout-boxes";
+import { createFragmentOperation } from "@updf/layout-boxes/fragmentation";
+import { derivedAxis } from "@updf/layout-boxes/geometry";
 import { textOptions } from "../fixtures/text-options.js";
 import {
   authorMeasuredDocument,
@@ -109,11 +109,11 @@ test("layout/table/kernel defining JSDoc survives ESM and canonical CJS declarat
     ["tables", "index", "Install tableExtension by identity"],
     ["tables", "types", "cell defaults applied at row priority"],
     ["tables", "parts", "HeaderCell author slot accepted in Head only"],
-    ["layout-kernel", "box-layout", "generic content payloads are retained"],
-    ["layout-kernel", "fragment-types", "Opaque single-use operation cursor"],
-    ["layout-kernel", "arithmetic", "Any nonfinite argument returns true"],
-    ["layout-kernel", "binary64", "Preconditions are unchecked"],
-    ["layout-kernel", "geometry", "greatest native-fitting positive capacity"],
+    ["layout-boxes", "box-staged", "generic content payloads are retained"],
+    ["layout-boxes", "fragment-types", "Opaque single-use operation cursor"],
+    ["layout-boxes", "arithmetic", "Any nonfinite argument returns true"],
+    ["layout-boxes", "binary64", "Preconditions are unchecked"],
+    ["layout-boxes", "geometry", "greatest native-fitting positive capacity"],
   ];
   for (const [pkg, owner, contract] of contracts) {
     assert.ok(contract);

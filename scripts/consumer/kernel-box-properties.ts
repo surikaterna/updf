@@ -1,5 +1,5 @@
 export const boxPropertyRuntime = `
-import {layoutBoxes} from '@updf/layout-kernel/boxes';
+import {layoutBoxes} from '@updf/layout-boxes/boxes';
 const root = {id:'root'};
 const view = {id:n=>n.id,path:n=>'/'+n.id,style:()=>({}),childCount:()=>0,childAt:()=>{throw new Error('leaf');},content:()=>undefined};
 const baseline = layoutBoxes({root,view,width:20});

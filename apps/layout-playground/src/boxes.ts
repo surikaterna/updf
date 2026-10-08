@@ -1,4 +1,4 @@
-import { type BoxLayout, type BoxStyle, type BoxView, layoutBoxes } from "@updf/layout-kernel/boxes";
+import { type BoxLayout, type BoxStyle, type BoxView, layoutBoxes } from "@updf/layout-boxes/boxes";
 import { PlaygroundError } from "./error.js";
 
 export interface SourceNode {

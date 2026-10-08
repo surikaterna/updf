@@ -22,7 +22,7 @@ verification of the new package structure.
 
 | Workspace | Responsibility / entry points |
 | --- | --- |
-| `@updf/layout-kernel` | Zero dependencies; allocation, atomic boxes, fragment selection and shared arithmetic; [current contract](docs/architecture/layout-kernel.md) |
+| `@updf/layout-boxes` | Zero dependencies; allocation, atomic boxes, fragment selection and shared arithmetic; [current contract](docs/architecture/layout-boxes.md) |
 | `@updf/core` | Generic PDF bytes/resources/text contracts: `.`, `/resources`, `/pdf`, `/painting`, `/vdom`, `/jsx-runtime`, `/jsx-dev-runtime`; no font implementation |
 | `@updf/fonts` | Prepared fonts, explicit Helvetica, opaque text runs and paired PDF font provider |
 | `@updf/jpeg` | Optional structurally validated baseline JPEG bytes and explicit Image XObject provider; [image guide](docs/jpeg-images.md) |
@@ -40,7 +40,7 @@ private examples, not core. There is no umbrella or permanent POC facade.
 The kernel and optional [playground](apps/layout-playground/README.md) are locally
 implemented and unreleased; the original branch through `da0b23f` is historical
 lineage, not this worktree's current merge status.
-The [authoritative current kernel contract](docs/architecture/layout-kernel.md)
+The [authoritative current shared-engine contract](docs/architecture/layout-boxes.md)
 consolidates ownership, API limits, evidence provenance and non-deploying PR gates;
 dated A–D evidence logs are not API authority.
 The [static TUI integration proof](scripts/tui-layout-proof/README.md) shows the

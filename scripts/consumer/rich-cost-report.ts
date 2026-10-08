@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFile, realpath, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { layoutPackageDirectory } from "../layout-package-identity.js";
 
 interface Contribution {
   module: string;
@@ -30,7 +31,7 @@ assert.equal(after.generation, "canonical-rich");
 assert.equal(before.node, after.node);
 assert.equal(before.esbuild, after.esbuild);
 for (const root of [before.root, after.root])
-  for (const name of ["layout-kernel", "core", "fonts", "text"])
+  for (const name of [await layoutPackageDirectory(root), "core", "fonts", "text"])
     assert.equal(await realpath(join(root, "node_modules/@updf", name)), join(root, "packages", name));
 const tools = [];
 for (const name of ["typescript", "esbuild", "vite"]) {
