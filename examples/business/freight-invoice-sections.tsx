@@ -15,12 +15,12 @@ export function FreightHeader({ data }: { readonly data: FreightInvoiceData }) {
   const page = useContext(PageContext);
   return (
     <Row style={{ backgroundColor: pale, padding: 6, borderBottom: rule, gap: 8 }}>
-      <Column width={{ weight: 1, min: 150 }}>
+      <Column width={{ weight: 1 }}>
         <Paragraph style={{ ...text, font: "FreightBold", fontSize: 24, lineHeight: pt(28) }}>ASTER WAKE</Paragraph>
         <FreightText bold>FREIGHT / FICTIONAL</FreightText>
         <FreightText>MOCK - NOT FOR PAYMENT</FreightText>
       </Column>
-      <Column width={{ weight: 1, min: 150 }}>
+      <Column width={{ weight: 1 }}>
         <FreightText bold>Mock office</FreightText>
         <FreightText>Aster Wake Shipping</FreightText>
         <FreightText>Sample harbour studio</FreightText>
@@ -28,7 +28,7 @@ export function FreightHeader({ data }: { readonly data: FreightInvoiceData }) {
         <FreightText>office@example.invalid</FreightText>
         <FreightText>Tax ID: NOT ASSIGNED</FreightText>
       </Column>
-      <Column width={164}>
+      <Column width={{ weight: 1 }}>
         <Paragraph
           style={{
             ...text,
@@ -63,13 +63,13 @@ export function FreightBilling({
   return (
     <Block style={{ gap: 4, paddingTop: 8, paddingBottom: 8 }}>
       <FreightText bold>Bill to</FreightText>
-      <Row align="stretch" style={{ gap: 10 }}>
-        <Column width={{ weight: 3 }} style={{ backgroundColor: pale, padding: 6, border: rule }}>
+      <Row style={{ gap: 10 }}>
+        <Column style={{ backgroundColor: pale, padding: 4, border: rule, minHeight: 80 }}>
           {data.buyer.map((line, index) => (
             <FreightText bold={index === 0}>{line}</FreightText>
           ))}
         </Column>
-        <Column width={{ weight: 2 }} style={{ backgroundColor: pale, padding: 6, border: rule }}>
+        <Column style={{ backgroundColor: pale, padding: 4, border: rule, minHeight: 80 }}>
           <FreightText bold>Account: MOCK ACCOUNT</FreightText>
           <FreightText>Tax registration: NOT ASSIGNED</FreightText>
           <Paragraph style={text} breakLongWords="codePoint">
@@ -83,9 +83,17 @@ export function FreightBilling({
     </Block>
   );
 }
-function ShipmentPanel({ heading, children }: { readonly heading: string; readonly children: BlockContent }) {
+function ShipmentPanel({
+  heading,
+  children,
+  shaded = true,
+}: {
+  readonly heading: string;
+  readonly children: BlockContent;
+  readonly shaded?: boolean;
+}) {
   return (
-    <Column style={{ backgroundColor: pale }}>
+    <Column style={{ backgroundColor: shaded ? pale : [1, 1, 1] }}>
       <Block style={{ backgroundColor: gray, padding: 2 }}>
         <FreightText bold>{heading}</FreightText>
       </Block>
@@ -94,8 +102,9 @@ function ShipmentPanel({ heading, children }: { readonly heading: string; readon
   );
 }
 export function FreightShipment({ data }: { readonly data: FreightInvoiceData }) {
+  const totals = calculateFreight(data.charges);
   return (
-    <Row align="stretch" style={{ borderBottom: rule, gap: 8, paddingBottom: 8 }}>
+    <Row align="stretch" style={{ borderBottom: rule }}>
       <ShipmentPanel heading="Route details">
         {data.route.map((line, index) => (
           <FreightText bold={index < 2}>{line}</FreightText>
@@ -110,6 +119,24 @@ export function FreightShipment({ data }: { readonly data: FreightInvoiceData })
         {data.shipment.map((line, index) => (
           <FreightText bold={index === 0}>{line}</FreightText>
         ))}
+      </ShipmentPanel>
+      <ShipmentPanel heading="Charges" shaded={false}>
+        {data.charges.map((charge) => (
+          <Block>
+            <Row>
+              <Column>
+                <FreightText>{charge.label}</FreightText>
+              </Column>
+              <Column width={44}>
+                <Paragraph style={{ ...text, textAlign: "right" }}>{freightMoney(charge.netPence)}</Paragraph>
+              </Column>
+            </Row>
+            <FreightText>{`VAT ${charge.vatBasisPoints / 100}%`}</FreightText>
+          </Block>
+        ))}
+        <Block style={{ border: { width: 1, color: [0, 0, 0] }, padding: 3 }}>
+          <FreightText bold>{`ORDER NET ${freightMoney(totals.netPence)}`}</FreightText>
+        </Block>
       </ShipmentPanel>
     </Row>
   );
@@ -130,22 +157,18 @@ export function FreightSummary({ data }: { readonly data: FreightInvoiceData }) 
   const totals = calculateFreight(data.charges);
   return (
     <Block style={{ gap: 4 }}>
-      <Row align="stretch" style={{ gap: 12, borderTop: rule, paddingTop: 8 }}>
-        <Column style={{ gap: 4 }}>
-          <FreightText bold>Payment contact (mock)</FreightText>
-          <FreightText>Aster Wake demo desk</FreightText>
-          <FreightText>billing@example.invalid</FreightText>
-          <FreightText>Bank: No bank appointed</FreightText>
-          <FreightText>Account / IBAN: NONE</FreightText>
-          <FreightText bold>Do not remit funds</FreightText>
-        </Column>
-        <Column width={280} style={{ backgroundColor: pale, padding: 6, gap: 4 }}>
-          <FreightText bold>Invoice summary (GBP)</FreightText>
-          <SummaryLine label="Net subtotal" amount={totals.netPence} />
+      <Row>
+        <Column width={{ weight: 2 }}>{null}</Column>
+        <Column width={{ weight: 3 }} style={{ borderTop: { width: 1, color: [0, 0, 0] }, padding: 6, gap: 2 }}>
+          <FreightText bold>NET Total</FreightText>
+          {data.charges.map((charge) => (
+            <SummaryLine label={charge.label} amount={charge.netPence} />
+          ))}
+          <FreightText bold>{`Net subtotal ${freightMoney(totals.netPence)}`}</FreightText>
           <SummaryLine label="VAT Total (per charge)" amount={totals.vatPence} />
           <Row style={{ border: { width: 1, color: [0, 0, 0] }, padding: 5 }}>
             <Column>
-              <Paragraph style={{ ...text, font: "FreightBold", fontSize: 14, lineHeight: pt(22) }}>
+              <Paragraph style={{ ...text, font: "FreightBold", fontSize: 18, lineHeight: pt(22) }}>
                 Invoice Total
               </Paragraph>
             </Column>
@@ -157,10 +180,34 @@ export function FreightSummary({ data }: { readonly data: FreightInvoiceData }) 
           </Row>
         </Column>
       </Row>
+      <PaymentPlaceholders />
+    </Block>
+  );
+}
+function PaymentPlaceholders() {
+  return (
+    <Block style={{ borderTop: { width: 1, color: [0, 0, 0] }, paddingTop: 4 }}>
       <FreightText>
         This fictional shipment illustrates layout only. No carriage contract, liability promise or payment obligation
         exists.
       </FreightText>
+      <Row style={{ gap: 12, paddingTop: 4 }}>
+        <Column>
+          <FreightText bold>Payment contact (mock)</FreightText>
+          <FreightText>Aster Wake demo desk</FreightText>
+          <FreightText>billing@example.invalid</FreightText>
+        </Column>
+        <Column>
+          <FreightText bold>Bank (placeholder)</FreightText>
+          <FreightText>No bank appointed</FreightText>
+          <FreightText>Do not remit funds</FreightText>
+        </Column>
+        <Column>
+          <FreightText bold>Account (placeholder)</FreightText>
+          <FreightText>Account / IBAN: NONE</FreightText>
+          <FreightText>MOCK - NOT FOR PAYMENT</FreightText>
+        </Column>
+      </Row>
     </Block>
   );
 }

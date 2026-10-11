@@ -81,8 +81,7 @@ function freightClosure(chunks: readonly Chunk[], entry: Chunk): void {
   for (const name of chunks.flatMap((chunk) => chunk.modules).filter((name) => parser.test(name)))
     assert.ok(freightModules.has(name), `Parser outside freight ownership: ${name}`);
   assert.ok(closure(chunks, freight).some((name) => /\/fontkit\/dist\/browser-module\.mjs$/u.test(name)));
-  assert.ok(closure(chunks, freight).some((name) => /\/packages\/tables\//u.test(name)));
-  assert.ok(!closure(chunks, freight).some((name) => /\/packages\/(svg|geometry)\//u.test(name)));
+  assert.ok(!closure(chunks, freight).some((name) => /\/packages\/(svg|geometry|tables)\//u.test(name)));
   assert.ok(!closure(chunks, entry).some((name) => parser.test(name)));
   for (const chunk of chunks.filter((candidate) => entry.dynamicImports.includes(candidate.fileName))) {
     if (chunk !== freight) assert.ok(!closure(chunks, chunk).some((name) => parser.test(name)), chunk.fileName);

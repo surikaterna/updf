@@ -10,7 +10,6 @@ import data from "../../../examples/business/freight-invoice-data.ts?raw";
 import { freightFontResources } from "../../../examples/business/freight-invoice-fonts.js";
 import fonts from "../../../examples/business/freight-invoice-fonts.ts?raw";
 import sections from "../../../examples/business/freight-invoice-sections.tsx?raw";
-import charges from "../../../examples/business/freight-invoice-charges.tsx?raw";
 import cli from "../../../scripts/freight-invoice-example.ts?raw";
 import provenance from "../../../tests/fixtures/fonts/FREIGHT.md?raw";
 import boldUrl from "../../../tests/fixtures/fonts/LiberationSans-Bold.ttf?url";
@@ -44,8 +43,6 @@ export const source = [
   template,
   "// examples/business/freight-invoice-sections.tsx",
   sections,
-  "// examples/business/freight-invoice-charges.tsx",
-  charges,
   "// examples/business/freight-invoice-calculations.ts",
   calculations,
   "// examples/business/freight-invoice-data.ts",
