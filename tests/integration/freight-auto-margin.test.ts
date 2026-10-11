@@ -4,9 +4,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
 import type { DocumentDefinition } from "@updf/core";
 import { h } from "@updf/core/vdom";
-import { Block, createExtensions, Document, Flow, PageSize } from "@updf/layout";
-import { tableExtension } from "@updf/tables";
-import { FreightCharges } from "../../examples/business/freight-invoice-charges.js";
+import { Block, Document, Flow, PageSize } from "@updf/layout";
 import { freightInvoiceExample } from "../../examples/business/freight-invoice.js";
 import {
   extendedFreightInvoice,
@@ -21,7 +19,7 @@ import {
 } from "../../examples/business/freight-invoice-sections.js";
 import { freightFonts } from "../fixtures/fonts/freight-fonts.js";
 import { layout, render } from "../fixtures/text-options.js";
-import { freightGeometry, freightRaster } from "./freight-pdf-checks.js";
+import { freightGeometry, freightMultipageGeometry, freightRaster } from "./freight-pdf-checks.js";
 import { eraseRegion } from "./manifest-pdf-checks.js";
 
 function placeSummary(input: DocumentDefinition, y: number, duplicate = false): DocumentDefinition {
@@ -45,14 +43,12 @@ function ordinary(data: FreightInvoiceData, resources: Awaited<ReturnType<typeof
       children: h(Flow, {
         pageSize: PageSize.A4,
         margins: { top: 12, right: 12, bottom: 12, left: 12 },
-        extensions: createExtensions([tableExtension]),
         children: [
           h(Flow.Header, { height: 112, children: h(FreightHeader, { data }) }),
           h(Flow.Body, {
             children: [
               h(FreightBilling, { data, description: "Single mock freight passage" }),
               h(FreightShipment, { data }),
-              h(FreightCharges, { data }),
               h(Block, { keepTogether: true, children: h(FreightSummary, { data }) }),
             ],
           }),
@@ -67,15 +63,16 @@ test("freight auto-margin equals independently positioned ordinary flow; real wr
   const directory = new URL("../../artifacts/freight-invoice/", import.meta.url);
   await mkdir(directory, { recursive: true });
   for (const [name, data, height] of [
-    ["original", mockFreightInvoice, 131],
-    ["extended", extendedFreightInvoice, 131],
+    ["original", mockFreightInvoice, 212],
+    ["extended", extendedFreightInvoice, 292],
   ] as const) {
     const actual = freightInvoiceExample(resources, undefined, data);
     const top = 841.8897637795277 - 12 - height;
     const control = ordinary(data, resources);
     assert.equal(control.placements.at(-1)?.box.height, height);
     assert.deepEqual(render(placeSummary(control.document, top), { resources }), actual.bytes);
-    const geometry = (bbox: string) => freightGeometry(bbox, top);
+    const geometry = (bbox: string) =>
+      name === "original" ? freightGeometry(bbox, top) : freightMultipageGeometry(bbox, top);
     for (const [variant, document] of [
       ["control", placeSummary(control.document, top)],
       ["wrong-top", placeSummary(control.document, 124)],
@@ -93,12 +90,32 @@ test("freight auto-margin equals independently positioned ordinary flow; real wr
       geometry(bbox);
       execFileSync("pdftoppm", ["-r", "72", path, path]);
       const ppm = await readFile(`${path}-${actual.result.pageCount}.ppm`);
-      const tableBottom = name === "original" ? 481 : 616;
-      freightRaster(ppm, top, tableBottom);
-      assert.throws(
-        () => freightRaster(eraseRegion(ppm, 12, Math.floor(top), 583, Math.ceil(top + 2)), top, tableBottom),
-        assert.AssertionError,
-      );
+      if (name === "original") freightRaster(ppm, top);
+      else {
+        finalSummaryRaster(ppm, top);
+        assert.throws(
+          () => finalSummaryRaster(eraseRegion(ppm, 240, Math.floor(top - 1), 583, Math.ceil(top + 3)), top),
+          assert.AssertionError,
+        );
+      }
     }
   }
 });
+function finalSummaryRaster(ppm: Buffer, top: number) {
+  const header = /^P6\s+(\d+) (\d+)\s+255\s/u.exec(ppm.subarray(0, 60).toString("ascii"));
+  assert.ok(header);
+  assert.equal(Number(header[1]), 596);
+  assert.equal(Number(header[2]), 842);
+  const pixels = ppm.subarray(header[0].length);
+  const ink = (left: number, y: number, right: number, bottom: number) => {
+    let count = 0;
+    for (; y < bottom; y++) for (let x = left; x < right; x++) if (pixels[(y * 596 + x) * 3]! < 200) count++;
+    return count;
+  };
+  assert.ok(ink(12, 12, 583, 120) > 1700);
+  assert.equal(ink(12, 124, 583, Math.floor(top - 1)), 0);
+  assert.ok(ink(240, Math.floor(top - 1), 583, Math.ceil(top + 3)) > 300);
+  assert.ok(ink(247, 721, 577, 724) > 280);
+  assert.ok(ink(12, 764, 583, 768) > 500);
+  assert.equal(ink(0, 830, 596, 842), 0);
+}

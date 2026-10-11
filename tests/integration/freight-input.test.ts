@@ -23,7 +23,8 @@ test("freight editor maps decimal strings to exact signed pence and basis points
   ]);
   assert.deepEqual(result.buyer, ["Buyer", "Address"]);
   assert.equal(JSON.stringify(mockFreightInvoice), before);
-  assert.equal(selectedFreightPreset("freight-invoice-multipage"), "multipage");
+  assert.equal(selectedFreightPreset("freight-invoice-extended"), "extended");
+  assert.equal(selectedFreightPreset("freight-invoice-multipage"), undefined);
   assert.equal(selectedFreightPreset("tables"), undefined);
 });
 test("freight editor rejects ambiguous amounts, excessive VAT and out-of-bound inputs", () => {

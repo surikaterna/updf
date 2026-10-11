@@ -34,7 +34,6 @@ export type DemoId =
   | "invoice"
   | "freight-invoice"
   | "freight-invoice-extended"
-  | "freight-invoice-multipage"
   | "manifest";
 
 export function demoId(value: string): DemoId {
@@ -42,7 +41,6 @@ export function demoId(value: string): DemoId {
     value === "manifest" ||
     value === "freight-invoice" ||
     value === "freight-invoice-extended" ||
-    value === "freight-invoice-multipage" ||
     value === "invoice" ||
     value === "text" ||
     value === "template" ||
@@ -150,8 +148,7 @@ async function invoiceResult(title: string) {
 }
 async function freightResult(title: string, id: DemoId, data?: FreightInvoiceData) {
   const { freightExample, source } = await import("./optional-freight-invoice.js");
-  const preset =
-    id === "freight-invoice-multipage" ? "multipage" : id === "freight-invoice-extended" ? "extended" : "original";
+  const preset = id === "freight-invoice-extended" ? "extended" : "original";
   const { bytes, metadata } = await freightExample(title, preset, data);
   return {
     bytes,
@@ -159,8 +156,8 @@ async function freightResult(title: string, id: DemoId, data?: FreightInvoiceDat
     summary: `${metadata.pageCount} A4 page(s); ${metadata.chargeCount} original mock freight charges; per-charge integer-pence VAT. MOCK - NOT FOR PAYMENT. Title input edits the secondary description; Invoice remains the heading.`,
   };
 }
-function isFreight(id: DemoId): id is "freight-invoice" | "freight-invoice-extended" | "freight-invoice-multipage" {
-  return id === "freight-invoice" || id === "freight-invoice-extended" || id === "freight-invoice-multipage";
+function isFreight(id: DemoId): id is "freight-invoice" | "freight-invoice-extended" {
+  return id === "freight-invoice" || id === "freight-invoice-extended";
 }
 async function manifestResult(title: string) {
   const { manifestExample, source } = await import("./optional-manifest.js");

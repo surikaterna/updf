@@ -27,7 +27,6 @@
               <option value="invoice">Original mock invoice: reusable business flow (36 items)</option>
               <option value="freight-invoice">Original mock freight invoice: 3 charges (not for payment)</option>
               <option value="freight-invoice-extended">Extended mock freight invoice: 8 charges (not for payment)</option>
-              <option value="freight-invoice-multipage">Multi-page mock freight invoice: 20 wrapped charges (not for payment)</option>
               <option value="manifest">Original mock manifest: mixed-page logistics flow (48 consignments)</option>
               </optgroup><optgroup label="Layout · flow, tables &amp; composition">
               <option value="flow">Optional measured flow &amp; repeated page regions</option>
@@ -62,7 +61,7 @@
               <p id="freight-details-help" class="help">One paragraph per line: up to 8 buyer lines and 6 vehicle lines. Long lines wrap to fit.</p>
               <div id="freight-charges"></div>
               <button id="freight-add-charge" type="button">Add charge</button>
-              <p class="help">1–20 charges. Net amounts: −9999.99 to 9999.99 GBP; VAT: 0–100%. Use a decimal point and at most two decimal places. Credits may be negative; each charge row stays together.</p>
+              <p class="help">1–20 charges. Net amounts: −9999.99 to 9999.99 GBP; VAT: 0–100%. Use a decimal point and at most two decimal places. Credits may be negative. The original shipment panel and summary each stay intact; if either is too tall, shorten the input. The previous PDF remains available on errors.</p>
             </fieldset>
             <fieldset id="jpeg-controls" hidden disabled>
               <legend>JPEG image controls</legend>

@@ -1,11 +1,9 @@
 /** @jsxImportSource @updf/core */
 import { render } from "@updf/core";
 import { createHelvetica, fontProvider, fontRuntime, type PreparedFont } from "@updf/fonts";
-import { Block, createExtensions, Document, Flow, layout, PageSize } from "@updf/layout";
-import { tableExtension } from "@updf/tables";
+import { Block, Document, Flow, layout, PageSize } from "@updf/layout";
 import { createTextService } from "@updf/text";
 import { calculateFreight } from "./freight-invoice-calculations.js";
-import { FreightCharges } from "./freight-invoice-charges.js";
 import { type FreightInvoiceData, mockFreightInvoice } from "./freight-invoice-data.js";
 import { FreightBilling, FreightHeader, FreightShipment, FreightSummary } from "./freight-invoice-sections.js";
 
@@ -20,18 +18,13 @@ export function freightInvoiceExample(
   const options = freightOptions(resources);
   const result = layout(
     <Document>
-      <Flow
-        pageSize={PageSize.A4}
-        margins={{ top: 12, right: 12, bottom: 12, left: 12 }}
-        extensions={createExtensions([tableExtension])}
-      >
+      <Flow pageSize={PageSize.A4} margins={{ top: 12, right: 12, bottom: 12, left: 12 }}>
         <Flow.Header height={112}>
           <FreightHeader data={data} />
         </Flow.Header>
         <Flow.Body>
           <FreightBilling data={data} description={description} />
           <FreightShipment data={data} />
-          <FreightCharges data={data} />
           <Block keepTogether style={{ marginTop: "auto" }}>
             <FreightSummary data={data} />
           </Block>

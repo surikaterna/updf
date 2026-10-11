@@ -92,7 +92,9 @@ test("freight rows add/remove with enforced limits and preset reset", async () =
     await pdf(page);
     assert.equal(await page.locator(".freight-charge").count(), 1);
     assert.equal(await page.getByRole("button", { name: "Remove charge", exact: true }).isDisabled(), true);
-    await page.getByLabel("Example", { exact: true }).selectOption("freight-invoice-multipage");
+    await page.getByLabel("Example", { exact: true }).selectOption("freight-invoice-extended");
+    const extended = await pdf(page);
+    for (let i = 8; i < 20; i++) await page.getByRole("button", { name: "Add charge", exact: true }).click();
     await pdf(page);
     assert.equal(await page.locator(".freight-charge").count(), 20);
     assert.equal(await page.getByRole("button", { name: "Add charge", exact: true }).isDisabled(), true);
@@ -100,8 +102,8 @@ test("freight rows add/remove with enforced limits and preset reset", async () =
     await pdf(page);
     assert.equal(await page.getByRole("button", { name: "Add charge", exact: true }).isDisabled(), false);
     await page.getByRole("button", { name: "Reset demo", exact: true }).click();
-    await pdf(page);
-    assert.equal(await page.locator(".freight-charge").count(), 20);
+    assert.deepEqual(await pdf(page), extended);
+    assert.equal(await page.locator(".freight-charge").count(), 8);
     await rendered(page, 2);
   } finally {
     await app.close();
@@ -129,9 +131,9 @@ test("late freight data loading cannot overwrite a newer example selection", asy
     await page.getByLabel("Example", { exact: true }).selectOption("text");
     assert.deepEqual(await pdf(page), original);
     release();
-    await page.getByLabel("Example", { exact: true }).selectOption("freight-invoice-multipage");
+    await page.getByLabel("Example", { exact: true }).selectOption("freight-invoice-extended");
     await pdf(page);
-    assert.equal(await page.locator(".freight-charge").count(), 20);
+    assert.equal(await page.locator(".freight-charge").count(), 8);
     await rendered(page, 2);
     assert.deepEqual(errors, []);
   } finally {

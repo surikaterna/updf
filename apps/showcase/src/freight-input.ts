@@ -9,7 +9,6 @@ export interface FreightDraft {
 export function selectedFreightPreset(id: string): FreightPreset | undefined {
   if (id === "freight-invoice") return "original";
   if (id === "freight-invoice-extended") return "extended";
-  if (id === "freight-invoice-multipage") return "multipage";
   return undefined;
 }
 

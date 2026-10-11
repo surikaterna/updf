@@ -8,8 +8,20 @@ import { freightInvoiceExample } from "../../examples/business/freight-invoice.j
 import { calculateFreight, freightMoney } from "../../examples/business/freight-invoice-calculations.js";
 import { extendedFreightInvoice, mockFreightInvoice } from "../../examples/business/freight-invoice-data.js";
 import { freightFonts } from "../fixtures/fonts/freight-fonts.js";
-import { freightGeometry, freightRaster } from "./freight-pdf-checks.js";
+import { freightGeometry, freightMultipageGeometry, freightRaster } from "./freight-pdf-checks.js";
 import { eraseRegion } from "./manifest-pdf-checks.js";
+
+test("freight preset PDFs match the pre-redesign 904307b byte oracles", async () => {
+  const resources = await freightFonts();
+  // Captured before #71; changing the design must not silently update this compatibility oracle.
+  for (const [data, expected] of [
+    [mockFreightInvoice, "480d191ac1e0378aa0f210ba86fdc9b344df93ed92a053620b023240b55cc43b"],
+    [extendedFreightInvoice, "2b5e475c5bc30ec9a61ac85a06c2ee0657894c86a28f70a746e1df2d14afe819"],
+  ] as const) {
+    const { bytes } = freightInvoiceExample(resources, "Single mock freight passage", data);
+    assert.equal(createHash("sha256").update(bytes).digest("hex"), expected);
+  }
+});
 
 test("freight independent literal pence, signed per-charge half-up and unsafe range guards", () => {
   assert.deepEqual(calculateFreight(mockFreightInvoice.charges), {
@@ -91,15 +103,15 @@ test("freight licensed pinned faces, frozen input, constant heading and atomic o
     () =>
       freightInvoiceExample(resources, "Oversize charges", {
         ...mockFreightInvoice,
-        charges: [
-          {
-            label: "Long realistic cold storage handling service description ".repeat(200),
-            netPence: 100,
-            vatBasisPoints: 2000,
-          },
-        ],
+        charges: Array.from({ length: 20 }, () => ({
+          label: "Long realistic cold storage handling service description",
+          netPence: 100,
+          vatBasisPoints: 2000,
+        })),
       }),
-    (error: unknown) => error instanceof DocumentError && error.diagnostics.some((d) => d.code === "LAYOUT_OVERSIZED"),
+    (error: unknown) =>
+      error instanceof DocumentError &&
+      error.diagnostics.some((d) => d.code === "VERTICAL_OVERFLOW" && d.message === "Atomic Row exceeds a fresh page"),
   );
   for (const [face, hash] of [
     ["Regular", "76d04c18ea243f426b7de1f3ad208e927008f961dc5945e5aad352d0dfde8ee8"],
@@ -140,10 +152,10 @@ test("freight real qpdf/fonts/Poppler bbox and raster, stable variants and reali
     const ppm = await readFile(`${prefix}-1.ppm`);
     freightRaster(ppm);
     for (const region of [
-      [12, 373, 583, 375],
-      [12, 399, 583, 402],
-      [12, 698, 583, 701],
-      [309, 766, 577, 771],
+      [440, 367, 580, 369],
+      [247, 721, 577, 724],
+      [240, 617, 583, 621],
+      [12, 764, 583, 768],
     ] as const)
       assert.throws(
         () => freightRaster(eraseRegion(ppm, region[0], region[1], region[2], region[3])),
@@ -151,18 +163,18 @@ test("freight real qpdf/fonts/Poppler bbox and raster, stable variants and reali
       );
   }
 });
-test("freight extended charges fit one page without duplicating line items in the summary", async () => {
+test("freight extended charges preserve the original shipment and move the intact summary to page two", async () => {
   const example = freightInvoiceExample(await freightFonts(), undefined, extendedFreightInvoice);
-  assert.equal(example.result.pageCount, 1);
-  const [billing, shipment, charges, summary] = example.result.placements;
-  assert.ok(billing && shipment && charges && summary);
+  assert.equal(example.result.pageCount, 2);
+  const [billing, shipment, summary] = example.result.placements;
+  assert.ok(billing && shipment && summary);
   assert.deepEqual(
     example.result.placements.map((p) => p.pageIndex),
-    [0, 0, 0, 0],
+    [0, 0, 1],
   );
   assert.equal(summary.box.y + summary.box.height, 841.8897637795277 - 12);
   assert.ok(shipment.box.height < 841.8897637795277 - 24 - 112);
-  assert.ok(charges.box.y + charges.box.height <= summary.box.y);
+  assert.ok(shipment.box.y + shipment.box.height + summary.box.height > 841.8897637795277 - 12);
   const directory = new URL("../../artifacts/freight-invoice/", import.meta.url);
   await mkdir(directory, { recursive: true });
   const path = new URL("extended.pdf", directory).pathname;
@@ -171,16 +183,22 @@ test("freight extended charges fit one page without duplicating line items in th
   const pages = execFileSync("pdftotext", ["-layout", path, "-"], { encoding: "utf8" })
     .split("\f")
     .filter((p) => p.trim());
-  assert.equal(pages.length, 1);
-  assert.ok(pages[0]!.includes("Page 1 of 1"));
-  assert.equal((pages[0]!.match(/Invoice Total/gu) ?? []).length, 1);
-  assert.equal((pages[0]!.match(/Payment contact \(mock\)/gu) ?? []).length, 1);
-  for (const charge of extendedFreightInvoice.charges)
-    assert.equal(pages[0]!.split(charge.label).length - 1, 1, charge.label);
-  for (const literal of ["£379.00", "£67.33", "£446.33", "-£12.50", "-£2.50"]) assert.ok(pages[0]!.includes(literal));
+  assert.equal(pages.length, 2);
+  for (const [index, page] of pages.entries()) {
+    assert.ok(page.includes(`Page ${index + 1} of 2`));
+    assert.equal((page.match(/Invoice Total/gu) ?? []).length, index);
+    assert.equal((page.match(/Payment contact \(mock\)/gu) ?? []).length, index);
+    for (const charge of extendedFreightInvoice.charges)
+      assert.equal(page.split(charge.label).length - 1, 1, charge.label);
+  }
+  for (const literal of ["£379.00", "£67.33", "£446.33", "-£12.50"]) assert.ok(pages[1]!.includes(literal));
+  assert.ok(pages[0]!.includes("ORDER NET £379.00"));
   const bbox = execFileSync("pdftotext", ["-bbox", path, "-"], { encoding: "utf8" });
-  freightGeometry(bbox, summary.box.y);
-  assert.throws(() => freightGeometry(bbox.replaceAll(">summary<", ">BAD<"), summary.box.y), assert.AssertionError);
+  freightMultipageGeometry(bbox, summary.box.y);
+  assert.throws(
+    () => freightMultipageGeometry(bbox.replaceAll(">NET<", ">BAD<"), summary.box.y),
+    assert.AssertionError,
+  );
 });
 function assertFreightText(text: string) {
   for (const value of [
@@ -196,7 +214,7 @@ function assertFreightText(text: string) {
     assert.ok(text.includes(value), value);
   assert.equal((text.match(/Invoice Total/gu) ?? []).length, 1);
 }
-test("freight compact summary stays content-sized independently of charge labels and counts", async () => {
+test("freight original summary measures its charge reconciliation rather than reserving a fixed footer", async () => {
   const resources = await freightFonts();
   const examples = [
     mockFreightInvoice,
@@ -216,6 +234,6 @@ test("freight compact summary stays content-sized independently of charge labels
     assert.equal(summary.pageIndex, 0);
     return summary.box.height;
   });
-  assert.equal(heights[1], heights[0]);
-  assert.equal(heights[2], heights[0]);
+  assert.ok(heights[1]! < heights[0]!);
+  assert.ok(heights[2]! > heights[0]!);
 });
