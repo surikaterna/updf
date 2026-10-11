@@ -14,7 +14,7 @@ test("showcase keeps practical limits and unreleased notice without a stale road
     assert.equal(await page.locator('a[href*="feature/declarative-cmr-poc"]').count(), 0);
     const limits = await page.locator("#limits").innerText();
     assert.match(limits, /Experimental, unreleased native implementation/);
-    assert.match(limits, /@updf\/jpeg.*no image demo/s);
+    assert.match(limits, /@updf\/jpeg.*showcase demonstrates baseline color\/grayscale/s);
     assert.doesNotMatch(limits, /@updf\/core\/fonts/);
     assert.match(limits, /prepared resources through @updf\/fonts; the optional @updf\/fontkit adapter/);
   } finally {

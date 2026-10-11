@@ -57,8 +57,20 @@ test("production chunk graph keeps adapters optional; Fontkit belongs only to op
   const modules = chunks.flatMap((chunk) => chunk.modules);
   assert.ok(!modules.some((name) => /node:|external|\/react(?:-dom)?\//.test(name)));
   freightClosure(chunks, entry);
+  jpegClosure(chunks, entry);
   await notices(directory);
 });
+function jpegClosure(chunks: readonly Chunk[], entry: Chunk): void {
+  const optional = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-jpeg.ts")));
+  assert.ok(optional && entry.dynamicImports.includes(optional.fileName));
+  const modules = closure(chunks, optional);
+  assert.ok(modules.some((name) => /\/packages\/jpeg\//u.test(name)));
+  assert.ok(!modules.some((name) => /\/packages\/(layout|tables|geometry|svg|fontkit)\//u.test(name)));
+  assert.ok(!closure(chunks, entry).some((name) => /\/packages\/jpeg\//u.test(name)));
+  for (const chunk of chunks.filter((candidate) => entry.dynamicImports.includes(candidate.fileName))) {
+    if (chunk !== optional) assert.ok(!closure(chunks, chunk).some((name) => /\/packages\/jpeg\//u.test(name)));
+  }
+}
 function freightClosure(chunks: readonly Chunk[], entry: Chunk): void {
   const freight = chunks.find((chunk) =>
     chunk.modules.some((name) => name.endsWith("/src/optional-freight-invoice.ts")),

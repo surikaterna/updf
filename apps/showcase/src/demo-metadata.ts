@@ -15,6 +15,12 @@ const freightFiles =
   "examples/business: freight-invoice.tsx · freight-invoice-sections.tsx · freight-invoice-charges.tsx · freight-invoice-calculations.ts · freight-invoice-data.ts · freight-invoice-fonts.ts; scripts/freight-invoice-example.ts; apps/showcase/src/optional-freight-invoice.ts; tests/fixtures/fonts/FREIGHT.md";
 
 export const metadata: Record<DemoId, Metadata> = {
+  jpeg: entry(
+    "JPEG image placement",
+    "Original color/grayscale samples: explicit sizing, reuse, reflection and clipping. PNG is not supported.",
+    ["JPEG · lazy", "Fixed page"],
+    "jpeg.ts · jpeg-controls.ts · optional-jpeg.ts; tests/fixtures/jpeg/README.md",
+  ),
   text: entry(
     "Positioned text",
     "A minimal document with explicit coordinates and built-in Helvetica.",

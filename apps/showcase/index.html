@@ -38,6 +38,7 @@
               <option value="rows-overflow">Row/Column: intentional atomic oversize diagnostic</option>
               </optgroup><optgroup label="Drawing · native &amp; optional SVG">
               <option value="painting">Native painting: paths, colors, clips &amp; transforms</option>
+              <option value="jpeg">JPEG images: color, grayscale, reuse &amp; clipping</option>
               <option value="svg">Advanced: native SVG adapter (loaded on demand)</option>
               <option value="branding">Vector brand letterhead: original sample SVG logo</option>
               </optgroup>
@@ -62,6 +63,15 @@
               <div id="freight-charges"></div>
               <button id="freight-add-charge" type="button">Add charge</button>
               <p class="help">1–20 charges. Net amounts: −9999.99 to 9999.99 GBP; VAT: 0–100%. Use a decimal point and at most two decimal places. Credits may be negative; each charge row stays together.</p>
+            </fieldset>
+            <fieldset id="jpeg-controls" hidden disabled>
+              <legend>JPEG image controls</legend>
+              <label for="jpeg-variant">JPEG sample</label>
+              <select id="jpeg-variant"><option value="color" selected>Original color artwork</option><option value="gray">Grayscale artwork</option></select>
+              <label for="jpeg-width">Image width (PDF points)</label>
+              <input id="jpeg-width" type="number" min="96" max="192" step="1" value="192" required aria-describedby="jpeg-help" />
+              <p id="jpeg-help" class="help">Four placements share one baseline JPEG resource. Width changes PDF geometry, not the 32×24 source pixels. The example calculates aspect ratio explicitly; the engine does not auto-fit.</p>
+              <p class="help">PNG, transparency, progressive JPEG, EXIF and ICC profiles are not supported. These original MIT samples use the supported baseline profile; there is no file upload.</p>
             </fieldset>
             <p id="input-error" class="input-error" hidden></p>
             <fieldset id="rich-controls" hidden>
@@ -153,7 +163,7 @@
         <p>Fonts can use prepared resources through <code>@updf/fonts</code>; the optional <code>@updf/fontkit</code> adapter prepares trusted static TrueType bytes. The initial entry remains parser-free; opting into the freight invoice loads Fontkit and two licensed Liberation Sans font assets (regular and bold).</p>
         <ul>
            <li>Core uses fixed point geometry and explicit pages. Optional layout supports measured blocks, padding/border/gap and error/hidden overflow, repeated regions and explicit-width atomic table rows, not general CSS layout or row/column spans.</li>
-           <li>Built-in Helvetica: printable ASCII and LF. No shaping, bidi or full SVG. Optional <code>@updf/jpeg</code> supports bounded baseline JPEG resources in the engine; this showcase has no image demo. PNG/alpha and broader image profiles are not delivered.</li>
+           <li>Built-in Helvetica: printable ASCII and LF. No shaping, bidi or full SVG. The optional <code>@updf/jpeg</code> showcase demonstrates baseline color/grayscale images with explicit sizing and reuse. PNG/alpha and broader image profiles are not delivered.</li>
           <li>Prepared fonts support a documented simple LTR Latin/Cyrillic profile, not general typography.</li>
           <li>Runtime validation and current resource caps still apply. Trusted components are not a sandbox.</li>
         </ul>
