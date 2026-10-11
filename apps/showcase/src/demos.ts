@@ -1,4 +1,5 @@
 import type { BlockControls } from "./blocks.js";
+import type { FreightInvoiceData } from "../../../examples/business/freight-invoice-data.js";
 import type { BrandingControls } from "./branding-controls.js";
 import type { FlowControls } from "./flow.js";
 import type { MixedControls } from "./mixed.js";
@@ -67,10 +68,11 @@ export async function generate(
   blocks?: BlockControls,
   mixed?: MixedControls,
   branding?: BrandingControls,
+  freight?: FreightInvoiceData,
 ): Promise<{ bytes: Uint8Array; source: string; summary?: string }> {
   if (title.length > 40) throw new Error("Title must be at most 40 characters");
   if (id === "branding") return brandingResult(title, branding);
-  if (isFreight(id)) return freightResult(title, id);
+  if (isFreight(id)) return freightResult(title, id, freight);
   if (id === "manifest" || id === "invoice") return id === "manifest" ? manifestResult(title) : invoiceResult(title);
   if (id === "template" || id === "mixed") return id === "template" ? templateResult(title) : mixedResult(title, mixed);
   if (id === "blocks") return blockResult(title, blocks);
@@ -131,11 +133,11 @@ async function invoiceResult(title: string) {
     summary: `${metadata.pageCount} A4 pages; ${metadata.itemCount} original mock line items; integer-cent application totals. NOT FOR PAYMENT.`,
   };
 }
-async function freightResult(title: string, id: DemoId) {
+async function freightResult(title: string, id: DemoId, data?: FreightInvoiceData) {
   const { freightExample, source } = await import("./optional-freight-invoice.js");
   const preset =
     id === "freight-invoice-multipage" ? "multipage" : id === "freight-invoice-extended" ? "extended" : "original";
-  const { bytes, metadata } = await freightExample(title, preset);
+  const { bytes, metadata } = await freightExample(title, preset, data);
   return {
     bytes,
     source,

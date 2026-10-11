@@ -183,6 +183,7 @@ label {
 }
 input,
 select,
+textarea,
 button {
   font: inherit;
   font-size: 0.9rem;
@@ -192,11 +193,31 @@ button {
   border-radius: 0.4rem;
 }
 input,
-select {
+select,
+textarea {
   width: 100%;
   min-width: 0;
   background: #fff;
   color: #22343b;
+}
+textarea {
+  resize: vertical;
+}
+.freight-charge {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.5rem;
+}
+.freight-charge label {
+  min-width: 0;
+  margin-top: 0;
+}
+.freight-charge label:first-of-type,
+.freight-charge button {
+  grid-column: 1 / -1;
+}
+#freight-add-charge {
+  margin-top: 1rem;
 }
 input[type="checkbox"] {
   width: 1rem;
@@ -261,8 +282,7 @@ button.secondary:hover {
   overflow-wrap: anywhere;
   margin-top: 0.5rem;
 }
-#limits,
-#roadmap {
+#limits {
   padding: 1.5rem 0;
   border-top: 1px solid var(--line);
   font-size: 0.9rem;

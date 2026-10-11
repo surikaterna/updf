@@ -56,7 +56,9 @@ export function failed(message: string, hasResult: boolean): void {
 export function validateForm(form: HTMLFormElement): void {
   const error = ui("input-error");
   error.hidden = true;
-  const fields = Array.from(form.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input, select"));
+  const fields = Array.from(
+    form.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>("input, select, textarea"),
+  );
   for (const field of fields) {
     field.removeAttribute("aria-invalid");
     describeError(field, false);
@@ -64,7 +66,7 @@ export function validateForm(form: HTMLFormElement): void {
       field.setCustomValidity(field.value.length > 40 ? "Title must be at most 40 characters" : "");
   }
   for (const field of fields) {
-    if (field.disabled || field.closest("fieldset")?.disabled || field.validity.valid) continue;
+    if (field.matches(":disabled") || field.validity.valid) continue;
     field.setAttribute("aria-invalid", "true");
     describeError(field, true);
     error.hidden = false;

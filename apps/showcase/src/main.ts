@@ -3,6 +3,7 @@ import { blockControls } from "./block-controls.js";
 import { brandingControls, showBrandLogo } from "./branding-controls.js";
 import { demoId, generate } from "./demos.js";
 import { flowControls } from "./flow-controls.js";
+import { freightControls, installFreightControls, showFreightControls } from "./freight-controls.js";
 import { mixedControls } from "./mixed-controls.js";
 import { richControls } from "./rich-controls.js";
 import { tableControls } from "./table-controls.js";
@@ -49,7 +50,7 @@ function invalidate(): number {
   return generation;
 }
 
-function showDemo(): void {
+function showDemo(): Promise<boolean> {
   const id = demoId(selection.value);
   showMetadata(id);
   element("rich-controls", HTMLFieldSetElement).hidden = id !== "rich";
@@ -65,6 +66,20 @@ function showDemo(): void {
   element("branding-controls", HTMLFieldSetElement).hidden = id !== "branding";
   element("branding-controls", HTMLFieldSetElement).disabled = id !== "branding";
   if (id === "branding") showBrandLogo();
+  return showFreightControls(id);
+}
+
+async function refreshDemo(): Promise<void> {
+  const current = invalidate();
+  form.setAttribute("aria-busy", "true");
+  pending(!!blobUrl);
+  try {
+    if (await showDemo()) await renderExample();
+  } catch (error) {
+    if (current !== generation) return;
+    failed(readableError(error), !!blobUrl);
+    form.setAttribute("aria-busy", "false");
+  }
 }
 
 function captureArguments(): Parameters<typeof generate> {
@@ -79,6 +94,7 @@ function captureArguments(): Parameters<typeof generate> {
     id === "blocks" ? blockControls(form) : undefined,
     id === "mixed" ? mixedControls(form) : undefined,
     id === "branding" ? brandingControls(form) : undefined,
+    freightControls(id),
   ];
 }
 
@@ -102,7 +118,11 @@ async function renderExample(): Promise<void> {
     await renderOutput(current, args, result);
   } catch (error) {
     if (current === generation) {
-      if (error instanceof DocumentError && error.diagnostics.some(({ code }) => code === "CHARACTER")) {
+      if (
+        !selection.value.startsWith("freight-invoice") &&
+        error instanceof DocumentError &&
+        error.diagnostics.some(({ code }) => code === "CHARACTER")
+      ) {
         titleError(readableError(error));
       }
       failed(readableError(error), !!blobUrl);
@@ -169,8 +189,7 @@ form.addEventListener("submit", (event) => {
   void renderExample();
 });
 selection.addEventListener("change", () => {
-  showDemo();
-  void renderExample();
+  void refreshDemo();
 });
 title.addEventListener("input", scheduleUpdate);
 for (const id of [
@@ -180,12 +199,13 @@ for (const id of [
   "block-controls",
   "mixed-controls",
   "branding-controls",
+  "freight-controls",
 ]) {
   element(id, HTMLFieldSetElement).addEventListener("input", scheduleUpdate);
 }
 element("reset-demo", HTMLButtonElement).addEventListener("click", () => {
   for (const field of Array.from(form.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input, select"))) {
-    if (field.closest("fieldset")?.disabled) continue;
+    if (field.matches(":disabled")) continue;
     if (field instanceof HTMLInputElement) {
       field.value = field.defaultValue;
       field.checked = field.defaultChecked;
@@ -194,8 +214,7 @@ element("reset-demo", HTMLButtonElement).addEventListener("click", () => {
       if (field.selectedIndex < 0) field.selectedIndex = 0;
     }
   }
-  showDemo();
-  void renderExample();
+  void refreshDemo();
 });
 window.addEventListener("pagehide", () => {
   disposed = true;
@@ -216,8 +235,8 @@ const resize = new ResizeObserver(() => {
   if (previous && !disposed) scheduleUpdate();
 });
 resize.observe(preview);
-showDemo();
-void renderExample();
+installFreightControls();
+void refreshDemo();
 
 for (const link of Array.from(document.querySelectorAll<HTMLAnchorElement>("[data-local]"))) {
   link.href = `${import.meta.env.BASE_URL}${link.dataset.local}`;

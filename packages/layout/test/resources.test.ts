@@ -92,7 +92,7 @@ test("unknown layouts never accept external plans or forged native nodes; caller
     DocumentError,
   );
 });
-test("derived width capacity never weakens left-edge prepared glyph ink checks", async () => {
+test("derived width capacity allows positioned side bearings but never an oversized ink envelope", async () => {
   const font = await fixtureFont();
   const glyph = font.metadata.glyphs.find((item) => item.codePoint === 65);
   assert.ok(glyph);
@@ -116,6 +116,17 @@ test("derived width capacity never weakens left-edge prepared glyph ink checks",
   );
   const options = { resources: { Demo: overhang } };
   for (const run of [() => layoutFlow(input, options), () => lower(h(Flow.Document, input), options)]) {
-    assert.throws(run, (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === "FONT_INK");
+    assert.doesNotThrow(run);
   }
+  assert.throws(
+    () =>
+      layoutFlow(
+        {
+          ...input,
+          pageTemplate: { ...input.pageTemplate, width: 1, margins: { top: 0, right: 0, bottom: 0, left: 0 } },
+        },
+        options,
+      ),
+    (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === "TOKEN_OVERFLOW",
+  );
 });

@@ -44,6 +44,16 @@ description (maximum 40 characters, one line of input; long words wrap by code
 point). Identical inputs produce identical Node/browser/download bytes. PDF.js
 shows every page with accessible labels and actual A4 sizes, including at 320px widths.
 
+The freight controls edit buyer/address lines, vehicle/goods lines, charge descriptions,
+net GBP amounts and VAT percentages. Add/remove buttons enforce 1–20 rows. Decimal
+strings become integer pence/basis points without floating-point currency multiplication.
+Credits are supported; editor amounts are bounded to ±9999.99 GBP and VAT to 0–100%.
+Buyer input is limited to 600 characters/8 nonempty lines; vehicle input to 400/6;
+charge descriptions to 200 characters. Inputs stay in memory, never uploaded or persisted.
+Changes regenerate the PDF after the existing debounce. Invalid input keeps the previous
+download, preview and source arguments together. Reset and switching presets restore
+the selected mock fixture. The source arguments show the complete captured invoice data.
+
 Composition uses public `Document`, `Flow`, `Row/Column`, `Block`, `Paragraph` and
 `@updf/tables` APIs: A4 portrait, 12pt margins, 112pt reserved header, weighted billing
 panels with stretched borders, three equal shipment tracks, and a full-width charge table.
@@ -74,12 +84,11 @@ the table, including each computed VAT amount; the summary does not repeat line 
 The multi-page preset contains twenty wrapped mock services with net **£21.90**,
 VAT **£4.38**, gross **£26.28**. Regression fixtures also exercise a summary-only
 continuation page and long buyer/address/shipment text.
-These are bounded fixtures, not arbitrary-input guarantees: some Liberation Sans
-wrapping patterns can trigger the existing `FONT_INK` guard at the new panel widths.
-For example, the single vehicle paragraph "Goods: reusable exhibition display crates
-with refrigeration monitoring and protective handling" rejects rather than clipping
-glyph ink. This limitation is regression-tested; the example does not weaken font
-validation or alter the text engine to work around it.
+Text wrapping and alignment reserve space for glyph side bearings. The vehicle
+paragraph "Goods: reusable exhibition display crates with refrigeration monitoring
+and protective handling" now renders, including its formerly rejected line-leading
+`w`. Width-sweep and PDF tests preserve the complete text and ink bounds; genuinely
+oversized tokens, glyphs or line heights still reject rather than clipping.
 
 Both real Liberation Sans faces are prepared with `@updf/fontkit` and passed to
 layout **and** rendering; bold is not synthesized. See

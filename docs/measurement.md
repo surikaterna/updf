@@ -53,12 +53,16 @@ bold/italic, decorations, shaping, bidi, kerning or font fallback is implied.
   printable ASCII + LF. Prepared fonts retain the simple LTR Latin/Cyrillic profile.
 - Oversized tokens fail `TOKEN_OVERFLOW` in `error` mode. `codePoint` splits long
   tokens into scalar-safe chunks, never UTF16 halves. A scalar wider than the box
-  still fails. Alignment uses the complete line advance, not individual runs.
+  still fails. Wrapping includes the union of glyph ink and advances, so side
+  bearings consume real width. Alignment prefers the complete line advance (not
+  individual runs), moving its origin only when necessary to contain that union.
 - Rich lines share a baseline based on their maximum ascent/descent envelope,
   with centered spare leading. Helvetica uses its existing conservative ASCII
   envelope; prepared faces use actual glyph bounds. Line height must be at least
-  each effective font size and contain the envelope. Horizontal prepared overhang
-  fails `FONT_INK`, never clips or shifts silently.
+  each effective font size and contain the envelope. Negative left bearings and
+  right overhangs are preserved by measured placement, not clipped. An ink envelope
+  wider than the available width rejects as `TOKEN_OVERFLOW`; final placed ink is
+  still checked with `FONT_INK`. Vertical ink validation is unchanged.
 - Omitted height is natural; supplied height is a hard bound. Exact fit passes;
   smaller bounds fail `VERTICAL_OVERFLOW`. No shrinking or automatic pages.
 
