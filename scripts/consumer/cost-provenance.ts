@@ -17,6 +17,7 @@ for (const line of inventory.trim().split("\n")) {
   assert.equal(actual, oid, `Baseline tracked source changed: ${path}`);
 }
 for (const name of ["fonts", "text"]) await assert.rejects(readFile(join(baseline, "packages", name, "package.json")));
+// This pinned revision predates the layout-boxes rename; its certified links stay historical.
 for (const name of ["core", "layout-kernel", "fontkit"]) {
   const link = await realpath(join(baseline, "node_modules/@updf", name));
   assert.equal(link, join(baseline, "packages", name));

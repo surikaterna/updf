@@ -37,10 +37,10 @@ test("internal export inventory rejects broad exports and unexpected helpers", (
 test("layout package edges reject optional/runtime leakage and core dependency inversion", () => {
   packageEdge("layout", "@updf/text");
   packageEdge("layout", "./types.js");
-  packageEdge("layout", "@updf/layout-kernel");
-  packageEdge("layout", "@updf/layout-kernel/numeric");
+  packageEdge("layout", "@updf/layout-boxes");
+  packageEdge("layout", "@updf/layout-boxes/numeric");
   assert.throws(() => packageEdge("core", "@updf/layout"));
-  assert.throws(() => packageEdge("core", "@updf/layout-kernel"));
+  assert.throws(() => packageEdge("core", "@updf/layout-boxes"));
   for (const name of ["@updf/svg", "@updf/fontkit", "@updf/geometry", "node:fs", "react", "foreign"]) {
     assert.throws(() => packageEdge("layout", name));
   }
@@ -48,21 +48,21 @@ test("layout package edges reject optional/runtime leakage and core dependency i
 });
 
 test("kernel edges reject every external runtime dependency", () => {
-  packageEdge("layout-kernel", "./width-types.js");
+  packageEdge("layout-boxes", "./width-types.js");
   for (const name of ["@updf/core", "@updf/layout", "react", "node:fs", "fontkit", "foreign"])
-    assert.throws(() => packageEdge("layout-kernel", name));
+    assert.throws(() => packageEdge("layout-boxes", name));
 });
 
 test("optional fonts/text reject reverse edges and concrete implementations", () => {
   packageEdge("fonts", "@updf/core/resources");
   packageEdge("text", "@updf/core/resources");
-  packageEdge("text", "@updf/layout-kernel/arithmetic");
+  packageEdge("text", "@updf/layout-boxes/arithmetic");
   for (const name of ["@updf/fonts", "@updf/fontkit", "fontkit", "react", "node:fs"]) {
     assert.throws(() => packageEdge("core", name));
     assert.throws(() => packageEdge("text", name));
   }
   assert.throws(() => packageEdge("core", "@updf/text"));
   assert.throws(() => packageEdge("fonts", "@updf/text"));
-  assert.throws(() => packageEdge("fonts", "@updf/layout-kernel/arithmetic"));
+  assert.throws(() => packageEdge("fonts", "@updf/layout-boxes/arithmetic"));
   assert.throws(() => packageEdge("layout", "@updf/fonts"));
 });

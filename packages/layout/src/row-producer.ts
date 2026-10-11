@@ -1,29 +1,19 @@
 import { exceeds, fail, sum } from "@updf/core/internal";
-import type { BoxPlacement } from "@updf/layout-kernel/boxes";
+import type { BoxPlacement } from "@updf/layout-boxes/boxes";
 import { paintContainerSteps } from "./container-paint.js";
 import { containerReservation, reserveAncestors } from "./container-reservation.js";
 import type { FragmentCall, FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
 import { resolveFragment, resolvePaint } from "./protocol-runtime.js";
-import { rowPlacement } from "./row-placement.js";
-import type { RowAlignment } from "./row-types.js";
-import { clamp, type Sizing } from "./sizing.js";
+import type { Sizing } from "./sizing.js";
 import type { StackPiece } from "./stack.js";
 
-export function rowHeight(box: Sizing, columns: readonly PreparedBlock[], path: string): number {
-  const tallest = columns.reduce((height, column) => Math.max(height, column.naturalSize.height), 0);
-  const natural = sum([box.vertical, tallest]);
-  const height = clamp(box.style.height ?? natural, box.style.minHeight, box.style.maxHeight);
-  if (exceeds(natural, height)) fail("VERTICAL_OVERFLOW", path, "Row height cannot truncate Columns");
-  return height;
-}
 export function rowProducer(
   box: Sizing,
   columns: readonly PreparedBlock[],
-  align: RowAlignment,
-  height: number,
+  placement: BoxPlacement,
   path: string,
 ): PreparedBlock {
-  const placement = rowPlacement(box, columns, align, height, path);
+  const height = placement.height;
   const prepared: PreparedBlock = {
     rowPlacement: placement,
     ...(columns.some((column) => column.containsAutoAlignment) ? { containsAutoAlignment: true } : {}),

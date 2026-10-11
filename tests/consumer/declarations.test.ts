@@ -52,7 +52,7 @@ async function prepareConsumer(directory: string, root: string): Promise<void> {
     "jpeg",
     "fonts",
     "text",
-    "layout-kernel",
+    "layout-boxes",
     "layout",
     "tables",
     "geometry",

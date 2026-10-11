@@ -7,6 +7,7 @@ import { gzipSync } from "node:zlib";
 import { createRequire } from "node:module";
 import { build, version } from "esbuild";
 import { costInputs, hostCostInput, jpegCostInputs } from "./consumer/cost-inputs.js";
+import { layoutPackageDirectory } from "./layout-package-identity.js";
 
 const root = resolve(process.argv[2] ?? process.cwd());
 const historical = process.argv[3] === "baseline";
@@ -69,7 +70,7 @@ for (const [profile, contents] of Object.entries(inputs)) {
 }
 const packages = [];
 for (const name of [
-  "layout-kernel",
+  await layoutPackageDirectory(root),
   "core",
   ...(historical ? [] : ["fonts", "text"]),
   ...(jpegEnabled ? ["jpeg"] : []),

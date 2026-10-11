@@ -1,4 +1,4 @@
-import { layoutBoxes } from "@updf/layout-kernel/boxes";
+import { layoutBoxes } from "@updf/layout-boxes/boxes";
 import { type Controls, node, prepareBoxes, prepareRow, validateControls, view } from "./boxes.js";
 import { type Snapshot, type Unit, unit } from "./snapshot.js";
 

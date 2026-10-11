@@ -1,4 +1,4 @@
-import { createFragmentOperation, type FragmentSource, type ProviderWork } from "@updf/layout-kernel/fragmentation";
+import { createFragmentOperation, type FragmentSource, type ProviderWork } from "@updf/layout-boxes/fragmentation";
 
 const source: FragmentSource<string> = {
   id: "text",

@@ -1,4 +1,4 @@
-import { createFragmentOperation, type FragmentOperation, type ProviderWork } from "@updf/layout-kernel/fragmentation";
+import { createFragmentOperation, type FragmentOperation, type ProviderWork } from "@updf/layout-boxes/fragmentation";
 
 export type ProofSource =
   | { readonly kind: "row"; readonly height: number }

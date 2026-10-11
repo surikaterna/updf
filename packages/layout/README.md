@@ -1,8 +1,15 @@
 # @updf/layout — native document authoring
 
 Private/unreleased `2.0.0-poc.0`, MIT ©2026 Surikat AB. Depends on core, text and
-layout-kernel; importing `@updf/core` never loads layout. Tables remain in the real,
+layout-boxes; importing `@updf/core` never loads layout. Tables remain in the real,
 separate `@updf/tables` package. Dated audit evidence is retained in `docs/evidence`.
+
+Production Row and standalone Column geometry comes from the shared staged
+`@updf/layout-boxes/boxes` engine also used synchronously by the portable TUI.
+Layout retains document scheduling, atomic Row versus splittable Column pagination,
+page controls and painting adapters. Generic fragment selection remains in the
+separate `@updf/layout-boxes/fragmentation` subpath for document and non-document
+providers; it does not pull document policy into box-only hosts.
 
 ## Public surface
 

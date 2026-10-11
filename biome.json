@@ -5,7 +5,7 @@
     "includes": [
       "packages/core/**",
       "packages/layout/**",
-      "packages/layout-kernel/**",
+      "packages/layout-boxes/**",
       "packages/tables/**",
       "packages/geometry/**",
       "packages/svg/**",

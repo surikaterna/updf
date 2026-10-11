@@ -68,7 +68,7 @@ try {
     "jpeg",
     "fonts",
     "text",
-    "layout-kernel",
+    "layout-boxes",
     "layout",
     "tables",
     "geometry",

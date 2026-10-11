@@ -5,11 +5,11 @@ Archived pre-migration locks are historical evidence only. No permanent POC
 facade or package publication. All native versions stay `2.0.0-poc.0`; legacy
 stays `0.4.15` under the checkout name `@updf/legacy`.
 
-Dependency direction: layout-kernel has zero runtime dependencies; core →
-layout-kernel (runtime retains only `/arithmetic`); geometry → core;
+Dependency direction: layout-boxes has zero runtime dependencies; core →
+layout-boxes (runtime retains only `/arithmetic`); geometry → core;
 fonts → core; text → core + kernel arithmetic;
 JPEG → core only (core's installation includes the kernel; JPEG has no direct kernel dependency);
-layout → core + text + layout-kernel (native data and VDOM/TSX bindings at root);
+layout → core + text + layout-boxes (native data and VDOM/TSX bindings at root);
 tables → core + layout;
 SVG → core + geometry; Fontkit adapter → core + fonts, with optional peer Fontkit ^2.0.4.
 Exact native local dependency versions prevent registry fallback. Fontkit 2.0.4
@@ -25,7 +25,7 @@ VDOM and both JSX runtimes; JPEG/fonts/text roots; layout root; tables root; geo
 SVG root/tree; Fontkit adapter root. Layout's removed `/vdom` and `/tables*`
 exports are not compatibility aliases. Kernel exports root, numeric, arithmetic,
 geometry, boxes and fragmentation; see the authoritative
-[layout-kernel contract](layout-kernel.md).
+[layout-boxes contract](layout-boxes.md).
 There are no wildcard exports. `lib: [ES2022]`, `types: []`, strict NodeNext and
 no TS paths apply to native builds. Build order is kernel → core → JPEG/fonts/text → layout/tables/geometry/Fontkit → SVG
 → CMR/node examples. Legacy uses TypeScript `allowJs` CommonJS compilation and

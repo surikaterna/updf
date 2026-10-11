@@ -1,5 +1,5 @@
 import type { NodeDefinition } from "@updf/core";
-import type { BoxPlacement } from "@updf/layout-kernel/boxes";
+import type { BoxPlacement } from "@updf/layout-boxes/boxes";
 import type { OutputBudget } from "./budget.js";
 import type { FragmentState } from "./fragment-state.js";
 import type { GeneratedInterval } from "./generated-interval.js";

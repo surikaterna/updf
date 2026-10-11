@@ -1,12 +1,12 @@
 import { fail } from "@updf/core/internal";
-import { LayoutInputError } from "@updf/layout-kernel";
+import { LayoutInputError } from "@updf/layout-boxes";
 import {
   createFragmentOperation,
   type FragmentOperation,
   fragmentDefaults,
   type PreparedSource,
   type RangeRequest,
-} from "@updf/layout-kernel/fragmentation";
+} from "@updf/layout-boxes/fragmentation";
 import type { MeasuredParagraph } from "./content-paragraph.js";
 import type { ExtensionLifetime } from "./extension-producer.js";
 

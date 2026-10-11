@@ -1,10 +1,10 @@
 import { render } from "@updf/core";
 import { createExtensions, document, flow, layout, measure, pageSize, paragraph, pt, span } from "@updf/layout";
-import { MetricSum, exceeds, sum } from "@updf/layout-kernel/arithmetic";
-import { layoutBoxes, viewBox } from "@updf/layout-kernel/boxes";
-import { createFragmentOperation } from "@updf/layout-kernel/fragmentation";
-import { alignedTop, derivedAxis, materializedStart } from "@updf/layout-kernel/geometry";
-import { bits, dyadic, floorDyadic, spacing, successor, value } from "@updf/layout-kernel/numeric";
+import { MetricSum, exceeds, sum } from "@updf/layout-boxes/arithmetic";
+import { layoutBoxes, viewBox } from "@updf/layout-boxes/boxes";
+import { createFragmentOperation } from "@updf/layout-boxes/fragmentation";
+import { alignedTop, derivedAxis, materializedStart } from "@updf/layout-boxes/geometry";
+import { bits, dyadic, floorDyadic, spacing, successor, value } from "@updf/layout-boxes/numeric";
 import { table, tableExtension } from "@updf/tables";
 import { textOptions } from "../fixtures/text-options.js";
 

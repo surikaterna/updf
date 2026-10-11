@@ -1,5 +1,5 @@
-import { layoutBoxes } from "@updf/layout-kernel/boxes";
-import type { FragmentPlacement, FragmentSource } from "@updf/layout-kernel/fragmentation";
+import { layoutBoxes } from "@updf/layout-boxes/boxes";
+import type { FragmentPlacement, FragmentSource } from "@updf/layout-boxes/fragmentation";
 import { type AsciiPiece, type ProofSource, proofFragments } from "./fragment-provider.js";
 
 export function fragmentProof(twoRegions: boolean) {

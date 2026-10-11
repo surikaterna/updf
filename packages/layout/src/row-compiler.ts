@@ -1,13 +1,15 @@
-import { array, fail, type LayoutOperation, validateDataObject as record, sum } from "@updf/core/internal";
+import { array, fail, type LayoutOperation, validateDataObject as record } from "@updf/core/internal";
+import { type BoxLayoutPlan, finishBoxLayout } from "@updf/layout-boxes/boxes";
 import { autoMarginInput } from "./auto-margin.js";
 import { columnBody } from "./column-content.js";
 import { columnInput, columnSizing } from "./column-sizing.js";
 import { containerProducer } from "./container-producer.js";
+import { stackHeight } from "./stack.js";
 import type { PreparedBlock } from "./protocol.js";
-import { rowHeight, rowProducer } from "./row-producer.js";
+import { rowProducer } from "./row-producer.js";
+import { rowAllocation, rowKernel } from "./row-boxes.js";
 import type { RowAlignment } from "./row-types.js";
 import { sizing } from "./sizing.js";
-import { resolveWidths } from "./width-resolver.js";
 
 export function compileRow(
   value: Record<string, unknown>,
@@ -19,10 +21,10 @@ export function compileRow(
   finish: (block: PreparedBlock) => void,
   onColumn: (value: object, block: PreparedBlock, width: number) => void,
 ): void {
-  const { box, columns, boxes, align } = rowSizing(value, width, operation, path);
+  const { box, columns, boxes, plan } = rowSizing(value, width, operation, path);
   const children = columns.map(() => [] as PreparedBlock[]);
   tasks.push(() =>
-    finishRow(box, boxes, children, align, path, (block, prepared) => {
+    finishRow(box, boxes, children, plan, path, (block, prepared) => {
       prepared.forEach((column, i) => {
         const value = columns[i];
         if (value) onColumn(value, column, column.naturalSize.width);
@@ -32,10 +34,10 @@ export function compileRow(
   );
   for (let i = columns.length - 1; i >= 0; i--) {
     const column = columns[i],
-      sized = boxes[i],
+      request = plan.requests[i],
       target = children[i];
-    if (column && sized && target)
-      schedule(columnBody(column), sized.contentWidth, `${path}/children/${i}/children`, target);
+    if (column && request && target)
+      schedule(columnBody(column), request.allocation.width, `${path}/children/${i}/children`, target);
   }
 }
 function rowSizing(value: Record<string, unknown>, width: number, operation: LayoutOperation, path: string) {
@@ -49,20 +51,10 @@ function rowSizing(value: Record<string, unknown>, width: number, operation: Lay
   if (box.style.overflow === "hidden") fail("TYPE", path, "Row overflow must be error");
   array(value.children, operation.policy.nodes, `${path}/children`);
   const columns = value.children.map((child, i) => columnInput(child, `${path}/children/${i}`));
-  const tracks = columns.length
-    ? resolveWidths(
-        {
-          availableWidth: box.contentWidth,
-          gap: box.gap,
-          tracks: columns.map((column) => column.width ?? { weight: 1 }),
-          maxTracks: operation.policy.nodes,
-        },
-        path,
-      )
-    : { widths: [] };
-  const boxes = columns.map((column, i) => columnSizing(column, tracks.widths[i] ?? 0, `${path}/children/${i}`));
+  const boxes = columns.map((column, i) => columnSizing(column, box.contentWidth, `${path}/children/${i}`));
   validateColumns(columns, align, operation, path);
-  return { box, columns, boxes, align: align as RowAlignment };
+  const plan = rowAllocation(box, columns, boxes, align as RowAlignment, path);
+  return { box, columns, boxes, plan };
 }
 function validateColumns(
   columns: readonly Record<string, unknown>[],
@@ -83,37 +75,46 @@ function finishRow(
   box: ReturnType<typeof sizing>,
   boxes: readonly ReturnType<typeof sizing>[],
   children: readonly PreparedBlock[][],
-  align: RowAlignment,
+  plan: BoxLayoutPlan<number>,
   path: string,
   finish: (block: PreparedBlock, columns: readonly PreparedBlock[]) => void,
 ): void {
-  const columns = boxes.map((sized, i) =>
-    containerProducer(sized, children[i] ?? [], true, capacity(sized, children[i] ?? []), `${path}/children/${i}`),
+  const bodies = boxes.map((sized, i) => {
+    const height = stackHeight(children[i] ?? [], sized.gap);
+    if (!Number.isFinite(height)) fail("GEOMETRY", `${path}/children/${i}`, "Natural Column height must be finite");
+    return height;
+  });
+  const layout = rowKernel(
+    () =>
+      finishBoxLayout(
+        plan,
+        plan.requests.map((request) => ({
+          request,
+          height: bodies[request.content]!,
+        })),
+      ),
+    path,
+    false,
+    boxes.flatMap((sized, i) => (sized.style.overflow === "hidden" ? [`${path}/children/${i}`] : [])),
   );
-  const tallest = columns.reduce((height, column) => Math.max(height, column.naturalSize.height), 0);
-  const height = rowHeight(box, columns, path);
-  const contentHeight = Math.max(tallest, height - box.vertical);
-  const stretched =
-    align === "stretch"
-      ? boxes.map((sized, i) =>
-          containerProducer(
-            { ...sized, style: { ...sized.style, height: contentHeight } },
-            children[i] ?? [],
-            true,
-            capacity(sized, children[i] ?? []),
-            `${path}/children/${i}`,
-          ),
-        )
-      : columns;
-  finish(rowProducer(box, stretched, align, height, path), stretched);
-}
-function capacity(box: ReturnType<typeof sizing>, children: readonly PreparedBlock[]): number {
-  return Math.max(
-    1,
-    sum([
-      box.vertical,
-      ...children.map((child) => child.naturalSize.height),
-      Math.max(0, children.length - 1) * box.gap,
-    ]),
-  );
+  const root = layout.boxes[0]!;
+  const offsets = layout.childIndices.map((index) => layout.boxes[index]!);
+  const columns = offsets.map((offset, i) => {
+    const sized = { ...boxes[i]!, width: offset.width, contentWidth: offset.allocation.width };
+    const bodyHeight = bodies[i]!;
+    return containerProducer(
+      sized,
+      children[i] ?? [],
+      true,
+      Math.max(1, offset.height, bodyHeight + sized.vertical),
+      `${path}/children/${i}`,
+      false,
+      { bodyHeight, height: offset.height },
+    );
+  });
+  const placement = Object.freeze({
+    height: root.height,
+    children: Object.freeze(offsets.map(({ left, top, width, height }) => Object.freeze({ left, top, width, height }))),
+  });
+  finish(rowProducer(box, columns, placement, path), columns);
 }

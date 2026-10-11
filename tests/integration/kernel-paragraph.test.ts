@@ -36,8 +36,8 @@ test("C production multipage authored paragraph matches pre-C paint/fit bytes, T
       { start: 4, end: 6 },
     ],
   );
-  await mkdir("artifacts/layout-kernel-c", { recursive: true });
-  const path = "artifacts/layout-kernel-c/paragraph.pdf";
+  await mkdir("artifacts/layout-boxes-c", { recursive: true });
+  const path = "artifacts/layout-boxes-c/paragraph.pdf";
   await writeFile(path, current.bytes);
   execFileSync("qpdf", ["--check", path]);
   const extracted = execFileSync("pdftotext", ["-layout", path, "-"], { encoding: "utf8" });
@@ -49,7 +49,7 @@ test("C production multipage authored paragraph matches pre-C paint/fit bytes, T
     "FIFTH",
     "SIXTH",
   ]);
-  execFileSync("pdftoppm", ["-r", "72", "-png", path, "artifacts/layout-kernel-c/paragraph"]);
+  execFileSync("pdftoppm", ["-r", "72", "-png", path, "artifacts/layout-boxes-c/paragraph"]);
 });
 
 test("pre-C paragraph control rejects byte mutation and executes the historical producer body", async () => {
