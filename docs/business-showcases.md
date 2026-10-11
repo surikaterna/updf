@@ -2,8 +2,9 @@
 
 ## followup46/#53: single-shipment freight invoice (tracker N/A)
 
-Select **Original mock freight invoice: 3 charges** or **Extended mock freight
-invoice: 8 charges** in the showcase. These render one and two pages respectively
+Select **Original mock freight invoice: 3 charges**, **Extended mock freight
+invoice: 8 charges**, or **Multi-page mock freight invoice: 20 wrapped charges**
+in the showcase. These render one, one, and two pages respectively
 with the supplied presets; the UI reports the actual runtime count, not an assumed
 count. This is a separate business example; the existing invoice and manifest are unchanged.
 The invented **Aster Wake Shipping** and **Copper Finch Logistics** contacts use
@@ -15,26 +16,27 @@ customer data, bank details or legal wording is distributed.
 npm run build
 npx tsx scripts/freight-invoice-example.ts
 npx tsx scripts/freight-invoice-example.ts artifacts/freight-extended extended
+npx tsx scripts/freight-invoice-example.ts artifacts/freight-multipage multipage
 qpdf --check artifacts/freight-extended/updf-freight-invoice.pdf
 pdftotext -layout artifacts/freight-extended/updf-freight-invoice.pdf -
 qpdf --check artifacts/freight-invoice/updf-freight-invoice.pdf
 pdffonts artifacts/freight-invoice/updf-freight-invoice.pdf
 pdftotext -bbox artifacts/freight-invoice/updf-freight-invoice.pdf -
 pdftoppm -png -r 110 artifacts/freight-invoice/updf-freight-invoice.pdf artifacts/freight-invoice/preview
-npx tsx --test tests/integration/freight-invoice.test.ts tests/integration/freight-auto-margin.test.ts
+npx tsx --test tests/integration/freight-*.test.ts
 npm run build:showcase
 SHOWCASE_CHROMIUM=/usr/bin/chromium npm run test:showcase
 ```
 
 The CLI writes the full PDF and application `validation.json`, accepting an
-optional output directory followed by `original` (default) or `extended`.
+optional output directory followed by `original` (default), `extended`, or `multipage`.
 For an explicit original run: `npx tsx scripts/freight-invoice-example.ts artifacts/freight-original original`.
 Node >=24, qpdf and Poppler are prerequisites. JSON records preset, actual page and
 charge counts and application totals; it is not independent validation or PDF Info metadata.
 `freight-invoice-data.ts`, `freight-invoice-calculations.ts`,
-`freight-invoice-sections.tsx`, `freight-invoice.tsx` and
+`freight-invoice-sections.tsx`, `freight-invoice-charges.tsx`, `freight-invoice.tsx` and
 `freight-invoice-fonts.ts` own data, application arithmetic, visual sections,
-composition and optional preparation respectively. The displayed source also
+the atomic-row charge table, composition and optional preparation respectively. The displayed source also
 contains the real Node CLI and browser loader, with paths that must be preserved.
 
 The constant heading is **Invoice**. The shared UI title field edits a secondary
@@ -42,14 +44,19 @@ description (maximum 40 characters, one line of input; long words wrap by code
 point). Identical inputs produce identical Node/browser/download bytes. PDF.js
 shows every page with accessible labels and actual A4 sizes, including at 320px widths.
 
-Composition uses only existing `Document`, `Flow`, `Row/Column`, `Block` and
-`Paragraph` APIs: A4 portrait, 12pt margins, 112pt reserved header, paired billing
-panels, four equal shipment tracks and a naturally measured financial summary. A weighted empty
-column (2) beside the summary (3) places it in the right 60%. The large gap is the
+Composition uses public `Document`, `Flow`, `Row/Column`, `Block`, `Paragraph` and
+`@updf/tables` APIs: A4 portrait, 12pt margins, 112pt reserved header, weighted billing
+panels with stretched borders, three equal shipment tracks, and a full-width charge table.
+The header combines weighted company/office columns with fixed-width invoice metadata.
+A flexible payment column sits beside a fixed 280pt totals column; nested Rows align
+labels and amounts. These document components use the shared box engine internally;
+the showcase does not import `layout-boxes` or manage staged measurement.
+The large gap is the
 auto margin above the single terminal `<Block keepTogether style={{ marginTop: "auto" }}>`
-in `Flow.Body` (#53), not a spacer, manual XY, table layout or imported background.
+in `Flow.Body` (#53), not a spacer, manual XY or imported background.
 The summary moves intact to a fresh page when needed, then bottom-aligns in its
-current body. Only the 112pt header repeats, with final PageContext counts.
+current body. The 112pt document header repeats with final PageContext counts;
+the charges table repeats its own heading on each charge fragment, not on summary-only pages.
 There is no financial Flow.Footer, fixed summary height or one-page budget;
 existing bounded engine defaults remain unchanged. There is no repeat shipment UI.
 
@@ -58,12 +65,21 @@ from zero at ties. Net charges £16.35 at 0%, £218.40 at 20% and £32.75 at 20%
 yield taxes £0.00, £43.68 and £6.55: net **£267.50**, VAT **£50.23**, gross
 **£317.73**. This is demonstration policy, not legal/tax advice or engine formulas.
 The application accepts **1–20 charges**, a stable single-shipment demonstration
-bound, not an engine feature. Count-valid content still must fit atomically on a
-fresh body; excessively tall shipment/summary content fails clearly, without
-clipping, splitting or raising engine limits. Eight charges add real port handling,
+bound, not an engine feature. The table splits only **between complete charge rows**.
+One excessively tall charge row or shipment panel still fails clearly, without
+clipping or raising engine limits. Eight charges add mock port handling,
 deck securing, customs service (0%), cold storage and a signed return-crate credit.
 Expected net **£379.00**, VAT **£67.33**, gross **£446.33**. Charges appear once in
-the shipment and once in the net reconciliation, not duplicated shipment rows.
+the table, including each computed VAT amount; the summary does not repeat line items.
+The multi-page preset contains twenty wrapped mock services with net **£21.90**,
+VAT **£4.38**, gross **£26.28**. Regression fixtures also exercise a summary-only
+continuation page and long buyer/address/shipment text.
+These are bounded fixtures, not arbitrary-input guarantees: some Liberation Sans
+wrapping patterns can trigger the existing `FONT_INK` guard at the new panel widths.
+For example, the single vehicle paragraph "Goods: reusable exhibition display crates
+with refrigeration monitoring and protective handling" rejects rather than clipping
+glyph ink. This limitation is regression-tested; the example does not weaken font
+validation or alter the text engine to work around it.
 
 Both real Liberation Sans faces are prepared with `@updf/fontkit` and passed to
 layout **and** rendering; bold is not synthesized. See
@@ -72,15 +88,15 @@ The parser is loaded only by the opt-in freight closure, never core, initial UI,
 other demos or Plasma. Browser assets carry the OFL notice, installed dependency
 licenses and upstream MIT declarations/metadata for distributions omitting a
 standalone license, plus the Brotli decoder's Apache notice. Integral 14pt text
-line heights, larger integral heading heights and 1pt rules avoid the known
-fractional reservation limitation without changing the engine.
+line heights and larger integral heading heights keep the example readable;
+shipment rules are 1pt and the charge grid is 0.5pt. Engine guards remain unchanged.
 
 Independent literals, qpdf, font embedding bytes, Poppler word bounds/no-overlap,
 raster fills/money borders/whitespace and realistic negative controls protect this
 example. Wrapped description and shipment text preserve the bottom anchor;
-overflow fails closed. See `docs/evidence/freight-auto-margin.md` for current
-migration gates and the actual sanitized before/after source; historical evidence
-remains in `docs/evidence/freight-invoice46.md`.
+oversized indivisible content fails closed. `docs/evidence/freight-auto-margin.md`
+and `docs/evidence/freight-invoice46.md` preserve earlier composition evidence,
+not the current page counts or geometry.
 
 ## #46-A: invoice
 

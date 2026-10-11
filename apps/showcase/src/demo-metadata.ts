@@ -12,7 +12,7 @@ function entry(title: string, purpose: string, badges: string[], files: string):
 }
 
 const freightFiles =
-  "examples/business: freight-invoice.tsx · freight-invoice-sections.tsx · freight-invoice-calculations.ts · freight-invoice-data.ts · freight-invoice-fonts.ts; scripts/freight-invoice-example.ts; apps/showcase/src/optional-freight-invoice.ts; tests/fixtures/fonts/FREIGHT.md";
+  "examples/business: freight-invoice.tsx · freight-invoice-sections.tsx · freight-invoice-charges.tsx · freight-invoice-calculations.ts · freight-invoice-data.ts · freight-invoice-fonts.ts; scripts/freight-invoice-example.ts; apps/showcase/src/optional-freight-invoice.ts; tests/fixtures/fonts/FREIGHT.md";
 
 export const metadata: Record<DemoId, Metadata> = {
   text: entry(
@@ -105,9 +105,15 @@ export const metadata: Record<DemoId, Metadata> = {
     ["Fontkit · lazy", "Mock data"],
     freightFiles,
   ),
+  "freight-invoice-multipage": entry(
+    "Multi-page freight invoice",
+    "Twenty wrapped mock charges with repeated table headers and intact rows. Not for payment.",
+    ["Fontkit · lazy", "Mock data"],
+    freightFiles,
+  ),
   "freight-invoice-extended": entry(
     "Extended freight invoice",
-    "Eight mock charges exercise a longer freight document. Not for payment.",
+    "Eight mock charges in a paginated table, with a compact payment/totals row. Not for payment.",
     ["Fontkit · lazy", "Mock data"],
     freightFiles,
   ),

@@ -60,9 +60,24 @@ export const extendedFreightInvoice: FreightInvoiceData = Object.freeze({
   ]),
 });
 
-export type FreightPreset = "original" | "extended";
+export const multipageFreightInvoice: FreightInvoiceData = Object.freeze({
+  ...mockFreightInvoice,
+  number: "MOCK-FI-073",
+  charges: Object.freeze(
+    Array.from({ length: 20 }, (_, index) =>
+      Object.freeze({
+        label: `Service ${index + 1} refrigerated exhibition cargo handling and secured onward dispatch with additional warehouse checks and collection coordination`,
+        netPence: 100 + index,
+        vatBasisPoints: 2000,
+      }),
+    ),
+  ),
+});
+
+export type FreightPreset = "original" | "extended" | "multipage";
 export function freightPreset(value: string): FreightInvoiceData {
   if (value === "original") return mockFreightInvoice;
   if (value === "extended") return extendedFreightInvoice;
-  throw new Error("Freight preset must be original or extended");
+  if (value === "multipage") return multipageFreightInvoice;
+  throw new Error("Freight preset must be original, extended or multipage");
 }
