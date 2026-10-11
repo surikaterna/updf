@@ -43,13 +43,7 @@ test("actual /updf/ site: synchronized sources, all downloadable PDFs identical 
       assert.ok(href.startsWith("/updf/notices/"));
       assert.equal((await page.request.get(new URL(href, app.url).href)).status(), 200);
     }
-    const issues = await page
-      .locator("#roadmap-open a")
-      .evaluateAll((links) => links.map((link) => link.getAttribute("href")));
-    assert.deepEqual(
-      issues,
-      [29, 30, 31, 32, 35, 47, 54, 55, 56].map((number) => `https://github.com/surikaterna/updf/issues/${number}`),
-    );
+    assert.equal(await page.locator('a[href="#roadmap"], #roadmap').count(), 0);
     assert.deepEqual(await page.evaluate(() => [typeof Buffer, typeof process]), ["undefined", "undefined"]);
     assert.deepEqual(errors, []);
     await screenshot(page, "desktop");

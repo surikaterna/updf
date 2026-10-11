@@ -44,6 +44,16 @@ description (maximum 40 characters, one line of input; long words wrap by code
 point). Identical inputs produce identical Node/browser/download bytes. PDF.js
 shows every page with accessible labels and actual A4 sizes, including at 320px widths.
 
+The freight controls edit buyer/address lines, vehicle/goods lines, charge descriptions,
+net GBP amounts and VAT percentages. Add/remove buttons enforce 1–20 rows. Decimal
+strings become integer pence/basis points without floating-point currency multiplication.
+Credits are supported; editor amounts are bounded to ±9999.99 GBP and VAT to 0–100%.
+Buyer input is limited to 600 characters/8 nonempty lines; vehicle input to 400/6;
+charge descriptions to 200 characters. Inputs stay in memory, never uploaded or persisted.
+Changes regenerate the PDF after the existing debounce. Invalid input keeps the previous
+download, preview and source arguments together. Reset and switching presets restore
+the selected mock fixture. The source arguments show the complete captured invoice data.
+
 Composition uses public `Document`, `Flow`, `Row/Column`, `Block`, `Paragraph` and
 `@updf/tables` APIs: A4 portrait, 12pt margins, 112pt reserved header, weighted billing
 panels with stretched borders, three equal shipment tracks, and a full-width charge table.
