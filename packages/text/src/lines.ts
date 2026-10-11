@@ -1,6 +1,7 @@
 import { fail, finite, number } from "@updf/core/internal";
 import type { TextRun } from "@updf/core/resources";
 import { exceeds, MetricSum, sum } from "./arithmetic.js";
+import { horizontal, horizontalOrigin } from "./horizontal.js";
 import { type WorkLedger, work } from "./ledger.js";
 import type { LineEnvelope } from "./line-height.js";
 import { ink, richMetrics, union } from "./metrics.js";
@@ -125,8 +126,7 @@ export function line(
 ): RichLine {
   const grouped = groups(wrapped.atoms, budget, path);
   const total = advance(wrapped.atoms);
-  const spare = width - total;
-  const x = paragraph.align === "center" ? spare / 2 : paragraph.align === "right" ? spare : 0;
+  const x = horizontalOrigin(horizontal(wrapped.atoms), width, paragraph.align);
   const offset = new MetricSum();
   const [ascent, descent] = layout
     ? [layout.above, layout.below]

@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import test from "node:test";
-import { DocumentError } from "@updf/core";
 import { freightInvoiceExample } from "../../examples/business/freight-invoice.js";
 import { multipageFreightInvoice } from "../../examples/business/freight-invoice-data.js";
 import { freightFonts } from "../fixtures/fonts/freight-fonts.js";
@@ -92,14 +91,11 @@ test("freight long buyer, route and vehicle text grows measured panels without c
   for (const word of ["Limited", "Consolidation", "refrigerated", "protective"]) assert.ok(first.includes(word), word);
   assert.equal(result.result.placements.filter((p) => p.sourceIndex === 3).length, 1);
 });
-test("freight retains fail-closed font ink validation for unsupported wrapping patterns", async () => {
+test("freight vehicle description preserves negative-bearing glyphs instead of rejecting or clipping them", async () => {
   const resources = await freightFonts();
-  assert.throws(
-    () =>
-      freightInvoiceExample(resources, undefined, {
-        ...multipageFreightInvoice,
-        vehicle: ["Goods: reusable exhibition display crates with refrigeration monitoring and protective handling"],
-      }),
-    (error: unknown) => error instanceof DocumentError && error.diagnostics.some((d) => d.code === "FONT_INK"),
-  );
+  const sentence = "Goods: reusable exhibition display crates with refrigeration monitoring and protective handling";
+  const example = freightInvoiceExample(resources, undefined, { ...multipageFreightInvoice, vehicle: [sentence] });
+  const { words } = await inspect("vehicle-bearing", example.bytes);
+  const vehicle = words[0]!.filter((w) => w.x >= 205 && w.right <= 390 && w.y >= 275 && w.y < 370);
+  assert.equal(vehicle.map((w) => w.text).join(" "), sentence);
 });

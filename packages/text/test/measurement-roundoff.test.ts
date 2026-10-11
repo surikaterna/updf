@@ -195,7 +195,7 @@ test("prepared rich envelopes reject ink just beyond relative roundoff", async (
   );
 });
 
-test("zero-edge rich ink uses positioning scale and rejects overhang beyond roundoff even in huge boxes", async () => {
+test("negative side bearings reserve real space without relaxing ink guards, including huge boxes", async () => {
   const data = await fontInput();
   const glyph = createPreparedFont(data).metadata.glyphs.find((item) => item.codePoint === 65);
   assert.ok(glyph);
@@ -208,8 +208,12 @@ test("zero-edge rich ink uses positioning scale and rejects overhang beyond roun
     ...value,
     paragraphs: [{ ...paragraph, defaultStyle: { ...paragraph.defaultStyle, font: "Demo" } }],
   };
-  rejected(selected, "FONT_INK", options);
-  rejected({ ...selected, width: 1e200 }, "FONT_INK", options);
+  const measured = accepted(selected, 1, options);
+  assert.equal(measured.lines[0]?.fragments[0]?.x, 10 / font.metadata.unitsPerEm);
+  const bounds = measured.lines[0]?.inkBounds;
+  assert.ok(bounds && !bounds.empty);
+  assert.equal(bounds.left, 0);
+  accepted({ ...selected, width: 1e200 }, 1, options);
   const width = ((glyph.advance + 2) * 10) / font.metadata.unitsPerEm;
   const centered: RichTextInput = {
     ...selected,
@@ -217,5 +221,7 @@ test("zero-edge rich ink uses positioning scale and rejects overhang beyond roun
     paragraphs: [{ ...paragraph, align: "center", defaultStyle: { ...paragraph.defaultStyle, font: "Demo" } }],
   };
   accepted(centered, 1, options);
-  rejected({ ...centered, width: width - 8 * Number.EPSILON * 10 }, "FONT_INK", options);
+  accepted({ ...centered, width: width - 8 * Number.EPSILON * 10 }, 1, options);
+  const required = ((glyph.advance + 1) * 10) / font.metadata.unitsPerEm;
+  rejected({ ...selected, width: required * (1 - 16 * Number.EPSILON) }, "TOKEN_OVERFLOW", options);
 });

@@ -107,10 +107,15 @@ test("rich scalar splitting retains UTF16 ranges and refuses horizontal/vertical
       measureText({ width: 200, paragraphs: [paragraph("А", { lineHeight: 20 })] }, { resources: { Demo: overhang } }),
     "FONT_INK",
   );
+  const fitted = measureText(
+    { width: 30, paragraphs: [paragraph("А", { align: "left" })] },
+    { resources: { Demo: overhang } },
+  );
+  const bounds = fitted.lines[0]!.inkBounds;
+  assert.ok(!bounds.empty && bounds.left >= 0 && bounds.right <= 30);
   rejects(
-    () =>
-      measureText({ width: 30, paragraphs: [paragraph("А", { align: "left" })] }, { resources: { Demo: overhang } }),
-    "FONT_INK",
+    () => measureText({ width: 1, paragraphs: [paragraph("А")] }, { resources: { Demo: overhang } }),
+    "TOKEN_OVERFLOW",
   );
 });
 

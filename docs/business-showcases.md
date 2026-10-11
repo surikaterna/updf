@@ -74,12 +74,11 @@ the table, including each computed VAT amount; the summary does not repeat line 
 The multi-page preset contains twenty wrapped mock services with net **£21.90**,
 VAT **£4.38**, gross **£26.28**. Regression fixtures also exercise a summary-only
 continuation page and long buyer/address/shipment text.
-These are bounded fixtures, not arbitrary-input guarantees: some Liberation Sans
-wrapping patterns can trigger the existing `FONT_INK` guard at the new panel widths.
-For example, the single vehicle paragraph "Goods: reusable exhibition display crates
-with refrigeration monitoring and protective handling" rejects rather than clipping
-glyph ink. This limitation is regression-tested; the example does not weaken font
-validation or alter the text engine to work around it.
+Text wrapping and alignment reserve space for glyph side bearings. The vehicle
+paragraph "Goods: reusable exhibition display crates with refrigeration monitoring
+and protective handling" now renders, including its formerly rejected line-leading
+`w`. Width-sweep and PDF tests preserve the complete text and ink bounds; genuinely
+oversized tokens, glyphs or line heights still reject rather than clipping.
 
 Both real Liberation Sans faces are prepared with `@updf/fontkit` and passed to
 layout **and** rendering; bold is not synthesized. See
