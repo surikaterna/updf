@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { freightInvoiceExample } from "../../examples/business/freight-invoice.js";
-import { extendedFreightInvoice } from "../../examples/business/freight-invoice-data.js";
+import { extendedFreightInvoice, multipageFreightInvoice } from "../../examples/business/freight-invoice-data.js";
 import { freightFonts } from "../fixtures/fonts/freight-fonts.js";
 import { observeUrls, pageErrors, pdf, rendered, retained, screenshot, site } from "./helpers.js";
 
@@ -49,7 +49,7 @@ test("followup46 opt-in freight: Node bytes, actual sources, one accessible page
     await app.close();
   }
 });
-test("freight extended: two complete desktop/mobile pages, Node parity, title and download lifecycle", async () => {
+test("freight extended: compact desktop/mobile invoice, Node parity, title and download lifecycle", async () => {
   const resources = await freightFonts();
   const app = await site();
   try {
@@ -90,8 +90,8 @@ test("freight extended: two complete desktop/mobile pages, Node parity, title an
   }
 });
 async function assertExtendedPreview(page: import("playwright").Page) {
-  await rendered(page, 2);
-  assert.match(await page.locator("#status").innerText(), /2 A4 page\(s\); 8 original/u);
+  await rendered(page, 1);
+  assert.match(await page.locator("#status").innerText(), /1 A4 page\(s\); 8 original/u);
   assert.equal(await page.locator("#download").getAttribute("download"), "updf-freight-invoice-extended.pdf");
   for (const [index, canvas] of (await page.locator("#preview canvas").all()).entries()) {
     assert.equal(await canvas.getAttribute("aria-label"), `PDF page ${index + 1}`);
@@ -99,6 +99,36 @@ async function assertExtendedPreview(page: import("playwright").Page) {
     assert.ok(size && size.width > 0 && Math.abs(size.height / size.width - 841.889764 / 595.275591) < 0.01);
   }
 }
+test("freight multipage: complete atomic charge rows in desktop/mobile previews with Node byte parity", async () => {
+  const resources = await freightFonts();
+  const app = await site();
+  try {
+    const page = await app.browser.newPage({ viewport: { width: 1100, height: 900 } });
+    const errors = pageErrors(page);
+    await page.goto(app.url);
+    await pdf(page);
+    await page.getByLabel("Example", { exact: true }).selectOption("freight-invoice-multipage");
+    for (const width of [1100, 320]) {
+      if (width === 320) {
+        await page.setViewportSize({ width, height: 812 });
+        await page.waitForFunction(() => document.querySelector("#demo-form")?.getAttribute("aria-busy") === "true");
+      }
+      assert.deepEqual(
+        await pdf(page),
+        freightInvoiceExample(resources, "Hello portable PDF", multipageFreightInvoice).bytes,
+      );
+      await rendered(page, 2);
+      assert.match(await page.locator("#status").innerText(), /2 A4 page\(s\); 20 original/u);
+      assert.equal(await page.locator("#download").getAttribute("download"), "updf-freight-invoice-multipage.pdf");
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      await assertSource(page);
+      await screenshot(page, `freight-multipage-${width}`);
+    }
+    assert.deepEqual(errors, []);
+  } finally {
+    await app.close();
+  }
+});
 test("freight lazy font failure retains the old download and recovers across presets", async () => {
   const app = await site();
   try {
@@ -126,6 +156,7 @@ async function assertSource(page: import("playwright").Page) {
   for (const name of [
     "freight-invoice.tsx",
     "freight-invoice-sections.tsx",
+    "freight-invoice-charges.tsx",
     "freight-invoice-calculations.ts",
     "freight-invoice-data.ts",
     "freight-invoice-fonts.ts",

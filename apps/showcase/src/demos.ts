@@ -31,6 +31,7 @@ export type DemoId =
   | "invoice"
   | "freight-invoice"
   | "freight-invoice-extended"
+  | "freight-invoice-multipage"
   | "manifest";
 
 export function demoId(value: string): DemoId {
@@ -38,6 +39,7 @@ export function demoId(value: string): DemoId {
     value === "manifest" ||
     value === "freight-invoice" ||
     value === "freight-invoice-extended" ||
+    value === "freight-invoice-multipage" ||
     value === "invoice" ||
     value === "text" ||
     value === "template" ||
@@ -68,7 +70,7 @@ export async function generate(
 ): Promise<{ bytes: Uint8Array; source: string; summary?: string }> {
   if (title.length > 40) throw new Error("Title must be at most 40 characters");
   if (id === "branding") return brandingResult(title, branding);
-  if (isFreight(id)) return freightResult(title, id === "freight-invoice-extended");
+  if (isFreight(id)) return freightResult(title, id);
   if (id === "manifest" || id === "invoice") return id === "manifest" ? manifestResult(title) : invoiceResult(title);
   if (id === "template" || id === "mixed") return id === "template" ? templateResult(title) : mixedResult(title, mixed);
   if (id === "blocks") return blockResult(title, blocks);
@@ -129,17 +131,19 @@ async function invoiceResult(title: string) {
     summary: `${metadata.pageCount} A4 pages; ${metadata.itemCount} original mock line items; integer-cent application totals. NOT FOR PAYMENT.`,
   };
 }
-async function freightResult(title: string, extended: boolean) {
+async function freightResult(title: string, id: DemoId) {
   const { freightExample, source } = await import("./optional-freight-invoice.js");
-  const { bytes, metadata } = await freightExample(title, extended ? "extended" : "original");
+  const preset =
+    id === "freight-invoice-multipage" ? "multipage" : id === "freight-invoice-extended" ? "extended" : "original";
+  const { bytes, metadata } = await freightExample(title, preset);
   return {
     bytes,
     source,
     summary: `${metadata.pageCount} A4 page(s); ${metadata.chargeCount} original mock freight charges; per-charge integer-pence VAT. MOCK - NOT FOR PAYMENT. Title input edits the secondary description; Invoice remains the heading.`,
   };
 }
-function isFreight(id: DemoId): id is "freight-invoice" | "freight-invoice-extended" {
-  return id === "freight-invoice" || id === "freight-invoice-extended";
+function isFreight(id: DemoId): id is "freight-invoice" | "freight-invoice-extended" | "freight-invoice-multipage" {
+  return id === "freight-invoice" || id === "freight-invoice-extended" || id === "freight-invoice-multipage";
 }
 async function manifestResult(title: string) {
   const { manifestExample, source } = await import("./optional-manifest.js");
