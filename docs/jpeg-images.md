@@ -95,5 +95,27 @@ your own input/output paths as its two arguments. Run `npm run test:consumer` fo
 clean external JPEG-only and mixed text/image proofs. Native tests additionally
 sample asymmetric color regions under reflection, rotation and clip with qpdf/Poppler.
 Fixture [generator/provenance](../tests/fixtures/jpeg/README.md) is development-only.
-The existing showcase remains unchanged; this example demonstrates delivery without
-adding a demo redesign or authorizing Pages/site generation/publication.
+
+## Browser showcase
+
+Select **JPEG images: color, grayscale, reuse & clipping** in the showcase. The
+optional module fetches the original 32×24 MIT color/grayscale fixtures only when
+selected. A 96–192pt width control changes display geometry, not source pixels.
+The page shows aspect-preserving placement (calculated by the example), explicit
+stretch, reflection and left-half clipping, all reusing one original compressed
+image stream. Captions use built-in Helvetica; no Fontkit, layout, SVG or geometry
+adapter is loaded by this example. Actual source and fixture provenance are shown.
+
+There is deliberately **no PNG showcase**: PNG/alpha are not implemented. Nor is
+there an upload control or promise of arbitrary JPEG decoding. The supplied
+fixtures follow the exact supported baseline profile; EXIF, ICC and progressive
+JPEG remain unsupported. Invalid controls or asset failures retain the previous
+PDF/source until a successful update. The Node and browser outputs are byte-equal.
+
+```sh
+npm run build:showcase
+SHOWCASE_CHROMIUM=/usr/bin/chromium npx tsx --test tests/showcase/jpeg.test.ts
+npx tsx --test tests/integration/jpeg-showcase.test.ts
+```
+
+These checkout/build instructions do not publish or deploy the Pages site.

@@ -3,6 +3,7 @@ import type { FreightInvoiceData } from "../../../examples/business/freight-invo
 import type { BrandingControls } from "./branding-controls.js";
 import type { FlowControls } from "./flow.js";
 import type { MixedControls } from "./mixed.js";
+import type { JpegControls } from "./jpeg-controls.js";
 import { paintingDemo } from "./painting.js";
 import paintingSource from "./painting.ts?raw";
 import type { RichControls } from "./rich.js";
@@ -23,6 +24,7 @@ export type DemoId =
   | keyof typeof demos
   | "svg"
   | "branding"
+  | "jpeg"
   | "flow"
   | "tables"
   | "blocks"
@@ -47,6 +49,7 @@ export function demoId(value: string): DemoId {
     value === "painting" ||
     value === "svg" ||
     value === "branding" ||
+    value === "jpeg" ||
     value === "rich" ||
     value === "flow" ||
     value === "blocks" ||
@@ -69,24 +72,17 @@ export async function generate(
   mixed?: MixedControls,
   branding?: BrandingControls,
   freight?: FreightInvoiceData,
+  jpeg?: JpegControls,
 ): Promise<{ bytes: Uint8Array; source: string; summary?: string }> {
   if (title.length > 40) throw new Error("Title must be at most 40 characters");
   if (id === "branding") return brandingResult(title, branding);
+  if (id === "jpeg") return jpegResult(title, jpeg);
   if (isFreight(id)) return freightResult(title, id, freight);
   if (id === "manifest" || id === "invoice") return id === "manifest" ? manifestResult(title) : invoiceResult(title);
   if (id === "template" || id === "mixed") return id === "template" ? templateResult(title) : mixedResult(title, mixed);
   if (id === "blocks") return blockResult(title, blocks);
   if (id === "rows" || id === "rows-overflow") return rowResult(title, id === "rows-overflow");
-  if (id === "tables") {
-    const { tableExample, source } = await import("./optional-tables.js");
-    const visual = tables?.cellPreset === "svg" ? (await import("./optional-table-svg.js")).tableVisual : undefined;
-    const { bytes, result } = tableExample(title, tables, visual);
-    return {
-      bytes,
-      source,
-      summary: `${result.pageCount} pages; ${result.consumedBodyRowCount} body rows; ${result.repeatedHeaderCount} repeated headers.`,
-    };
-  }
+  if (id === "tables") return tableResult(title, tables);
   if (id === "flow") {
     const { flowExample, source } = await import("./optional-flow.js");
     const result = flowExample(title, flow);
@@ -108,6 +104,16 @@ export async function generate(
   if (id === "svg") return svgResult(title);
   return { bytes: demos[id].render(title), source: demos[id].source };
 }
+async function tableResult(title: string, controls?: TableControls) {
+  const { tableExample, source } = await import("./optional-tables.js");
+  const visual = controls?.cellPreset === "svg" ? (await import("./optional-table-svg.js")).tableVisual : undefined;
+  const { bytes, result } = tableExample(title, controls, visual);
+  return {
+    bytes,
+    source,
+    summary: `${result.pageCount} pages; ${result.consumedBodyRowCount} body rows; ${result.repeatedHeaderCount} repeated headers.`,
+  };
+}
 async function templateResult(title: string) {
   const { templateDemo } = await import("./template.js");
   return { bytes: templateDemo(title), source: templateSource };
@@ -122,6 +128,15 @@ async function brandingResult(title: string, controls?: BrandingControls) {
     bytes: brandingDemo(title, controls),
     source,
     summary: "Letter letterhead; original sample logo; vector SVG, no raster images.",
+  };
+}
+async function jpegResult(title: string, controls?: JpegControls) {
+  const { jpegDemo, source } = await import("./optional-jpeg.js");
+  const { bytes, metadata } = await jpegDemo(title, controls);
+  return {
+    bytes,
+    source,
+    summary: `${metadata.pixelWidth} x ${metadata.pixelHeight} pixel ${metadata.components === 1 ? "grayscale" : "color"} JPEG; four placements reuse one compressed image. Explicit sizing, reflection and clipping. PNG is not implemented.`,
   };
 }
 async function invoiceResult(title: string) {
