@@ -376,6 +376,9 @@ for the current contract and measured rich-vs-rich costs; the earlier
   remain [#25](https://github.com/surikaterna/updf/issues/25).
 - No unverified size/speed guarantees. `sizes` records actual optional costs;
   it does not complete the regression-budget issue #32.
+  See the [dated browser bundle comparison](docs/bundle-comparison.md) for measured
+  uPDF combinations versus pdf-lib, jsPDF, PDFKit, pdfmake and React-PDF, including
+  font assets, lazy chunks, reproducible settings and feature-scope caveats.
 
 ## Roadmap
 
