@@ -35,6 +35,7 @@ const graphs: Record<string, readonly string[]> = {};
 try {
   const tarballs = new Map<string, string>();
   for (const name of [
+    "assets",
     "layout-boxes",
     "core",
     "jpeg",
@@ -60,7 +61,7 @@ try {
     ["core", "layout-boxes", "fonts", "text", "layout", "tables"],
     ["layout-boxes", "core", "geometry"],
     ["layout-boxes", "core", "fonts", "text", "geometry", "svg", "cmr"],
-    ["layout-boxes", "core", "fonts", "text", "fontkit"],
+    ["layout-boxes", "core", "fonts", "text", "assets", "fontkit"],
     ["legacy"],
   ]) {
     const paths = names.map((name) => {
@@ -73,7 +74,7 @@ try {
     await absent(directory, ["fontkit", "react", "react-dom"]);
     await absent(
       directory,
-      ["layout-boxes", "jpeg", "fonts", "text", "tables", "geometry", "svg", "fontkit", "legacy"]
+      ["assets", "layout-boxes", "jpeg", "fonts", "text", "tables", "geometry", "svg", "fontkit", "legacy"]
         .filter((name) => !names.includes(name))
         .map((name) => `@updf/${name}`),
     );

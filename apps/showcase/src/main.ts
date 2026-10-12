@@ -3,6 +3,7 @@ import { blockControls } from "./block-controls.js";
 import { brandingControls, showBrandLogo } from "./branding-controls.js";
 import { demoId, generate } from "./demos.js";
 import { flowControls } from "./flow-controls.js";
+import { cancelFontLoad, commitFontUri, fontLoadSignal, fontUriControls, resetFontUri } from "./font-uri-controls.js";
 import { freightControls, installFreightControls, showFreightControls } from "./freight-controls.js";
 import { mixedControls } from "./mixed-controls.js";
 import { jpegControls } from "./jpeg-controls.js";
@@ -46,6 +47,7 @@ function clearOutput(): void {
 
 function invalidate(): number {
   clearTimeout(timer);
+  cancelFontLoad();
   generation += 1;
   renderer?.cancel();
   return generation;
@@ -69,6 +71,8 @@ function showDemo(): Promise<boolean> {
   if (id === "branding") showBrandLogo();
   element("jpeg-controls", HTMLFieldSetElement).hidden = id !== "jpeg";
   element("jpeg-controls", HTMLFieldSetElement).disabled = id !== "jpeg";
+  element("font-uri-controls", HTMLFieldSetElement).hidden = id !== "font-uri";
+  element("font-uri-controls", HTMLFieldSetElement).disabled = id !== "font-uri";
   return showFreightControls(id);
 }
 
@@ -85,9 +89,10 @@ async function refreshDemo(): Promise<void> {
   }
 }
 
-function captureArguments(): Parameters<typeof generate> {
+function captureArguments(submitted: boolean): Parameters<typeof generate> {
   validateForm(form);
   const id = demoId(selection.value);
+  if (submitted && id === "font-uri") commitFontUri(form);
   return [
     id,
     title.value,
@@ -99,6 +104,8 @@ function captureArguments(): Parameters<typeof generate> {
     id === "branding" ? brandingControls(form) : undefined,
     freightControls(id),
     id === "jpeg" ? jpegControls(form) : undefined,
+    id === "font-uri" ? fontUriControls(form) : undefined,
+    id === "font-uri" ? fontLoadSignal() : undefined,
   ];
 }
 
@@ -109,14 +116,14 @@ function readableError(error: unknown): string {
   return `Generation failed: ${error instanceof Error ? error.message : "Unknown error"}. Try a core example or reload.`;
 }
 
-async function renderExample(): Promise<void> {
+async function renderExample(submitted = false): Promise<void> {
   if (disposed) return;
   const current = invalidate();
   form.setAttribute("aria-busy", "true");
   pending(!!blobUrl);
   output.hidden = false;
   try {
-    const args = captureArguments();
+    const args = captureArguments(submitted);
     const result = await generate(...args);
     if (current !== generation) return;
     await renderOutput(current, args, result);
@@ -190,12 +197,13 @@ function scheduleUpdate(): void {
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
-  void renderExample();
+  void renderExample(true);
 });
 selection.addEventListener("change", () => {
   void refreshDemo();
 });
 title.addEventListener("input", scheduleUpdate);
+element("font-uri-size", HTMLInputElement).addEventListener("input", scheduleUpdate);
 for (const id of [
   "rich-controls",
   "flow-controls",
@@ -209,6 +217,7 @@ for (const id of [
   element(id, HTMLFieldSetElement).addEventListener("input", scheduleUpdate);
 }
 element("reset-demo", HTMLButtonElement).addEventListener("click", () => {
+  if (selection.value === "font-uri") resetFontUri();
   for (const field of Array.from(form.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input, select"))) {
     if (field.matches(":disabled")) continue;
     if (field instanceof HTMLInputElement) {

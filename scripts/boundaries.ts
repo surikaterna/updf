@@ -105,6 +105,7 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "svg/src/viewport.ts",
     "fontkit/src/cmap.ts",
     "fontkit/src/index.ts",
+    "fontkit/src/load.ts",
     "fontkit/src/metadata.ts",
     "fontkit/src/sfnt.ts",
     "fonts/src/checks.ts",
@@ -168,6 +169,7 @@ export function portableGraph(modules: readonly string[], optional = false, reac
   if (!react) assert.ok(!modules.some((id) => /(?:^|\/)(?:react|react-dom)(?:\/|$)/u.test(id)), "React leaked");
 }
 export function packageEdge(owner: string, specifier: string): void {
+  if (owner === "assets") assert.ok(specifier.startsWith("."), "Asset transport must have zero runtime dependencies");
   if (owner === "jpeg")
     assert.ok(
       specifier.startsWith(".") || ["@updf/core", "@updf/core/resources", "@updf/core/pdf"].includes(specifier),
@@ -297,6 +299,7 @@ export async function checkSeams(root: string): Promise<void> {
     "Scanner",
   ]);
   for (const owner of [
+    "assets",
     "core",
     "layout-boxes",
     "layout",
