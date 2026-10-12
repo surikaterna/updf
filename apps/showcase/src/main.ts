@@ -3,7 +3,7 @@ import { blockControls } from "./block-controls.js";
 import { brandingControls, showBrandLogo } from "./branding-controls.js";
 import { demoId, generate } from "./demos.js";
 import { flowControls } from "./flow-controls.js";
-import { cancelFontLoad, commitFontUri, fontLoadSignal, fontUriControls, resetFontUri } from "./font-uri-controls.js";
+import { cancelFontLoad, fontLoadSignal, fontUriControls, resetFontUri } from "./font-uri-controls.js";
 import { freightControls, installFreightControls, showFreightControls } from "./freight-controls.js";
 import { mixedControls } from "./mixed-controls.js";
 import { jpegControls } from "./jpeg-controls.js";
@@ -90,9 +90,8 @@ async function refreshDemo(): Promise<void> {
 }
 
 function captureArguments(submitted: boolean): Parameters<typeof generate> {
-  validateForm(form);
   const id = demoId(selection.value);
-  if (submitted && id === "font-uri") commitFontUri(form);
+  validateForm(form, id === "font-uri" && !submitted ? ["font-uri"] : []);
   return [
     id,
     title.value,
@@ -104,7 +103,7 @@ function captureArguments(submitted: boolean): Parameters<typeof generate> {
     id === "branding" ? brandingControls(form) : undefined,
     freightControls(id),
     id === "jpeg" ? jpegControls(form) : undefined,
-    id === "font-uri" ? fontUriControls(form) : undefined,
+    id === "font-uri" ? fontUriControls(form, submitted) : undefined,
     id === "font-uri" ? fontLoadSignal() : undefined,
   ];
 }

@@ -2,7 +2,12 @@ import { createAssetLoader } from "@updf/assets";
 import { loadFont } from "@updf/fontkit/load";
 import type { PreparedFont } from "@updf/fonts";
 import localUrl from "../../../tests/fixtures/fonts/LiberationSans-Regular.ttf?url";
-import { type FontUriControls, fontUriDefaults, validateFontUriControls } from "./font-uri-controls.js";
+import {
+  activateFontUri,
+  type FontUriControls,
+  fontUriDefaults,
+  validateFontUriControls,
+} from "./font-uri-controls.js";
 import { fontUriExample } from "./font-uri.js";
 import template from "./font-uri.tsx?raw";
 import controlsSource from "./font-uri-controls.ts?raw";
@@ -17,9 +22,11 @@ export async function fontUriDemo(title: string, controls: FontUriControls = fon
   if (signal?.aborted) throw new Error("Font loading was cancelled");
   const font = cached?.uri === uri ? cached.font : await loadFont(uri, { loader, ...(signal ? { signal } : {}) });
   if (signal?.aborted) throw new Error("Font loading was cancelled");
+  const result = fontUriExample(font, title, controls.fontSize);
   cached = { uri, font };
+  activateFontUri(controls.uri);
   return {
-    ...fontUriExample(font, title, controls.fontSize),
+    ...result,
     origin: controls.uri ? "submitted URI" : "bundled sample",
   };
 }

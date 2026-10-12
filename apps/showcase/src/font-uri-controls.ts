@@ -4,7 +4,7 @@ export interface FontUriControls {
 }
 export const googleFontUri = "https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxP.ttf";
 export const fontUriDefaults: FontUriControls = Object.freeze({ uri: "", fontSize: 18 });
-let committedUri = "";
+let activeUri = "";
 let controller: AbortController | undefined;
 
 export function validateFontUriControls(controls: FontUriControls): void {
@@ -13,15 +13,15 @@ export function validateFontUriControls(controls: FontUriControls): void {
   if (!Number.isInteger(controls.fontSize) || controls.fontSize < 10 || controls.fontSize > 32)
     throw new Error("Font size must be an integer from 10 to 32 points");
 }
-export function commitFontUri(form: HTMLFormElement): void {
-  committedUri = form.querySelector<HTMLInputElement>("#font-uri")!.value.trim();
+export function activateFontUri(uri: string): void {
+  activeUri = uri;
 }
 export function resetFontUri(): void {
-  committedUri = "";
+  activeUri = "";
 }
-export function fontUriControls(form: HTMLFormElement): FontUriControls {
+export function fontUriControls(form: HTMLFormElement, submitted = false): FontUriControls {
   const controls = {
-    uri: committedUri,
+    uri: submitted ? form.querySelector<HTMLInputElement>("#font-uri")!.value.trim() : activeUri,
     fontSize: form.querySelector<HTMLInputElement>("#font-uri-size")!.valueAsNumber,
   };
   validateFontUriControls(controls);

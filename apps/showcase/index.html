@@ -78,7 +78,7 @@
               <legend>Font URI controls</legend>
               <label for="font-uri">Font file URI</label>
               <input id="font-uri" type="url" maxlength="2048" required value="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxP.ttf" aria-describedby="font-uri-help" />
-              <p id="font-uri-help" class="help">Press Generate PDF to request the entered URI. Typing does not fetch. The initial preview and Reset use bundled Liberation Sans; title/size edits reuse the selected font.</p>
+              <p id="font-uri-help" class="help">Press Generate PDF to request the entered URI. Typing does not fetch. The initial preview and Reset use bundled Liberation Sans; title/size edits reuse the last successful font, even while editing a URI or after a failed replacement.</p>
               <label for="font-uri-size">Sample font size (points)</label>
               <input id="font-uri-size" type="number" min="10" max="32" step="1" value="18" required />
               <p class="help">Use a direct static .ttf file, up to 4 MiB. Google Fonts CSS URLs, WOFF/WOFF2 and variable fonts are not supported. Requests omit credentials and reject redirects; browser CORS applies.</p>

@@ -17,8 +17,12 @@ small transport wrapper. Font programs are separate payload costs.
 Select **Load a font URI: Google Fonts / static TrueType**. The parser and loader
 are loaded lazily; the first preview uses the existing bundled OFL Liberation
 Sans fixture. Enter a direct TTF URI and press **Generate PDF**. Typing the URI
-does not fetch. Title/size changes reuse the last selected URI and one cached
-successful font. Reset restores the bundled sample; failed/unsupported loads
+does not fetch. Unsubmitted URI drafts do not participate in validation of
+title/size edits. Those edits reuse the active successfully generated font, not
+a pending or failed replacement URI. A submission becomes active only after
+loading and PDF generation succeed; failed replacements are retried only by
+another explicit submission. One successful font is cached. Reset restores the
+bundled sample; failed/unsupported loads
 retain the last successful PDF/source. Superseded requests are aborted and late
 lazy imports cannot initiate a stale font load.
 
