@@ -65,7 +65,7 @@ export function jpegExample(source: Uint8Array, title: string, controls: JpegCon
           ),
           ...placements(controls.width, height),
           caption(
-            "One JPEG stream, four placements. Pixels do not set PDF size.\nClipping is not redaction. PNG and alpha are not supported.",
+            "One JPEG stream, four placements. Pixels do not set PDF size.\nClipping is not redaction. Select the PNG example for alpha.",
             24,
             530,
             432,

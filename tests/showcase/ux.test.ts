@@ -18,7 +18,7 @@ test("desktop workspace pairs inputs with preview and discloses real source belo
     assert.ok(inputs.x + inputs.width < preview.x);
     assert.ok(code.y >= preview.y + preview.height);
     assert.equal(await page.locator("#example optgroup").count(), 4);
-    assert.equal(await page.locator("#example option").count(), 17);
+    assert.equal(await page.locator("#example option").count(), 18);
     await screenshot(page, "s6-desktop");
     await page.locator("#example-code summary").focus();
     await page.keyboard.press("Space");

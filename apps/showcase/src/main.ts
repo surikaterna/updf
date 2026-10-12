@@ -6,6 +6,7 @@ import { flowControls } from "./flow-controls.js";
 import { freightControls, installFreightControls, showFreightControls } from "./freight-controls.js";
 import { mixedControls } from "./mixed-controls.js";
 import { jpegControls } from "./jpeg-controls.js";
+import { pngControls } from "./png-controls.js";
 import { richControls } from "./rich-controls.js";
 import { tableControls } from "./table-controls.js";
 import { commitSource, failed, pending, showMetadata, titleError, validateForm } from "./result-ui.js";
@@ -69,6 +70,8 @@ function showDemo(): Promise<boolean> {
   if (id === "branding") showBrandLogo();
   element("jpeg-controls", HTMLFieldSetElement).hidden = id !== "jpeg";
   element("jpeg-controls", HTMLFieldSetElement).disabled = id !== "jpeg";
+  element("png-controls", HTMLFieldSetElement).hidden = id !== "png";
+  element("png-controls", HTMLFieldSetElement).disabled = id !== "png";
   return showFreightControls(id);
 }
 
@@ -99,6 +102,7 @@ function captureArguments(): Parameters<typeof generate> {
     id === "branding" ? brandingControls(form) : undefined,
     freightControls(id),
     id === "jpeg" ? jpegControls(form) : undefined,
+    id === "png" ? pngControls(form) : undefined,
   ];
 }
 
@@ -205,6 +209,7 @@ for (const id of [
   "branding-controls",
   "freight-controls",
   "jpeg-controls",
+  "png-controls",
 ]) {
   element(id, HTMLFieldSetElement).addEventListener("input", scheduleUpdate);
 }

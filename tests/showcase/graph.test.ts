@@ -58,6 +58,7 @@ test("production chunk graph keeps adapters optional; Fontkit belongs only to op
   assert.ok(!modules.some((name) => /node:|external|\/react(?:-dom)?\//.test(name)));
   freightClosure(chunks, entry);
   jpegClosure(chunks, entry);
+  pngClosure(chunks, entry);
   await notices(directory);
 });
 function jpegClosure(chunks: readonly Chunk[], entry: Chunk): void {
@@ -70,6 +71,21 @@ function jpegClosure(chunks: readonly Chunk[], entry: Chunk): void {
   for (const chunk of chunks.filter((candidate) => entry.dynamicImports.includes(candidate.fileName))) {
     if (chunk !== optional) assert.ok(!closure(chunks, chunk).some((name) => /\/packages\/jpeg\//u.test(name)));
   }
+}
+function pngClosure(chunks: readonly Chunk[], entry: Chunk): void {
+  const optional = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-png.ts")));
+  assert.ok(optional && entry.dynamicImports.includes(optional.fileName));
+  const modules = closure(chunks, optional);
+  assert.ok(modules.some((name) => /\/packages\/png\//u.test(name)));
+  assert.ok(modules.some((name) => /\/fflate\/esm\/browser\.js$/u.test(name)));
+  assert.ok(!modules.some((name) => /\/packages\/(jpeg|layout|tables|geometry|svg|fontkit)\//u.test(name)));
+  const png = /\/packages\/png\/|\/fflate\//u;
+  assert.ok(!closure(chunks, entry).some((name) => png.test(name)));
+  for (const chunk of chunks.filter((candidate) => entry.dynamicImports.includes(candidate.fileName))) {
+    if (chunk !== optional) assert.ok(!closure(chunks, chunk).some((name) => png.test(name)));
+  }
+  for (const chunk of chunks.filter((candidate) => candidate.isEntry && candidate !== entry))
+    assert.ok(!closure(chunks, chunk, true).some((name) => png.test(name)));
 }
 function freightClosure(chunks: readonly Chunk[], entry: Chunk): void {
   const freight = chunks.find((chunk) =>
@@ -166,6 +182,7 @@ function layoutClosures(chunks: readonly Chunk[], entry: Chunk): void {
 }
 
 async function notices(directory: URL): Promise<void> {
+  await packageNotice(directory, "fflate", new URL("../../node_modules/fflate", import.meta.url).pathname);
   for (const name of ["fontkit", "dfa", "brotli"])
     assert.deepEqual(
       await readFile(new URL(`notices/${name}.metadata.json`, directory)),

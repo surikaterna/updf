@@ -76,6 +76,8 @@ export type DiagnosticCode =
   | "RESOURCE"
   | "JPEG_DATA"
   | "JPEG_PROFILE"
+  | "PNG_DATA"
+  | "PNG_PROFILE"
   | "FONT_PROFILE"
   | "FONT_INK"
   | "GLYPH_MISSING"

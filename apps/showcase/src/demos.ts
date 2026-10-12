@@ -4,6 +4,7 @@ import type { BrandingControls } from "./branding-controls.js";
 import type { FlowControls } from "./flow.js";
 import type { MixedControls } from "./mixed.js";
 import type { JpegControls } from "./jpeg-controls.js";
+import type { PngControls } from "./png-controls.js";
 import { paintingDemo } from "./painting.js";
 import paintingSource from "./painting.ts?raw";
 import type { RichControls } from "./rich.js";
@@ -25,6 +26,7 @@ export type DemoId =
   | "svg"
   | "branding"
   | "jpeg"
+  | "png"
   | "flow"
   | "tables"
   | "blocks"
@@ -48,6 +50,7 @@ export function demoId(value: string): DemoId {
     value === "svg" ||
     value === "branding" ||
     value === "jpeg" ||
+    value === "png" ||
     value === "rich" ||
     value === "flow" ||
     value === "blocks" ||
@@ -71,10 +74,12 @@ export async function generate(
   branding?: BrandingControls,
   freight?: FreightInvoiceData,
   jpeg?: JpegControls,
+  png?: PngControls,
 ): Promise<{ bytes: Uint8Array; source: string; summary?: string }> {
   if (title.length > 40) throw new Error("Title must be at most 40 characters");
   if (id === "branding") return brandingResult(title, branding);
   if (id === "jpeg") return jpegResult(title, jpeg);
+  if (id === "png") return pngResult(title, png);
   if (isFreight(id)) return freightResult(title, id, freight);
   if (id === "manifest" || id === "invoice") return id === "manifest" ? manifestResult(title) : invoiceResult(title);
   if (id === "template" || id === "mixed") return id === "template" ? templateResult(title) : mixedResult(title, mixed);
@@ -134,7 +139,16 @@ async function jpegResult(title: string, controls?: JpegControls) {
   return {
     bytes,
     source,
-    summary: `${metadata.pixelWidth} x ${metadata.pixelHeight} pixel ${metadata.components === 1 ? "grayscale" : "color"} JPEG; four placements reuse one compressed image. Explicit sizing, reflection and clipping. PNG is not implemented.`,
+    summary: `${metadata.pixelWidth} x ${metadata.pixelHeight} pixel ${metadata.components === 1 ? "grayscale" : "color"} JPEG; four placements reuse one compressed image. Explicit sizing, reflection and clipping. For transparency, select the PNG example.`,
+  };
+}
+async function pngResult(title: string, controls?: PngControls) {
+  const { pngDemo, source } = await import("./optional-png.js");
+  const { bytes, metadata } = await pngDemo(title, controls);
+  return {
+    bytes,
+    source,
+    summary: `${metadata.pixelWidth} x ${metadata.pixelHeight} pixel ${metadata.components === 1 ? "grayscale" : "color"} PNG with alpha; four placements reuse one image and soft mask. White/blue backgrounds, reflection and clipping.`,
   };
 }
 async function invoiceResult(title: string) {
