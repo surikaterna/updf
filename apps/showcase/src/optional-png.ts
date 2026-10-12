@@ -20,7 +20,6 @@ async function asset(variant: PngControls["variant"], signal?: AbortSignal): Pro
     if (!response.ok) throw new Error("Unable to load original PNG sample");
     const bytes = new Uint8Array(await response.arrayBuffer());
     request.throwIfAborted();
-    cached.set(variant, bytes);
     return bytes;
   } finally {
     clearTimeout(timer);
@@ -32,7 +31,9 @@ export async function pngDemo(title: string, controls: PngControls = pngDefaults
   validatePngControls(controls);
   const bytes = await asset(controls.variant, signal);
   signal?.throwIfAborted();
-  return pngExample(bytes, title, controls);
+  const result = pngExample(bytes, title, controls);
+  cached.set(controls.variant, bytes);
+  return result;
 }
 
 export const source = [
