@@ -170,6 +170,12 @@ export function portableGraph(modules: readonly string[], optional = false, reac
 }
 export function packageEdge(owner: string, specifier: string): void {
   if (owner === "assets") assert.ok(specifier.startsWith("."), "Asset transport must have zero runtime dependencies");
+  if (owner === "png")
+    assert.ok(
+      specifier.startsWith(".") ||
+        ["@updf/core", "@updf/core/resources", "@updf/core/pdf", "fflate"].includes(specifier),
+      "PNG must use public core surfaces and its optional compression dependency only",
+    );
   if (owner === "jpeg")
     assert.ok(
       specifier.startsWith(".") || ["@updf/core", "@updf/core/resources", "@updf/core/pdf"].includes(specifier),
@@ -310,6 +316,7 @@ export async function checkSeams(root: string): Promise<void> {
     "text",
     "fontkit",
     "jpeg",
+    "png",
   ]) {
     for (const path of await files(join(root, "packages", owner, "src"))) {
       const text = await readFile(path, "utf8");

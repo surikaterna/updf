@@ -23,9 +23,15 @@ export const metadata: Record<DemoId, Metadata> = {
   ),
   jpeg: entry(
     "JPEG image placement",
-    "Original color/grayscale samples: explicit sizing, reuse, reflection and clipping. PNG is not supported.",
+    "Original color/grayscale JPEG samples: explicit sizing, reuse, reflection and clipping. Select PNG for transparency.",
     ["JPEG · lazy", "Fixed page"],
     "jpeg.ts · jpeg-controls.ts · optional-jpeg.ts; tests/fixtures/jpeg/README.md",
+  ),
+  png: entry(
+    "PNG images & transparency",
+    "Original color/grayscale alpha samples over white and blue: explicit sizing, reuse, reflection and clipping.",
+    ["PNG · lazy", "Alpha soft masks", "Fixed page"],
+    "png.ts · png-controls.ts · optional-png.ts; tests/fixtures/png/README.md",
   ),
   text: entry(
     "Positioned text",

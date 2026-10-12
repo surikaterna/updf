@@ -13,6 +13,10 @@ async function validateManifest(directory: URL, name: string): Promise<void> {
   assert.equal(manifest.license, "MIT");
   assert.equal(manifest.version, name === "legacy" ? "0.4.15" : "2.0.0-poc.0");
   for (const [dependency, version] of Object.entries(manifest.dependencies ?? {})) {
+    if (name === "png" && dependency === "fflate") {
+      assert.equal(version, "0.8.2");
+      continue;
+    }
     assert.ok(dependency.startsWith("@updf/"));
     assert.equal(version, "2.0.0-poc.0");
   }
@@ -67,6 +71,7 @@ try {
     "assets",
     "core",
     "jpeg",
+    "png",
     "fonts",
     "text",
     "layout-boxes",

@@ -27,6 +27,7 @@ verification of the new package structure.
 | `@updf/core` | Generic PDF bytes/resources/text contracts: `.`, `/resources`, `/pdf`, `/painting`, `/vdom`, `/jsx-runtime`, `/jsx-dev-runtime`; no font implementation |
 | `@updf/fonts` | Prepared fonts, explicit Helvetica, opaque text runs and paired PDF font provider |
 | `@updf/jpeg` | Optional structurally validated baseline JPEG bytes and explicit Image XObject provider; [image guide](docs/jpeg-images.md) |
+| `@updf/png` | Optional bounded 8-bit PNG decoding, including alpha, and Image XObject provider; [image guide](packages/png/README.md) |
 | `@updf/text` | Text service, measurement, wrapping, line envelopes and inline text painting |
 | `@updf/layout` | Native Document/Page/Flow/Block/Paragraph/Span/Row/Column, data constructors, layout/measure, contexts, decorations and adapters |
 | `@updf/tables` | Optional native paged tables and local Flow extension |
@@ -75,7 +76,7 @@ npm run check:licenses
 npm run sizes
 ```
 
-`typecheck` builds in explicit kernel → core → JPEG/fonts/text → layout/tables/geometry/Fontkit → SVG → examples order,
+`typecheck` builds in explicit kernel → core → JPEG/PNG/fonts/text → layout/tables/geometry/Fontkit → SVG → examples order,
 then compiles repository tooling/tests. Legacy compilation now uses TypeScript
 `allowJs`, preserving CommonJS `.default` and `lib` deep imports. Native declarations
 use ES2022 only, no ambient DOM/Node/React or TS path aliases. Node require and ESM
@@ -246,7 +247,7 @@ Execute both built examples and check their binary results:
 node --input-type=module -e "for (const name of ['hello','heading']) { const {bytes} = await import('./apps/node/dist/' + name + '.js'); if (!(bytes instanceof Uint8Array) || bytes.length === 0) throw new Error(name); console.log(name, bytes.length); }"
 ```
 
-## Optional JPEG, SVG and fonts
+## Optional JPEG, PNG, SVG and fonts
 
 Optional [`loadFont`](packages/fontkit/README.md#optional-uri--byte-loading) accepts
 bytes or a direct static TrueType URI through the shared `@updf/assets` transport.
@@ -260,6 +261,11 @@ Supply a genuine nonshared-backed `Uint8Array`, bind the owned result outside th
 document, and explicitly install `jpegProvider()`. Boxes use top-left PDF points;
 metadata dimensions use pixels. The source is copied privately and reused by identity.
 See the [exact v1 profile and runnable Node example](docs/jpeg-images.md).
+
+PNG uses the same explicit placement/provider pattern through optional `@updf/png`:
+`preparePng`, `png`, and `pngProvider`. It supports bounded non-interlaced 8-bit
+images with alpha, with fflate isolated from JPEG-only and image-free consumers.
+See [profiles, limits and the alpha showcase](packages/png/README.md).
 
 [`apps/node/src/optional.ts`](apps/node/src/optional.ts) executes both
 adapters. SVG needs core + geometry + SVG; Fontkit needs core + the adapter and
@@ -328,7 +334,7 @@ JSX runtime and native renderer; public output is frozen portable size/line/ink/
 baseline/source-path data. The [actual TSX showcase](apps/showcase/src/rich.tsx)
 uses a context theme and a real native inline badge. SVG remains an optional
 application-owned adapter. Final contexts are documented in [documents](docs/documents.md)
-and native tables in [tables](docs/tables.md). Optional baseline JPEG placement uses
+and native tables in [tables](docs/tables.md). Optional JPEG/PNG placement uses
 generic core `xObject` nodes, not a new layout `Image` component.
 
 The following #26 low-level contract is transitional and deprecated for new
@@ -362,8 +368,9 @@ for the current contract and measured rich-vs-rich costs; the earlier
   no compatibility facade is provided. Theme is explicitly applied through context,
   not an implicit CSS cascade.
 - Core retains fixed point geometry and explicit pages. Optional JPEG supports only
-  the [bounded baseline profile](packages/jpeg/README.md#exact-v1-profile); PNG,
-  alpha images, general CSS layout, shaping, bidi and full SVG remain unsupported.
+  the [bounded baseline profile](packages/jpeg/README.md#exact-v1-profile). Optional
+  [PNG](packages/png/README.md) supports non-interlaced 8-bit images with alpha;
+  broader image profiles, general CSS layout, shaping, bidi and full SVG remain unsupported.
 - Built-in Helvetica accepts printable ASCII and LF only. Selected prepared
   fonts support the documented simple LTR Latin/Cyrillic profile; missing glyphs
   fail rather than fallback. Static single-face glyf TrueType only, full embedding.
@@ -395,7 +402,7 @@ the original planning records are preserved rather than rewritten as delivery ev
 | [#30 Code39](https://github.com/surikaterna/updf/issues/30) | Planned for native packages; legacy capability is separate |
 | [#31 QR codes](https://github.com/surikaterna/updf/issues/31) | Planned |
 | [#32 Bundle-cost regression gates](https://github.com/surikaterna/updf/issues/32) | Planned; measurements/graph checks are not completion |
-| [#33 Raster images](https://github.com/surikaterna/updf/issues/33) | Baseline JPEG v1 independently verified under SOFTWAREENV. No PNG/alpha or arbitrary JPEG support; broader raster acceptance is not claimed. No tracker transition in this assignment |
+| [#33 Raster images](https://github.com/surikaterna/updf/issues/33) | Baseline JPEG v1 independently verified under SOFTWAREENV. Optional bounded PNG/alpha and its lazy showcase are implemented and self-validated in this follow-up; not independently audited or released. Broader raster acceptance is not claimed |
 | [#34 Workspace restructuring](https://github.com/surikaterna/updf/issues/34) | Merged via PR #36 (`ac60f80`); not released |
 | [#35 README/examples/roadmap](https://github.com/surikaterna/updf/issues/35) | Merged via PR #36 (`ac60f80`); not released |
 

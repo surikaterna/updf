@@ -65,5 +65,7 @@ SHOWCASE_CHROMIUM=/usr/bin/chromium npx tsx --test tests/showcase/font-uri.test.
 Tests exercise URI and byte preparation, cancellation, redirect/size policy,
 type declarations without ambient DOM types, PDF integrity/text extraction,
 actual browser source/download parity, failure recovery and lazy module graphs.
-The font PR is based directly on develop, independent of the uncommitted image
-and positioning prototypes. No publication or deployment is implied.
+The font work was initially validated directly on develop. After architecture
+review, PR #76 is stacked on PNG PR #75 so the combined showcase, build and graph
+contracts can be validated before either merges. The generic image wrapper and
+positioning prototypes remain excluded. No publication or deployment is implied.

@@ -1,10 +1,12 @@
-# Font URI loading — local validation, 2026-10-12
+# Font URI loading — original standalone validation, 2026-10-12
 
-Separate worktree/branch: `trees/font-loading`, `feature/font-loading`, based
+Original worktree/branch: `trees/font-loading`, `feature/font-loading`, based
 directly on develop `1e45aa935f88537217214f53bad66c6edf236951`. This slice contains
 shared asset transport, the font loading entry and its showcase/tests/docs only.
 It does not include the pending image, positioning, code-view or size-summary work.
-No independent audit, merge, publication or deployment is claimed.
+No independent audit, merge, publication or deployment is claimed. This section
+records the initial standalone snapshot, before the architecture-review fixes
+and the subsequent PR #76 stack on PNG PR #75.
 
 ## Shared boundary
 
