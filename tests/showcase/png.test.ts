@@ -2,10 +2,14 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { pngExample } from "../../apps/showcase/src/png.js";
+import { canonicalPngPdf } from "../fixtures/png/pdf-equivalence.js";
 import { observeUrls, pageErrors, pdf, rendered, retained, screenshot, site } from "./helpers.js";
 
 async function fixture(variant: "color" | "gray") {
   return new Uint8Array(await readFile(new URL(`../fixtures/png/${variant}-alpha.png`, import.meta.url)));
+}
+async function nodePdf(variant: "color" | "gray", width = 192) {
+  return canonicalPngPdf((await pngExample(await fixture(variant), "Hello portable PDF", { variant, width })).bytes);
 }
 
 test("PNG loads on demand, previews alpha and matches Node at desktop/mobile sizes", async () => {
@@ -20,7 +24,7 @@ test("PNG loads on demand, previews alpha and matches Node at desktop/mobile siz
     await pdf(page);
     assert.ok(!requests.some((url) => /optional-png-|(?:color|gray)-alpha-.*\.png/u.test(url)));
     await page.getByLabel("Example", { exact: true }).selectOption("png");
-    assert.deepEqual(await pdf(page), pngExample(await fixture("color"), "Hello portable PDF").bytes);
+    assert.deepEqual(canonicalPngPdf(await pdf(page)), await nodePdf("color"));
     await rendered(page, 1);
     await checkPreviewAlpha(page);
     assert.ok(requests.some((url) => /color-alpha-.*\.png/u.test(url)));
@@ -32,10 +36,7 @@ test("PNG loads on demand, previews alpha and matches Node at desktop/mobile siz
     await screenshot(page, "png-color-desktop");
     await page.getByLabel("PNG sample", { exact: true }).selectOption("gray");
     await page.getByLabel("PNG width (PDF points)", { exact: true }).fill("96");
-    assert.deepEqual(
-      await pdf(page),
-      pngExample(await fixture("gray"), "Hello portable PDF", { variant: "gray", width: 96 }).bytes,
-    );
+    assert.deepEqual(canonicalPngPdf(await pdf(page)), await nodePdf("gray", 96));
     assert.match(await page.locator("#status").innerText(), /grayscale PNG with alpha/u);
     await page.setViewportSize({ width: 320, height: 812 });
     await page.waitForFunction(() => document.querySelector("#demo-form")?.getAttribute("aria-busy") === "true");
@@ -95,7 +96,7 @@ test("PNG failures retain the prior PDF/source, recover on retry and reset to de
     await page.unroute("**/*-alpha-*.png");
     await page.getByRole("button", { name: "Generate PDF", exact: true }).click();
     const original = await pdf(page);
-    assert.deepEqual(original, pngExample(await fixture("color"), "Hello portable PDF").bytes);
+    assert.deepEqual(canonicalPngPdf(original), await nodePdf("color"));
     const args = await page.locator("#source-arguments").textContent();
     await page.getByLabel("PNG width (PDF points)", { exact: true }).fill("193");
     assert.deepEqual(await pdf(page), original);

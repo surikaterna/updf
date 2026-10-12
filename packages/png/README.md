@@ -1,8 +1,8 @@
 # @updf/png (private/unreleased)
 
-Optional synchronous PNG support, parallel to `@updf/jpeg`. Core does not import
-this package or its MIT-licensed `fflate@0.8.2` compression dependency. No fonts,
-JPEG parser, Node built-ins, canvas, fetch or filesystem APIs are needed. ESM,
+Optional asynchronous PNG preparation with native compression streams. Core does
+not import this package. There is no third-party compression dependency or fallback.
+No fonts, JPEG parser, Node built-ins, canvas, fetch or filesystem APIs are needed. ESM,
 CommonJS and browser exports follow the native workspace packaging contract.
 This package has not been published.
 
@@ -12,8 +12,8 @@ This package has not been published.
 import { render } from "@updf/core";
 import { png, pngProvider, preparePng } from "@updf/png";
 
-export function imagePdf(source: Uint8Array): Uint8Array {
-  const logo = preparePng(source);
+export async function imagePdf(source: Uint8Array): Promise<Uint8Array> {
+  const logo = await preparePng(source);
   return render({
     version: 1,
     pages: [{ width: 200, height: 160, children: [
@@ -23,10 +23,14 @@ export function imagePdf(source: Uint8Array): Uint8Array {
 }
 ```
 
-- `preparePng(source: Uint8Array): PngResource` makes a private input copy,
-  parses and decodes it, and owns recompressed color and optional alpha planes.
-  Input mutation cannot change the resource. Genuine cross-realm Uint8Array
+- `preparePng(source: Uint8Array, options?: PreparePngOptions): Promise<PngResource>`
+  copies and parses the input before the first suspension, then asynchronously
+  decodes and recompresses the color and optional alpha planes. There is no
+  synchronous preparation API. Input mutation cannot change the resource. Genuine cross-realm Uint8Array
   views are accepted; shared-backed views, proxies and lookalikes reject.
+- `PreparePngOptions` accepts only an optional `signal: PngSignal`, structurally
+  compatible with native AbortSignal without DOM/Node ambient declarations.
+  Cancellation rejects without publishing a resource and closes active streams.
 - `PngResource` is opaque owned identity with frozen `PngMetadata`:
   `{ kind: 'png', width, height, components: 1 | 3, alpha: boolean }`.
   Dimensions are pixels, components describe the decoded color plane, and
@@ -42,6 +46,22 @@ transforms and clips all use the existing core contract. For Flow use an atomic
 declared-height `FixedBlock`; no new layout Image component or fragmentation is
 introduced. Clipping is not redaction: the complete image is still embedded.
 
+## Platform and async contract
+
+Preparation requires both native `DecompressionStream("deflate")` and
+`CompressionStream("deflate")`. PNG uses zlib-wrapped DEFLATE, not `deflate-raw`.
+Supported native APIs: Chrome/Edge 80+, Firefox 113+, Safari/iOS 16.4+, including
+workers; the workspace uses Node 24. Unsupported hosts reject with `PNG_PLATFORM`
+rather than silently loading a polyfill. See [MDN compatibility](https://developer.mozilla.org/en-US/docs/Web/API/Compression_Streams_API).
+These are native API introduction versions, not a whole-showcase browser baseline;
+the ES2022 application and its cancellation UI can require newer browser versions.
+
+Await preparation in the host/loader before binding the resource. Layout and
+rendering of an already prepared handle remain synchronous. Rendering the same
+handle is deterministic, but compressed PDF bytes from separately prepared images
+are not a cross-runtime/version identity contract: native encoders may differ.
+The decoded pixels, mask, geometry and PDF semantics remain equivalent.
+
 ## Exact initial profile
 
 Accepted: PNG signature, non-interlaced 8-bit grayscale (0), RGB (2), indexed (3),
@@ -49,7 +69,8 @@ grayscale+alpha (4), RGBA (6); compression/filter methods 0; all five row filter
 PLTE and tRNS where legal; consecutive IDAT chunks; terminal IEND without padding.
 Indexed samples expand to RGB, tRNS expands to alpha, and alpha remains straight
 (not premultiplied). Palette indices and transparency samples are range checked.
-Chunk CRCs, zlib Adler-32 and exact decoded scanline length are checked.
+Chunk CRCs and exact decoded scanline length are checked by the adapter; native
+DEFLATE decoding validates zlib framing and Adler-32, including truncated/trailing data.
 
 An optional sRGB declaration is accepted. Text/time/physical-density chunks
 (`tEXt`, `zTXt`, `iTXt`, `tIME`, `pHYs`) are CRC-checked but otherwise discarded
@@ -67,12 +88,15 @@ no objects. A provider is reusable, deterministic and operation-local.
 ## Limits and errors
 
 Before allocation/decompression: 8 MiB source, 4096 chunks, 16,000,000 pixels,
-and 64 MiB decoded scanlines (including filter bytes). Inflate uses a fixed-size
-output buffer, with an extra sentinel byte to detect excess decoded data.
+and 64 MiB decoded scanlines (including filter bytes). Decompressed chunks are
+checked against the exact expected scanline length before copying/retaining them.
+Each compressed plane is capped at twice its uncompressed length plus 1024 bytes;
+both stream directions allow at most 65,536 reads. Input is fed in 1 KiB writes,
+and output is drained concurrently to avoid backpressure deadlocks.
 These are exact integer/domain limits, not approximate geometry comparisons.
-They bound decoded storage, not total peak memory or CPU time; preparation is
-synchronous and is **not a hostile-input sandbox**. Compression syntax validation
-is delegated to fflate, not an independent exhaustive DEFLATE validator.
+They bound adapter-retained storage, not native internal buffering, total peak
+memory or CPU time. Pixel reconstruction is synchronous between stream operations
+and cannot be preempted by an AbortSignal. This is **not a hostile-input sandbox**.
 
 `resourceBytes` conservatively charges original source length plus retained
 compressed color/mask bytes once per unique handle, including unused bindings.
@@ -81,7 +105,9 @@ optional service-profile limits apply normally.
 
 `DocumentError` codes at `/source`: `TYPE` for invalid input views, `LIMIT` for
 preparation limits, `PNG_DATA` for invalid structure/checksums/samples/scanlines,
-`PNG_PROFILE` for unsupported profiles or chunks. Core uses `RESOURCE` for
+`PNG_PROFILE` for unsupported profiles or chunks, `PNG_ABORT` for cancellation,
+and `PNG_PLATFORM` for missing/failed native compression capabilities. Malformed
+options use `TYPE` at `/options` or `/options/signal`. Core uses `RESOURCE` for
 missing/wrong/forged bindings or providers and its existing geometry/budget codes.
 
 ## Validation
@@ -93,19 +119,24 @@ npm run typecheck
 npx tsx --test packages/png/test/*.test.ts tests/consumer/png*.test.ts
 ```
 
-Fixtures are generated in tests with Node zlib (not the production compressor),
+Fixtures are generated in tests with the separate Node zlib API,
 using original synthetic pixel values under the project MIT license. Tests cover
 filters, color types/transparency, malformed data, ownership, deduplication,
 budgets, browser graphs/runtime, clean packed ESM/CommonJS and qpdf/Poppler output.
 The lazy browser showcase includes original RGBA and grayscale+alpha samples,
 explicit 96–192pt sizing, reuse, reflection and clipping. White/blue backgrounds
-expose full, partial and zero opacity; browser and Node outputs are byte-equal.
+expose full, partial and zero opacity; browser and Node outputs are compared as
+qpdf-normalized objects/decoded streams, with independent PDF.js/Poppler pixel checks.
+Negative controls prove that compression differences are accepted but changed
+pixels are not. Native codec availability, stream limits/cleanup and cancellation
+are tested alongside exact source-plus-compressed-plane resource accounting.
 Actual source and fixture provenance are displayed. Invalid controls or failed
 asset requests retain the previous PDF/source and can be retried or reset.
 The showcase caches only successful fixture bytes. Requests time out after ten
 seconds and are aborted when superseded, reset, or left behind by a demo switch;
 late lazy imports cannot start an obsolete request. This fixture-only browser
-loader is not part of the synchronous PNG package API.
+loader is separate from the PNG byte-preparation API; cancellation also covers
+asynchronous image preparation after the fixture download finishes.
 
 ```sh
 npm run build:showcase
@@ -114,3 +145,17 @@ npx tsx --test tests/integration/png-showcase.test.ts
 ```
 
 No upload UI, publication or deployment is included.
+
+## Measured native-codec cost
+
+Node 24.21.0 / esbuild 0.28.2, minified ES2022 browser ESM, gzip level 9:
+
+| Consumer | Previous fflate implementation | Native async implementation | Saving |
+| --- | ---: | ---: | ---: |
+| Three PNG API exports and their retained dependencies | 8,730 B gzip | 4,983 B gzip | 3,747 B (3.66 KiB) |
+| Complete minimal PNG-to-PDF consumer | 19,485 B gzip | 15,636 B gzip | 3,849 B (3.76 KiB) |
+
+These include the native stream adapter, bounds, cancellation and platform checks;
+they are not additive package sizes. No image payloads or showcase UI are included.
+Baseline PNG source: `960e9d4` (also present unchanged in font stack `aade3cb`).
+Reproduce with `npx tsx scripts/png-cost.ts [built-baseline-worktree]`.

@@ -78,6 +78,8 @@ export type DiagnosticCode =
   | "JPEG_PROFILE"
   | "PNG_DATA"
   | "PNG_PROFILE"
+  | "PNG_ABORT"
+  | "PNG_PLATFORM"
   | "FONT_PROFILE"
   | "FONT_LOAD"
   | "FONT_INK"

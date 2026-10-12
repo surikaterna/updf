@@ -47,3 +47,6 @@ export function document(id = "image"): DocumentDefinition {
 export function failure(run: () => unknown, code: string): void {
   assert.throws(run, (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === code);
 }
+export async function rejection(run: () => Promise<unknown>, code: string): Promise<void> {
+  await assert.rejects(run, (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === code);
+}

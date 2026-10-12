@@ -1,7 +1,7 @@
-import { unzlibSync, zlibSync } from "fflate";
-import { adler32 } from "./checksums.js";
-import { data, requireData } from "./errors.js";
+import { requireData } from "./errors.js";
 import type { ParsedPng } from "./parser.js";
+import { checkAbort, type PngSignal } from "./options.js";
+import { transcode } from "./streams.js";
 
 export interface PngMetadata {
   readonly kind: "png";
@@ -16,22 +16,12 @@ export interface Image {
   alpha?: Uint8Array;
 }
 
-function inflate(info: ParsedPng): Uint8Array {
+async function inflate(info: ParsedPng, signal?: PngSignal): Promise<Uint8Array> {
   const { compressed, width, height, channels } = info;
   requireData(compressed.length >= 6, "Truncated PNG zlib stream");
   const expected = (width * channels + 1) * height;
-  let result: Uint8Array;
-  try {
-    // The extra byte distinguishes an exact result from fflate's truncated fixed-buffer output.
-    result = unzlibSync(compressed, { out: new Uint8Array(expected + 1) });
-  } catch {
-    data("Invalid PNG zlib stream");
-  }
+  const result = await transcode(compressed, expected, "DecompressionStream", signal);
   requireData(result.length === expected, "PNG decoded scanline length mismatch");
-  const checksum = new DataView(compressed.buffer, compressed.byteOffset, compressed.length).getUint32(
-    compressed.length - 4,
-  );
-  requireData(adler32(result) === checksum, "PNG Adler-32 mismatch");
   return result;
 }
 
@@ -85,8 +75,9 @@ function pixel(info: ParsedPng, bytes: Uint8Array, offset: number, colors: Uint8
   return 0;
 }
 
-export function decode(info: ParsedPng): Image {
-  const bytes = inflate(info);
+export async function decode(info: ParsedPng, signal?: PngSignal): Promise<Image> {
+  const bytes = await inflate(info, signal);
+  checkAbort(signal);
   unfilter(info, bytes);
   const { width, height } = info;
   const components = info.color === 0 || info.color === 4 ? 1 : 3;
@@ -100,7 +91,7 @@ export function decode(info: ParsedPng): Image {
   }
   return {
     metadata: { kind: "png", width, height, components, alpha: !!alpha },
-    pixels: zlibSync(pixels),
-    ...(alpha ? { alpha: zlibSync(alpha) } : {}),
+    pixels: await transcode(pixels, pixels.length * 2 + 1024, "CompressionStream", signal),
+    ...(alpha ? { alpha: await transcode(alpha, alpha.length * 2 + 1024, "CompressionStream", signal) } : {}),
   };
 }

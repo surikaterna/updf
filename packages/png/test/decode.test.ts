@@ -4,9 +4,9 @@ import { deflateSync, inflateSync } from "node:zlib";
 import { preparePng } from "@updf/png";
 import { decode } from "../src/decode.js";
 import { parse } from "../src/parser.js";
-import { chunk, container, failure, fixture, header } from "./helpers.js";
+import { chunk, container, rejection as failure, fixture, header } from "./helpers.js";
 
-test("all supported color types and alpha/tRNS decode losslessly", () => {
+test("all supported color types and alpha/tRNS decode losslessly", async () => {
   const cases = [
     { source: fixture(), color: [255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 0], alpha: [255, 128, 0, 255] },
     { source: fixture(0, [10, 20, 30, 40]), color: [10, 20, 30, 40] },
@@ -33,13 +33,13 @@ test("all supported color types and alpha/tRNS decode losslessly", () => {
     },
   ];
   for (const entry of cases) {
-    const image = decode(parse(entry.source));
+    const image = await decode(parse(entry.source));
     assert.deepEqual([...inflateSync(image.pixels)], entry.color);
     assert.deepEqual(image.alpha ? [...inflateSync(image.alpha)] : undefined, entry.alpha);
   }
 });
 
-test("all five filters reconstruct rows with left, up and diagonal predictors", () => {
+test("all five filters reconstruct rows with left, up and diagonal predictors", async () => {
   const rows = [
     [10, 30, 60, 90, 120, 150],
     [20, 40, 50, 100, 140, 200],
@@ -60,11 +60,11 @@ test("all five filters reconstruct rows with left, up and diagonal predictors", 
       }),
     ]);
     const source = container(header(2, 2, 3), chunk("IDAT", deflateSync(Buffer.from(encoded))), chunk("IEND"));
-    assert.deepEqual([...inflateSync(decode(parse(source)).pixels)], rows.flat());
+    assert.deepEqual([...inflateSync((await decode(parse(source))).pixels)], rows.flat());
   }
 });
 
-test("split IDAT and discarded metadata preserve pixels; sRGB declaration is accepted", () => {
+test("split IDAT and discarded metadata preserve pixels; sRGB declaration is accepted", async () => {
   const encoded = deflateSync(Buffer.from([0, 10, 20, 0, 30, 40]));
   const source = container(
     header(0),
@@ -74,12 +74,12 @@ test("split IDAT and discarded metadata preserve pixels; sRGB declaration is acc
     chunk("IDAT", encoded.subarray(3)),
     chunk("IEND"),
   );
-  assert.deepEqual([...inflateSync(decode(parse(source)).pixels)], [10, 20, 30, 40]);
+  assert.deepEqual([...inflateSync((await decode(parse(source))).pixels)], [10, 20, 30, 40]);
 });
 
-test("invalid scanline filters, lengths, palette indices, zlib and Adler-32 reject", () => {
+test("invalid scanline filters, lengths, palette indices, zlib and Adler-32 reject", async () => {
   for (const rows of [[5, 1, 2, 0, 3, 4], [0, 1], [0, 1, 2, 0, 3, 4, 5], new Array(100000).fill(0)]) {
-    failure(
+    await failure(
       () => preparePng(container(header(0), chunk("IDAT", deflateSync(Buffer.from(rows))), chunk("IEND"))),
       "PNG_DATA",
     );
@@ -88,10 +88,10 @@ test("invalid scanline filters, lengths, palette indices, zlib and Adler-32 reje
     Buffer.from([1, 2, 3, 4, 5, 6]),
     deflateSync(Buffer.from([0, 1, 2, 0, 3, 4])).subarray(0, -1),
   ]) {
-    failure(() => preparePng(container(header(0), chunk("IDAT", compressed), chunk("IEND"))), "PNG_DATA");
+    await failure(() => preparePng(container(header(0), chunk("IDAT", compressed), chunk("IEND"))), "PNG_DATA");
   }
   const badAdler = deflateSync(Buffer.from([0, 1, 2, 0, 3, 4]));
   badAdler[badAdler.length - 1] = badAdler[badAdler.length - 1]! ^ 1;
-  failure(() => preparePng(container(header(0), chunk("IDAT", badAdler), chunk("IEND"))), "PNG_DATA");
-  failure(() => preparePng(fixture(3, [0, 1, 2, 0], [chunk("PLTE", Buffer.from([1, 2, 3]))])), "PNG_DATA");
+  await failure(() => preparePng(container(header(0), chunk("IDAT", badAdler), chunk("IEND"))), "PNG_DATA");
+  await failure(() => preparePng(fixture(3, [0, 1, 2, 0], [chunk("PLTE", Buffer.from([1, 2, 3]))])), "PNG_DATA");
 });

@@ -9,7 +9,7 @@ import { costInputs, hostCostInput, jpegCostInputs } from "../../scripts/consume
 
 test("browser PNG graph/runtime is portable and optional for all existing consumers", async () => {
   const png = `import { render } from '@updf/core'; import { preparePng,png,pngProvider } from '@updf/png';
-    export function imagePdf(source) { const image = preparePng(source); return render({version:1,pages:[{width:100,height:100,children:[png('image',{x:10,y:20,width:60,height:40})]}]},{resources:{image},providers:[pngProvider()]}); }`;
+    export async function imagePdf(source) { const image = await preparePng(source); return render({version:1,pages:[{width:100,height:100,children:[png('image',{x:10,y:20,width:60,height:40})]}]},{resources:{image},providers:[pngProvider()]}); }`;
   const inputs = { ...costInputs(false), measurementHost: hostCostInput(false, true), ...jpegCostInputs(), png };
   for (const [profile, contents] of Object.entries(inputs)) {
     const result = await build({
@@ -30,14 +30,16 @@ test("browser PNG graph/runtime is portable and optional for all existing consum
       continue;
     }
     assert.ok(modules.some((path) => /png\/dist\/decode\.js$/u.test(path)));
-    assert.ok(modules.some((path) => /fflate\/esm\/browser\.js$/u.test(path)));
+    assert.ok(!modules.some((path) => /fflate|pako|tiny-inflate/u.test(path)));
     assert.ok(!modules.some((path) => /node:|packages\/(?:jpeg|fonts|text|fontkit|legacy)\//u.test(path)));
-    const context = { proof: undefined as unknown };
+    const context = { proof: undefined as unknown, CompressionStream, DecompressionStream };
     runInNewContext(result.outputFiles[0]!.text, context);
-    const api = context.proof as { imagePdf(source: Uint8Array): Uint8Array };
+    const api = context.proof as { imagePdf(source: Uint8Array): Promise<Uint8Array> };
     assert.deepEqual(
-      Buffer.from(api.imagePdf(fixture())),
-      Buffer.from(render(document(), { resources: { image: preparePng(fixture()) }, providers: [pngProvider()] })),
+      Buffer.from(await api.imagePdf(fixture())),
+      Buffer.from(
+        render(document(), { resources: { image: await preparePng(fixture()) }, providers: [pngProvider()] }),
+      ),
     );
   }
 });
