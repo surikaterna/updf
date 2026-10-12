@@ -108,3 +108,26 @@ test("a late PNG module cannot start an asset request after switching examples",
     await app.close();
   }
 });
+
+test("malformed successful HTTP responses are not cached and retry can recover", async () => {
+  const app = await site();
+  try {
+    const page = await app.browser.newPage();
+    let requests = 0;
+    await page.route("**/color-alpha-*.png", (route) => {
+      if (++requests === 1) return route.fulfill({ status: 200, body: "not PNG data" });
+      return route.continue();
+    });
+    await page.goto(app.url);
+    const original = await pdf(page);
+    await page.getByLabel("Example", { exact: true }).selectOption("png");
+    assert.deepEqual(await pdf(page), original);
+    assert.match(await page.locator("#status").innerText(), /PNG_DATA/u);
+    await page.getByRole("button", { name: "Generate PDF", exact: true }).click();
+    await pdf(page);
+    assert.equal(requests, 2);
+    assert.match(await page.locator("#status").innerText(), /color PNG with alpha/u);
+  } finally {
+    await app.close();
+  }
+});
