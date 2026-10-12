@@ -75,11 +75,12 @@ export async function generate(
   freight?: FreightInvoiceData,
   jpeg?: JpegControls,
   png?: PngControls,
+  pngSignal?: AbortSignal,
 ): Promise<{ bytes: Uint8Array; source: string; summary?: string }> {
   if (title.length > 40) throw new Error("Title must be at most 40 characters");
   if (id === "branding") return brandingResult(title, branding);
   if (id === "jpeg") return jpegResult(title, jpeg);
-  if (id === "png") return pngResult(title, png);
+  if (id === "png") return pngResult(title, png, pngSignal);
   if (isFreight(id)) return freightResult(title, id, freight);
   if (id === "manifest" || id === "invoice") return id === "manifest" ? manifestResult(title) : invoiceResult(title);
   if (id === "template" || id === "mixed") return id === "template" ? templateResult(title) : mixedResult(title, mixed);
@@ -142,9 +143,9 @@ async function jpegResult(title: string, controls?: JpegControls) {
     summary: `${metadata.pixelWidth} x ${metadata.pixelHeight} pixel ${metadata.components === 1 ? "grayscale" : "color"} JPEG; four placements reuse one compressed image. Explicit sizing, reflection and clipping. For transparency, select the PNG example.`,
   };
 }
-async function pngResult(title: string, controls?: PngControls) {
+async function pngResult(title: string, controls?: PngControls, signal?: AbortSignal) {
   const { pngDemo, source } = await import("./optional-png.js");
-  const { bytes, metadata } = await pngDemo(title, controls);
+  const { bytes, metadata } = await pngDemo(title, controls, signal);
   return {
     bytes,
     source,

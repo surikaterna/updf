@@ -102,6 +102,10 @@ explicit 96–192pt sizing, reuse, reflection and clipping. White/blue backgroun
 expose full, partial and zero opacity; browser and Node outputs are byte-equal.
 Actual source and fixture provenance are displayed. Invalid controls or failed
 asset requests retain the previous PDF/source and can be retried or reset.
+The showcase caches only successful fixture bytes. Requests time out after ten
+seconds and are aborted when superseded, reset, or left behind by a demo switch;
+late lazy imports cannot start an obsolete request. This fixture-only browser
+loader is not part of the synchronous PNG package API.
 
 ```sh
 npm run build:showcase

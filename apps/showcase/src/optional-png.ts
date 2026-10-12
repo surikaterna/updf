@@ -7,26 +7,32 @@ import template from "./png.ts?raw";
 import controlsSource from "./png-controls.ts?raw";
 import loader from "./optional-png.ts?raw";
 
-const cached = new Map<string, Promise<Uint8Array>>();
-function asset(variant: PngControls["variant"]): Promise<Uint8Array> {
+const cached = new Map<string, Uint8Array>();
+async function asset(variant: PngControls["variant"], signal?: AbortSignal): Promise<Uint8Array> {
+  signal?.throwIfAborted();
   const existing = cached.get(variant);
   if (existing) return existing;
-  const pending = fetch(variant === "color" ? colorUrl : grayUrl)
-    .then(async (response) => {
-      if (!response.ok) throw new Error("Unable to load original PNG sample");
-      return new Uint8Array(await response.arrayBuffer());
-    })
-    .catch((error: unknown) => {
-      cached.delete(variant);
-      throw error;
-    });
-  cached.set(variant, pending);
-  return pending;
+  const timeout = new AbortController();
+  const request = signal ? AbortSignal.any([signal, timeout.signal]) : timeout.signal;
+  const timer = setTimeout(() => timeout.abort(new Error("PNG sample request timed out; try again")), 10000);
+  try {
+    const response = await fetch(variant === "color" ? colorUrl : grayUrl, { signal: request });
+    if (!response.ok) throw new Error("Unable to load original PNG sample");
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    request.throwIfAborted();
+    cached.set(variant, bytes);
+    return bytes;
+  } finally {
+    clearTimeout(timer);
+    timeout.abort();
+  }
 }
 
-export async function pngDemo(title: string, controls: PngControls = pngDefaults) {
+export async function pngDemo(title: string, controls: PngControls = pngDefaults, signal?: AbortSignal) {
   validatePngControls(controls);
-  return pngExample(await asset(controls.variant), title, controls);
+  const bytes = await asset(controls.variant, signal);
+  signal?.throwIfAborted();
+  return pngExample(bytes, title, controls);
 }
 
 export const source = [
