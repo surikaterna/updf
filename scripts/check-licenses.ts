@@ -80,6 +80,7 @@ try {
     "geometry",
     "svg",
     "fontkit",
+    "fontkite",
     "legacy",
   ]) {
     const directory = new URL(`packages/${name}/`, root);
