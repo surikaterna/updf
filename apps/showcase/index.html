@@ -81,6 +81,7 @@
               <input id="png-width" type="number" min="96" max="192" step="1" value="192" required aria-describedby="png-help" />
               <p id="png-help" class="help">Four placements share one image and soft mask. Opaque, half-transparent and clear quadrants appear over white and blue. Width changes PDF geometry, not the 32×24 source pixels.</p>
               <p class="help">Non-interlaced 8-bit PNG only. ICC/gamma/chromaticity metadata, APNG and other bit depths are unsupported. Original MIT samples; no file upload. Clipping is not redaction.</p>
+              <p class="help">PNG preparation uses native compression streams (Chrome/Edge 80+, Firefox 113+, Safari 16.4+); no compression library is downloaded.</p>
             </fieldset>
             <p id="input-error" class="input-error" hidden></p>
             <fieldset id="rich-controls" hidden>
@@ -184,7 +185,6 @@
        <p>UPDF is MIT licensed. Copyright (c) 2026 Surikat AB. <a data-local="notices/LICENSE" href="./notices/LICENSE">Project MIT license</a>.</p>
       <p>Optional geometry incorporates Fontello svgpath code. <a data-local="notices/LICENSE.svgpath" href="./notices/LICENSE.svgpath">Fontello MIT notice</a> · <a data-local="notices/REUSE.md" href="./notices/REUSE.md">Reuse provenance</a></p>
        <p>Canvas preview uses PDF.js (Apache-2.0). <a data-local="notices/LICENSE.pdfjs" href="./notices/LICENSE.pdfjs">PDF.js license</a></p>
-       <p>Optional PNG compression uses fflate (MIT). <a data-local="notices/LICENSE.fflate" href="./notices/LICENSE.fflate">fflate license</a></p>
     </footer>
     <script type="module" src="/src/main.ts"></script>
   </body>

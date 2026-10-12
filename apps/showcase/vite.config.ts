@@ -52,7 +52,6 @@ function deliveryEvidence(): Plugin {
 function parserNotices(emit: (fileName: string, source: string) => void): void {
   const read = (path: string) => readFileSync(new URL(`../../node_modules/${path}`, import.meta.url), "utf8");
   const packages = [
-    "fflate",
     "@swc/helpers",
     "clone",
     "fast-deep-equal",

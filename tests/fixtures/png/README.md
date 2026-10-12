@@ -14,5 +14,5 @@ Regenerate from the worktree root with:
 npx tsx tests/fixtures/png/generate.ts
 ```
 
-The generator uses Node zlib, independently of the library's fflate dependency.
+The generator uses Node zlib; preparation uses native Web Compression Streams.
 Browser assets are fetched only when selected; generation is development-only.

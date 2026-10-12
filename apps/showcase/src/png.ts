@@ -50,10 +50,15 @@ function placements(width: number, height: number): readonly NodeDefinition[] {
   ];
 }
 
-export function pngExample(source: Uint8Array, title: string, controls: PngControls = pngDefaults) {
+export async function pngExample(
+  source: Uint8Array,
+  title: string,
+  controls: PngControls = pngDefaults,
+  signal?: AbortSignal,
+) {
   validatePngControls(controls);
   if (title.length > 40 || /[\r\n]/u.test(title)) throw new Error("PNG title must be one line, at most 40 characters");
-  const sample = preparePng(source);
+  const sample = await preparePng(source, signal ? { signal } : {});
   const { width: pixelWidth, height: pixelHeight, components, alpha } = sample.metadata;
   const height = (controls.width * pixelHeight) / pixelWidth;
   const document: DocumentDefinition = {

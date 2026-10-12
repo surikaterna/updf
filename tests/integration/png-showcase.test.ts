@@ -45,8 +45,8 @@ test("PNG showcase reuses one image/mask, with independent alpha/reflection/clip
     const source = await readFile(new URL(`../fixtures/png/${variant}-alpha.png`, import.meta.url));
     assert.deepEqual(source, samplePng(variant === "gray"));
     for (const width of [96, 192]) {
-      const result = pngExample(source, "PNG transparency", { variant, width });
-      assert.deepEqual(result.bytes, pngExample(source, "PNG transparency", { variant, width }).bytes);
+      const result = await pngExample(source, "PNG transparency", { variant, width });
+      assert.deepEqual(result.bytes, (await pngExample(source, "PNG transparency", { variant, width })).bytes);
       assert.deepEqual(result.metadata, {
         pixelWidth: 32,
         pixelHeight: 24,
@@ -68,14 +68,17 @@ test("PNG showcase reuses one image/mask, with independent alpha/reflection/clip
   }
 });
 
-test("PNG showcase validates controls and preserves source ownership", () => {
+test("PNG showcase validates controls and preserves source ownership", async () => {
   const source = samplePng();
   const original = Buffer.from(source);
   for (const width of [NaN, Infinity, 95, 193, 100.5])
-    assert.throws(() => pngExample(source, "Sample", { variant: "color", width }), /integer from 96 to 192/u);
-  assert.throws(() => pngExample(source, "W".repeat(41)), /at most 40/u);
-  assert.throws(() => pngExample(source, "line\nbreak"), /one line/u);
-  assert.throws(() => pngExample(source, "Sample", { variant: "other" as "color", width: 192 }), /Select color/u);
-  pngExample(source, "W".repeat(40));
+    await assert.rejects(() => pngExample(source, "Sample", { variant: "color", width }), /integer from 96 to 192/u);
+  await assert.rejects(() => pngExample(source, "W".repeat(41)), /at most 40/u);
+  await assert.rejects(() => pngExample(source, "line\nbreak"), /one line/u);
+  await assert.rejects(
+    () => pngExample(source, "Sample", { variant: "other" as "color", width: 192 }),
+    /Select color/u,
+  );
+  await pngExample(source, "W".repeat(40));
   assert.deepEqual(source, original);
 });

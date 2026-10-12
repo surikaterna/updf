@@ -77,7 +77,7 @@ function pngClosure(chunks: readonly Chunk[], entry: Chunk): void {
   assert.ok(optional && entry.dynamicImports.includes(optional.fileName));
   const modules = closure(chunks, optional);
   assert.ok(modules.some((name) => /\/packages\/png\//u.test(name)));
-  assert.ok(modules.some((name) => /\/fflate\/esm\/browser\.js$/u.test(name)));
+  assert.ok(!modules.some((name) => /\/node_modules\/(?:fflate|pako|tiny-inflate)\//u.test(name)));
   assert.ok(!modules.some((name) => /\/packages\/(jpeg|layout|tables|geometry|svg|fontkit)\//u.test(name)));
   const png = /\/packages\/png\/|\/fflate\//u;
   assert.ok(!closure(chunks, entry).some((name) => png.test(name)));
@@ -182,7 +182,6 @@ function layoutClosures(chunks: readonly Chunk[], entry: Chunk): void {
 }
 
 async function notices(directory: URL): Promise<void> {
-  await packageNotice(directory, "fflate", new URL("../../node_modules/fflate", import.meta.url).pathname);
   for (const name of ["fontkit", "dfa", "brotli"])
     assert.deepEqual(
       await readFile(new URL(`notices/${name}.metadata.json`, directory)),

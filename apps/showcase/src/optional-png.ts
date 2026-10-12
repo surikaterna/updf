@@ -31,7 +31,8 @@ export async function pngDemo(title: string, controls: PngControls = pngDefaults
   validatePngControls(controls);
   const bytes = await asset(controls.variant, signal);
   signal?.throwIfAborted();
-  const result = pngExample(bytes, title, controls);
+  const result = await pngExample(bytes, title, controls, signal);
+  signal?.throwIfAborted();
   cached.set(controls.variant, bytes);
   return result;
 }

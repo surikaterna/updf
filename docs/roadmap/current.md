@@ -18,6 +18,6 @@ Pages deployment is claimed. See the [final handoff summary](../evidence/measure
 | [#30 Code39](https://github.com/surikaterna/updf/issues/30) | Planned for native API |
 | [#31 QR codes](https://github.com/surikaterna/updf/issues/31) | Planned |
 | [#32 Bundle regression budgets](https://github.com/surikaterna/updf/issues/32) | Planned; graph/size evidence is not completion |
-| [#33 Raster images](https://github.com/surikaterna/updf/issues/33) | Baseline JPEG v1 independently verified under SOFTWAREENV. [Current contract](../jpeg-images.md). No PNG/alpha or arbitrary JPEG support; broader raster acceptance is not claimed. No tracker transition in this assignment |
+| [#33 Raster images](https://github.com/surikaterna/updf/issues/33) | Baseline JPEG v1 independently verified under SOFTWAREENV. [JPEG contract](../jpeg-images.md). Optional bounded [PNG/alpha support](../../packages/png/README.md) and its lazy showcase are implemented and directly validated, not independently audited or released. PNG preparation is async using native compression streams. Broader raster acceptance is not claimed; no tracker transition in this assignment |
 | [#34 Workspaces](https://github.com/surikaterna/updf/issues/34) | Merged via [PR #36](https://github.com/surikaterna/updf/pull/36), `ac60f80`; not released |
 | [#35 README/examples](https://github.com/surikaterna/updf/issues/35) | Merged via [PR #36](https://github.com/surikaterna/updf/pull/36), `ac60f80`; not released |

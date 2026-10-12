@@ -12,15 +12,19 @@ import {
 import { decode, type Image, type PngMetadata } from "./decode.js";
 import { parse } from "./parser.js";
 import { sourceBytes } from "./source.js";
+import { checkAbort, preparationSignal, type PreparePngOptions } from "./options.js";
 
 export type { PngMetadata } from "./decode.js";
+export type { PngSignal, PreparePngOptions } from "./options.js";
 export type PngResource = OwnedResource & { readonly metadata: PngMetadata };
 const images = new WeakMap<OwnedResource, Image>();
 
 /** Own, validate and decode a bounded PNG. No host IO or caller-owned storage is retained. */
-export function preparePng(source: Uint8Array): PngResource {
+export async function preparePng(source: Uint8Array, options: PreparePngOptions = {}): Promise<PngResource> {
+  const signal = preparationSignal(options);
   const bytes = sourceBytes(source);
-  const image = decode(parse(bytes));
+  const image = await decode(parse(bytes), signal);
+  checkAbort(signal);
   const resource = createOwnedResource(image.metadata, {
     byteLength: bytes.length + image.pixels.length + (image.alpha?.length ?? 0),
   });

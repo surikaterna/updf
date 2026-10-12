@@ -256,7 +256,8 @@ See the [exact v1 profile and runnable Node example](docs/jpeg-images.md).
 
 PNG uses the same explicit placement/provider pattern through optional `@updf/png`:
 `preparePng`, `png`, and `pngProvider`. It supports bounded non-interlaced 8-bit
-images with alpha, with fflate isolated from JPEG-only and image-free consumers.
+images with alpha. Await `preparePng(bytes)`; native compression streams replace
+third-party compression code. Prepared handles still use synchronous rendering.
 See [profiles, limits and the alpha showcase](packages/png/README.md).
 
 [`apps/node/src/optional.ts`](apps/node/src/optional.ts) executes both

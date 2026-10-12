@@ -170,9 +170,8 @@ export function portableGraph(modules: readonly string[], optional = false, reac
 export function packageEdge(owner: string, specifier: string): void {
   if (owner === "png")
     assert.ok(
-      specifier.startsWith(".") ||
-        ["@updf/core", "@updf/core/resources", "@updf/core/pdf", "fflate"].includes(specifier),
-      "PNG must use public core surfaces and its optional compression dependency only",
+      specifier.startsWith(".") || ["@updf/core", "@updf/core/resources", "@updf/core/pdf"].includes(specifier),
+      "PNG must use public core surfaces and native compression streams only",
     );
   if (owner === "jpeg")
     assert.ok(

@@ -8,13 +8,13 @@ import { render } from "@updf/core";
 import { pngProvider, preparePng } from "@updf/png";
 import { document, fixture } from "./helpers.js";
 
-test("qpdf/Poppler confirm color orientation and full/partial/zero alpha over white", () => {
+test("qpdf/Poppler confirm color orientation and full/partial/zero alpha over white", async () => {
   const directory = mkdtempSync(join(tmpdir(), "updf-png-"));
   try {
     const path = join(directory, "image.pdf");
     writeFileSync(
       path,
-      render(document(), { resources: { image: preparePng(fixture()) }, providers: [pngProvider()] }),
+      render(document(), { resources: { image: await preparePng(fixture()) }, providers: [pngProvider()] }),
     );
     execFileSync("qpdf", ["--check", path]);
     const ppm = execFileSync("pdftoppm", ["-r", "72", "-singlefile", path]);
