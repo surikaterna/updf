@@ -12,6 +12,7 @@
       "packages/fontkit/**",
       "packages/fontkite/**",
       "packages/assets/**",
+      "packages/barcodes/**",
       "packages/fonts/**",
       "packages/text/**",
       "packages/jpeg/**",

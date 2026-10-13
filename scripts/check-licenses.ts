@@ -65,6 +65,7 @@ const reports = [];
 try {
   for (const name of [
     "assets",
+    "barcodes",
     "core",
     "jpeg",
     "png",

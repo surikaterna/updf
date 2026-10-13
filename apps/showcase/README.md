@@ -16,6 +16,28 @@ No arbitrary uploads are accepted.
 Current source does not identify the deployed revision; Pages
 publishing is deferred and requires separate authorization after the docs sweep.
 
+## Vector barcode demos
+
+The catalog now has 21 examples, including separate **Code 39** and **QR** entries.
+Neither encoder loads with the initial page; selecting Code 39 does not load QR.
+Both show the actual native TSX source/helpers and arguments for the downloaded PDF.
+
+- Code 39: editable payload, narrow-module width, bar height, ratio and Mod-43
+  checksum. Unsupported characters or symbols wider than the 432-point content
+  area reject instead of being normalized or squeezed.
+- QR: editable printable-ASCII payload, module size and M/H correction. M supports
+  192 bytes, H 119; changing correction never truncates input or downgrades it to fit.
+  The native encoder has no external generator dependency, and URLs are encoded
+  as text without fetching them.
+- Changes are live, Reset restores the selected demo's defaults, and failed input
+  retains the last successful preview/download/source. Mobile layout and delayed
+  optional-module completion follow the existing showcase lifecycle.
+
+These are fixed-page, vector examples with explicit quiet zones. They do not add
+logo overlays, PDF417, automatic barcode Flow placement or scanner certification.
+The standalone `examples/barcodes.tsx` and `scripts/barcodes-demo.ts` remain useful
+without the browser UI. See [barcode APIs and limits](../../packages/barcodes/README.md).
+
 ## Font URI demo
 
 Select **Load a font URI**. The first preview uses bundled Liberation Sans;

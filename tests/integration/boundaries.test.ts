@@ -53,6 +53,32 @@ test("kernel edges reject every external runtime dependency", () => {
     assert.throws(() => packageEdge("layout-boxes", name));
 });
 
+test("barcode package edges permit only its explicit core/arithmetic seams", () => {
+  for (const name of [
+    "./qr-encoder/encoder.js",
+    "@updf/core",
+    "@updf/core/vdom",
+    "@updf/core/painting",
+    "@updf/core/internal",
+    "@updf/layout-boxes/arithmetic",
+  ])
+    packageEdge("barcodes", name);
+  for (const name of [
+    "qrcode-generator",
+    "@zxing/library",
+    "jsqr",
+    "@updf/svg",
+    "@updf/fonts",
+    "@updf/layout",
+    "@updf/core/resources",
+    "react",
+    "node:fs",
+  ])
+    assert.throws(() => packageEdge("barcodes", name));
+  allowedInternal("barcodes/src/checks.ts", "@updf/core/internal");
+  assert.throws(() => allowedInternal("barcodes/src/qr.ts", "@updf/core/internal"));
+});
+
 test("optional fonts/text reject reverse edges and concrete implementations", () => {
   packageEdge("fonts", "@updf/core/resources");
   packageEdge("text", "@updf/core/resources");
