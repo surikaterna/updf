@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import test, { type TestContext } from "node:test";
+import { AssetError } from "@updf/assets";
 import { cachePath, cacheRoot, ensureCached, readCached } from "../../scripts/font-corpus/cache.js";
 import { type Asset, validateAsset } from "../../scripts/font-corpus/types.js";
 
@@ -66,7 +67,7 @@ test("bad hash, truncation, oversized streams and HTTP errors never enter the ca
   ]) {
     await assert.rejects(
       ensureCached(root, asset, async () => response),
-      /mismatch|exceeds|HTTP/u,
+      /mismatch|exceed|HTTP/u,
     );
     await assert.rejects(readCached(root, asset), { code: "ENOENT" });
   }
@@ -82,20 +83,44 @@ test("simultaneous worktree fetches publish only complete verified objects", asy
 
 test("deadline aborts stalled headers and stalled bodies, not just the initial request", async (t) => {
   const root = await directory(t);
+  let headerAborted = false,
+    bodyAborted = false;
   const headers: typeof fetch = async (_url, options) =>
     new Promise((_resolve, reject) => {
-      options?.signal?.addEventListener("abort", () => reject(new Error("aborted headers")), { once: true });
+      options?.signal?.addEventListener(
+        "abort",
+        () => {
+          headerAborted = true;
+          reject(new Error("aborted headers"));
+        },
+        { once: true },
+      );
     });
-  await assert.rejects(ensureCached(root, asset, headers, 20), /aborted headers/u);
+  await assert.rejects(
+    ensureCached(root, asset, headers, 20),
+    (error: unknown) => error instanceof AssetError && error.code === "LOAD",
+  );
+  assert.equal(headerAborted, true);
   const body: typeof fetch = async (_url, options) =>
     new Response(
       new ReadableStream({
         start(controller) {
           controller.enqueue(new Uint8Array([1]));
-          options?.signal?.addEventListener("abort", () => controller.error(new Error("aborted body")), { once: true });
+          options?.signal?.addEventListener(
+            "abort",
+            () => {
+              bodyAborted = true;
+              controller.error(new Error("aborted body"));
+            },
+            { once: true },
+          );
         },
       }),
     );
-  await assert.rejects(ensureCached(root, asset, body, 20), /aborted body/u);
+  await assert.rejects(
+    ensureCached(root, asset, body, 20),
+    (error: unknown) => error instanceof AssetError && error.code === "LOAD",
+  );
+  assert.equal(bodyAborted, true);
   await assert.rejects(readCached(root, asset), { code: "ENOENT" });
 });

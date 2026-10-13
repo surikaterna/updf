@@ -1,10 +1,8 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
+import { numericCommands, type Command, type SerializedCommand } from "./path-commands.js";
 
-export interface Command {
-  readonly command: string;
-  readonly args: readonly number[];
-}
+export type { Command } from "./path-commands.js";
 export interface PublicPath {
   readonly commands: readonly Command[];
   readonly bbox: { readonly minX: number; readonly minY: number; readonly maxX: number; readonly maxY: number };
@@ -57,7 +55,7 @@ export function directQuadratic(a: number, b: number, c: number): number {
 }
 
 /** Ignore traversal start/closing-line representation, but preserve exact segment geometry. */
-export function segments(commands: readonly Command[]): readonly string[] {
+export function segments(commands: readonly SerializedCommand[]): readonly string[] {
   let current: readonly number[] = [0, 0],
     start = current;
   const result: string[] = [];
@@ -65,7 +63,7 @@ export function segments(commands: readonly Command[]): readonly string[] {
     if (current[0] !== end[0] || current[1] !== end[1]) result.push(JSON.stringify(["line", ...current, ...end]));
     current = end;
   };
-  for (const command of commands) {
+  for (const command of numericCommands(commands)) {
     switch (command.command) {
       case "moveTo":
         current = command.args;
