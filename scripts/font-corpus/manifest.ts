@@ -1,4 +1,5 @@
 import { type Asset, type CorpusFont, validateCorpus } from "./types.js";
+import { upstreamFonts, upstreamRevisions } from "./upstream-manifest.js";
 
 export const revision = "66928797f271fed5ee428544e7229685e2d90127";
 const licenses: Readonly<Record<string, readonly [number, string]>> = {
@@ -194,5 +195,6 @@ function font([family, file, size, sha256, labels]: Selection): CorpusFont {
       : { kind: "supported" },
   };
 }
-export const corpus: readonly CorpusFont[] = selections.map(font);
+export const sourceRevisions = [{ repo: "google/fonts", revision }, ...upstreamRevisions];
+export const corpus: readonly CorpusFont[] = [...selections.map(font), ...upstreamFonts];
 validateCorpus(corpus);

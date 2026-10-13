@@ -15,7 +15,8 @@ npm run corpus:fetch -- --suite all
 npm run test:font-corpus -- --suite all --offline
 ```
 
-Suites: `all`, `static-smoke` (19 static faces), `unsupported` (2 variable faces).
+Suites: `all` (34 files), `static-smoke` (30 static faces), `unsupported` (two
+variable fonts, one CFF OpenType font and one WOFF2 container).
 Use `--id lato-regular` to select one manifest ID. Tests accept `--output PATH`
 (default `artifacts/font-corpus/report.json`). Unknown/duplicate options, empty
 selections and missing values fail rather than silently selecting another suite.
@@ -49,9 +50,10 @@ as cache objects and may be removed by the cache owner.
 
 ## Provenance and selection
 
-`scripts/font-corpus/manifest.ts` pins **21 font files across nine families** from
-`google/fonts` commit `66928797f271fed5ee428544e7229685e2d90127`, plus the nine
-family OFL-1.1 license texts, each with its own hash and size. Family selections:
+`scripts/font-corpus/manifest.ts` and `upstream-manifest.ts` pin **34 font files
+across 12 families**, plus 12 OFL-1.1 license texts, each with a hash and size.
+The original 21 files remain at `google/fonts` commit
+`66928797f271fed5ee428544e7229685e2d90127`. Original family selections:
 
 - Lato, PT Serif, PT Sans, IBM Plex Mono, Crimson Text: regular/bold/italic.
 - Inconsolata: regular/bold/condensed regular.
@@ -59,12 +61,23 @@ family OFL-1.1 license texts, each with its own hash and size. Family selections
 - Roboto and Noto Sans: variable-font rejection controls, not supported static
   fonts merely because their filenames end in `.ttf`.
 
-This initial real-font set covers different families, units-per-em, short/long
-loca and OS/2 v3/v4, but is not exhaustive. Real non-BMP/cmap12, point-attached
-composites, older names/OS2, other repositories and more export toolchains remain
-corpus expansion work. Synthetic unit tests already cover several such boundaries.
+Additional upstream selections (not Google Fonts mirrors):
+
+| Repository | Pinned revision | Files |
+| --- | --- | --- |
+| `adobe-fonts/source-sans` | `87b37a2daaed80fcb8e8ccb0085c4d72ddade12e` | Regular, Bold, Italic and Light TTF; Regular CFF/WOFF2 rejection controls |
+| `adobe-fonts/source-serif` | `80d3f8894c09c937bebfa9011247d2e1c79fd6f4` | Regular, Bold and Italic TTF |
+| `JetBrains/JetBrainsMono` | `19371302b95d218af43299bce79ddbddd0bc364d` | Regular, Bold, Italic and Bold Italic TTF |
+
+All eleven new supported faces contain real format-12 cmaps. The set covers
+different families, units-per-em, short/long loca and OS/2 v3/v4, but is not
+exhaustive. Point-attached composites, older names/OS2 and broader export-toolchain
+coverage remain follow-up work. Synthetic tests cover several such boundaries.
 The cache is not a substitute for font licensing: retain the pinned license and
 copyright notices with any redistributed asset; no font modification is performed.
+Reports retain the legacy `revision` field for Google Fonts and list all four
+repositories in `sourceRevisions`. Expanding the manifest invalidates older oracle
+artifacts: regenerate them rather than bypassing the manifest-hash check.
 
 Adding a case requires reviewing the source/license, choosing an immutable commit,
 recording independently inspected bytes/hash/coverage and setting a justified
@@ -138,8 +151,8 @@ This is a trusted local test artifact, not a signed attestation: regenerate it
 with the provided independent tool, do not edit it to bless output. No fonts or
 large oracle files are committed. Four negative tests ensure wrong bounds fail
 even when both parsers agree, and verified bounds cannot waive changes to advances,
-mapping inventory, or descriptor fields. Current results: **21 checks pass** (19
-static faces and two rejection controls), with **seven Fontkit parity differences**
+mapping inventory, or descriptor fields. Current results: **34 checks pass** (30
+static faces and four rejection controls), with **12 Fontkit parity differences**
 still reported. Without `--oracle`, the original strict differential run still fails.
 
 ### Inspect individual discrepancy samples
@@ -177,3 +190,7 @@ unit tests independent of network/cache availability. The current full corpus ha
 real differential failures; an independent-oracle job may pass without parity,
 but must generate and verify that evidence explicitly, not skip mismatches or add
 tolerances. No CI workflow was changed in this slice.
+
+For separate deterministic malformed-input stress testing, see [font fuzzing](font-fuzzing.md).
+Those checks exercise failure handling, determinism and ownership, not the numerical
+correctness of arbitrary mutated fonts. They do not replace the independent corpus oracle.

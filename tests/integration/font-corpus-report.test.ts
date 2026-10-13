@@ -10,12 +10,14 @@ import { corpus } from "../../scripts/font-corpus/manifest.js";
 import { options, selected } from "../../scripts/font-corpus/options.js";
 import { validateCorpus } from "../../scripts/font-corpus/types.js";
 
-test("corpus pins 21 fonts and their licenses, separating supported and unsupported suites", () => {
+test("corpus pins fonts and licenses across independent upstreams, with explicit rejection controls", () => {
   validateCorpus(corpus);
-  assert.equal(corpus.length, 21);
-  assert.equal(selected(corpus, "static-smoke").length, 19);
-  assert.equal(selected(corpus, "unsupported").length, 2);
-  assert.equal(new Set(corpus.map((item) => item.license.sha256)).size, 9);
+  assert.equal(corpus.length, 34);
+  assert.equal(selected(corpus, "static-smoke").length, 30);
+  assert.equal(selected(corpus, "unsupported").length, 4);
+  assert.equal(new Set(corpus.map((item) => item.license.sha256)).size, 12);
+  assert.equal(new Set(corpus.map((item) => new URL(item.font.url).pathname.split("/").slice(1, 3).join("/"))).size, 4);
+  assert.ok(corpus.filter((item) => item.tags.includes("cmap12")).length >= 11);
   assert.throws(() => validateCorpus([corpus[0]!, corpus[0]!]));
   assert.throws(() => selected(corpus, "all", "missing"));
   for (const args of [[], ["--offline", "--suite", "typo"], ["--offline", "--offline"], ["--offline", "--id"]])

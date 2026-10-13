@@ -30,7 +30,8 @@
     "check:licenses": "tsx scripts/check-licenses.ts",
     "sizes": "tsx scripts/sizes.ts",
     "corpus:fetch": "tsx scripts/font-corpus/fetch.ts",
-    "test:font-corpus": "tsx scripts/font-corpus/report.ts"
+    "test:font-corpus": "tsx scripts/font-corpus/report.ts",
+    "fuzz:fontkite": "tsx scripts/font-fuzz/run.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.13",
