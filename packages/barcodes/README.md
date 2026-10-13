@@ -44,6 +44,11 @@ Open `artifacts/barcodes/demo.pdf` or `demo.png`. PR CI also uploads these, plus
 the emitted consumer bundles and module/size report, in `quality-evidence`.
 No showcase deployment is necessary to inspect the prototype.
 
+The browser showcase also includes separate lazy **Code 39** and **QR** demos with
+editable payload/sizing, checksum and M/H controls, actual TSX source/arguments,
+and previous-result retention on errors. Run `npm run build:showcase` followed by
+`npm run preview -w @updf/showcase`; see [showcase notes](../../apps/showcase/README.md).
+
 ## Geometry helpers
 
 ```ts

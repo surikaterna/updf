@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Try UPDF's unreleased portable TypeScript PDF engine, native TSX and optional SVG adapter locally in your browser." />
+    <meta name="description" content="Try UPDF's unreleased portable TypeScript PDF engine, native TSX, vector barcodes and optional SVG locally in your browser." />
     <title>UPDF — portable PDFs, immutable templates</title>
   </head>
   <body>
@@ -40,6 +40,8 @@
               <option value="painting">Native painting: paths, colors, clips &amp; transforms</option>
               <option value="jpeg">JPEG images: color, grayscale, reuse &amp; clipping</option>
               <option value="png">PNG images: alpha, reuse &amp; clipping</option>
+              <option value="code39">Code 39: native vector bars &amp; optional checksum</option>
+              <option value="qr">QR: local vector encoder &amp; M/H correction</option>
               <option value="svg">Advanced: native SVG adapter (loaded on demand)</option>
               <option value="branding">Vector brand letterhead: original sample SVG logo</option>
               </optgroup>
@@ -83,6 +85,30 @@
               <p id="png-help" class="help">Four placements share one image and soft mask. Opaque, half-transparent and clear quadrants appear over white and blue. Width changes PDF geometry, not the 32×24 source pixels.</p>
               <p class="help">Non-interlaced 8-bit PNG only. ICC/gamma/chromaticity metadata, APNG and other bit depths are unsupported. Original MIT samples; no file upload. Clipping is not redaction.</p>
               <p class="help">PNG preparation uses native compression streams (Chrome/Edge 80+, Firefox 113+, Safari 16.4+); no compression library is downloaded.</p>
+            </fieldset>
+            <fieldset id="code39-controls" hidden disabled>
+              <legend>Code 39 controls</legend>
+              <label for="code39-value">Code 39 payload</label>
+              <input id="code39-value" value="SHIP-12345" maxlength="80" required aria-describedby="code39-help" />
+              <label for="code39-module">Code 39 narrow module (points)</label>
+              <input id="code39-module" type="number" min="0.25" max="4" step="0.25" value="1" required />
+              <label for="code39-height">Code 39 bar height (points)</label>
+              <input id="code39-height" type="number" min="16" max="180" step="1" value="64" required />
+              <label for="code39-ratio">Code 39 wide/narrow ratio</label>
+              <select id="code39-ratio"><option value="2">2:1</option><option value="3" selected>3:1</option></select>
+              <label for="code39-checksum">Code 39 checksum</label>
+              <select id="code39-checksum"><option value="none" selected>None</option><option value="mod43">Mod-43</option></select>
+              <p id="code39-help" class="help">1–80 basic Code 39 characters: uppercase A–Z, digits, space and -. $/+%. No automatic uppercase conversion or embedded *. Quiet zones are included. Symbols wider than 432 points reject; modules are never squeezed.</p>
+            </fieldset>
+            <fieldset id="qr-controls" hidden disabled>
+              <legend>QR controls</legend>
+              <label for="qr-value">QR payload</label>
+              <input id="qr-value" value="https://example.com/ship/12345" maxlength="192" required aria-describedby="qr-help" />
+              <label for="qr-module">QR module size (points)</label>
+              <input id="qr-module" type="number" min="0.5" max="6" step="0.5" value="3" required />
+              <label for="qr-correction">QR error correction</label>
+              <select id="qr-correction"><option value="M" selected>M · up to 192 bytes</option><option value="H">H · up to 119 bytes</option></select>
+              <p id="qr-help" class="help">Printable ASCII only. Versions 1–10 with four quiet modules on every side. H may need more space; over-capacity payloads reject without lowering correction. URLs are encoded as data, never requested. No logo overlays or hardware-scanner guarantee.</p>
             </fieldset>
             <p id="input-error" class="input-error" hidden></p>
             <fieldset id="font-uri-controls" hidden disabled>
@@ -189,7 +215,8 @@
         <ul>
            <li>Core uses fixed point geometry and explicit pages. Optional layout supports measured blocks, padding/border/gap and error/hidden overflow, repeated regions and explicit-width atomic table rows, not general CSS layout or row/column spans.</li>
             <li>Built-in Helvetica: printable ASCII and LF. No shaping, bidi or full SVG. The optional <code>@updf/jpeg</code> showcase demonstrates baseline color/grayscale images with explicit sizing and reuse. The separate <code>@updf/png</code> showcase adds non-interlaced 8-bit PNG and alpha. Broader image profiles remain unsupported.</li>
-          <li>Prepared fonts support a documented simple LTR Latin/Cyrillic profile, not general typography.</li>
+           <li>Prepared fonts support a documented simple LTR Latin/Cyrillic profile, not general typography.</li>
+           <li>Code 39 and QR demos load separately on demand and paint native vectors. QR uses the local encoder with M/H correction, not an external generator. Payloads are data, never network requests. Barcode profiles and fit are bounded; logos, PDF417 and automatic Flow placement are not included.</li>
           <li>Runtime validation and current resource caps still apply. Trusted components are not a sandbox.</li>
         </ul>
          <p>Experimental, unreleased native implementation. These mock documents are not operational paperwork.</p>

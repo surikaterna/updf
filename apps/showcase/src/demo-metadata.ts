@@ -15,6 +15,18 @@ const freightFiles =
   "examples/business: freight-invoice.tsx · freight-invoice-sections.tsx · freight-invoice-calculations.ts · freight-invoice-data.ts · freight-invoice-fonts.ts; scripts/freight-invoice-example.ts; apps/showcase/src/optional-freight-invoice.ts; tests/fixtures/fonts/FREIGHT.md";
 
 export const metadata: Record<DemoId, Metadata> = {
+  code39: entry(
+    "Code 39 vector barcode",
+    "Native TSX bars with explicit modules, quiet zones and optional Mod-43. Oversized symbols reject instead of shrinking.",
+    ["Code 39 · lazy", "Native TSX", "Vector PDF"],
+    "code39.tsx · barcode-controls.ts · barcode-page.tsx · text-options.ts · optional-code39.ts",
+  ),
+  qr: entry(
+    "QR code · local vector encoder",
+    "Printable ASCII QR with M/H correction. The payload is encoded locally, never fetched. No logo overlays or bitmap rendering.",
+    ["QR · lazy", "Local encoder", "M / H correction"],
+    "qr.tsx · barcode-controls.ts · barcode-page.tsx · text-options.ts · optional-qr.ts",
+  ),
   "font-uri": entry(
     "Load a font from a URI",
     "Try a direct Google Fonts static TTF or another trusted font file. The initial preview uses bundled Liberation Sans; press Generate PDF to load the entered URI.",

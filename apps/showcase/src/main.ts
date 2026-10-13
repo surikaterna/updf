@@ -1,4 +1,5 @@
 import { DocumentError } from "@updf/core";
+import { barcodeControls } from "./barcode-controls.js";
 import { blockControls } from "./block-controls.js";
 import { brandingControls, showBrandLogo } from "./branding-controls.js";
 import { demoId, generate } from "./demos.js";
@@ -83,6 +84,10 @@ function showDemo(): Promise<boolean> {
   element("font-uri-controls", HTMLFieldSetElement).disabled = id !== "font-uri";
   element("png-controls", HTMLFieldSetElement).hidden = id !== "png";
   element("png-controls", HTMLFieldSetElement).disabled = id !== "png";
+  element("code39-controls", HTMLFieldSetElement).hidden = id !== "code39";
+  element("code39-controls", HTMLFieldSetElement).disabled = id !== "code39";
+  element("qr-controls", HTMLFieldSetElement).hidden = id !== "qr";
+  element("qr-controls", HTMLFieldSetElement).disabled = id !== "qr";
   return showFreightControls(id);
 }
 
@@ -117,6 +122,7 @@ function captureArguments(action: FontUriAction): Parameters<typeof generate> {
     id === "png" ? pngLoadSignal() : undefined,
     id === "font-uri" ? fontUriControls(form, action) : undefined,
     id === "font-uri" ? fontLoadSignal() : undefined,
+    id === "code39" || id === "qr" ? barcodeControls(form, id) : undefined,
   ];
 }
 
@@ -226,6 +232,8 @@ for (const id of [
   "freight-controls",
   "jpeg-controls",
   "png-controls",
+  "code39-controls",
+  "qr-controls",
 ]) {
   element(id, HTMLFieldSetElement).addEventListener("input", scheduleUpdate);
 }

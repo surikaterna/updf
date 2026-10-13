@@ -60,8 +60,23 @@ test("production chunk graph keeps adapters optional; Fontkit belongs only to op
   fontUriClosure(chunks, entry);
   jpegClosure(chunks, entry);
   pngClosure(chunks, entry);
+  barcodeClosures(chunks, entry);
   await notices(directory);
 });
+function barcodeClosures(chunks: readonly Chunk[], entry: Chunk): void {
+  const initial = closure(chunks, entry);
+  assert.ok(!initial.some((name) => /\/packages\/barcodes\//u.test(name)));
+  for (const id of ["code39", "qr"]) {
+    const optional = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith(`/src/optional-${id}.ts`)));
+    assert.ok(optional && entry.dynamicImports.includes(optional.fileName));
+    const modules = closure(chunks, optional);
+    assert.ok(modules.some((name) => name.endsWith(`/barcodes/dist/${id}.js`)));
+    assert.ok(!modules.some((name) => /\/packages\/(layout|tables|svg|geometry|fontkit|fontkite)\//u.test(name)));
+    if (id === "code39") assert.ok(!modules.some((name) => name.includes("/barcodes/dist/qr")));
+    if (id === "qr") assert.ok(modules.some((name) => name.includes("/barcodes/dist/qr-encoder/")));
+  }
+  assert.ok(!chunks.flatMap((chunk) => chunk.modules).some((name) => /qrcode-generator|@zxing|\/jsqr\//u.test(name)));
+}
 function jpegClosure(chunks: readonly Chunk[], entry: Chunk): void {
   const optional = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-jpeg.ts")));
   assert.ok(optional && entry.dynamicImports.includes(optional.fileName));

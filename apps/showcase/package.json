@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@updf/assets": "2.0.0-poc.0",
+    "@updf/barcodes": "2.0.0-poc.0",
     "@updf/core": "2.0.0-poc.0",
     "@updf/jpeg": "2.0.0-poc.0",
     "@updf/png": "2.0.0-poc.0",

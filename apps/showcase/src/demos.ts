@@ -1,4 +1,5 @@
 import type { BlockControls } from "./blocks.js";
+import type { BarcodeControls } from "./barcode-controls.js";
 import type { FreightInvoiceData } from "../../../examples/business/freight-invoice-data.js";
 import type { BrandingControls } from "./branding-controls.js";
 import type { FlowControls } from "./flow.js";
@@ -29,6 +30,8 @@ export type DemoId =
   | "jpeg"
   | "font-uri"
   | "png"
+  | "code39"
+  | "qr"
   | "flow"
   | "tables"
   | "blocks"
@@ -54,6 +57,8 @@ export function demoId(value: string): DemoId {
     value === "jpeg" ||
     value === "font-uri" ||
     value === "png" ||
+    value === "code39" ||
+    value === "qr" ||
     value === "rich" ||
     value === "flow" ||
     value === "blocks" ||
@@ -81,27 +86,21 @@ export async function generate(
   pngSignal?: AbortSignal,
   fontUri?: FontUriControls,
   fontSignal?: AbortSignal,
+  barcode?: BarcodeControls,
 ): Promise<{ bytes: Uint8Array; source: string; summary?: string }> {
   if (title.length > 40) throw new Error("Title must be at most 40 characters");
   if (id === "branding") return brandingResult(title, branding);
   if (id === "jpeg") return jpegResult(title, jpeg);
   if (id === "font-uri") return fontUriResult(title, fontUri, fontSignal);
   if (id === "png") return pngResult(title, png, pngSignal);
+  if (id === "code39" || id === "qr") return barcodeResult(id, title, barcode);
   if (isFreight(id)) return freightResult(title, id, freight);
   if (id === "manifest" || id === "invoice") return id === "manifest" ? manifestResult(title) : invoiceResult(title);
   if (id === "template" || id === "mixed") return id === "template" ? templateResult(title) : mixedResult(title, mixed);
   if (id === "blocks") return blockResult(title, blocks);
   if (id === "rows" || id === "rows-overflow") return rowResult(title, id === "rows-overflow");
   if (id === "tables") return tableResult(title, tables);
-  if (id === "flow") {
-    const { flowExample, source } = await import("./optional-flow.js");
-    const result = flowExample(title, flow);
-    return {
-      bytes: result.bytes,
-      source,
-      summary: `${result.result.pageCount} pages; ${result.authoredParagraphCount} authored paragraphs; ${result.result.placements.length} fragments.`,
-    };
-  }
+  if (id === "flow") return flowResult(title, flow);
   if (id === "rich") {
     const { richExample } = await import("./rich.js");
     const result = richExample(title, controls);
@@ -113,6 +112,25 @@ export async function generate(
   }
   if (id === "svg") return svgResult(title);
   return { bytes: demos[id].render(title), source: demos[id].source };
+}
+async function flowResult(title: string, controls?: FlowControls) {
+  const { flowExample, source } = await import("./optional-flow.js");
+  const result = flowExample(title, controls);
+  return {
+    bytes: result.bytes,
+    source,
+    summary: `${result.result.pageCount} pages; ${result.authoredParagraphCount} authored paragraphs; ${result.result.placements.length} fragments.`,
+  };
+}
+async function barcodeResult(id: "code39" | "qr", title: string, controls?: BarcodeControls) {
+  if (id === "code39") {
+    if (controls && controls.kind !== id) throw new Error("Mismatched barcode controls");
+    const { code39Demo, source } = await import("./optional-code39.js");
+    return { ...code39Demo(title, controls), source };
+  }
+  if (controls && controls.kind !== id) throw new Error("Mismatched barcode controls");
+  const { qrDemo, source } = await import("./optional-qr.js");
+  return { ...qrDemo(title, controls), source };
 }
 async function tableResult(title: string, controls?: TableControls) {
   const { tableExample, source } = await import("./optional-tables.js");
