@@ -110,3 +110,25 @@ No runtime/package contract or numerical change; no principles exceptions or
 Changeset required. Existing integration coverage is reused. This proves the
 affected packed test's offline isolation, not that every repository command is
 network-free. Full browser checks are left to the updated PR CI before merge.
+
+## Final source-type boundary review
+
+The next Copilot review identified the same additional issue in both adapters:
+a permissive custom loader could turn an invalid source such as `42` into a valid
+font. Both now reject sources other than primitive strings or genuine Uint8Array
+views before invoking the loader, with TYPE at `/font/source`. An intrinsic brand
+check accepts cross-realm views and Node buffers without consulting caller getters
+or copying/replacing valid inputs. This is type validation, not adapter-owned URI
+resolution or a change to byte-transport policy.
+
+Two selected regressions failed against the previous built adapters:
+`npx tsx --test --test-name-pattern='invalid source types' tests/integration/font-loader-contract.test.ts`.
+After rebuilding, the existing focused command covering the contract test and both
+adapter load tests passes **25 tests**. Four new tests cover invalid primitives,
+boxed strings, arrays, wrong typed-array brands, DataViews, prototype spoofs,
+proxies, getter traps, cross-realm views, Node buffers and original source identity.
+
+Fresh `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test`
+(**1,109 pass**) and `git diff --check` pass. No new dependencies, numerical changes
+or principles exceptions. Current-head browser validation remains a required CI
+gate before the authorized merge.

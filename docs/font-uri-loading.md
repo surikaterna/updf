@@ -18,6 +18,10 @@ callable `resolve` and `load` properties, with no getter execution. Validation d
 not call `resolve`; the loader owns URI resolution. Unstructured exceptions from
 the actual `load` invocation become `FONT_LOAD`, while existing loader diagnostics
 and subsequent byte/font-validation errors retain their own codes.
+Before invoking a loader, both adapters require a string or genuine `Uint8Array`
+source, rejecting other types with `TYPE` at `/font/source`. Cross-realm byte views
+and Node buffers are accepted without reading caller property overrides; valid
+sources are passed unchanged. URI policy and byte transport remain loader-owned.
 
 ## Showcase
 

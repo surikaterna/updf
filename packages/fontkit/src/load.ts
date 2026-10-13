@@ -12,6 +12,13 @@ export interface LoadFontOptions {
 }
 const maxBytes = 4 * 1024 * 1024;
 const byteLoader = createAssetLoader({ maxBytes });
+const byteKind = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), Symbol.toStringTag)!.get!;
+
+function checkSource(source: unknown): void {
+  if (typeof source === "string") return;
+  if (!ArrayBuffer.isView(source) || byteKind.call(source) !== "Uint8Array")
+    throw new DocumentError("TYPE", "/font/source", "Expected a URI string or Uint8Array");
+}
 
 function fontError(error: unknown): never {
   if (error instanceof AssetError)
@@ -71,6 +78,7 @@ export async function loadFont(source: string | Uint8Array, options: LoadFontOpt
   const load = ownDataValue<AssetLoader, "load">(loader, "load", "/options/loader/load");
   if (typeof load !== "function")
     throw new DocumentError("TYPE", "/options/loader/load", "Expected asset loading capability");
+  checkSource(source);
   checkAbort(signal);
   const bytes = await transportBytes(loader, load, source, signal);
   checkAbort(signal);

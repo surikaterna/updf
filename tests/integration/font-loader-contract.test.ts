@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { runInNewContext } from "node:vm";
 import test from "node:test";
 import { AssetError, type AssetLoader } from "@updf/assets";
 import { DocumentError } from "@updf/core";
@@ -34,6 +35,59 @@ function restricted(bytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 }
 
 for (const adapter of adapters) {
+  test(`${adapter.name}: invalid source types reject before a permissive custom loader executes`, async () => {
+    let calls = 0;
+    const loader: AssetLoader = {
+      resolve: (uri) => uri,
+      load: async () => {
+        calls++;
+        return fixture();
+      },
+    };
+    for (const source of [
+      42,
+      null,
+      undefined,
+      {},
+      [],
+      Object("font.ttf"),
+      new ArrayBuffer(1),
+      new Uint16Array(1),
+      new Uint8ClampedArray(1),
+      new DataView(new ArrayBuffer(1)),
+      Object.create(Uint8Array.prototype),
+      new Proxy(new Uint8Array(1), {}),
+      {
+        get [Symbol.toStringTag]() {
+          throw new Error("source getter ran");
+        },
+      },
+    ]) {
+      await assert.rejects(adapter.load(source as Uint8Array, { loader }), diagnostic("TYPE", "/font/source"));
+    }
+    assert.equal(calls, 0);
+  });
+
+  test(`${adapter.name}: source validation preserves genuine cross-realm and overridden byte views`, async () => {
+    const bytes = await fixture();
+    const overridden = new Uint8Array(1);
+    Object.defineProperty(overridden, Symbol.toStringTag, {
+      get() {
+        throw new Error("source getter ran");
+      },
+    });
+    for (const source of [bytes, Buffer.from([1]), runInNewContext("new Uint8Array([1])"), overridden]) {
+      const loader: AssetLoader = {
+        resolve: (uri) => uri,
+        load: async (actual) => {
+          assert.equal(actual, source);
+          return bytes;
+        },
+      };
+      await adapter.load(source, { loader });
+    }
+  });
+
   test(`${adapter.name}: resolve must be an own callable capability, including for byte sources`, async () => {
     const bytes = await fixture();
     let calls = 0;
