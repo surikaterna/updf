@@ -130,7 +130,7 @@ async function fontUriResult(title: string, controls?: FontUriControls, signal?:
   return {
     bytes: result.bytes,
     source,
-    summary: `${result.metadata.fontName}; ${result.metadata.fontBytes.toLocaleString()} font bytes; ${result.origin}. Static TrueType, no shaping or fallback. URI edits load only after Generate PDF.`,
+    summary: `${result.engine}; ${result.cached ? "reused prepared font" : `preparation ${result.preparationMs.toFixed(1)} ms`}; ${result.metadata.fontName}; ${result.metadata.fontBytes.toLocaleString()} font bytes; ${result.origin}. Static TrueType, no shaping or fallback. URI edits load only after Generate PDF.`,
   };
 }
 async function templateResult(title: string) {
