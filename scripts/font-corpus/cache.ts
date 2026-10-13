@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { mkdir, open, rename, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { createAssetLoader } from "@updf/assets";
 import { type Asset, validateAsset } from "./types.js";
 
 export function cacheRoot(env: NodeJS.ProcessEnv = process.env): string {
@@ -35,41 +36,12 @@ export async function readCached(root: string, asset: Asset): Promise<Uint8Array
   }
 }
 
-async function receive(
-  reader: ReadableStreamDefaultReader<Uint8Array>,
-  asset: Asset,
-): Promise<Uint8Array<ArrayBuffer>> {
-  const bytes = new Uint8Array(asset.size);
-  let length = 0;
-  try {
-    while (true) {
-      const chunk = await reader.read();
-      if (chunk.done) break;
-      if (chunk.value.length > bytes.length - length)
-        throw new Error(`Corpus download exceeds pinned size: ${asset.url}`);
-      bytes.set(chunk.value, length);
-      length += chunk.value.length;
-    }
-  } finally {
-    await reader.cancel().catch(() => {});
-    reader.releaseLock();
-  }
-  const result = bytes.slice(0, length);
-  verify(result, asset);
-  return result;
-}
-
 async function download(asset: Asset, fetcher: typeof fetch, timeoutMs: number): Promise<Uint8Array<ArrayBuffer>> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await fetcher(asset.url, { redirect: "error", signal: controller.signal });
-    if (!response.ok || !response.body) throw new Error(`Corpus HTTP ${response.status}: ${asset.url}`);
-    return await receive(response.body.getReader(), asset);
-  } finally {
-    clearTimeout(timer);
-    controller.abort();
-  }
+  // Shared transport races headers/body reads against abort and never awaits stalled cancellation.
+  const loader = createAssetLoader({ fetch: fetcher, maxBytes: asset.size, timeoutMs });
+  const bytes = await loader.load(asset.url);
+  verify(bytes, asset);
+  return bytes;
 }
 
 /** Identical concurrent downloads are harmless: only verified bytes are atomically published. */

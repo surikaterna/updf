@@ -2,15 +2,8 @@ import assert from "node:assert/strict";
 import { readFile, writeFile } from "node:fs/promises";
 import { prepareFont } from "@updf/fontkite";
 import { readCached, cacheRoot } from "./cache.js";
-import {
-  cubicTrace,
-  directQuadratic,
-  pathFactory,
-  probeFont,
-  segments,
-  singleAxisPath,
-  type Command,
-} from "./fontkit-probe.js";
+import { cubicTrace, directQuadratic, pathFactory, probeFont, segments, singleAxisPath } from "./fontkit-probe.js";
+import { coordinate, type SerializedCommand } from "./path-commands.js";
 import { corpus } from "./manifest.js";
 
 interface ExactRow {
@@ -23,11 +16,7 @@ interface ExactRow {
   exactRounded: readonly number[];
   extrema: readonly { value: string; t?: string; coordinates?: readonly string[] }[];
   witnesses: readonly (readonly { value: string; t: string; coordinates: readonly string[] }[])[];
-  commands: readonly Command[];
-}
-function fraction(value: string): number {
-  const [a, b = "1"] = value.split("/");
-  return Number(a) / Number(b);
+  commands: readonly SerializedCommand[];
 }
 const source = new URL("../../artifacts/font-corpus/exact-analysis.json", import.meta.url);
 const report: { rows: readonly ExactRow[] } = JSON.parse(await readFile(source, "utf8"));
@@ -56,7 +45,7 @@ for (const row of report.rows) {
     if (row.fontkite[edge] === row.fontkit[edge]) continue;
     const round = edge < 2 ? Math.floor : Math.ceil;
     const candidates = row.witnesses[edge]!.map((extremum) => {
-      const points = extremum.coordinates.map(fraction);
+      const points = extremum.coordinates.map(coordinate);
       const path = singleAxisPath(pathFactory(font), points);
       return {
         extremum,

@@ -43,7 +43,11 @@ there is no silent redownload that would mask corruption.
 
 The fetch command uses three workers, HTTPS commit-pinned raw GitHub URLs, no
 redirects, a 30-second per-request/body deadline, and the pinned byte size as a
-streaming limit (maximum 4 MiB per asset). Verified downloads use unique temporary
+streaming limit (maximum 4 MiB per asset). Downloads use the shared `@updf/assets`
+transport: headers and body reads race the abort signal, even for a supplied
+fetcher that ignores it, and cancellation cleanup is best-effort without an
+unbounded await. Transport failures use `AssetError`; size/hash verification still
+occurs before anything is published to the cache. Verified downloads use unique temporary
 files and atomic rename. Concurrent worktrees may duplicate a request, but cannot
 publish partially downloaded content. Interrupted temporary files are never read
 as cache objects and may be removed by the cache owner.
@@ -174,6 +178,12 @@ BoundsPen, rounded with the same floor/ceil convention. It checks only captured
 samples with matching glyph IDs; it is not a full third-engine corpus comparison,
 does not waive differential failures, and does not prove either engine universally
 correct. Use trusted pinned inputs with this optional advisory script.
+
+The path trace accepts numeric command coordinates and serialized Python Fraction
+strings (integers or numerator/denominator pairs). It validates and converts a copy
+to finite numbers before comparing segment geometry; the original rational evidence
+is not rewritten. Invalid fractions or command shapes fail rather than comparing
+ambiguous string/number or nonfinite values.
 
 ## CI policy
 
