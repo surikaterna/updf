@@ -1,5 +1,11 @@
 # Font URI loading — original standalone validation, 2026-10-12
 
+> Historical snapshot only. The counts, costs and branch state below describe the
+> original standalone work, not current PR #76. It was subsequently stacked on #75;
+> after #75 merged into develop at `3225bda`, #76 was retargeted to develop and
+> included the Fontkite follow-ups. See [current contract-fix evidence](font-loader-contract-fixes.md)
+> for the latest scoped validation. The original measurements are retained unchanged.
+
 Original worktree/branch: `trees/font-loading`, `feature/font-loading`, based
 directly on develop `1e45aa935f88537217214f53bad66c6edf236951`. This slice contains
 shared asset transport, the font loading entry and its showcase/tests/docs only.
@@ -16,7 +22,8 @@ synchronous Fontkit root does not. The image draft in `trees/showcase-code-views
 was separately adapted to the identical asset source (verified by `git diff
 --no-index` of the `packages/assets/src` directories), removing its duplicated
 fetch/stream/byte-copy implementation. Its 21 image/HTTP/browser/packed checks
-passed after adaptation. Those image changes remain outside this font PR.
+passed after adaptation. Those image-wrapper draft changes were outside that
+standalone font snapshot; this is not a statement excluding the later PNG integration.
 
 ## Costs
 

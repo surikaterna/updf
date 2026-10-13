@@ -55,6 +55,18 @@ requests omit credentials and reject redirects; URI policy, CORS, cancellation,
 and the shared transport's bounded streaming behavior apply. See
 [@updf/assets](../assets/README.md) for the full policy and server SSRF caveats.
 
+Custom loaders must expose both `resolve` and `load` as enumerable own function
+properties. Both are validated even for byte sources; getters, inherited methods,
+missing fields and non-functions reject before loading. The adapter calls only
+`load`, with the original loader as receiver and the original source unchanged;
+URI normalization remains the loader's responsibility.
+
+Unstructured exceptions/rejections from that loader invocation become a generic
+`DocumentError` with code `FONT_LOAD` at `/font/source`, without inspecting or
+stringifying the thrown value. Existing loader `DocumentError`s retain identity;
+`AssetError` codes retain their mapping (`LOAD` to `FONT_LOAD`, other codes unchanged).
+Returned-byte and font validation happen outside this transport-error boundary.
+
 **Use a direct static TTF file URL, not a Google Fonts CSS stylesheet URL.**
 Modern Google Fonts CSS often points to WOFF2/subset/variable files, which this
 profile does not support. Loading does not add CSS parsing, family/weight
