@@ -105,8 +105,14 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "svg/src/viewport.ts",
     "fontkit/src/cmap.ts",
     "fontkit/src/index.ts",
+    "fontkit/src/load.ts",
     "fontkit/src/metadata.ts",
     "fontkit/src/sfnt.ts",
+    "fontkite/src/cmap.ts",
+    "fontkite/src/load.ts",
+    "fontkite/src/outline.ts",
+    "fontkite/src/reader.ts",
+    "fontkite/src/sfnt.ts",
     "fonts/src/checks.ts",
     "fonts/src/cids.ts",
     "fonts/src/prepare.ts",
@@ -168,6 +174,14 @@ export function portableGraph(modules: readonly string[], optional = false, reac
   if (!react) assert.ok(!modules.some((id) => /(?:^|\/)(?:react|react-dom)(?:\/|$)/u.test(id)), "React leaked");
 }
 export function packageEdge(owner: string, specifier: string): void {
+  if (owner === "fontkite")
+    assert.ok(
+      specifier.startsWith(".") ||
+        specifier === "@updf/layout-boxes/numeric" ||
+        /^@updf\/(?:core|fonts|assets)(?:\/|$)/u.test(specifier),
+      "Fontkite must not depend on Fontkit or optional engines",
+    );
+  if (owner === "assets") assert.ok(specifier.startsWith("."), "Asset transport must have zero runtime dependencies");
   if (owner === "png")
     assert.ok(
       specifier.startsWith(".") || ["@updf/core", "@updf/core/resources", "@updf/core/pdf"].includes(specifier),
@@ -302,6 +316,7 @@ export async function checkSeams(root: string): Promise<void> {
     "Scanner",
   ]);
   for (const owner of [
+    "assets",
     "core",
     "layout-boxes",
     "layout",
@@ -311,6 +326,7 @@ export async function checkSeams(root: string): Promise<void> {
     "fonts",
     "text",
     "fontkit",
+    "fontkite",
     "jpeg",
     "png",
   ]) {

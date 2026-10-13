@@ -81,6 +81,7 @@ export type DiagnosticCode =
   | "PNG_ABORT"
   | "PNG_PLATFORM"
   | "FONT_PROFILE"
+  | "FONT_LOAD"
   | "FONT_INK"
   | "GLYPH_MISSING"
   | "FONT_FORMAT"

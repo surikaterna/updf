@@ -9,6 +9,20 @@
     "README.md"
   ],
   "exports": {
+    "./load": {
+      "browser": {
+        "types": "./dist/node/load.d.mts",
+        "default": "./dist/load.js"
+      },
+      "import": {
+        "types": "./dist/node/load.d.mts",
+        "default": "./dist/node/load.mjs"
+      },
+      "require": {
+        "types": "./dist/node/load.d.cts",
+        "default": "./dist/cjs/load.js"
+      }
+    },
     ".": {
       "browser": {
         "types": "./dist/node/index.d.mts",
@@ -25,6 +39,7 @@
     }
   },
   "dependencies": {
+    "@updf/assets": "2.0.0-poc.0",
     "@updf/fonts": "2.0.0-poc.0",
     "@updf/core": "2.0.0-poc.0"
   },

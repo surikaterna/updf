@@ -15,6 +15,12 @@ const freightFiles =
   "examples/business: freight-invoice.tsx · freight-invoice-sections.tsx · freight-invoice-calculations.ts · freight-invoice-data.ts · freight-invoice-fonts.ts; scripts/freight-invoice-example.ts; apps/showcase/src/optional-freight-invoice.ts; tests/fixtures/fonts/FREIGHT.md";
 
 export const metadata: Record<DemoId, Metadata> = {
+  "font-uri": entry(
+    "Load a font from a URI",
+    "Try a direct Google Fonts static TTF or another trusted font file. The initial preview uses bundled Liberation Sans; press Generate PDF to load the entered URI.",
+    ["Fontkite / Fontkit · lazy", "URI loading · opt-in", "Static TrueType"],
+    "font-uri.tsx · font-uri-controls.ts · font-uri-loader.ts · font-engine-fontkite.ts · font-engine-fontkit.ts · optional-font-uri.ts",
+  ),
   jpeg: entry(
     "JPEG image placement",
     "Original color/grayscale JPEG samples: explicit sizing, reuse, reflection and clipping. Select PNG for transparency.",

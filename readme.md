@@ -22,6 +22,7 @@ verification of the new package structure.
 
 | Workspace | Responsibility / entry points |
 | --- | --- |
+| `@updf/assets` | Optional zero-dependency byte/HTTP(S) transport with explicit fetch policy, bounded streaming and cancellation |
 | `@updf/layout-boxes` | Zero dependencies; allocation, atomic boxes, fragment selection and shared arithmetic; [current contract](docs/architecture/layout-boxes.md) |
 | `@updf/core` | Generic PDF bytes/resources/text contracts: `.`, `/resources`, `/pdf`, `/painting`, `/vdom`, `/jsx-runtime`, `/jsx-dev-runtime`; no font implementation |
 | `@updf/fonts` | Prepared fonts, explicit Helvetica, opaque text runs and paired PDF font provider |
@@ -247,6 +248,13 @@ node --input-type=module -e "for (const name of ['hello','heading']) { const {by
 ```
 
 ## Optional JPEG, PNG, SVG and fonts
+
+Optional [`loadFont`](packages/fontkit/README.md#optional-uri--byte-loading) accepts
+bytes or a direct static TrueType URI through the shared `@updf/assets` transport.
+The [font-URI showcase](docs/font-uri-loading.md) includes a direct Google Fonts
+TTF example, explicit fetch-on-Generate behavior and failure recovery. Google
+Fonts CSS URLs, WOFF/WOFF2 and variable fonts remain unsupported; loading does
+not broaden the font profile or grant embedding rights.
 
 JPEG-only rendering needs core and `@updf/jpeg`, not fonts/text or Fontkit.
 Supply a genuine nonshared-backed `Uint8Array`, bind the owned result outside the

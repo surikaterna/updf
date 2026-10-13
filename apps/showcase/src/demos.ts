@@ -4,6 +4,7 @@ import type { BrandingControls } from "./branding-controls.js";
 import type { FlowControls } from "./flow.js";
 import type { MixedControls } from "./mixed.js";
 import type { JpegControls } from "./jpeg-controls.js";
+import type { FontUriControls } from "./font-uri-controls.js";
 import type { PngControls } from "./png-controls.js";
 import { paintingDemo } from "./painting.js";
 import paintingSource from "./painting.ts?raw";
@@ -26,6 +27,7 @@ export type DemoId =
   | "svg"
   | "branding"
   | "jpeg"
+  | "font-uri"
   | "png"
   | "flow"
   | "tables"
@@ -50,6 +52,7 @@ export function demoId(value: string): DemoId {
     value === "svg" ||
     value === "branding" ||
     value === "jpeg" ||
+    value === "font-uri" ||
     value === "png" ||
     value === "rich" ||
     value === "flow" ||
@@ -76,10 +79,13 @@ export async function generate(
   jpeg?: JpegControls,
   png?: PngControls,
   pngSignal?: AbortSignal,
+  fontUri?: FontUriControls,
+  fontSignal?: AbortSignal,
 ): Promise<{ bytes: Uint8Array; source: string; summary?: string }> {
   if (title.length > 40) throw new Error("Title must be at most 40 characters");
   if (id === "branding") return brandingResult(title, branding);
   if (id === "jpeg") return jpegResult(title, jpeg);
+  if (id === "font-uri") return fontUriResult(title, fontUri, fontSignal);
   if (id === "png") return pngResult(title, png, pngSignal);
   if (isFreight(id)) return freightResult(title, id, freight);
   if (id === "manifest" || id === "invoice") return id === "manifest" ? manifestResult(title) : invoiceResult(title);
@@ -116,6 +122,15 @@ async function tableResult(title: string, controls?: TableControls) {
     bytes,
     source,
     summary: `${result.pageCount} pages; ${result.consumedBodyRowCount} body rows; ${result.repeatedHeaderCount} repeated headers.`,
+  };
+}
+async function fontUriResult(title: string, controls?: FontUriControls, signal?: AbortSignal) {
+  const { fontUriDemo, source } = await import("./optional-font-uri.js");
+  const result = await fontUriDemo(title, controls, signal);
+  return {
+    bytes: result.bytes,
+    source,
+    summary: `${result.engine}; ${result.cached ? "reused prepared font" : `preparation ${result.preparationMs.toFixed(1)} ms`}; ${result.metadata.fontName}; ${result.metadata.fontBytes.toLocaleString()} font bytes; ${result.origin}. Static TrueType, no shaping or fallback. URI edits load only after Generate PDF.`,
   };
 }
 async function templateResult(title: string) {

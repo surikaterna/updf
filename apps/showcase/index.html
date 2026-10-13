@@ -23,6 +23,7 @@
               <option value="text">Natively positioned text</option>
               <option value="template">Typed reusable components with measured flow</option>
               <option value="rich">Rich text &amp; shared measurement</option>
+              <option value="font-uri">Load a font URI: Google Fonts / static TrueType</option>
               </optgroup><optgroup label="Business documents · mock data">
               <option value="invoice">Original mock invoice: reusable business flow (36 items)</option>
               <option value="freight-invoice">Original mock freight invoice: 3 charges (not for payment)</option>
@@ -84,6 +85,20 @@
               <p class="help">PNG preparation uses native compression streams (Chrome/Edge 80+, Firefox 113+, Safari 16.4+); no compression library is downloaded.</p>
             </fieldset>
             <p id="input-error" class="input-error" hidden></p>
+            <fieldset id="font-uri-controls" hidden disabled>
+              <legend>Font URI controls</legend>
+              <label for="font-engine">Font engine</label>
+              <select id="font-engine" aria-describedby="font-engine-help"><option value="fontkit" selected>Fontkit (existing backend)</option><option value="fontkite">Fontkite (lightweight, experimental)</option></select>
+              <p id="font-engine-help" class="help">Changing engines re-prepares the active font from the same bytes, not the URI draft. Only the selected engine is imported; engines already used stay in the browser cache. No automatic fallback: a failed switch keeps the previous font and PDF active.</p>
+              <label for="font-uri">Font file URI</label>
+              <input id="font-uri" type="url" maxlength="2048" required value="https://fonts.gstatic.com/s/roboto/v18/KFOmCnqEu92Fr1Mu4mxP.ttf" aria-describedby="font-uri-help" />
+              <p id="font-uri-help" class="help">Press Generate PDF to request the entered URI. Typing does not fetch. The initial preview and Reset use bundled Liberation Sans; title/size edits reuse the last successful font, even while editing a URI or after a failed replacement.</p>
+              <label for="font-uri-size">Sample font size (points)</label>
+              <input id="font-uri-size" type="number" min="10" max="32" step="1" value="18" required />
+              <p class="help">Use a direct static .ttf file, up to 4 MiB. Google Fonts CSS URLs, WOFF/WOFF2 and variable fonts are not supported. Fontkite has a narrower format profile; choose Fontkit explicitly if a font is unsupported. Requests omit credentials and reject redirects; browser CORS applies.</p>
+              <p class="help">Loading a submitted URL contacts that host. Use trusted fonts with embedding permission. The default URL is Google Fonts Roboto (Apache-2.0); no external font is requested until you press Generate PDF.</p>
+              <p class="help"><a href="https://github.com/googlefonts/roboto/blob/main/LICENSE">Roboto license</a> · <a data-local="notices/LICENSE.liberation" href="./notices/LICENSE.liberation">Bundled sample license</a></p>
+            </fieldset>
             <fieldset id="rich-controls" hidden>
               <legend>Bounded rich text controls (PDF points)</legend>
               <label for="rich-width">Width</label>
@@ -169,8 +184,8 @@
       </section>
       <section id="limits" aria-labelledby="limits-heading">
         <h2 id="limits-heading">Core first. Optional means optional.</h2>
-        <p>The entry loads core, not React, Fontkit, Node APIs or SVG. Native VDOM, measured TSX templates and layout demos load on demand, as do the SVG adapter and geometry. Native paths need no geometry adapter.</p>
-        <p>Fonts can use prepared resources through <code>@updf/fonts</code>; the optional <code>@updf/fontkit</code> adapter prepares trusted static TrueType bytes. The initial entry remains parser-free; opting into the freight invoice loads Fontkit and two licensed Liberation Sans font assets (regular and bold).</p>
+        <p>The entry loads core, not React, font parsers, Node APIs or SVG. Native VDOM, measured TSX templates and layout demos load on demand, as do the SVG adapter and geometry. Native paths need no geometry adapter.</p>
+        <p>Fonts can use prepared resources through <code>@updf/fonts</code>. The font-URI demo lets you explicitly choose <code>@updf/fontkit</code> or experimental <code>@updf/fontkite</code> to prepare trusted static TrueType bytes. The initial entry stays parser-free; freight still uses Fontkit. The font demo uses the shared optional asset loader, not an image decoder.</p>
         <ul>
            <li>Core uses fixed point geometry and explicit pages. Optional layout supports measured blocks, padding/border/gap and error/hidden overflow, repeated regions and explicit-width atomic table rows, not general CSS layout or row/column spans.</li>
             <li>Built-in Helvetica: printable ASCII and LF. No shaping, bidi or full SVG. The optional <code>@updf/jpeg</code> showcase demonstrates baseline color/grayscale images with explicit sizing and reuse. The separate <code>@updf/png</code> showcase adds non-interlaced 8-bit PNG and alpha. Broader image profiles remain unsupported.</li>

@@ -2,7 +2,7 @@ name: Pull request validation
 
 on:
   pull_request:
-    branches: [develop]
+    branches: [develop, 'feature/**']
   workflow_dispatch:
 
 permissions:

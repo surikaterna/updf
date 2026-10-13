@@ -53,7 +53,7 @@ export function failed(message: string, hasResult: boolean): void {
     : "No successful result; no executed source to display.";
 }
 
-export function validateForm(form: HTMLFormElement): void {
+export function validateForm(form: HTMLFormElement, drafts: readonly string[] = []): void {
   const error = ui("input-error");
   error.hidden = true;
   const fields = Array.from(
@@ -66,7 +66,7 @@ export function validateForm(form: HTMLFormElement): void {
       field.setCustomValidity(field.value.length > 40 ? "Title must be at most 40 characters" : "");
   }
   for (const field of fields) {
-    if (field.matches(":disabled") || field.validity.valid) continue;
+    if (field.matches(":disabled") || drafts.includes(field.id) || field.validity.valid) continue;
     field.setAttribute("aria-invalid", "true");
     describeError(field, true);
     error.hidden = false;
