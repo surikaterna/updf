@@ -37,7 +37,7 @@ test("JPEG is opt-in, matches Node bytes, switches grayscale and resizes at desk
       await pdf(page),
       jpegExample(await fixture("gray"), "Hello portable PDF", { variant: "gray", width: 96 }).bytes,
     );
-    assert.match(await page.locator("#status").innerText(), /grayscale JPEG.*PNG is not implemented/u);
+    assert.match(await page.locator("#status").innerText(), /grayscale JPEG.*select the PNG example/u);
     await page.setViewportSize({ width: 320, height: 812 });
     await page.waitForFunction(() => document.querySelector("#demo-form")?.getAttribute("aria-busy") === "true");
     await pdf(page);

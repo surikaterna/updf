@@ -3,8 +3,9 @@
 JPEG support is optional: `@updf/jpeg` depends only on core. Core retains generic
 XObject geometry/resource collection and has no JPEG parser import. Drawing-only,
 Helvetica and measurement consumers do not load JPEG. JPEG-only documents need no
-fonts/text or Fontkit. There is no PNG package, decoder peer, fetch or filesystem
-loader in the library. Workspace/tarball imports below do **not** imply npm publication.
+fonts/text or Fontkit. PNG is a separate optional [package](../packages/png/README.md).
+JPEG needs no decoder peer, fetch or filesystem loader in the library.
+Workspace/tarball imports below do **not** imply npm publication.
 
 ## Prepare, bind, place, render
 
@@ -106,8 +107,8 @@ stretch, reflection and left-half clipping, all reusing one original compressed
 image stream. Captions use built-in Helvetica; no Fontkit, layout, SVG or geometry
 adapter is loaded by this example. Actual source and fixture provenance are shown.
 
-There is deliberately **no PNG showcase**: PNG/alpha are not implemented. Nor is
-there an upload control or promise of arbitrary JPEG decoding. The supplied
+The separate [PNG showcase](../packages/png/README.md) demonstrates alpha.
+There is no upload control or promise of arbitrary JPEG decoding. The supplied
 fixtures follow the exact supported baseline profile; EXIF, ICC and progressive
 JPEG remain unsupported. Invalid controls or asset failures retain the previous
 PDF/source until a successful update. The Node and browser outputs are byte-equal.

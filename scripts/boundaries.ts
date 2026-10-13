@@ -168,6 +168,11 @@ export function portableGraph(modules: readonly string[], optional = false, reac
   if (!react) assert.ok(!modules.some((id) => /(?:^|\/)(?:react|react-dom)(?:\/|$)/u.test(id)), "React leaked");
 }
 export function packageEdge(owner: string, specifier: string): void {
+  if (owner === "png")
+    assert.ok(
+      specifier.startsWith(".") || ["@updf/core", "@updf/core/resources", "@updf/core/pdf"].includes(specifier),
+      "PNG must use public core surfaces and native compression streams only",
+    );
   if (owner === "jpeg")
     assert.ok(
       specifier.startsWith(".") || ["@updf/core", "@updf/core/resources", "@updf/core/pdf"].includes(specifier),
@@ -307,6 +312,7 @@ export async function checkSeams(root: string): Promise<void> {
     "text",
     "fontkit",
     "jpeg",
+    "png",
   ]) {
     for (const path of await files(join(root, "packages", owner, "src"))) {
       const text = await readFile(path, "utf8");

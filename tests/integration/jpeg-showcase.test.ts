@@ -49,7 +49,7 @@ test("JPEG showcase reuses one original stream for four placements at either dis
       await writeFile(path, example.bytes);
       execFileSync("qpdf", ["--check", path]);
       const text = execFileSync("pdftotext", [path, "-"], { encoding: "utf8" });
-      assert.match(text, /PNG and alpha are not supported/u);
+      assert.match(text, /Select the PNG example for alpha/u);
       assert.match(text, /Horizontal reflection/u);
       inspectPixels(pixels(execFileSync("pdftoppm", ["-r", "72", "-singlefile", path])), variant, width);
     }

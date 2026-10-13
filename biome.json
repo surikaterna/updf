@@ -13,6 +13,7 @@
       "packages/fonts/**",
       "packages/text/**",
       "packages/jpeg/**",
+      "packages/png/**",
       "apps/**",
       "examples/**",
       "scripts/**",

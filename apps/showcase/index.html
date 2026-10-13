@@ -38,6 +38,7 @@
               </optgroup><optgroup label="Drawing · native &amp; optional SVG">
               <option value="painting">Native painting: paths, colors, clips &amp; transforms</option>
               <option value="jpeg">JPEG images: color, grayscale, reuse &amp; clipping</option>
+              <option value="png">PNG images: alpha, reuse &amp; clipping</option>
               <option value="svg">Advanced: native SVG adapter (loaded on demand)</option>
               <option value="branding">Vector brand letterhead: original sample SVG logo</option>
               </optgroup>
@@ -70,7 +71,17 @@
               <label for="jpeg-width">Image width (PDF points)</label>
               <input id="jpeg-width" type="number" min="96" max="192" step="1" value="192" required aria-describedby="jpeg-help" />
               <p id="jpeg-help" class="help">Four placements share one baseline JPEG resource. Width changes PDF geometry, not the 32×24 source pixels. The example calculates aspect ratio explicitly; the engine does not auto-fit.</p>
-              <p class="help">PNG, transparency, progressive JPEG, EXIF and ICC profiles are not supported. These original MIT samples use the supported baseline profile; there is no file upload.</p>
+              <p class="help">Progressive JPEG, EXIF and ICC profiles are not supported. Select PNG for transparency. These original MIT samples use the supported baseline profile; there is no file upload.</p>
+            </fieldset>
+            <fieldset id="png-controls" hidden disabled>
+              <legend>PNG image controls</legend>
+              <label for="png-variant">PNG sample</label>
+              <select id="png-variant"><option value="color" selected>Original RGBA artwork</option><option value="gray">Grayscale + alpha artwork</option></select>
+              <label for="png-width">PNG width (PDF points)</label>
+              <input id="png-width" type="number" min="96" max="192" step="1" value="192" required aria-describedby="png-help" />
+              <p id="png-help" class="help">Four placements share one image and soft mask. Opaque, half-transparent and clear quadrants appear over white and blue. Width changes PDF geometry, not the 32×24 source pixels.</p>
+              <p class="help">Non-interlaced 8-bit PNG only. ICC/gamma/chromaticity metadata, APNG and other bit depths are unsupported. Original MIT samples; no file upload. Clipping is not redaction.</p>
+              <p class="help">PNG preparation uses native compression streams (Chrome/Edge 80+, Firefox 113+, Safari 16.4+); no compression library is downloaded.</p>
             </fieldset>
             <p id="input-error" class="input-error" hidden></p>
             <fieldset id="rich-controls" hidden>
@@ -162,7 +173,7 @@
         <p>Fonts can use prepared resources through <code>@updf/fonts</code>; the optional <code>@updf/fontkit</code> adapter prepares trusted static TrueType bytes. The initial entry remains parser-free; opting into the freight invoice loads Fontkit and two licensed Liberation Sans font assets (regular and bold).</p>
         <ul>
            <li>Core uses fixed point geometry and explicit pages. Optional layout supports measured blocks, padding/border/gap and error/hidden overflow, repeated regions and explicit-width atomic table rows, not general CSS layout or row/column spans.</li>
-           <li>Built-in Helvetica: printable ASCII and LF. No shaping, bidi or full SVG. The optional <code>@updf/jpeg</code> showcase demonstrates baseline color/grayscale images with explicit sizing and reuse. PNG/alpha and broader image profiles are not delivered.</li>
+            <li>Built-in Helvetica: printable ASCII and LF. No shaping, bidi or full SVG. The optional <code>@updf/jpeg</code> showcase demonstrates baseline color/grayscale images with explicit sizing and reuse. The separate <code>@updf/png</code> showcase adds non-interlaced 8-bit PNG and alpha. Broader image profiles remain unsupported.</li>
           <li>Prepared fonts support a documented simple LTR Latin/Cyrillic profile, not general typography.</li>
           <li>Runtime validation and current resource caps still apply. Trusted components are not a sandbox.</li>
         </ul>
@@ -173,7 +184,7 @@
     <footer>
        <p>UPDF is MIT licensed. Copyright (c) 2026 Surikat AB. <a data-local="notices/LICENSE" href="./notices/LICENSE">Project MIT license</a>.</p>
       <p>Optional geometry incorporates Fontello svgpath code. <a data-local="notices/LICENSE.svgpath" href="./notices/LICENSE.svgpath">Fontello MIT notice</a> · <a data-local="notices/REUSE.md" href="./notices/REUSE.md">Reuse provenance</a></p>
-      <p>Canvas preview uses PDF.js (Apache-2.0). <a data-local="notices/LICENSE.pdfjs" href="./notices/LICENSE.pdfjs">PDF.js license</a></p>
+       <p>Canvas preview uses PDF.js (Apache-2.0). <a data-local="notices/LICENSE.pdfjs" href="./notices/LICENSE.pdfjs">PDF.js license</a></p>
     </footer>
     <script type="module" src="/src/main.ts"></script>
   </body>

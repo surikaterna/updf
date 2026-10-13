@@ -66,6 +66,7 @@ try {
   for (const name of [
     "core",
     "jpeg",
+    "png",
     "fonts",
     "text",
     "layout-boxes",
