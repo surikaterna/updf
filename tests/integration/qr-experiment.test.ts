@@ -4,7 +4,13 @@ import { encodeQR } from "../../packages/barcodes/src/qr-encoder/encoder.js";
 import { maskBit } from "../../packages/barcodes/src/qr-encoder/mask.js";
 import { penalty } from "../../packages/barcodes/src/qr-encoder/penalty.js";
 import { capacity } from "../../packages/barcodes/src/qr-encoder/profile.js";
-import { reference, referenceMask, referencePenalty, sample } from "../../scripts/qr-experiment/reference.js";
+import {
+  reference,
+  referenceFinderPenalty,
+  referenceMask,
+  referencePenalty,
+  sample,
+} from "../../scripts/qr-experiment/reference.js";
 import { vectorPDF } from "../../scripts/qr-experiment/vector.js";
 import { BarcodeFormat, decode, rasterize } from "../fixtures/barcode-decode.js";
 
@@ -61,6 +67,22 @@ test("All mask predicates match the independent reference and selection minimize
       const scores = Array.from({ length: 8 }, (_, mask) => referencePenalty(encodeQR(value, level, 0, mask)));
       assert.equal(selected.mask, scores.indexOf(Math.min(...scores)));
     }
+});
+
+test("Rule 3 boundary lookaround includes the light exterior quiet zone, matching pinned ZXing", () => {
+  const base = encodeQR("A");
+  for (const [pattern, start, expected] of [
+    ["10111011", 0, 40],
+    ["11011101", 13, 40],
+    ["0010111011", 0, 40],
+    ["110111011", 0, 0],
+  ] as const) {
+    const cells = new Uint8Array(base.size * base.size);
+    cells.set(Array.from(pattern, Number), 10 * base.size + start);
+    const matrix = { ...base, cells: Array.from(cells) };
+    assert.equal(referenceFinderPenalty(matrix), expected);
+    assert.equal(penalty(cells, base.size), referencePenalty(matrix));
+  }
 });
 
 test("QR rewrite vector PDFs decode independently across versions and both correction levels", async () => {

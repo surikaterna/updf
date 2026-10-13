@@ -67,3 +67,26 @@ policy changes; demos use the existing barcode geometry contract. No Changeset i
 needed for these private application/test/docs updates. Barcode Flow integration,
 logos, Unicode QR profiles, PDF417 and hardware certification remain out of scope.
 Hosted CI must pass on the final head before the authorized merge.
+
+## Final review follow-up
+
+The final review identified missing source-level barcode import restrictions and
+questioned QR Rule 3 boundary scoring. The source guard now explicitly allows only
+local modules and the used core/arithmetic seams. Package-edge policy moved to a
+cohesive helper to keep `boundaries.ts` below the file-size limit; other package
+rules and its exported API are unchanged. Positive/negative controls reject the
+retired QR generator, decoders, SVG/layout/fonts, Node and unrelated core entries.
+
+The Rule 3 proposal was not applied: the pinned ZXing implementation also clamps
+its lookaround to the matrix boundary, treating the exterior quiet zone as light.
+New synthetic row tests cover left/right edges, a short light prefix and a blocked
+lookaround. They prove the stated parity disagreement does not occur; requiring
+four in-matrix modules would instead change that tested behavior. No QR runtime
+or mask selection behavior was changed by this follow-up. This is reference-backed
+validation, not a formal ISO certification or independent audit.
+
+Fresh `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm test`
+(**1,131 pass**), `npm run check:graphs` and `git diff --check` pass. The focused
+`npx tsx --test tests/integration/boundaries.test.ts tests/integration/qr-experiment.test.ts`
+passes 14 tests. The 101-test full showcase result above remains applicable because
+this follow-up changes only tooling/tests/docs; final-head CI reruns the full gates.

@@ -38,13 +38,21 @@ const masks = require("@zxing/library/cjs/core/qrcode/encoder/MaskUtil.js").defa
   getDataMaskBit(mask: number, x: number, y: number): boolean;
 };
 
-export function referencePenalty(matrix: QRMatrix): number {
-  const view = {
+function matrixView(matrix: QRMatrix): MatrixView {
+  return {
     getWidth: () => matrix.size,
     getHeight: () => matrix.size,
     getArray: () =>
       Array.from({ length: matrix.size }, (_, y) => matrix.cells.slice(y * matrix.size, (y + 1) * matrix.size)),
   };
+}
+
+export function referenceFinderPenalty(matrix: QRMatrix): number {
+  return masks.applyMaskPenaltyRule3(matrixView(matrix));
+}
+
+export function referencePenalty(matrix: QRMatrix): number {
+  const view = matrixView(matrix);
   return (
     masks.applyMaskPenaltyRule1(view) +
     masks.applyMaskPenaltyRule2(view) +
