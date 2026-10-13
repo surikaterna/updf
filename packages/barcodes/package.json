@@ -1,0 +1,51 @@
+{
+  "name": "@updf/barcodes",
+  "version": "2.0.0-poc.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "LICENSE",
+    "LICENSE.qrcode-generator",
+    "README.md"
+  ],
+  "exports": {
+    "./code39": {
+      "browser": {
+        "types": "./dist/node/code39.d.mts",
+        "default": "./dist/code39.js"
+      },
+      "import": {
+        "types": "./dist/node/code39.d.mts",
+        "default": "./dist/node/code39.mjs"
+      },
+      "require": {
+        "types": "./dist/node/code39.d.cts",
+        "default": "./dist/cjs/code39.js"
+      }
+    },
+    "./qr": {
+      "browser": {
+        "types": "./dist/node/qr.d.mts",
+        "default": "./dist/qr.js"
+      },
+      "import": {
+        "types": "./dist/node/qr.d.mts",
+        "default": "./dist/node/qr.mjs"
+      },
+      "require": {
+        "types": "./dist/node/qr.d.cts",
+        "default": "./dist/cjs/qr.js"
+      }
+    }
+  },
+  "dependencies": {
+    "@updf/core": "2.0.0-poc.0",
+    "@updf/layout-boxes": "2.0.0-poc.0",
+    "qrcode-generator": "2.0.4"
+  },
+  "scripts": {
+    "build": "tsx ../../scripts/packaging/build.ts"
+  }
+}

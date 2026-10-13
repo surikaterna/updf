@@ -23,6 +23,7 @@ verification of the new package structure.
 | Workspace | Responsibility / entry points |
 | --- | --- |
 | `@updf/assets` | Optional zero-dependency byte/HTTP(S) transport with explicit fetch policy, bounded streaming and cancellation |
+| `@updf/barcodes` | Experimental optional `/code39` and `/qr` geometry helpers and native TSX components; [profiles, runnable demo and costs](packages/barcodes/README.md) |
 | `@updf/layout-boxes` | Zero dependencies; allocation, atomic boxes, fragment selection and shared arithmetic; [current contract](docs/architecture/layout-boxes.md) |
 | `@updf/core` | Generic PDF bytes/resources/text contracts: `.`, `/resources`, `/pdf`, `/painting`, `/vdom`, `/jsx-runtime`, `/jsx-dev-runtime`; no font implementation |
 | `@updf/fonts` | Prepared fonts, explicit Helvetica, opaque text runs and paired PDF font provider |

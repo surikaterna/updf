@@ -11,6 +11,7 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/region-render.ts",
   ],
   "@updf/core/internal": [
+    "barcodes/src/checks.ts",
     "layout/src/index.ts",
     "layout/src/adapter-ownership.ts",
     "layout/src/adapter-content.ts",
@@ -316,6 +317,7 @@ export async function checkSeams(root: string): Promise<void> {
     "Scanner",
   ]);
   for (const owner of [
+    "barcodes",
     "assets",
     "core",
     "layout-boxes",
