@@ -5,7 +5,7 @@ import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { cacheRoot, readCached } from "./cache.js";
 import { type Comparison, passed } from "./compare.js";
-import { corpus, revision } from "./manifest.js";
+import { corpus, revision, sourceRevisions } from "./manifest.js";
 import { options, selected } from "./options.js";
 import type { CorpusFont } from "./types.js";
 
@@ -55,6 +55,7 @@ await writeFile(
       version: 2,
       node: process.version,
       revision,
+      sourceRevisions,
       manifestSha256: createHash("sha256").update(JSON.stringify(corpus)).digest("hex"),
       suite: config.suite,
       selected: results.length,
