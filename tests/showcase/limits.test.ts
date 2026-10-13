@@ -16,9 +16,7 @@ test("showcase keeps practical limits and unreleased notice without a stale road
     assert.match(limits, /Experimental, unreleased native implementation/);
     assert.match(limits, /@updf\/jpeg.*showcase demonstrates baseline color\/grayscale/s);
     assert.doesNotMatch(limits, /@updf\/core\/fonts/);
-    assert.match(limits, /prepared resources through @updf\/fonts/);
-    assert.match(limits, /explicitly choose @updf\/fontkit or experimental @updf\/fontkite/);
-    assert.match(limits, /initial entry stays parser-free; freight still uses Fontkit/);
+    assert.match(limits, /prepared resources through @updf\/fonts; the optional @updf\/fontkit adapter/);
   } finally {
     await app.close();
   }

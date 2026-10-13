@@ -16,7 +16,6 @@
     "@updf/fonts": "2.0.0-poc.0",
     "@updf/text": "2.0.0-poc.0",
     "@updf/fontkit": "2.0.0-poc.0",
-    "@updf/fontkite": "2.0.0-poc.0",
     "@updf/layout": "2.0.0-poc.0",
     "@updf/tables": "2.0.0-poc.0",
     "@updf/svg": "2.0.0-poc.0",

@@ -6,15 +6,6 @@ import { fontUriExample } from "../../apps/showcase/src/font-uri.js";
 import { googleFontUri } from "../../apps/showcase/src/font-uri-controls.js";
 import { observeUrls, pageErrors, pdf, rendered, retained, screenshot, settledModule, site } from "./helpers.js";
 
-const fontSourceFiles = [
-  "font-uri.tsx",
-  "font-uri-controls.ts",
-  "optional-font-uri.ts",
-  "font-uri-loader.ts",
-  "font-engine-fontkit.ts",
-  "font-engine-fontkite.ts",
-];
-
 async function font(bold = false) {
   const bytes = new Uint8Array(
     await readFile(new URL(`../fixtures/fonts/LiberationSans-${bold ? "Bold" : "Regular"}.ttf`, import.meta.url)),
@@ -55,7 +46,7 @@ test("font URI is opt-in, typing never fetches, and explicit loads/size changes 
     assert.deepEqual(await pdf(page), fontUriExample(remote.prepared, "Hello portable PDF", 24).bytes);
     assert.equal(requests.filter((url) => url.startsWith("https://fonts.gstatic.com/")).length, 1);
     const source = await page.locator("#source").textContent();
-    for (const name of fontSourceFiles)
+    for (const name of ["font-uri.tsx", "font-uri-controls.ts", "optional-font-uri.ts"])
       assert.ok(source?.includes(await readFile(new URL(`../../apps/showcase/src/${name}`, import.meta.url), "utf8")));
     await rendered(page);
     await retained(page);

@@ -18,8 +18,8 @@ export const metadata: Record<DemoId, Metadata> = {
   "font-uri": entry(
     "Load a font from a URI",
     "Try a direct Google Fonts static TTF or another trusted font file. The initial preview uses bundled Liberation Sans; press Generate PDF to load the entered URI.",
-    ["Fontkite / Fontkit · lazy", "URI loading · opt-in", "Static TrueType"],
-    "font-uri.tsx · font-uri-controls.ts · font-uri-loader.ts · font-engine-fontkite.ts · font-engine-fontkit.ts · optional-font-uri.ts",
+    ["Fontkit · lazy", "URI loading · opt-in", "Static TrueType"],
+    "font-uri.tsx · font-uri-controls.ts · optional-font-uri.ts",
   ),
   jpeg: entry(
     "JPEG image placement",

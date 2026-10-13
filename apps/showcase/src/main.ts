@@ -3,13 +3,7 @@ import { blockControls } from "./block-controls.js";
 import { brandingControls, showBrandLogo } from "./branding-controls.js";
 import { demoId, generate } from "./demos.js";
 import { flowControls } from "./flow-controls.js";
-import {
-  cancelFontLoad,
-  fontLoadSignal,
-  type FontUriAction,
-  fontUriControls,
-  resetFontUri,
-} from "./font-uri-controls.js";
+import { cancelFontLoad, fontLoadSignal, fontUriControls, resetFontUri } from "./font-uri-controls.js";
 import { freightControls, installFreightControls, showFreightControls } from "./freight-controls.js";
 import { mixedControls } from "./mixed-controls.js";
 import { jpegControls } from "./jpeg-controls.js";
@@ -99,9 +93,9 @@ async function refreshDemo(): Promise<void> {
   }
 }
 
-function captureArguments(action: FontUriAction): Parameters<typeof generate> {
+function captureArguments(submitted: boolean): Parameters<typeof generate> {
   const id = demoId(selection.value);
-  validateForm(form, id === "font-uri" && action !== "submit" ? ["font-uri"] : []);
+  validateForm(form, id === "font-uri" && !submitted ? ["font-uri"] : []);
   return [
     id,
     title.value,
@@ -115,7 +109,7 @@ function captureArguments(action: FontUriAction): Parameters<typeof generate> {
     id === "jpeg" ? jpegControls(form) : undefined,
     id === "png" ? pngControls(form) : undefined,
     id === "png" ? pngLoadSignal() : undefined,
-    id === "font-uri" ? fontUriControls(form, action) : undefined,
+    id === "font-uri" ? fontUriControls(form, submitted) : undefined,
     id === "font-uri" ? fontLoadSignal() : undefined,
   ];
 }
@@ -127,14 +121,14 @@ function readableError(error: unknown): string {
   return `Generation failed: ${error instanceof Error ? error.message : "Unknown error"}. Try a core example or reload.`;
 }
 
-async function renderExample(action: FontUriAction = "active"): Promise<void> {
+async function renderExample(submitted = false): Promise<void> {
   if (disposed) return;
   const current = invalidate();
   form.setAttribute("aria-busy", "true");
   pending(!!blobUrl);
   output.hidden = false;
   try {
-    const args = captureArguments(action);
+    const args = captureArguments(submitted);
     const result = await generate(...args);
     if (current !== generation) return;
     await renderOutput(current, args, result);
@@ -208,14 +202,13 @@ function scheduleUpdate(): void {
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
-  void renderExample("submit");
+  void renderExample(true);
 });
 selection.addEventListener("change", () => {
   void refreshDemo();
 });
 title.addEventListener("input", scheduleUpdate);
 element("font-uri-size", HTMLInputElement).addEventListener("input", scheduleUpdate);
-element("font-engine", HTMLSelectElement).addEventListener("change", () => void renderExample("engine"));
 for (const id of [
   "rich-controls",
   "flow-controls",

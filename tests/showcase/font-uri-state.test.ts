@@ -36,7 +36,6 @@ test("unsubmitted invalid, empty and valid URI drafts do not block active-font e
       assert.deepEqual(await pdf(page), fontUriExample(font, "Hello portable PDF", size).bytes);
       assert.notEqual(await page.locator("#font-uri").getAttribute("aria-invalid"), "true");
       assert.deepEqual(JSON.parse((await page.locator("#source-arguments").textContent())!).controls, {
-        engine: "fontkit",
         uri: "",
         fontSize: size,
       });

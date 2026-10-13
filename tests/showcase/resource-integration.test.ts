@@ -34,7 +34,6 @@ test("PNG and font-URI demos coexist with isolated arguments, drafts and cancell
     await pdf(page);
     assert.deepEqual(JSON.parse((await page.locator("#source-arguments").textContent())!).controls, {
       uri: "",
-      engine: "fontkit",
       fontSize: 18,
     });
   } finally {

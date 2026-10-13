@@ -10,7 +10,6 @@
       "packages/geometry/**",
       "packages/svg/**",
       "packages/fontkit/**",
-      "packages/fontkite/**",
       "packages/assets/**",
       "packages/fonts/**",
       "packages/text/**",
