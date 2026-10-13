@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
 import { absent, execute, install, pack } from "../../scripts/consumer/install.js";
+import { installLocalFontkit } from "../../scripts/consumer/local-fontkit.js";
 import { typeConsumer } from "../../scripts/consumer/types.js";
 
 test("font loader packs have portable declarations and shared ESM/CommonJS ownership without image codecs", async () => {
@@ -18,10 +18,7 @@ test("font loader packs have portable declarations and shared ESM/CommonJS owner
     await absent(directory, ["fontkit", "@updf/jpeg", "@updf/png", "@updf/image", "@updf/layout", "react"]);
     await typeConsumer(directory, ["font-load-template.ts"], false, false);
     await typeConsumer(directory, ["font-load-template.ts"], true, false);
-    execFileSync("npm", ["install", "fontkit@2.0.4", "--ignore-scripts", "--no-audit", "--no-fund"], {
-      cwd: directory,
-      stdio: "pipe",
-    });
+    await installLocalFontkit(directory, destination);
     await writeFile(
       join(directory, "font.ttf"),
       await readFile(new URL("../fixtures/fonts/LiberationSans-Regular.ttf", import.meta.url)),

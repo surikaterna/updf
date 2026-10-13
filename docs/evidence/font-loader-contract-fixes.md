@@ -80,3 +80,33 @@ getter execution added, tests proportional to the boundary change, no suppressio
 or exceptions. No numerical-policy change. No Changesets setup; packages remain
 private/unreleased. Review comments should distinguish fixed code from historical
 metadata and remain available for reviewer confirmation.
+
+## Post-merge packed-consumer isolation follow-up
+
+After #81 merged into #76 at `7ab12e3`, Copilot identified one remaining test-only
+issue: the packed loader test installed `fontkit@2.0.4` from the registry. The
+follow-up on `feature/font-loader-offline-test` replaces that call with local
+tarballs for the installed Fontkit runtime dependency closure. It retains a real
+npm consumer installation, declaration checks before Fontkit is installed, and
+the ESM/CommonJS ownership and preparation checks afterward. No workspace symlink
+or whole-node_modules copy substitutes for the packed consumer.
+
+The helper requires Fontkit 2.0.4, detects conflicting versions rather than
+silently flattening them, and installs the complete closure with `--offline` and
+a fresh cache under the disposable test directory. This is deliberately a bounded
+Fontkit fixture helper, not a general-purpose dependency installer.
+
+Validation in `trees/font-loader-contract-fixes`:
+
+- `npx tsx --test tests/consumer/font-load-packed.test.ts` — one pass.
+- `env npm_config_offline=true npm_config_cache="/tmp/opencode/updf-font-load-offline-$(date +%s)" node --import tsx --test tests/consumer/font-load-packed.test.ts`
+  — one pass with the entire test's npm subprocesses offline and a fresh outer
+  cache, in addition to the helper's separate fresh install cache.
+- `npm run format:check`, `npm run lint`, `npm run typecheck` — pass.
+- `npm test` — 1,105 pass, zero failures/skips/cancellations.
+- `git diff --check` — pass.
+
+No runtime/package contract or numerical change; no principles exceptions or
+Changeset required. Existing integration coverage is reused. This proves the
+affected packed test's offline isolation, not that every repository command is
+network-free. Full browser checks are left to the updated PR CI before merge.
