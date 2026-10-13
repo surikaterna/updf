@@ -1,9 +1,10 @@
 # Font URI loading and showcase
 
-Private/unreleased implementation. Optional `@updf/fontkit/load` adapts shared
+Private/unreleased implementation. Optional `@updf/fontkit/load` and experimental
+`@updf/fontkite/load` adapt shared
 `@updf/assets` byte/URI transport to the existing static TrueType preparer. Core,
 Helvetica and synchronous `prepareFont` consumers do not import the transport;
-the transport imports neither core nor Fontkit/image codecs. Images can reuse
+the transport imports neither core nor font parsers/image codecs. Images can reuse
 the same transport without coupling fonts to image-specific registration.
 
 See the [font loader API](../packages/fontkit/README.md#optional-uri--byte-loading)
@@ -20,11 +21,28 @@ Sans fixture. Enter a direct TTF URI and press **Generate PDF**. Typing the URI
 does not fetch. Unsubmitted URI drafts do not participate in validation of
 title/size edits. Those edits reuse the active successfully generated font, not
 a pending or failed replacement URI. A submission becomes active only after
-loading and PDF generation succeed; failed replacements are retried only by
-another explicit submission. One successful font is cached. Reset restores the
-bundled sample; failed/unsupported loads
+loading and PDF generation succeed; failed URI replacements are retried only by
+another explicit submission. One successful URI's bytes and up to two engine-keyed
+prepared handles are cached. Reset restores the bundled sample and Fontkit; failed/unsupported loads
 retain the last successful PDF/source. Superseded requests are aborted and late
 lazy imports cannot initiate a stale font load.
+
+The **Font engine** selector offers Fontkit (the unchanged default) and Fontkite
+(explicitly experimental). An engine change prepares the **active** font bytes,
+not an unsubmitted URI draft, so both engines see the same downloaded program.
+Only the requested engine's module is imported; no automatic fallback is attempted.
+Previously imported modules remain cached for the page session. In particular,
+opening the demo with its default engine already loads Fontkit; later selecting
+Fontkite does not unload it. Initial non-font demos remain parser-free.
+
+After a failed engine change, ordinary title/size/resize updates retain the last
+successful engine even if the dropdown still contains the failed proposal. Change
+the selector or explicitly submit to try a new engine/URI pair. A failed module
+download may require a page reload, depending on browser module-cache behavior.
+The result source arguments and summary identify the actual successful engine.
+The summary reports approximate preparation time (excluding module/font download
+and PDF generation) or cached prepared-handle reuse. These are local observations,
+not a benchmark or a guarantee that both backends support the same font formats.
 
 Submitting an external URI contacts that origin. Browser CORS applies; credentials
 are omitted, redirects reject, and the maximum font response is 4 MiB. Use trusted,
