@@ -13,6 +13,12 @@ is included: CSS, WOFF/WOFF2, variable, CFF, collections and color/bitmap fonts
 remain unsupported. Fontkit is still optional and expensive compared with the
 small transport wrapper. Font programs are separate payload costs.
 
+Both adapters validate the complete custom `AssetLoader` contract: enumerable own
+callable `resolve` and `load` properties, with no getter execution. Validation does
+not call `resolve`; the loader owns URI resolution. Unstructured exceptions from
+the actual `load` invocation become `FONT_LOAD`, while existing loader diagnostics
+and subsequent byte/font-validation errors retain their own codes.
+
 ## Showcase
 
 Select **Load a font URI: Google Fonts / static TrueType**. The parser and loader
@@ -83,7 +89,11 @@ SHOWCASE_CHROMIUM=/usr/bin/chromium npx tsx --test tests/showcase/font-uri.test.
 Tests exercise URI and byte preparation, cancellation, redirect/size policy,
 type declarations without ambient DOM types, PDF integrity/text extraction,
 actual browser source/download parity, failure recovery and lazy module graphs.
-The font work was initially validated directly on develop. After architecture
-review, PR #76 is stacked on PNG PR #75 so the combined showcase, build and graph
-contracts can be validated before either merges. The generic image wrapper and
-positioning prototypes remain excluded. No publication or deployment is implied.
+The initial standalone font work was validated on develop; those historical results
+are recorded separately in [the original evidence](evidence/font-uri-loading.md).
+PR #76 was then stacked on PNG PR #75 to validate their combined showcase, build
+and graph contracts. After #75 merged into develop at `3225bda`, #76 was retargeted
+to develop. It now includes Fontkite and the merged selector, corpus/fuzzing and
+tooling-review follow-ups (#77–#80). Current loader-contract validation is recorded
+in [the contract-fix evidence](evidence/font-loader-contract-fixes.md); old counts
+are not claims about the current PR. No publication or deployment is implied.

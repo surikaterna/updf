@@ -38,6 +38,22 @@ function checkAbort(signal?: AssetSignal): void {
   if (signal?.aborted) throw new DocumentError("FONT_LOAD", "/font/source", "Font loading was aborted");
 }
 
+async function transportBytes(
+  loader: AssetLoader,
+  load: AssetLoader["load"],
+  source: string | Uint8Array,
+  signal?: AssetSignal,
+): Promise<Uint8Array<ArrayBuffer>> {
+  try {
+    return await Reflect.apply(load, loader, [source, { maxBytes, ...(signal ? { signal } : {}) }]);
+  } catch (error) {
+    if (error instanceof DocumentError) throw error;
+    if (error instanceof AssetError) fontError(error);
+    // Do not inspect or coerce arbitrary values thrown by a host capability.
+    throw new DocumentError("FONT_LOAD", "/font/source", "Font loader failed");
+  }
+}
+
 /** Optional asynchronous URI/byte convenience; retains prepareFont's static TrueType/rights profile. */
 export async function loadFont(source: string | Uint8Array, options: LoadFontOptions = {}): Promise<PreparedFont> {
   record(options, ["loader", "signal"], "/options");
@@ -49,13 +65,16 @@ export async function loadFont(source: string | Uint8Array, options: LoadFontOpt
     throw new DocumentError("TYPE", "/options/signal", "Expected abort signal");
   const loader = supplied ?? byteLoader;
   record(loader, ["resolve", "load"], "/options/loader");
+  const resolve = ownDataValue<AssetLoader, "resolve">(loader, "resolve", "/options/loader/resolve");
+  if (typeof resolve !== "function")
+    throw new DocumentError("TYPE", "/options/loader/resolve", "Expected asset URI resolver");
   const load = ownDataValue<AssetLoader, "load">(loader, "load", "/options/loader/load");
   if (typeof load !== "function")
     throw new DocumentError("TYPE", "/options/loader/load", "Expected asset loading capability");
+  checkAbort(signal);
+  const bytes = await transportBytes(loader, load, source, signal);
+  checkAbort(signal);
   try {
-    checkAbort(signal);
-    const bytes = await load.call(loader, source, { maxBytes, ...(signal ? { signal } : {}) });
-    checkAbort(signal);
     const font = prepareFont(copyBytes(bytes, maxBytes));
     checkAbort(signal);
     return font;

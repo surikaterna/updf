@@ -28,6 +28,15 @@ capabilities can use subpath exports such as `/subset` or `/woff2`; these export
 do **not** exist yet. Subpaths isolate bundled JS, not installed package contents:
 `@updf/assets` is an installed dependency but is not retained by the default entry.
 
+Custom loaders require enumerable own function properties for both `resolve` and
+`load`, even for byte sources. Getters and inherited methods reject without
+execution. Validation does not call `resolve`; only the captured `load` function is
+called, with the original receiver and source. Unstructured loader failures become
+`FONT_LOAD` at `/font/source`,
+without coercing the thrown value. Loader `DocumentError`s are preserved, and
+`AssetError` keeps its diagnostic mapping (`LOAD` becomes `FONT_LOAD`). Subsequent
+byte/format/rights/limit errors are not relabelled as transport failures.
+
 ## Supported prototype profile
 
 - Single-face static TrueType sfnt (`0x00010000` or `true`) with `glyf` outlines.
