@@ -30,7 +30,7 @@ The QR helper merges consecutive dark cells horizontally; no raster resampling,
 SVG markup, XML parser, canvas or DOM operation is involved. The package has no
 root barrel: import the explicit subpath you need.
 
-`examples/barcodes.tsx` is the runnable four-symbol version (including Mod-43).
+`examples/barcodes.tsx` is the runnable four-symbol version (including Mod-43 and M/H QR).
 After `npm ci --ignore-scripts` and `npm run build`:
 
 ```sh
@@ -51,7 +51,7 @@ import { code39 } from "@updf/barcodes/code39";
 import { qrCode } from "@updf/barcodes/qr";
 
 const tracking = code39("SHIP-12345", { moduleWidth: 1, barHeight: 48 });
-const link = qrCode("https://example.com", { moduleSize: 2 });
+const link = qrCode("https://example.com", { moduleSize: 2, errorCorrection: "H" });
 // tracking.width / height include quiet zones. bars are local point rectangles.
 ```
 
@@ -75,15 +75,21 @@ ownership inside the encoder.
 
 ### QR profile
 
-- QR Model 2, **printable ASCII only** (U+0020–U+007E), 1–192 bytes, byte mode.
+- QR Model 2, **printable ASCII only** (U+0020–U+007E), byte mode.
   Lowercase URLs work. Unicode, control characters and binary input reject rather
   than receiving ambiguous encoding/ECI behavior.
-- Error correction **M**, automatic version within 1–10, deterministic mask choice
-  supplied by pinned `qrcode-generator@2.0.4` (MIT, no runtime dependencies).
+- `errorCorrection: "M" | "H"`, default **M**. M accepts 1–192 bytes; H accepts
+  1–119 bytes. Automatic smallest fitting version within 1–10. Increasing correction
+  can increase the symbol's physical size at the same module size; over-capacity
+  requests reject rather than silently reducing correction.
+- The local dependency-free encoder implements framing, Reed–Solomon correction,
+  interleaving, placement, format/version bits and evaluation of all eight masks.
+  No qrcode-generator runtime import, fallback or factory compatibility layer remains.
 - `moduleSize`: 0.25–10 points, default 2. Modules are square, with four white quiet
   modules on every side. The complete width equals height.
-- No exposed version, mask, encoding, correction-level, logo or color controls in
-  this first slice. The input cap bounds QR generation before expensive work.
+- No exposed version, mask, encoding, logo or color controls. The input cap bounds
+  QR generation before expensive work. H does not imply safe arbitrary logo overlays;
+  function patterns, occlusion limits and scanner behavior need separate review.
 
 ### Placement, diagnostics and budgets
 
@@ -122,31 +128,25 @@ it does not combine encoding with SVG construction, width squeezing and style
 fallbacks. The extra validation/tests make it more explicit, not necessarily fewer
 total source lines than the permissive legacy component.
 
-The QR wrapper is similarly small, but **it is not a small in-house QR encoder**:
-the dependency's ESM source is 2,237 lines, including capacity tables, Reed–Solomon,
-matrix placement, masking and output helpers. We consume only its matrix API, not
-its SVG/HTML/canvas methods. Those attached methods are not all independently
-tree-shakeable; the measured cost below includes what the actual bundler retains.
-No QR algorithm was copied or reimplemented here.
+The QR implementation now lives in seven small internal modules under
+`src/qr-encoder/`. Unlike Code 39, it owns finite-field arithmetic, error-correction
+blocks/interleaving, function/data placement, BCH metadata and mask scoring. The
+encoder alone measures **2,271 gzip bytes**; the geometry and TSX adapter add their
+own costs. The smaller code also means we own its maintenance and correctness.
 
-`qrcode-generator` is an installed dependency of the barcode package, including
-Code-39-only installs. It is **not imported by the Code 39 entry** or included in
-its measured browser closure. This is bundle isolation, not installation isolation.
-`@zxing/library@0.23.0` and `jsqr@1.4.0` (Apache-2.0) are independent **test-only
-decoders**, never production package dependencies. Keep dependency license notices
-when bundling.
-`LICENSE.qrcode-generator` retains the full upstream MIT license (copyright 2009
-Kazuhiko Arase, from the upstream repository's LICENSE); it ships in our tarball
-and with the generated QR bundle artifacts, because the dependency's npm tarball
-only carries the license reference in its source headers. The license gate pins
-the permitted external runtime dependency, version and notice rather than
-loosening the existing internal-dependency policy for other packages.
+The package has only internal UPDF runtime dependencies. Code 39 does not reach
+the QR implementation; neither entry installs qrcode-generator or test decoders.
+Pinned `qrcode-generator@2.0.4` is retained **only as a root development reference**
+for matrix comparisons and frozen historical cost tests. Its original adapter and
+MIT notice live in `tests/fixtures/qr-baseline`, outside the package tarball.
+`@zxing/library@0.23.0` and `jsqr@1.4.0` are independent test tools only. There is no
+production feature flag or alternate encoder path.
 
-The upstream QR declarations mention a canvas renderer, so this package's own
-build enables the DOM type library to check that dependency without suppressions.
-Our emitted public declarations do not reference it. Clean packed consumers compile
-and execute with **ES2022 only, no ambient DOM/Node/React**, in NodeNext and Bundler
-modes. Node ESM/CommonJS share the canonical implementation; browsers use emitted ESM.
+The package now builds with ES2022-only libraries: the former build-only DOM
+accommodation is removed. Clean offline packed consumers also compile and execute
+with **ES2022 only, no ambient DOM/Node/React**, in NodeNext and Bundler modes, with
+qrcode-generator and the decoders absent. Node ESM/CommonJS share the canonical
+implementation; browsers use emitted ESM.
 
 Measured with Node 24.21.0 and the locked esbuild, browser ESM, ES2022, minification,
 whole-bundle gzip. Dynamic payloads are retained and executed in the graph tests.
@@ -156,13 +156,17 @@ These are fixture-specific costs, not release budgets or additive module weights
 | --- | ---: | ---: |
 | Native TSX render/lower baseline, no barcode | 54,850 | 18,113 |
 | Native TSX Code 39 PDF | 57,267 | 19,142 |
-| Native TSX QR PDF | 77,849 | 26,519 |
+| Native TSX QR PDF | 61,946 | 20,961 |
 | Code 39 geometry helper only | 3,304 | 1,673 |
-| QR geometry helper only | 23,706 | 8,907 |
+| QR geometry helper only | 7,959 | 3,474 |
 
 For these PDF fixtures the incremental cost is **1,029 gzip bytes for Code 39**
-and **8,406 for QR**. Core-only retains neither barcode entry; Code 39 retains no
-QR generator; neither barcode closure contains SVG, layout, fonts or the decoder.
+and **2,848 for QR**. The original prototype QR increment was 8,406 bytes; the
+current consumer is 5,558 gzip bytes smaller (about 66% of that increment).
+Core-only retains neither barcode entry; Code 39 retains no QR encoder; neither
+barcode closure contains SVG, layout, fonts or external encoders/decoders.
+`npx tsx scripts/qr-experiment/run.ts` reproduces original, stripped and current
+measurements from a hash-pinned historical adapter without accessing Git history.
 
 ## Validation and remaining decisions
 
@@ -171,11 +175,16 @@ QR generator; neither barcode closure contains SVG, layout, fonts or the decoder
   payload, minimum dimensions, both ratios, checksum, QR URL/maximum payload,
   white quiet zones over dark artwork, and blank-image negative controls.
 - Chromium emits byte-identical PDFs to Node for the runnable TSX example.
+- The encoder passes 2,540 exact reference matrix comparisons (versions, capacities,
+  masks, M/H and seeded cases), 25,992 mask-predicate comparisons, independent mask
+  scoring and 40 independently decoded vector PDFs including one-bit damage.
 - Malformed inputs, immutability, dimensions, explicit width rejection, generated
   path/output budgets, emitted graphs and offline empty-cache tarball installs are
   tested. These proofs are not hardware/printer certification.
 - API decisions still open for review: whether this bounded profile is enough,
-  naming, human-readable labels, Unicode/ECI, more QR correction levels, Flow/table
+  naming, human-readable labels, Unicode/ECI, L/Q correction levels, Flow/table
   adapters, and page-aware fit. Keep #30/#31 open during prototype review.
 - No release, legacy API migration, automatic feature adoption in freight documents,
   or deployment is part of this PR. YOLO self-validation, not independent audit.
+  [Promotion evidence](../../docs/evidence/qr-encoder-promotion.md) records gates,
+  provenance, numerical policy and remaining scanner/logo limitations.

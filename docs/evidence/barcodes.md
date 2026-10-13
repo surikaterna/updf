@@ -1,5 +1,10 @@
 # Barcode implementation prototype (#30 / #31)
 
+> Historical evidence for the first prototype at `f808a82`. The external QR runtime
+> path described below has since been retired in the PR follow-up. See
+> [encoder promotion evidence](qr-encoder-promotion.md) for the current implementation,
+> dependency graph, API and measurements. The original results are retained as history.
+
 Worktree `trees/barcodes`, branch `feature/barcodes`, based on merged develop
 `e8888c7680aa6c96bfce0b8df766ea1affb62fcc`. YOLO implementation and self-validation,
 not independent audit. No merge, release or deployment is part of this slice.

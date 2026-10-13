@@ -4,13 +4,13 @@ import { QRCode, qrCode } from "@updf/barcodes/qr";
 import { render } from "@updf/core";
 import { lower } from "@updf/core/vdom";
 
-const dimensions = [code39("SHIP-123"), qrCode("https://example.com")];
+const dimensions = [code39("SHIP-123"), qrCode("https://example.com", { errorCorrection: "H" })];
 export const output = render(
   lower(
     <document version={1}>
       <page width={500} height={400}>
         <Code39 value="SHIP-123" x={10} y={10} maxWidth={dimensions[0]!.width} />
-        <QRCode value="https://example.com" x={10} y={100} maxWidth={dimensions[1]!.width} />
+        <QRCode value="https://example.com" x={10} y={100} errorCorrection="H" maxWidth={dimensions[1]!.width} />
       </page>
     </document>,
   ),

@@ -34,7 +34,8 @@ export async function barcodeProfile(name: keyof typeof profiles) {
     ),
   );
   assert.ok(!modules.some((path) => /packages\/[^/]+\/src\/|\/dist\/(?:cjs|node)\//u.test(path)));
-  const qr = modules.some((path) => /node_modules\/qrcode-generator\//u.test(path));
+  assert.ok(!modules.some((path) => /node_modules\/qrcode-generator\//u.test(path)));
+  const qr = modules.some((path) => /packages\/barcodes\/dist\/qr-encoder\//u.test(path));
   assert.equal(qr, name.startsWith("qr"));
   if (name === "core") assert.ok(!modules.some((path) => /packages\/barcodes\//u.test(path)));
   return { name, raw: output.contents.length, gzip: gzipSync(output.contents).length, modules, code: output.text };

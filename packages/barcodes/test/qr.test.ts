@@ -36,3 +36,28 @@ test("QR rejects Unicode/control text, over-budget input, malformed options and 
     DocumentError,
   );
 });
+
+test("QR correction H is explicit, bounded and never silently downgraded", () => {
+  const high = qrCode("x".repeat(119), { errorCorrection: "H" });
+  assert.equal(high.width, 130);
+  assert.ok(qrCode("x".repeat(119)).width < high.width);
+  assert.throws(
+    () => qrCode("x".repeat(120), { errorCorrection: "H" }),
+    (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === "LIMIT",
+  );
+  for (const errorCorrection of ["L", "Q", "h", undefined, 42])
+    assert.throws(() => qrCode("A", { errorCorrection } as never), DocumentError);
+  assert.throws(
+    () =>
+      qrCode(
+        "A",
+        Object.defineProperty({}, "errorCorrection", {
+          enumerable: true,
+          get() {
+            throw new Error("getter ran");
+          },
+        }),
+      ),
+    DocumentError,
+  );
+});

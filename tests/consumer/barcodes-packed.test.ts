@@ -8,9 +8,7 @@ import { typeConsumer } from "../../scripts/consumer/types.js";
 
 async function install(directory: string, destination: string): Promise<void> {
   const tarballs = await Promise.all(
-    ["packages/layout-boxes", "packages/core", "packages/barcodes", "node_modules/qrcode-generator"].map((source) =>
-      pack(source, destination),
-    ),
+    ["packages/layout-boxes", "packages/core", "packages/barcodes"].map((source) => pack(source, destination)),
   );
   await mkdir(directory);
   await writeFile(join(directory, "package.json"), '{"private":true,"type":"module"}\n');
@@ -35,7 +33,15 @@ test("Barcode tarballs install offline and expose portable shared ESM/CommonJS T
   try {
     const directory = join(destination, "consumer");
     await install(directory, destination);
-    await absent(directory, ["@updf/svg", "@updf/layout", "@updf/fonts", "@zxing/library", "jsqr", "react"]);
+    await absent(directory, [
+      "@updf/svg",
+      "@updf/layout",
+      "@updf/fonts",
+      "@zxing/library",
+      "jsqr",
+      "qrcode-generator",
+      "react",
+    ]);
     await typeConsumer(directory, ["barcodes-template.tsx"]);
     await typeConsumer(directory, ["barcodes-template.tsx"], true);
     const result = await execute(
@@ -48,6 +54,7 @@ test("Barcode tarballs install offline and expose portable shared ESM/CommonJS T
       assert.equal(require('@updf/barcodes/qr').QRCode, QRCode);
       assert.deepEqual(require('@updf/barcodes/code39').code39('A'), code39('A'));
       assert.deepEqual(require('@updf/barcodes/qr').qrCode('A'), qrCode('A'));
+      assert.deepEqual(require('@updf/barcodes/qr').qrCode('A', {errorCorrection:'H'}), qrCode('A', {errorCorrection:'H'}));
       console.log('packed barcodes passed');
     `,
     );

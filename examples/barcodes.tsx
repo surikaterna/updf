@@ -13,7 +13,7 @@ export function barcodeExample(): Uint8Array {
           <Code39 value="SHIP-12345" x={36} y={36} moduleWidth={1} barHeight={48} maxWidth={408} />
           <Code39 value="CHECK-43" x={36} y={110} moduleWidth={1} barHeight={32} checksum="mod43" />
           <QRCode value="https://example.com/ship/12345" x={36} y={180} moduleSize={3} />
-          <QRCode value="UPDF optional QR" x={240} y={180} moduleSize={3} />
+          <QRCode value="UPDF optional QR" x={240} y={180} moduleSize={3} errorCorrection="H" />
         </page>
       </document>,
     ),

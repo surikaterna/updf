@@ -44,6 +44,7 @@ jobs:
         run: |
           npx --no-install tsx scripts/barcodes-demo.ts
           npx --no-install tsx scripts/barcodes-cost.ts
+          npx --no-install tsx scripts/qr-experiment/run.ts
           qpdf --check artifacts/barcodes/demo.pdf
           pdftoppm -png -r 144 -singlefile artifacts/barcodes/demo.pdf artifacts/barcodes/demo
       - name: Fresh browser fixture graphs

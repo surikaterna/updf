@@ -13,16 +13,12 @@ async function validateManifest(directory: URL, name: string): Promise<void> {
   assert.equal(manifest.license, "MIT");
   assert.equal(manifest.version, name === "legacy" ? "0.4.15" : "2.0.0-poc.0");
   for (const [dependency, version] of Object.entries(manifest.dependencies ?? {})) {
-    if (name === "barcodes" && dependency === "qrcode-generator") {
-      assert.equal(version, "2.0.4");
-      continue;
-    }
     assert.ok(dependency.startsWith("@updf/"));
     assert.equal(version, "2.0.0-poc.0");
   }
 }
 
-function packedNotices(tarball: string, fontello?: string, qr?: string): number {
+function packedNotices(tarball: string, fontello?: string): number {
   const paths = execFileSync("tar", ["-tzf", tarball], { encoding: "utf8" })
     .trimEnd()
     .split("\n")
@@ -47,13 +43,12 @@ function packedNotices(tarball: string, fontello?: string, qr?: string): number 
     `Asset/test leak: ${tarball}`,
   );
   const contents = new Map<string, string>();
-  for (const name of ["LICENSE", "LICENSE.svgpath", "LICENSE.qrcode-generator"]) {
+  for (const name of ["LICENSE", "LICENSE.svgpath"]) {
     if (paths.includes(name)) {
       contents.set(name, execFileSync("tar", ["-xOf", tarball, `package/${name}`], { encoding: "utf8" }));
     }
   }
   validatePackedNotices(contents, fontello);
-  if (qr) assert.equal(contents.get("LICENSE.qrcode-generator"), qr);
   return paths.length;
 }
 
@@ -65,15 +60,6 @@ assert.match(notice, /Copyright \(C\) 2013-2015 by Vitaly Puzrin/u);
 assert.equal(await readFile(new URL("packages/legacy/LICENSE.svgpath", root), "utf8"), notice);
 const ofl = await readFile(new URL("tests/fixtures/fonts/LICENSE", root), "utf8");
 assert.match(ofl, /SIL OPEN FONT LICENSE/u);
-const qrNotice = await readFile(new URL("packages/barcodes/LICENSE.qrcode-generator", root), "utf8");
-assert.equal(
-  qrNotice,
-  (await readFile(new URL("LICENSE", root), "utf8")).replace("2026 Surikat AB", "2009 Kazuhiko Arase"),
-);
-const qrManifest = JSON.parse(await readFile(new URL("node_modules/qrcode-generator/package.json", root), "utf8"));
-assert.equal(qrManifest.version, "2.0.4");
-assert.equal(qrManifest.license, "MIT");
-assert.deepEqual(qrManifest.dependencies ?? {}, {});
 const destination = await mkdtemp("/tmp/opencode/updf-license-packs-");
 const reports = [];
 try {
@@ -98,11 +84,7 @@ try {
     await validateManifest(directory, name);
     validateProjectLicense(await readFile(new URL("LICENSE", directory), "utf8"));
     const tarball = await pack(`packages/${name}`, destination);
-    const files = packedNotices(
-      tarball,
-      name === "geometry" || name === "legacy" ? notice : undefined,
-      name === "barcodes" ? qrNotice : undefined,
-    );
+    const files = packedNotices(tarball, name === "geometry" || name === "legacy" ? notice : undefined);
     reports.push({ package: name, files, projectLicense: true, fontAssets: false });
   }
 } finally {

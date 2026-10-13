@@ -7,7 +7,6 @@
   "files": [
     "dist",
     "LICENSE",
-    "LICENSE.qrcode-generator",
     "README.md"
   ],
   "exports": {
@@ -42,8 +41,7 @@
   },
   "dependencies": {
     "@updf/core": "2.0.0-poc.0",
-    "@updf/layout-boxes": "2.0.0-poc.0",
-    "qrcode-generator": "2.0.4"
+    "@updf/layout-boxes": "2.0.0-poc.0"
   },
   "scripts": {
     "build": "tsx ../../scripts/packaging/build.ts"

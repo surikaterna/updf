@@ -33,14 +33,23 @@ test("Code 39 actual PDFs decode independently, including full alphabet, max len
 });
 
 test("QR actual PDFs decode independently at multiple sizes and the payload boundary", async () => {
-  for (const [value, moduleSize, dpi] of [
-    ["https://example.com/ship/12345", 2, 144],
-    ["A", 0.25, 600],
-    ["x".repeat(192), 1, 300],
-    [String.fromCharCode(...Array.from({ length: 95 }, (_, i) => i + 32)), 2, 216],
+  for (const [value, moduleSize, dpi, errorCorrection] of [
+    ["https://example.com/ship/12345", 2, 144, "M"],
+    ["A", 0.25, 600, "M"],
+    ["x".repeat(192), 1, 300, "M"],
+    [String.fromCharCode(...Array.from({ length: 95 }, (_, i) => i + 32)), 2, 216, "M"],
+    ["x".repeat(119), 1, 300, "H"],
   ] as const) {
-    const measured = qrCode(value, { moduleSize });
-    const bytes = pdf(h(QRCode, { value, x: 10, y: 10, moduleSize }), measured.width + 20, measured.height + 20);
+    const measured = qrCode(value, { moduleSize, errorCorrection });
+    const bytes = pdf(
+      h(QRCode, { value, x: 10, y: 10, moduleSize, errorCorrection }),
+      measured.width + 20,
+      measured.height + 20,
+    );
+    assert.deepEqual(
+      bytes,
+      pdf(h(QRCode, { value, x: 10, y: 10, moduleSize, errorCorrection }), measured.width + 20, measured.height + 20),
+    );
     const raster = await rasterize(bytes, dpi);
     assert.equal(decode(raster, BarcodeFormat.QR_CODE), value);
     raster.pixels.fill(255);
@@ -75,4 +84,12 @@ test("Components paint opaque white quiet zones over existing artwork", async ()
     assert.equal(decode(raster, format), "A");
     assert.equal(raster.pixels[33 * raster.width + 33], 255);
   }
+});
+
+test("Barcode fit uses local derived-geometry tolerance without relaxing maxWidth input domains", () => {
+  const width = qrCode("A", { moduleSize: 0.3 }).width;
+  const draw = (maxWidth: number) => pdf(h(QRCode, { value: "A", x: 0, y: 0, moduleSize: 0.3, maxWidth }), 100, 100);
+  assert.ok(draw(width - width * Number.EPSILON).length > 0);
+  assert.throws(() => draw(width - width * Number.EPSILON * 8), DocumentError);
+  for (const invalid of [0, -1, NaN, Infinity, 1e6 + 1]) assert.throws(() => draw(invalid), DocumentError);
 });
