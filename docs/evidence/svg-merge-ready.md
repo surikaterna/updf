@@ -68,9 +68,9 @@ history-independent and verify dynamic red/blue XML/TSX geometry/PDF equivalence
 | Consumer | Minified bytes | Gzip bytes |
 | --- | ---: | ---: |
 | No SVG: core render | 35,558 | 12,272 |
-| XML prepare/place/render | 63,546 | 21,990 |
-| TSX prepare/place/render | 61,962 | 21,407 |
-| Both inputs | 67,348 | 23,083 |
+| XML prepare/place/render | 63,546 | 21,991 |
+| TSX prepare/place/render | 62,067 | 21,435 |
+| Both inputs | 67,453 | 23,116 |
 | SVG layout helper exports | 130,601 | 42,041 |
 
 The original XML compile-only operation remains +777 minified / +318 gzip bytes;
@@ -89,7 +89,7 @@ not additive module costs or approved #32 regression thresholds.
 | `npm run format:check` | pass |
 | `npm run lint` | pass, including size/function/depth gates |
 | `npm run typecheck` | pass, full workspace build and checks |
-| `npm test` | **1,167 pass**, zero failures/skips/cancellations |
+| `npm test` | **1,168 pass** after the Unicode follow-up, zero failures/skips/cancellations |
 | `npm run test:consumer` | **fourteen** clean external closures pass |
 | `npm run check:licenses` | **fifteen** tarballs pass |
 | `npm run build:browser && npm run check:graphs` | **twelve** emitted fixture graphs pass |
@@ -109,3 +109,22 @@ or new numerical epsilon. The additive source-certificate expectation is documen
 above; all historical math and executable protections remain checked. Packages
 remain private/unreleased and no Changesets setup is present. Hosted CI must pass
 on the delivered head before the PR can be considered merge-ready.
+
+## Structured Unicode review follow-up
+
+The outstanding Copilot scalar-validation finding was reproduced against the
+previous build with
+`npx tsx --test --test-name-pattern='unpaired UTF-16' packages/svg/test/authoring.test.ts`
+(missing expected rejection). Structured names, attribute names/values and text
+now reject lone high/low surrogates before charging that character's UTF-8 budget,
+with SVG_GEOMETRY and no fabricated XML span. Valid scalar pairs still count as four
+UTF-8 bytes and prepare successfully. The original aggregate UTF-8 budget tests
+remain intact.
+
+Fresh format/lint/typecheck and all 1,168 root tests pass after the change. The
+browser/showcase/consumer/license results above were run on the preceding integration
+revision a304983, whose numerical and valid-input rendering code is unchanged by
+this follow-up; final-head CI reruns those gates. Consumer costs in the table above
+were refreshed by the root suite. The no-layout type matrix does not include the
+layout fixture: only the explicit peer-present test does, as shown by the existing
+fourteen-closure packed-consumer proof.

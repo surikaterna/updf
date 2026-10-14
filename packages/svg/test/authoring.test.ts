@@ -35,6 +35,28 @@ function rejects(node: unknown): void {
     },
   );
 }
+test("structured names, attributes and text reject unpaired UTF-16 while preserving valid scalar pairs", () => {
+  for (const value of ["\ud800", "\udc00", "x\ud800y", "\udc00\ud800"]) {
+    for (const node of [
+      structured(jsx("title", { children: value })),
+      structured(null, { style: value }),
+      structured(null, { [`x${value}`]: "1" }),
+      jsx(value, { viewBox: "0 0 1 1" }),
+    ]) {
+      assert.throws(
+        () => prepareSVGTree(node),
+        (error: unknown) => {
+          assert.ok(error instanceof SVGError);
+          assert.equal(error.diagnostics[0]?.code, "SVG_GEOMETRY");
+          assert.equal(error.diagnostics[0]?.span, undefined);
+          assert.match(error.message, /Unpaired UTF-16 surrogate/u);
+          return true;
+        },
+      );
+    }
+  }
+  assert.equal(prepareSVGTree(structured(jsx("title", { children: "A😀B" }))).diagnostics.length, 0);
+});
 test("separate SVG/core TSX modules produce XML-identical native data and PDF bytes", () => {
   assert.deepEqual(compilePreparedSVG(graphic, target).node, compileSVG(source, target).node);
   const node = compileSVG(source, target).node;

@@ -12,13 +12,12 @@ function payload(value: string, path: string, budget: Budget): string {
   for (let i = 0; i < value.length; i++) {
     const code = value.charCodeAt(i);
     let bytes = code < 0x80 ? 1 : code < 0x800 ? 2 : 3;
-    if (code >= 0xd800 && code <= 0xdbff && i + 1 < value.length) {
+    if (code >= 0xd800 && code <= 0xdbff) {
       const next = value.charCodeAt(i + 1);
-      if (next >= 0xdc00 && next <= 0xdfff) {
-        bytes = 4;
-        i++;
-      }
-    }
+      if (!(next >= 0xdc00 && next <= 0xdfff)) svgFail("SVG_GEOMETRY", path, "Unpaired UTF-16 surrogate");
+      bytes = 4;
+      i++;
+    } else if (code >= 0xdc00 && code <= 0xdfff) svgFail("SVG_GEOMETRY", path, "Unpaired UTF-16 surrogate");
     budget.bytes += bytes;
     if (budget.bytes > 1024 * 1024) svgFail("LIMIT", path, "SVG structured payload exceeds 1 MiB UTF-8");
   }

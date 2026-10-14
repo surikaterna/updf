@@ -201,14 +201,14 @@ for red and blue; neither input is a static precompiled-document shortcut.
 | Profile | Minified JS bytes | Gzip bytes | Parsed / retained modules |
 | --- | ---: | ---: | ---: |
 | No SVG: core render | 35,558 | 12,272 | 49 / 46 |
-| XML only: prepare/place/render | 63,546 | 21,990 | 103 / 71 |
-| TSX only: prepare/place/render | 61,962 | 21,407 | 101 / 71 |
-| Both authoring inputs | 67,348 | 23,083 | 105 / 75 |
+| XML only: prepare/place/render | 63,546 | 21,991 | 103 / 71 |
+| TSX only: prepare/place/render | 62,067 | 21,435 | 101 / 71 |
+| Both authoring inputs | 67,453 | 23,116 | 105 / 75 |
 | Layout helpers export closure, no frontend | 130,601 | 42,041 | 219 / 126 |
 
 TSX avoids XML scanning, not SVG geometry's numeric/path parsing. XML scanner/lexer
 contribute 4,920 retained source-module bytes; structured preparation/runtime
-contribute 3,311. Shared `comments.ts` is CSS comment processing, not XML scanning.
+contribute 3,416, including unpaired-surrogate rejection. Shared `comments.ts` is CSS comment processing, not XML scanning.
 The combined profile retains one compiler and one prepared registry. The tests
 report each retained module's bytes and enforce live negative controls: deliberately
 exporting the XML compiler from the TSX entry must fail the parser-free guard.
