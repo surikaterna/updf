@@ -78,7 +78,7 @@ test("quoted CSS stroke none is narrowly discarded with observable source warnin
   const result = compileSVG(quotedNoneSVG, target);
   assert.equal(result.diagnostics.length, 1);
   const warning = result.diagnostics[0];
-  assert.ok(warning);
+  assert.ok(warning?.span);
   assert.equal(warning.severity, "warning");
   assert.ok(quotedNoneSVG.slice(warning.span.start, warning.span.end).includes("stroke:'none'"));
   assert.deepEqual(paths(result.node)[0]?.paint?.stroke, [0, 0, 1]);

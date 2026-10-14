@@ -11,7 +11,13 @@ export const coreTypes = [
   "runtime-template.ts",
   "measurement-template.tsx",
 ];
-export const allTypes = [...coreTypes, "painting-template.tsx", "svg-template.tsx"];
+export const allTypes = [
+  ...coreTypes,
+  "painting-template.tsx",
+  "svg-template.tsx",
+  "svg-graphic-template.tsx",
+  "svg-authoring-template.tsx",
+];
 
 export async function typeConsumer(
   directory: string,

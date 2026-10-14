@@ -5,7 +5,7 @@ import { declarations, properties } from "./css.js";
 import { validateDeclaration } from "./declaration.js";
 import { mapped, svgFail } from "./error.js";
 import { length, numbers } from "./numbers.js";
-import type { ClassRule, Declaration, SVGDiagnostic, XMLElement } from "./types.js";
+import type { ClassRule, Declaration, SVGPreparationDiagnostic, XMLElement } from "./types.js";
 
 export type Style = Readonly<Record<string, string>>;
 export const defaults: Style = Object.freeze({
@@ -33,14 +33,19 @@ export function cascade(
   node: XMLElement,
   parent: Style,
   rules: readonly ClassRule[],
-  diagnostics: SVGDiagnostic[],
+  diagnostics: SVGPreparationDiagnostic[],
 ): Style {
   const result: Record<string, string> = { ...parent, display: "inline", opacity: "1" };
   const presentation: Declaration[] = [];
   for (const name of properties) {
     const attribute = node.attrs[name];
     if (attribute) {
-      const entry = { name, value: attribute.value, span: attribute.span, path: `${node.path}/@${name}` };
+      const entry = {
+        name,
+        value: attribute.value,
+        ...(attribute.span ? { span: attribute.span } : {}),
+        path: `${node.path}/@${name}`,
+      };
       validateDeclaration(entry);
       presentation.push(entry);
     }

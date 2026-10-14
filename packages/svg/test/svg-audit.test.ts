@@ -80,12 +80,12 @@ test("style concatenates logical normal/CDATA/comment pieces and maps entity-exp
   const source =
     '<svg width="100" height="100"><rect width="20" height="20" style="fill:&#114;ed; stroke:\'none\';"/></svg>';
   const warning = compileSVG(source, target).diagnostics[0];
-  assert.ok(warning);
+  assert.ok(warning?.span);
   assert.equal(source.slice(warning.span.start, warning.span.end).trim(), "stroke:'none'");
   const mixed =
     '<svg width="100" height="100"><style>.a{fill:<![CDATA[red; stroke:]]>\'none\';}</style><rect class="a" width="20" height="20"/></svg>';
   const other = compileSVG(mixed, target).diagnostics[0];
-  assert.ok(other && mixed.slice(other.span.start, other.span.end).includes("stroke:"));
+  assert.ok(other?.span && mixed.slice(other.span.start, other.span.end).includes("stroke:"));
 });
 
 test("VDOM Svg remapping retains original source span and adds only conceptual tree path", () => {
