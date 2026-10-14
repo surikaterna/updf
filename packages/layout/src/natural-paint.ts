@@ -24,6 +24,8 @@ export function paintNatural(
       freshHeight: capacity,
       atFreshRegion: true,
       budget: budget.fork(),
+      nativePlacement: { axis: { start: y, end: y + capacity }, offset: 0 },
+      fitState: { nativeRefused: false },
     });
     if (!fragment || fragment.nextOffset !== block.extent)
       fail("LAYOUT_OVERSIZED", path, "Content cannot be measured as one natural fragment");

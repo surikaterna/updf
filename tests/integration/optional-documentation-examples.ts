@@ -1,6 +1,6 @@
 import type { PreparedFont } from "@updf/fonts";
 import { parseColor, parsePathData } from "@updf/geometry";
-import { resolveWidths } from "@updf/layout-kernel";
+import { resolveWidths } from "@updf/layout-boxes";
 import { compileSVG } from "@updf/svg";
 import { createSVGTree } from "@updf/svg/tree";
 

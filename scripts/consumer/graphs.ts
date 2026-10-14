@@ -55,8 +55,8 @@ export async function installedGraph(directory: string, entry: string, optional 
   if (entry.startsWith("@updf/core"))
     assert.ok(
       modules
-        .filter((path) => path.startsWith("@updf/layout-kernel/"))
-        .every((path) => path === "@updf/layout-kernel/dist/arithmetic.js"),
+        .filter((path) => path.startsWith("@updf/layout-boxes/"))
+        .every((path) => path === "@updf/layout-boxes/dist/arithmetic.js"),
       "Non-arithmetic kernel code leaked into core",
     );
   return modules;

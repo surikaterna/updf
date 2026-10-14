@@ -64,16 +64,20 @@ const destination = await mkdtemp("/tmp/opencode/updf-license-packs-");
 const reports = [];
 try {
   for (const name of [
+    "assets",
+    "barcodes",
     "core",
     "jpeg",
+    "png",
     "fonts",
     "text",
-    "layout-kernel",
+    "layout-boxes",
     "layout",
     "tables",
     "geometry",
     "svg",
     "fontkit",
+    "fontkite",
     "legacy",
   ]) {
     const directory = new URL(`packages/${name}/`, root);

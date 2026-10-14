@@ -15,6 +15,36 @@ const freightFiles =
   "examples/business: freight-invoice.tsx · freight-invoice-sections.tsx · freight-invoice-calculations.ts · freight-invoice-data.ts · freight-invoice-fonts.ts; scripts/freight-invoice-example.ts; apps/showcase/src/optional-freight-invoice.ts; tests/fixtures/fonts/FREIGHT.md";
 
 export const metadata: Record<DemoId, Metadata> = {
+  code39: entry(
+    "Code 39 vector barcode",
+    "Native TSX bars with explicit modules, quiet zones and optional Mod-43. Oversized symbols reject instead of shrinking.",
+    ["Code 39 · lazy", "Native TSX", "Vector PDF"],
+    "code39.tsx · barcode-controls.ts · barcode-page.tsx · text-options.ts · optional-code39.ts",
+  ),
+  qr: entry(
+    "QR code · local vector encoder",
+    "Printable ASCII QR with M/H correction. The payload is encoded locally, never fetched. No logo overlays or bitmap rendering.",
+    ["QR · lazy", "Local encoder", "M / H correction"],
+    "qr.tsx · barcode-controls.ts · barcode-page.tsx · text-options.ts · optional-qr.ts",
+  ),
+  "font-uri": entry(
+    "Load a font from a URI",
+    "Try a direct Google Fonts static TTF or another trusted font file. The initial preview uses bundled Liberation Sans; press Generate PDF to load the entered URI.",
+    ["Fontkite / Fontkit · lazy", "URI loading · opt-in", "Static TrueType"],
+    "font-uri.tsx · font-uri-controls.ts · font-uri-loader.ts · font-engine-fontkite.ts · font-engine-fontkit.ts · optional-font-uri.ts",
+  ),
+  jpeg: entry(
+    "JPEG image placement",
+    "Original color/grayscale JPEG samples: explicit sizing, reuse, reflection and clipping. Select PNG for transparency.",
+    ["JPEG · lazy", "Fixed page"],
+    "jpeg.ts · jpeg-controls.ts · optional-jpeg.ts; tests/fixtures/jpeg/README.md",
+  ),
+  png: entry(
+    "PNG images & transparency",
+    "Original color/grayscale alpha samples over white and blue: explicit sizing, reuse, reflection and clipping.",
+    ["PNG · lazy", "Alpha soft masks", "Fixed page"],
+    "png.ts · png-controls.ts · optional-png.ts; tests/fixtures/png/README.md",
+  ),
   text: entry(
     "Positioned text",
     "A minimal document with explicit coordinates and built-in Helvetica.",
@@ -107,7 +137,7 @@ export const metadata: Record<DemoId, Metadata> = {
   ),
   "freight-invoice-extended": entry(
     "Extended freight invoice",
-    "Eight mock charges exercise a longer freight document. Not for payment.",
+    "Eight mock charges in the original four-column design, with an intact summary on page two. Not for payment.",
     ["Fontkit · lazy", "Mock data"],
     freightFiles,
   ),

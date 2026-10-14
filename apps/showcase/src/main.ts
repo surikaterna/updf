@@ -1,9 +1,20 @@
 import { DocumentError } from "@updf/core";
+import { barcodeControls } from "./barcode-controls.js";
 import { blockControls } from "./block-controls.js";
 import { brandingControls, showBrandLogo } from "./branding-controls.js";
 import { demoId, generate } from "./demos.js";
 import { flowControls } from "./flow-controls.js";
+import {
+  cancelFontLoad,
+  fontLoadSignal,
+  type FontUriAction,
+  fontUriControls,
+  resetFontUri,
+} from "./font-uri-controls.js";
+import { freightControls, installFreightControls, showFreightControls } from "./freight-controls.js";
 import { mixedControls } from "./mixed-controls.js";
+import { jpegControls } from "./jpeg-controls.js";
+import { cancelPngLoad, pngControls, pngLoadSignal } from "./png-controls.js";
 import { richControls } from "./rich-controls.js";
 import { tableControls } from "./table-controls.js";
 import { commitSource, failed, pending, showMetadata, titleError, validateForm } from "./result-ui.js";
@@ -44,12 +55,14 @@ function clearOutput(): void {
 
 function invalidate(): number {
   clearTimeout(timer);
+  cancelFontLoad();
+  cancelPngLoad();
   generation += 1;
   renderer?.cancel();
   return generation;
 }
 
-function showDemo(): void {
+function showDemo(): Promise<boolean> {
   const id = demoId(selection.value);
   showMetadata(id);
   element("rich-controls", HTMLFieldSetElement).hidden = id !== "rich";
@@ -65,11 +78,35 @@ function showDemo(): void {
   element("branding-controls", HTMLFieldSetElement).hidden = id !== "branding";
   element("branding-controls", HTMLFieldSetElement).disabled = id !== "branding";
   if (id === "branding") showBrandLogo();
+  element("jpeg-controls", HTMLFieldSetElement).hidden = id !== "jpeg";
+  element("jpeg-controls", HTMLFieldSetElement).disabled = id !== "jpeg";
+  element("font-uri-controls", HTMLFieldSetElement).hidden = id !== "font-uri";
+  element("font-uri-controls", HTMLFieldSetElement).disabled = id !== "font-uri";
+  element("png-controls", HTMLFieldSetElement).hidden = id !== "png";
+  element("png-controls", HTMLFieldSetElement).disabled = id !== "png";
+  element("code39-controls", HTMLFieldSetElement).hidden = id !== "code39";
+  element("code39-controls", HTMLFieldSetElement).disabled = id !== "code39";
+  element("qr-controls", HTMLFieldSetElement).hidden = id !== "qr";
+  element("qr-controls", HTMLFieldSetElement).disabled = id !== "qr";
+  return showFreightControls(id);
 }
 
-function captureArguments(): Parameters<typeof generate> {
-  validateForm(form);
+async function refreshDemo(): Promise<void> {
+  const current = invalidate();
+  form.setAttribute("aria-busy", "true");
+  pending(!!blobUrl);
+  try {
+    if (await showDemo()) await renderExample();
+  } catch (error) {
+    if (current !== generation) return;
+    failed(readableError(error), !!blobUrl);
+    form.setAttribute("aria-busy", "false");
+  }
+}
+
+function captureArguments(action: FontUriAction): Parameters<typeof generate> {
   const id = demoId(selection.value);
+  validateForm(form, id === "font-uri" && action !== "submit" ? ["font-uri"] : []);
   return [
     id,
     title.value,
@@ -79,6 +116,13 @@ function captureArguments(): Parameters<typeof generate> {
     id === "blocks" ? blockControls(form) : undefined,
     id === "mixed" ? mixedControls(form) : undefined,
     id === "branding" ? brandingControls(form) : undefined,
+    freightControls(id),
+    id === "jpeg" ? jpegControls(form) : undefined,
+    id === "png" ? pngControls(form) : undefined,
+    id === "png" ? pngLoadSignal() : undefined,
+    id === "font-uri" ? fontUriControls(form, action) : undefined,
+    id === "font-uri" ? fontLoadSignal() : undefined,
+    id === "code39" || id === "qr" ? barcodeControls(form, id) : undefined,
   ];
 }
 
@@ -89,20 +133,24 @@ function readableError(error: unknown): string {
   return `Generation failed: ${error instanceof Error ? error.message : "Unknown error"}. Try a core example or reload.`;
 }
 
-async function renderExample(): Promise<void> {
+async function renderExample(action: FontUriAction = "active"): Promise<void> {
   if (disposed) return;
   const current = invalidate();
   form.setAttribute("aria-busy", "true");
   pending(!!blobUrl);
   output.hidden = false;
   try {
-    const args = captureArguments();
+    const args = captureArguments(action);
     const result = await generate(...args);
     if (current !== generation) return;
     await renderOutput(current, args, result);
   } catch (error) {
     if (current === generation) {
-      if (error instanceof DocumentError && error.diagnostics.some(({ code }) => code === "CHARACTER")) {
+      if (
+        !selection.value.startsWith("freight-invoice") &&
+        error instanceof DocumentError &&
+        error.diagnostics.some(({ code }) => code === "CHARACTER")
+      ) {
         titleError(readableError(error));
       }
       failed(readableError(error), !!blobUrl);
@@ -166,13 +214,14 @@ function scheduleUpdate(): void {
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
-  void renderExample();
+  void renderExample("submit");
 });
 selection.addEventListener("change", () => {
-  showDemo();
-  void renderExample();
+  void refreshDemo();
 });
 title.addEventListener("input", scheduleUpdate);
+element("font-uri-size", HTMLInputElement).addEventListener("input", scheduleUpdate);
+element("font-engine", HTMLSelectElement).addEventListener("change", () => void renderExample("engine"));
 for (const id of [
   "rich-controls",
   "flow-controls",
@@ -180,12 +229,18 @@ for (const id of [
   "block-controls",
   "mixed-controls",
   "branding-controls",
+  "freight-controls",
+  "jpeg-controls",
+  "png-controls",
+  "code39-controls",
+  "qr-controls",
 ]) {
   element(id, HTMLFieldSetElement).addEventListener("input", scheduleUpdate);
 }
 element("reset-demo", HTMLButtonElement).addEventListener("click", () => {
+  if (selection.value === "font-uri") resetFontUri();
   for (const field of Array.from(form.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input, select"))) {
-    if (field.closest("fieldset")?.disabled) continue;
+    if (field.matches(":disabled")) continue;
     if (field instanceof HTMLInputElement) {
       field.value = field.defaultValue;
       field.checked = field.defaultChecked;
@@ -194,8 +249,7 @@ element("reset-demo", HTMLButtonElement).addEventListener("click", () => {
       if (field.selectedIndex < 0) field.selectedIndex = 0;
     }
   }
-  showDemo();
-  void renderExample();
+  void refreshDemo();
 });
 window.addEventListener("pagehide", () => {
   disposed = true;
@@ -216,8 +270,8 @@ const resize = new ResizeObserver(() => {
   if (previous && !disposed) scheduleUpdate();
 });
 resize.observe(preview);
-showDemo();
-void renderExample();
+installFreightControls();
+void refreshDemo();
 
 for (const link of Array.from(document.querySelectorAll<HTMLAnchorElement>("[data-local]"))) {
   link.href = `${import.meta.env.BASE_URL}${link.dataset.local}`;

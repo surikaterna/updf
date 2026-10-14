@@ -1,5 +1,6 @@
 import { DocumentError } from "@updf/core/internal";
-import { exceeds, MetricSum, sum } from "./arithmetic.js";
+import { exceeds, MetricSum } from "./arithmetic.js";
+import { horizontal, HorizontalMeasure, horizontalWidth, joined } from "./horizontal.js";
 import { type WorkLedger, work } from "./ledger.js";
 import { type RunMetrics, richMetrics } from "./metrics.js";
 import type { ResolvedTextResources as ResolvedFonts } from "./text-resources.js";
@@ -69,22 +70,22 @@ export function advance(input: readonly Atom[]): number {
   return total.value;
 }
 function chunks(token: readonly Atom[], width: number, split: boolean): readonly (readonly Atom[])[] {
-  if (!exceeds(advance(token), width)) return [token];
+  if (!exceeds(horizontalWidth(horizontal(token)), width)) return [token];
   const path = token[0]?.path ?? "";
   if (!split || token[0]?.atomic) overflow(token[0], path, "A token exceeds rich text width");
   const result: Atom[][] = [];
   let current: Atom[] = [];
-  let currentAdvance = new MetricSum();
+  let currentMeasure = new HorizontalMeasure();
   for (const atom of token) {
-    const atomAdvance = atom.metrics.advance;
-    if (exceeds(atomAdvance, width)) overflow(atom, atom.path, "A Unicode scalar exceeds rich text width");
-    if (exceeds(sum([currentAdvance.value, atomAdvance]), width)) {
+    const extent = horizontal([atom]);
+    if (exceeds(horizontalWidth(extent), width)) overflow(atom, atom.path, "A Unicode scalar exceeds rich text width");
+    if (exceeds(horizontalWidth(joined(currentMeasure.extent, extent)), width)) {
       result.push(current);
       current = [];
-      currentAdvance = new MetricSum();
+      currentMeasure = new HorizontalMeasure();
     }
     current.push(atom);
-    currentAdvance.add(atomAdvance);
+    currentMeasure.add(atom.metrics);
   }
   if (current.length) result.push(current);
   return result;
@@ -102,7 +103,7 @@ function softWrap(
   const collapse = paragraph.whiteSpace === "collapse";
   const result: Atom[][] = [];
   let current: Atom[] = [];
-  let currentAdvance = new MetricSum();
+  let currentMeasure = new HorizontalMeasure();
   let pending: readonly Atom[] = [];
   for (const token of tokens(collapse ? collapsed(input) : input)) {
     if (collapse && token[0]?.text === " ") {
@@ -110,15 +111,16 @@ function softWrap(
       continue;
     }
     for (const chunk of chunks(token, width, paragraph.breakLongWords === "codePoint")) {
-      if (current.length && exceeds(sum([currentAdvance.value, advance(pending), advance(chunk)]), width)) {
+      const candidate = joined(joined(currentMeasure.extent, horizontal(pending)), horizontal(chunk));
+      if (current.length && exceeds(horizontalWidth(candidate), width)) {
         work(budget, 1, path);
         result.push(current);
         current = [];
-        currentAdvance = new MetricSum();
+        currentMeasure = new HorizontalMeasure();
         pending = [];
       }
-      if (current.length) append(current, pending, currentAdvance);
-      append(current, chunk, currentAdvance);
+      if (current.length) append(current, pending, currentMeasure);
+      append(current, chunk, currentMeasure);
       pending = [];
     }
   }
@@ -126,12 +128,12 @@ function softWrap(
   result.push(current);
   return result;
 }
-function append(target: Atom[], items: readonly Atom[], total: MetricSum): void {
+function append(target: Atom[], items: readonly Atom[], total: HorizontalMeasure): void {
   // Accumulate scalars in source order, not rounded token totals, so run/token
   // segmentation cannot change the compensated prefix used for fit checks.
   for (const item of items) {
     target.push(item);
-    total.add(item.metrics.advance);
+    total.add(item.metrics);
   }
 }
 export function wrap(

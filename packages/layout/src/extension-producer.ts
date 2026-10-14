@@ -1,3 +1,4 @@
+import type { NodeDefinition } from "@updf/core";
 import {
   array,
   exceeds,
@@ -23,6 +24,7 @@ import type { BlockFragmentRequest, Extensions, MeasureContext, MeasuredBlock } 
 import { resolveExtension } from "./extensions.js";
 import type { ExtensionMeasurement, LeafCache } from "./leaf-cache.js";
 import type { FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
+import { fitsFragment } from "./fragment-fit.js";
 import { edgeRegionNode } from "./shared-edge-emission.js";
 import { coordinateSharedEdges } from "./shared-edge-producer.js";
 import { ownEdgeRegion } from "./shared-edge-regions.js";
@@ -141,7 +143,18 @@ function checkedMeasured(
       extent,
       ...source,
       fragmentation,
-      fragment: (request) => checkedFragment(callback, request, extent, width, path, operation, origin, decorations),
+      fragment: (request) =>
+        checkedFragment(
+          callback,
+          request,
+          extent,
+          width,
+          path,
+          operation,
+          origin,
+          decorations,
+          fragmentation === "atomic" ? naturalSize.height : undefined,
+        ),
     },
     decorations,
     operation,
@@ -224,13 +237,16 @@ function checkedFragment(
   operation: LayoutOperation,
   origin: AdapterOrigin,
   decorations?: MeasuredBlock["decorations"],
+  atomicHeight?: number,
 ): PlacedFragment | undefined {
   const { offset, availableHeight, freshHeight, atFreshRegion } = request;
-  const input: BlockFragmentRequest = Object.freeze({ offset, availableHeight, freshHeight, atFreshRegion, width });
+  const input = fragmentInput({ offset, availableHeight, freshHeight, atFreshRegion }, request, width, atomicHeight);
   const output = adapterCall("fragment", path, () => callback(input), origin);
   record(output, ["status", "nextOffset", "height", "nodes", "decorations"], path);
   if (output.status === "defer") {
     record(output, ["status"], path);
+    if (atomicHeight !== undefined && !fitsFragment(request, atomicHeight) && request.fitState)
+      request.fitState.nativeRefused = true;
     return undefined;
   }
   if (output.status !== "placed") fail("TYPE", path, "Expected defer or placed fragment");
@@ -238,8 +254,12 @@ function checkedFragment(
     fail("TYPE", path, "Fragment decorations must match the measured owned reservation plan");
   const nextOffset = progress(output.nextOffset, offset, extent, path);
   const height = number(output.height, path);
-  if (exceeds(sum([request.usedHeight, height]), freshHeight))
+  if (exceeds(sum([request.usedHeight, height]), freshHeight, request.fitScale))
     fail("GEOMETRY", path, "Fragment exceeds available height");
+  if (atomicHeight !== undefined && !fitsFragment(request, height)) {
+    if (request.fitState) request.fitState.nativeRefused = true;
+    return undefined;
+  }
   reserveAncestors(request.reserve, request.budget, request.state, height);
   if (!Array.isArray(output.nodes)) fail("TYPE", path, "Expected native output array");
   if (output.nodes.length) request.budget?.charge([{ type: "paintGroup", children: output.nodes }], path);
@@ -247,6 +267,27 @@ function checkedFragment(
   preflight(output.nodes, operation.policy);
   if (output.nodes.length) operation.validateFixed(geometryNodes(output.nodes, operation), width, height, path);
   const nodes = snapshotEmissionData(output.nodes, path);
+  return paintedFragment(nodes, nextOffset, height, path, origin);
+}
+function fragmentInput(
+  input: Omit<BlockFragmentRequest, "width">,
+  request: FragmentRequest,
+  width: number,
+  atomicHeight?: number,
+): BlockFragmentRequest {
+  const availableHeight =
+    atomicHeight !== undefined && fitsFragment(request, atomicHeight)
+      ? Math.max(input.availableHeight, atomicHeight)
+      : input.availableHeight;
+  return Object.freeze({ ...input, availableHeight, width });
+}
+function paintedFragment(
+  nodes: readonly NodeDefinition[],
+  nextOffset: number,
+  height: number,
+  path: string,
+  origin: AdapterOrigin,
+): PlacedFragment {
   return {
     nextOffset,
     height,

@@ -127,7 +127,7 @@ test("selected-font advance widths and wrapping match independent Poppler bbox a
   );
 });
 
-test("actual selected glyph bounds control exact-fit multiline ascent/descent and overhang rejection", async () => {
+test("actual glyph bounds control exact-fit ascent/descent and reserve space for horizontal overhang", async () => {
   const font = await fixtureFont();
   const options = { resources: { Demo: font } };
   const bar = font.metadata.glyphs.find((item) => item.codePoint === 124);
@@ -135,7 +135,8 @@ test("actual selected glyph bounds control exact-fit multiline ascent/descent an
   const ink = ((bar.bounds[3] - bar.bounds[1]) / font.metadata.unitsPerEm) * 100;
   const node = fontText("|\n|", { paragraphs: [fontParagraph("|\n|", "Demo", 100, 100)], height: 200 });
   assert.ok(ink <= 100 && render(fontDocument([node]), options).length);
-  assert.throws(() => render(fontDocument([fontText("j")]), options), DocumentError);
+  assert.ok(render(fontDocument([fontText("j")]), options).length);
+  assert.throws(() => render(fontDocument([fontText("j", { width: 0.01 })]), options), DocumentError);
   const input = await fontInput();
   const tall = createPreparedFont({ ...input, glyphs: [{ ...bar, bounds: [0, -600, 100, 1800] }] });
   assert.throws(

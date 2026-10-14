@@ -35,10 +35,10 @@ An atomic row follows the paragraph. It moves as one unit, never splitting its c
     <h3>Source / accepted fragments (keyboard-selectable)</h3><div id="selection"></div>
     <h3>Result metadata</h3><pre id="metadata"></pre>
     <h3>Generated source JSON (read-only)</h3><pre id="source"></pre>
-    <h3>Public API usage (data, not JSX)</h3><pre>import { layoutBoxes } from "@updf/layout-kernel/boxes";
+    <h3>Public API usage (data, not JSX)</h3><pre>import { layoutBoxes } from "@updf/layout-boxes/boxes";
 const result = layoutBoxes({ root, view, width });
 // Optional only when finite pages are selected:
-const { createFragmentOperation } = await import("@updf/layout-kernel/fragmentation");
+const { createFragmentOperation } = await import("@updf/layout-boxes/fragmentation");
 const operation = createFragmentOperation(provider, limits);
 try { /* start(view), fragment(cursor, region); accepted prefix only */ }
 finally { operation.close(); }</pre>

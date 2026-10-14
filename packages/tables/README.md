@@ -4,7 +4,7 @@ Private, unreleased `2.0.0-poc.0`, MIT © 2026 Surikat AB. Composable atomic-row
 tables for the ordinary `@updf/core` JSX/runtime and `@updf/layout` block protocol.
 
 ```text
-@updf/tables → @updf/layout → @updf/core + @updf/text + @updf/layout-kernel
+@updf/tables → @updf/layout → @updf/core + @updf/text + @updf/layout-boxes
 ```
 
 No SVG, Fontkit, React, Node, private layout import or table-specific paginator.

@@ -2,7 +2,8 @@ import { array, fail, type LayoutOperation, validateDataObject as record, sum } 
 import { autoMarginInput, autoOrigin, checkAutoDataBody } from "./auto-margin.js";
 import { prepareLeaf } from "./blocks.js";
 import { columnBody } from "./column-content.js";
-import { columnInput, columnSizing } from "./column-sizing.js";
+import { columnAllocation, columnGeometry } from "./column-boxes.js";
+import { columnInput } from "./column-sizing.js";
 import { containerProducer } from "./container-producer.js";
 import { normalizeBlocks } from "./content-normalize.js";
 import { decorate } from "./decorated-producer.js";
@@ -14,7 +15,6 @@ import { type LeafCache, lifetimeLeafCache } from "./leaf-cache.js";
 import type { PreparedBlock } from "./protocol.js";
 import { compileRow } from "./row-compiler.js";
 import { type Sizing, sizing } from "./sizing.js";
-import { resolveWidths } from "./width-resolver.js";
 
 export interface CompilerScope {
   readonly operation: LayoutOperation;
@@ -108,7 +108,7 @@ function visitContainer(
   path: string,
   finish: (block: PreparedBlock) => void,
 ): void {
-  const { box, keepTogether, plan, reserved } = containerInput(value, width, path);
+  const { box, keepTogether, plan, reserved, allocation } = containerInput(value, width, path);
   array(value.children, state.scope.operation.policy.nodes, `${path}/children`);
   const children: PreparedBlock[] = [];
   state.tasks.push(() =>
@@ -121,6 +121,7 @@ function visitContainer(
           state.scope.unpaginated ? naturalCapacity(box, children) : Math.max(0, freshHeight - reserved),
           path,
           value.type === "block",
+          allocation ? columnGeometry(box, children, allocation, path) : undefined,
         ),
         plan,
         state.scope.operation,
@@ -147,19 +148,13 @@ function containerInput(value: Record<string, unknown>, width: number, path: str
     fail("TYPE", path, "Expected boolean keepTogether");
   const keepTogether = value.keepTogether === true;
   if ("style" in value && value.style === undefined) fail("TYPE", path, "Present style cannot be undefined");
-  const box =
-    value.type === "column"
-      ? columnSizing(
-          value,
-          resolveWidths({ availableWidth: width, tracks: [value.width ?? { weight: 1 }] }, path).widths[0] ?? 0,
-          path,
-        )
-      : sizing(value.style, width, `${path}/style`);
+  const allocated = value.type === "column" ? columnAllocation(value, width, path) : undefined;
+  const box = allocated?.box ?? sizing(value.style, width, `${path}/style`);
   if ("decorations" in value && !isDecorationPlan(value.decorations))
     fail("TYPE", path, "Expected owned decoration plan");
   const plan = value.decorations as DecorationPlan | undefined;
   const reserved = plan ? sum(plan.entries.map((entry) => entry.height)) : 0;
-  return { box, keepTogether, plan, reserved };
+  return { box, keepTogether, plan, reserved, allocation: allocated?.plan };
 }
 function naturalCapacity(box: Sizing, children: readonly PreparedBlock[]): number {
   const gapCount = Math.max(0, children.filter((child) => !child.control).length - 1);

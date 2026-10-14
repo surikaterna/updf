@@ -167,6 +167,15 @@ NodeNext/Bundler declarations without DOM/Node/React ambient types, separate SVG
 TSX modules, and canonical ESM/CJS prepared-handle/adapter identities in both loader
 orders. Core/layout/tables alone never import SVG.
 
+The integrated layout host uses the shared numerical package to reconcile metric
+fit with exact native placement before copying atomic adapter output. Certified
+fractional fits such as `[4.9, 0.1]` in 5 points now stay on one page, directly or
+inside containers. Explicit target sizes remain unchanged. A metric-only fit such
+as `[0.1, 0.2]` in a zero-origin 0.3-point body still defers when its native endpoint
+would exceed the page; no epsilon, resizing or clipping bypass is added. See the
+[numerical policy](architecture/numerical-policy.md) and
+[integration evidence](evidence/svg-merge-ready.md).
+
 ## Parser-free consumer proof
 
 Run `npm run build` and
@@ -195,7 +204,7 @@ for red and blue; neither input is a static precompiled-document shortcut.
 | XML only: prepare/place/render | 63,546 | 21,990 | 103 / 71 |
 | TSX only: prepare/place/render | 61,962 | 21,407 | 101 / 71 |
 | Both authoring inputs | 67,348 | 23,083 | 105 / 75 |
-| Layout helpers export closure, no frontend | 115,908 | 37,582 | 214 / 121 |
+| Layout helpers export closure, no frontend | 130,601 | 42,041 | 219 / 126 |
 
 TSX avoids XML scanning, not SVG geometry's numeric/path parsing. XML scanner/lexer
 contribute 4,920 retained source-module bytes; structured preparation/runtime
@@ -206,6 +215,12 @@ exporting the XML compiler from the TSX entry must fail the parser-free guard.
 The helper closure contains neither XML modules nor SVG JSX/structured frontend;
 its larger absolute size includes the existing layout protocol, not an extra SVG
 parser. A separate layout/tables-without-SVG control excludes SVG entirely.
+
+The layout row is refreshed against current develop plus the shared atomic-fit
+integration, not the older kernel snapshot. A layout/createExtensions consumer
+changes from 49,709 to 50,800 gzip bytes (+1,091) for the shared fit work even without
+SVG; core-only remains 12,272 bytes. Layout + XML + the SVG adapters measures 61,237
+gzip bytes. These are whole-bundle profiles, not additive module weights.
 
 The historical XML regression uses frozen SVG source from
 `21dcd483dcd84961a24f5823e95a586ea25dd534`, emitted to browser ESM in memory with the

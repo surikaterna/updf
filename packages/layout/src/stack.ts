@@ -3,6 +3,7 @@ import { alignedRequest } from "./auto-margin.js";
 import { bits, dyadic, floorDyadic, value } from "./binary64.js";
 import { offsetReservation, reserveAncestors } from "./container-reservation.js";
 import { certifyGeneratedFragment, type GeneratedInterval, generatedIntervals } from "./generated-interval.js";
+import { parentFit } from "./fragment-fit.js";
 import type { FragmentCall, FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
 
 export interface StackEntry {
@@ -27,6 +28,18 @@ export interface StackSelection {
   readonly nextOffset: number;
   readonly height: number;
   readonly advance: boolean;
+  readonly nativeRefused?: boolean;
+}
+
+export function stackHeight(children: readonly PreparedBlock[], gap: number, blank = 0): number {
+  const height = new MetricSum();
+  let boxes = 0;
+  for (const child of children) {
+    if (!child.control && boxes++ > 0) height.add(gap);
+    height.add(child.naturalSize.height);
+  }
+  height.add(blank);
+  return height.value;
 }
 
 export function stack(
@@ -37,7 +50,6 @@ export function stack(
   path: string,
 ): Stack {
   const entries: StackEntry[] = [];
-  const height = new MetricSum();
   let extent = 0,
     boxes = 0;
   const append = (block: PreparedBlock | undefined, space?: StackEntry["space"]): void => {
@@ -51,16 +63,13 @@ export function stack(
   for (const child of children) {
     if (!child.control && boxes++ > 0 && gap) {
       append(undefined, { height: gap, capacity: capacity > 0 ? capacity : gap });
-      height.add(gap);
     }
     append(child);
-    height.add(child.naturalSize.height);
   }
   if (blank > 0 || !extent) {
     append(undefined, { height: blank, capacity: capacity > 0 ? capacity : Math.max(blank, 1) });
-    height.add(blank);
   }
-  return { entries, extent, height: height.value };
+  return { entries, extent, height: stackHeight(children, gap, blank) };
 }
 function locate(entries: readonly StackEntry[], offset: number): StackEntry {
   let low = 0,
@@ -101,44 +110,92 @@ export function* selectStackSteps(
     height = new MetricSum();
   const sequence = generatedIntervals();
   let offset = request.offset,
-    advance = false;
+    advance = false,
+    nativeRefused = false;
+  let nativeBottom: number | undefined;
   while (offset < stack.extent) {
     const entry = locate(stack.entries, offset);
     const prefix = height.value;
-    const local = {
-      ...request,
-      offset: offset - entry.start,
-      usedHeight: sum([request.usedHeight, height.value]),
-      availableHeight: request.availableHeight - height.value,
-      atFreshRegion: request.atFreshRegion && height.value === 0,
-      ...(request.budget ? { budget: request.budget.fork() } : {}),
-      ...(request.state ? { state: request.state.fork() } : {}),
-      ...(request.reserve ? { reserve: offsetReservation(request.reserve, prefix) } : {}),
-    };
+    const local = localRequest(request, offset - entry.start, prefix);
     const aligned = entry.block ? alignedRequest(entry.block, local) : { margin: 0, request: local };
     if (!aligned) break;
+    const selectedRequest = stackRequest(request, aligned.request, height, aligned.margin, nativeBottom);
     const fragment = entry.block?.control
       ? { nextOffset: 1, height: 0, advance: true, paint: () => [] }
       : entry.block
-        ? yield { block: entry.block, request: aligned.request }
+        ? yield { block: entry.block, request: selectedRequest }
         : space(entry, local);
-    if (!fragment) break;
+    if (!fragment) {
+      nativeRefused = local.fitState?.nativeRefused ?? false;
+      if (nativeRefused && request.fitState) request.fitState.nativeRefused = true;
+      break;
+    }
     if (local.budget) request.budget?.adopt(local.budget);
     if (local.state) request.state?.adopt(local.state);
     checkProgress(fragment, local.offset, entry.end - entry.start);
-    if (aligned.margin > 0) {
-      sequence.append(aligned.margin, "");
-      height.add(aligned.margin);
-    }
-    pieces.push(stackPiece(fragment, height.value, sequence));
-    height.add(fragment.height);
+    const native = selectedRequest.nativePlacement;
+    if (native) nativeBottom = native.axis.start + native.offset + fragment.height;
+    appendPiece(pieces, sequence, height, fragment, aligned.margin);
     offset = entry.start + fragment.nextOffset;
     if (fragment.advance) {
       advance = true;
       break;
     }
   }
-  return offset === request.offset ? undefined : { pieces, nextOffset: offset, height: height.value, advance };
+  return offset === request.offset
+    ? undefined
+    : { pieces, nextOffset: offset, height: height.value, advance, nativeRefused };
+}
+function appendPiece(
+  pieces: StackPiece[],
+  sequence: ReturnType<typeof generatedIntervals>,
+  height: MetricSum,
+  fragment: PlacedFragment,
+  margin: number,
+): void {
+  if (margin > 0) {
+    sequence.append(margin, "");
+    height.add(margin);
+  }
+  pieces.push(stackPiece(fragment, height.value, sequence));
+  height.add(fragment.height);
+}
+function localRequest(request: FragmentRequest, offset: number, prefix: number): FragmentRequest {
+  return {
+    ...request,
+    offset,
+    usedHeight: sum([request.usedHeight, prefix]),
+    availableHeight: request.availableHeight - prefix,
+    atFreshRegion: request.atFreshRegion && prefix === 0,
+    fitState: { nativeRefused: false },
+    ...(request.budget ? { budget: request.budget.fork() } : {}),
+    ...(request.state ? { state: request.state.fork() } : {}),
+    ...(request.reserve ? { reserve: offsetReservation(request.reserve, prefix) } : {}),
+  };
+}
+function stackRequest(
+  parent: FragmentRequest,
+  local: FragmentRequest,
+  height: MetricSum,
+  margin: number,
+  minimum?: number,
+): FragmentRequest {
+  const prefix = height.fork();
+  prefix.add(margin);
+  const native = parent.nativePlacement;
+  return {
+    ...local,
+    parentFit: parentFit(parent, 0, 0, undefined, prefix),
+    ...(native
+      ? {
+          nativePlacement: {
+            axis: native.axis,
+            offset: sum([native.offset, prefix.value]),
+            ...(minimum === undefined ? {} : { minimum }),
+          },
+        }
+      : {}),
+  };
 }
 function checkProgress(fragment: PlacedFragment, offset: number, extent: number): void {
   if (!Number.isSafeInteger(fragment.nextOffset) || fragment.nextOffset <= offset || fragment.nextOffset > extent)

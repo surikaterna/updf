@@ -22,7 +22,7 @@ function closure(chunks: readonly Chunk[], entry: Chunk, dynamic = false, seen =
   ];
 }
 
-test("production chunk graph keeps adapters optional; Fontkit belongs only to opt-in freight", async () => {
+test("production chunk graph keeps adapters optional; Fontkit belongs only to opt-in freight/font-URI demos", async () => {
   const directory = new URL("../../apps/showcase/dist/", import.meta.url);
   const chunks: Chunk[] = JSON.parse(await readFile(new URL("chunk-graph.json", directory), "utf8"));
   const entry = chunks.find((chunk) => chunk.isEntry && chunk.modules.some((name) => name.endsWith("/src/main.ts")));
@@ -57,25 +57,97 @@ test("production chunk graph keeps adapters optional; Fontkit belongs only to op
   const modules = chunks.flatMap((chunk) => chunk.modules);
   assert.ok(!modules.some((name) => /node:|external|\/react(?:-dom)?\//.test(name)));
   freightClosure(chunks, entry);
+  fontUriClosure(chunks, entry);
+  jpegClosure(chunks, entry);
+  pngClosure(chunks, entry);
+  barcodeClosures(chunks, entry);
   await notices(directory);
 });
+function barcodeClosures(chunks: readonly Chunk[], entry: Chunk): void {
+  const initial = closure(chunks, entry);
+  assert.ok(!initial.some((name) => /\/packages\/barcodes\//u.test(name)));
+  for (const id of ["code39", "qr"]) {
+    const optional = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith(`/src/optional-${id}.ts`)));
+    assert.ok(optional && entry.dynamicImports.includes(optional.fileName));
+    const modules = closure(chunks, optional);
+    assert.ok(modules.some((name) => name.endsWith(`/barcodes/dist/${id}.js`)));
+    assert.ok(!modules.some((name) => /\/packages\/(layout|tables|svg|geometry|fontkit|fontkite)\//u.test(name)));
+    if (id === "code39") assert.ok(!modules.some((name) => name.includes("/barcodes/dist/qr")));
+    if (id === "qr") assert.ok(modules.some((name) => name.includes("/barcodes/dist/qr-encoder/")));
+  }
+  assert.ok(!chunks.flatMap((chunk) => chunk.modules).some((name) => /qrcode-generator|@zxing|\/jsqr\//u.test(name)));
+}
+function jpegClosure(chunks: readonly Chunk[], entry: Chunk): void {
+  const optional = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-jpeg.ts")));
+  assert.ok(optional && entry.dynamicImports.includes(optional.fileName));
+  const modules = closure(chunks, optional);
+  assert.ok(modules.some((name) => /\/packages\/jpeg\//u.test(name)));
+  assert.ok(!modules.some((name) => /\/packages\/(layout|tables|geometry|svg|fontkit)\//u.test(name)));
+  assert.ok(!closure(chunks, entry).some((name) => /\/packages\/jpeg\//u.test(name)));
+  for (const chunk of chunks.filter((candidate) => entry.dynamicImports.includes(candidate.fileName))) {
+    if (chunk !== optional) assert.ok(!closure(chunks, chunk).some((name) => /\/packages\/jpeg\//u.test(name)));
+  }
+}
+function pngClosure(chunks: readonly Chunk[], entry: Chunk): void {
+  const optional = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-png.ts")));
+  assert.ok(optional && entry.dynamicImports.includes(optional.fileName));
+  const modules = closure(chunks, optional);
+  assert.ok(modules.some((name) => /\/packages\/png\//u.test(name)));
+  assert.ok(!modules.some((name) => /\/node_modules\/(?:fflate|pako|tiny-inflate)\//u.test(name)));
+  assert.ok(!modules.some((name) => /\/packages\/(jpeg|layout|tables|geometry|svg|fontkit)\//u.test(name)));
+  const png = /\/packages\/png\/|\/fflate\//u;
+  assert.ok(!closure(chunks, entry).some((name) => png.test(name)));
+  for (const chunk of chunks.filter((candidate) => entry.dynamicImports.includes(candidate.fileName))) {
+    if (chunk !== optional) assert.ok(!closure(chunks, chunk).some((name) => png.test(name)));
+  }
+  for (const chunk of chunks.filter((candidate) => candidate.isEntry && candidate !== entry))
+    assert.ok(!closure(chunks, chunk, true).some((name) => png.test(name)));
+}
 function freightClosure(chunks: readonly Chunk[], entry: Chunk): void {
   const freight = chunks.find((chunk) =>
     chunk.modules.some((name) => name.endsWith("/src/optional-freight-invoice.ts")),
   );
   assert.ok(freight && entry.dynamicImports.includes(freight.fileName));
   const parser = /\/fontkit\/|\/restructure\/|\/brotli\/|\/unicode-trie\//u;
-  const freightModules = new Set(closure(chunks, freight));
+  const fontUri = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-font-uri.ts")));
+  assert.ok(fontUri);
+  const freightModules = new Set([...closure(chunks, freight), ...closure(chunks, fontUri, true)]);
   for (const name of chunks.flatMap((chunk) => chunk.modules).filter((name) => parser.test(name)))
-    assert.ok(freightModules.has(name), `Parser outside freight ownership: ${name}`);
+    assert.ok(freightModules.has(name), `Parser outside opt-in font ownership: ${name}`);
   assert.ok(closure(chunks, freight).some((name) => /\/fontkit\/dist\/browser-module\.mjs$/u.test(name)));
   assert.ok(!closure(chunks, freight).some((name) => /\/packages\/(svg|geometry|tables)\//u.test(name)));
   assert.ok(!closure(chunks, entry).some((name) => parser.test(name)));
   for (const chunk of chunks.filter((candidate) => entry.dynamicImports.includes(candidate.fileName))) {
-    if (chunk !== freight) assert.ok(!closure(chunks, chunk).some((name) => parser.test(name)), chunk.fileName);
+    if (chunk !== freight && !chunk.modules.some((name) => name.endsWith("/src/optional-font-uri.ts")))
+      assert.ok(!closure(chunks, chunk).some((name) => parser.test(name)), chunk.fileName);
   }
   for (const chunk of chunks.filter((candidate) => candidate.isEntry && candidate !== entry))
     assert.ok(!closure(chunks, chunk, true).some((name) => parser.test(name)), chunk.fileName);
+}
+
+function fontUriClosure(chunks: readonly Chunk[], entry: Chunk): void {
+  const font = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-font-uri.ts")));
+  assert.ok(font && entry.dynamicImports.includes(font.fileName));
+  const modules = closure(chunks, font);
+  assert.ok(!modules.some((name) => /\/packages\/(?:fontkit|fontkite)\//u.test(name)));
+  for (const engine of ["fontkit", "fontkite"]) engineClosure(chunks, font, engine);
+  assert.ok(modules.some((name) => name.endsWith("/assets/dist/index.js")));
+  assert.ok(!modules.some((name) => /\/packages\/(?:jpeg|png|image|svg|geometry|tables)\//u.test(name)));
+  assert.ok(!closure(chunks, entry).some((name) => /\/packages\/(?:assets|fontkit|fontkite)\//u.test(name)));
+  for (const chunk of chunks.filter((candidate) => entry.dynamicImports.includes(candidate.fileName))) {
+    if (chunk !== font) assert.ok(!closure(chunks, chunk).some((name) => /\/packages\/assets\//u.test(name)));
+  }
+}
+
+function engineClosure(chunks: readonly Chunk[], font: Chunk, engine: string): void {
+  const selected = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith(`/src/font-engine-${engine}.ts`)));
+  assert.ok(selected && font.dynamicImports.includes(selected.fileName));
+  const modules = closure(chunks, selected);
+  assert.ok(modules.some((name) => name.endsWith(`/${engine}/dist/load.js`)));
+  const other = engine === "fontkite" ? "fontkit" : "fontkite";
+  assert.ok(!modules.some((name) => name.includes(`/packages/${other}/`)));
+  if (engine === "fontkite")
+    assert.ok(!modules.some((name) => /\/node_modules\/(?:fontkit|brotli|restructure|unicode-)/u.test(name)));
 }
 
 test("every installed package in the actual freight closure has byte-exact emitted notices", async () => {

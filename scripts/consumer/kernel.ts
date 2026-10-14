@@ -22,20 +22,20 @@ export async function kernelProof(directory: string): Promise<readonly string[]>
   await execute(
     directory,
     `import assert from 'node:assert/strict';
-     import {resolveWidths, LayoutInputError} from '@updf/layout-kernel';
+     import {resolveWidths, LayoutInputError} from '@updf/layout-boxes';
       ${ownPropertyRuntime}`,
   );
   await execute(
     directory,
-    `import assert from 'node:assert/strict'; import {LayoutInputError} from '@updf/layout-kernel'; ${boxPropertyRuntime}`,
+    `import assert from 'node:assert/strict'; import {LayoutInputError} from '@updf/layout-boxes'; ${boxPropertyRuntime}`,
   );
-  const graph = await installedGraph(directory, "@updf/layout-kernel");
-  const boxes = await installedGraph(directory, "@updf/layout-kernel/boxes");
-  const fragments = await installedGraph(directory, "@updf/layout-kernel/fragmentation");
-  assert.ok(fragments.every((path) => path.startsWith("@updf/layout-kernel/dist/")));
+  const graph = await installedGraph(directory, "@updf/layout-boxes");
+  const boxes = await installedGraph(directory, "@updf/layout-boxes/boxes");
+  const fragments = await installedGraph(directory, "@updf/layout-boxes/fragmentation");
+  assert.ok(fragments.every((path) => path.startsWith("@updf/layout-boxes/dist/")));
   assert.ok([...graph, ...boxes].every((path) => !path.includes("fragment")));
-  assert.ok(boxes.every((path) => path.startsWith("@updf/layout-kernel/dist/")));
-  assert.ok(graph.every((path) => path.startsWith("@updf/layout-kernel/dist/")));
+  assert.ok(boxes.every((path) => path.startsWith("@updf/layout-boxes/dist/")));
+  assert.ok(graph.every((path) => path.startsWith("@updf/layout-boxes/dist/")));
   return [...new Set([...graph, ...boxes, ...fragments])];
 }
 async function standaloneRuntime(directory: string): Promise<void> {
@@ -52,9 +52,9 @@ async function standaloneRuntime(directory: string): Promise<void> {
         throw Object.assign(new Error('Outside standalone consumer: ' + specifier), {code:'ERR_MODULE_NOT_FOUND'});
       return resolved;
     }});
-    const { LayoutInputError, resolveWidths } = await import('@updf/layout-kernel');
-    const { bits, dyadic } = await import('@updf/layout-kernel/numeric');
-     const { layoutBoxes, viewBox } = await import('@updf/layout-kernel/boxes');
+    const { LayoutInputError, resolveWidths } = await import('@updf/layout-boxes');
+    const { bits, dyadic } = await import('@updf/layout-boxes/numeric');
+     const { layoutBoxes, viewBox } = await import('@updf/layout-boxes/boxes');
      const prepared = {width:10,height:2,paddingTop:0,paddingBottom:0,paddingLeft:1,paddingRight:1,gap:1,alignItems:'start',childCount:2,childAt:i=>({width:i===0?3:4,height:1}),path:'/packed-row'};
      const placed = viewBox(prepared);
      assert.deepEqual(placed.children.map(c=>[c.left,c.width]),[[0,3],[4,4]]);
@@ -75,7 +75,7 @@ async function standaloneRuntime(directory: string): Promise<void> {
     for (const name of ['@updf/core','@updf/layout','react','fontkit'])
       await assert.rejects(import(name), {code:'ERR_MODULE_NOT_FOUND'});
     for (const name of ['src/width-input.js','internal','fonts','vdom'])
-      await assert.rejects(import('@updf/layout-kernel/' + name), {code:'ERR_PACKAGE_PATH_NOT_EXPORTED'});
+      await assert.rejects(import('@updf/layout-boxes/' + name), {code:'ERR_PACKAGE_PATH_NOT_EXPORTED'});
   `,
   );
 }

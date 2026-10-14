@@ -88,6 +88,7 @@ export interface MeasuredContent {
 /** Source-unit offset and point region capacity; offset is not a vertical point coordinate. */
 export interface BlockFragmentRequest {
   readonly offset: number;
+  /** Remaining capacity. For atomic blocks it may include the measured height when both metric and native fit are certified. */
   readonly availableHeight: number;
   readonly freshHeight: number;
   readonly atFreshRegion: boolean;

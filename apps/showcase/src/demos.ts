@@ -1,7 +1,12 @@
 import type { BlockControls } from "./blocks.js";
+import type { BarcodeControls } from "./barcode-controls.js";
+import type { FreightInvoiceData } from "../../../examples/business/freight-invoice-data.js";
 import type { BrandingControls } from "./branding-controls.js";
 import type { FlowControls } from "./flow.js";
 import type { MixedControls } from "./mixed.js";
+import type { JpegControls } from "./jpeg-controls.js";
+import type { FontUriControls } from "./font-uri-controls.js";
+import type { PngControls } from "./png-controls.js";
 import { paintingDemo } from "./painting.js";
 import paintingSource from "./painting.ts?raw";
 import type { RichControls } from "./rich.js";
@@ -22,6 +27,11 @@ export type DemoId =
   | keyof typeof demos
   | "svg"
   | "branding"
+  | "jpeg"
+  | "font-uri"
+  | "png"
+  | "code39"
+  | "qr"
   | "flow"
   | "tables"
   | "blocks"
@@ -44,6 +54,11 @@ export function demoId(value: string): DemoId {
     value === "painting" ||
     value === "svg" ||
     value === "branding" ||
+    value === "jpeg" ||
+    value === "font-uri" ||
+    value === "png" ||
+    value === "code39" ||
+    value === "qr" ||
     value === "rich" ||
     value === "flow" ||
     value === "blocks" ||
@@ -65,33 +80,27 @@ export async function generate(
   blocks?: BlockControls,
   mixed?: MixedControls,
   branding?: BrandingControls,
+  freight?: FreightInvoiceData,
+  jpeg?: JpegControls,
+  png?: PngControls,
+  pngSignal?: AbortSignal,
+  fontUri?: FontUriControls,
+  fontSignal?: AbortSignal,
+  barcode?: BarcodeControls,
 ): Promise<{ bytes: Uint8Array; source: string; summary?: string }> {
   if (title.length > 40) throw new Error("Title must be at most 40 characters");
   if (id === "branding") return brandingResult(title, branding);
-  if (isFreight(id)) return freightResult(title, id === "freight-invoice-extended");
+  if (id === "jpeg") return jpegResult(title, jpeg);
+  if (id === "font-uri") return fontUriResult(title, fontUri, fontSignal);
+  if (id === "png") return pngResult(title, png, pngSignal);
+  if (id === "code39" || id === "qr") return barcodeResult(id, title, barcode);
+  if (isFreight(id)) return freightResult(title, id, freight);
   if (id === "manifest" || id === "invoice") return id === "manifest" ? manifestResult(title) : invoiceResult(title);
   if (id === "template" || id === "mixed") return id === "template" ? templateResult(title) : mixedResult(title, mixed);
   if (id === "blocks") return blockResult(title, blocks);
   if (id === "rows" || id === "rows-overflow") return rowResult(title, id === "rows-overflow");
-  if (id === "tables") {
-    const { tableExample, source } = await import("./optional-tables.js");
-    const visual = tables?.cellPreset === "svg" ? (await import("./optional-table-svg.js")).tableVisual : undefined;
-    const { bytes, result } = tableExample(title, tables, visual);
-    return {
-      bytes,
-      source,
-      summary: `${result.pageCount} pages; ${result.consumedBodyRowCount} body rows; ${result.repeatedHeaderCount} repeated headers.`,
-    };
-  }
-  if (id === "flow") {
-    const { flowExample, source } = await import("./optional-flow.js");
-    const result = flowExample(title, flow);
-    return {
-      bytes: result.bytes,
-      source,
-      summary: `${result.result.pageCount} pages; ${result.authoredParagraphCount} authored paragraphs; ${result.result.placements.length} fragments.`,
-    };
-  }
+  if (id === "tables") return tableResult(title, tables);
+  if (id === "flow") return flowResult(title, flow);
   if (id === "rich") {
     const { richExample } = await import("./rich.js");
     const result = richExample(title, controls);
@@ -103,6 +112,44 @@ export async function generate(
   }
   if (id === "svg") return svgResult(title);
   return { bytes: demos[id].render(title), source: demos[id].source };
+}
+async function flowResult(title: string, controls?: FlowControls) {
+  const { flowExample, source } = await import("./optional-flow.js");
+  const result = flowExample(title, controls);
+  return {
+    bytes: result.bytes,
+    source,
+    summary: `${result.result.pageCount} pages; ${result.authoredParagraphCount} authored paragraphs; ${result.result.placements.length} fragments.`,
+  };
+}
+async function barcodeResult(id: "code39" | "qr", title: string, controls?: BarcodeControls) {
+  if (id === "code39") {
+    if (controls && controls.kind !== id) throw new Error("Mismatched barcode controls");
+    const { code39Demo, source } = await import("./optional-code39.js");
+    return { ...code39Demo(title, controls), source };
+  }
+  if (controls && controls.kind !== id) throw new Error("Mismatched barcode controls");
+  const { qrDemo, source } = await import("./optional-qr.js");
+  return { ...qrDemo(title, controls), source };
+}
+async function tableResult(title: string, controls?: TableControls) {
+  const { tableExample, source } = await import("./optional-tables.js");
+  const visual = controls?.cellPreset === "svg" ? (await import("./optional-table-svg.js")).tableVisual : undefined;
+  const { bytes, result } = tableExample(title, controls, visual);
+  return {
+    bytes,
+    source,
+    summary: `${result.pageCount} pages; ${result.consumedBodyRowCount} body rows; ${result.repeatedHeaderCount} repeated headers.`,
+  };
+}
+async function fontUriResult(title: string, controls?: FontUriControls, signal?: AbortSignal) {
+  const { fontUriDemo, source } = await import("./optional-font-uri.js");
+  const result = await fontUriDemo(title, controls, signal);
+  return {
+    bytes: result.bytes,
+    source,
+    summary: `${result.engine}; ${result.cached ? "reused prepared font" : `preparation ${result.preparationMs.toFixed(1)} ms`}; ${result.metadata.fontName}; ${result.metadata.fontBytes.toLocaleString()} font bytes; ${result.origin}. Static TrueType, no shaping or fallback. URI edits load only after Generate PDF.`,
+  };
 }
 async function templateResult(title: string) {
   const { templateDemo } = await import("./template.js");
@@ -120,6 +167,24 @@ async function brandingResult(title: string, controls?: BrandingControls) {
     summary: "Letter letterhead; original sample logo; vector SVG, no raster images.",
   };
 }
+async function jpegResult(title: string, controls?: JpegControls) {
+  const { jpegDemo, source } = await import("./optional-jpeg.js");
+  const { bytes, metadata } = await jpegDemo(title, controls);
+  return {
+    bytes,
+    source,
+    summary: `${metadata.pixelWidth} x ${metadata.pixelHeight} pixel ${metadata.components === 1 ? "grayscale" : "color"} JPEG; four placements reuse one compressed image. Explicit sizing, reflection and clipping. For transparency, select the PNG example.`,
+  };
+}
+async function pngResult(title: string, controls?: PngControls, signal?: AbortSignal) {
+  const { pngDemo, source } = await import("./optional-png.js");
+  const { bytes, metadata } = await pngDemo(title, controls, signal);
+  return {
+    bytes,
+    source,
+    summary: `${metadata.pixelWidth} x ${metadata.pixelHeight} pixel ${metadata.components === 1 ? "grayscale" : "color"} PNG with alpha; four placements reuse one image and soft mask. White/blue backgrounds, reflection and clipping.`,
+  };
+}
 async function invoiceResult(title: string) {
   const { invoiceExample, source } = await import("./optional-invoice.js");
   const { bytes, metadata } = invoiceExample(title);
@@ -129,9 +194,10 @@ async function invoiceResult(title: string) {
     summary: `${metadata.pageCount} A4 pages; ${metadata.itemCount} original mock line items; integer-cent application totals. NOT FOR PAYMENT.`,
   };
 }
-async function freightResult(title: string, extended: boolean) {
+async function freightResult(title: string, id: DemoId, data?: FreightInvoiceData) {
   const { freightExample, source } = await import("./optional-freight-invoice.js");
-  const { bytes, metadata } = await freightExample(title, extended ? "extended" : "original");
+  const preset = id === "freight-invoice-extended" ? "extended" : "original";
+  const { bytes, metadata } = await freightExample(title, preset, data);
   return {
     bytes,
     source,

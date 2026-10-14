@@ -1,30 +1,34 @@
 import assert from "node:assert/strict";
 
-export function freightGeometry(bbox: string, summaryTop = 617.8897637795277) {
-  assert.equal((bbox.match(/<page /gu) ?? []).length, 1);
-  assert.match(bbox, /width="595\.275591" height="841\.889764"/u);
-  const words = [
-    ...bbox.matchAll(/<word xMin="([^"]+)" yMin="([^"]+)" xMax="([^"]+)" yMax="([^"]+)">([^<]+)<\/word>/gu),
-  ].map((match) => ({
-    x: Number(match[1]),
-    y: Number(match[2]),
-    right: Number(match[3]),
-    bottom: Number(match[4]),
-    text: match[5],
-  }));
-  assert.ok(words.length > 180);
-  for (const word of words) {
-    assert.ok(word.x >= 12 && word.right <= 583.28 && word.y >= 12 && word.bottom <= 830, JSON.stringify(word));
-    assert.ok(word.bottom - word.y >= 10, "Readable font size");
+export function freightWords(bbox: string) {
+  return [...bbox.matchAll(/<word xMin="([^"]+)" yMin="([^"]+)" xMax="([^"]+)" yMax="([^"]+)">([^<]+)<\/word>/gu)].map(
+    (m) => ({ x: Number(m[1]), y: Number(m[2]), right: Number(m[3]), bottom: Number(m[4]), text: m[5] }),
+  );
+}
+export function freightPagesGeometry(bbox: string) {
+  const pages = [...bbox.matchAll(/<page [^>]*>([\s\S]*?)<\/page>/gu)].map((m) => freightWords(m[1]!));
+  assert.ok(pages.length > 0);
+  for (const words of pages) {
+    assert.ok(words.length > 30);
+    for (const word of words) {
+      assert.ok(word.x >= 12 && word.right <= 583.28 && word.y >= 12 && word.bottom <= 830, JSON.stringify(word));
+      assert.ok(word.bottom - word.y >= 10, "Readable font size");
+    }
+    noOverlaps(words);
   }
-  const band = (text: string, left: number, right: number, top: number, bottom: number) => {
+  return pages;
+}
+export function freightGeometry(bbox: string, summaryTop = 617.8897637795277) {
+  const pages = freightPagesGeometry(bbox);
+  assert.equal(pages.length, 1);
+  assert.match(bbox, /width="595\.275591" height="841\.889764"/u);
+  const words = pages[0]!;
+  assert.ok(words.length > 180);
+  const band = (text: string, left: number, right: number, top: number, bottom: number) =>
     assert.ok(
-      words.some(
-        (word) => word.text === text && word.x >= left && word.right <= right && word.y >= top && word.bottom <= bottom,
-      ),
+      words.some((w) => w.text === text && w.x >= left && w.right <= right && w.y >= top && w.bottom <= bottom),
       text,
     );
-  };
   band("Invoice", 450, 583, 12, 60);
   band("Copper", 12, 295, 150, 230);
   for (const [text, left, right] of [
@@ -39,20 +43,15 @@ export function freightGeometry(bbox: string, summaryTop = 617.8897637795277) {
   band("£317.73", 490, 583, summaryTop + 103, summaryTop + 143);
   band("billing@example.invalid", 12, 200, 806, 830);
   assert.ok(!words.some((word) => word.y > 410 && word.y < summaryTop), "Real elastic whitespace");
-  noOverlaps(words);
 }
-function noOverlaps(
-  words: readonly { x: number; y: number; right: number; bottom: number; text: string | undefined }[],
-) {
-  for (let i = 0; i < words.length; i++) {
-    const a = words[i]!;
-    for (const b of words.slice(i + 1)) {
+function noOverlaps(words: ReturnType<typeof freightWords>) {
+  for (const [index, a] of words.entries()) {
+    for (const b of words.slice(index + 1))
       assert.ok(
         Math.min(a.right, b.right) - Math.max(a.x, b.x) <= 0.1 ||
           Math.min(a.bottom, b.bottom) - Math.max(a.y, b.y) <= 0.1,
         `Overlap: ${a.text}/${b.text}`,
       );
-    }
   }
 }
 export function freightRaster(ppm: Buffer, summaryTop = 617.8897637795277) {
@@ -87,16 +86,10 @@ export function freightRaster(ppm: Buffer, summaryTop = 617.8897637795277) {
   assert.equal(ink(0, 0, 596, 10), 0);
   assert.equal(ink(0, 830, 596, 842), 0);
 }
-
 export function freightMultipageGeometry(bbox: string, summaryTop: number) {
-  const pages = [...bbox.matchAll(/<page [^>]*>([\s\S]*?)<\/page>/gu)].map((match) => match[1]!);
+  const pages = freightPagesGeometry(bbox);
   assert.equal(pages.length, 2);
-  for (const [index, page] of pages.entries()) {
-    const words = [
-      ...page.matchAll(/<word xMin="([^"]+)" yMin="([^"]+)" xMax="([^"]+)" yMax="([^"]+)">([^<]+)<\/word>/gu),
-    ].map((m) => ({ x: Number(m[1]), y: Number(m[2]), right: Number(m[3]), bottom: Number(m[4]), text: m[5] }));
-    noOverlaps(words);
-    assert.ok(words.every((w) => w.x >= 12 && w.right <= 583.28 && w.y >= 12 && w.bottom <= 830));
+  for (const [index, words] of pages.entries()) {
     assert.equal(words.filter((w) => w.text === "Total").length, index === 1 ? 3 : 0);
     if (index === 0) assert.ok(words.some((w) => w.text === "ORDER" && w.y > 500 && w.bottom < 546));
     else {

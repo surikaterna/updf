@@ -1,1 +1,1 @@
-export { exceeds, MetricSum, sum } from "@updf/layout-kernel/arithmetic";
+export { exceeds, MetricSum, sum } from "@updf/layout-boxes/arithmetic";

@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import { isBuiltin } from "node:module";
 import { join } from "node:path";
+import { packageEdge } from "./package-edges.js";
+export { packageEdge } from "./package-edges.js";
 
 export const internalImporters: Readonly<Record<string, readonly string[]>> = {
   "@updf/core/internal-drawing": [
@@ -12,6 +14,7 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/region-render.ts",
   ],
   "@updf/core/internal": [
+    "barcodes/src/checks.ts",
     "layout/src/index.ts",
     "layout/src/adapter-ownership.ts",
     "layout/src/adapter-content.ts",
@@ -55,13 +58,15 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/paragraph-fragments.ts",
     "layout/src/extensions.ts",
     "layout/src/extension-producer.ts",
+    "layout/src/fragment-fit.ts",
     "layout/src/block-compiler.ts",
     "layout/src/column-sizing.ts",
+    "layout/src/column-boxes.ts",
     "layout/src/row-compiler.ts",
     "layout/src/row-data.ts",
     "layout/src/row-vdom.ts",
     "layout/src/row-producer.ts",
-    "layout/src/row-placement.ts",
+    "layout/src/row-boxes.ts",
     "layout/src/container-data.ts",
     "layout/src/container-paint.ts",
     "layout/src/container-producer.ts",
@@ -108,8 +113,14 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "svg/src/viewport.ts",
     "fontkit/src/cmap.ts",
     "fontkit/src/index.ts",
+    "fontkit/src/load.ts",
     "fontkit/src/metadata.ts",
     "fontkit/src/sfnt.ts",
+    "fontkite/src/cmap.ts",
+    "fontkite/src/load.ts",
+    "fontkite/src/outline.ts",
+    "fontkite/src/reader.ts",
+    "fontkite/src/sfnt.ts",
     "fonts/src/checks.ts",
     "fonts/src/cids.ts",
     "fonts/src/prepare.ts",
@@ -170,41 +181,10 @@ export function portableGraph(modules: readonly string[], optional = false, reac
     assert.ok(!modules.some((id) => /fontkit|restructure|brotli|unicode-trie/iu.test(id)), "Optional parser leaked");
   if (!react) assert.ok(!modules.some((id) => /(?:^|\/)(?:react|react-dom)(?:\/|$)/u.test(id)), "React leaked");
 }
-export function packageEdge(owner: string, specifier: string): void {
-  if (owner === "jpeg")
-    assert.ok(
-      specifier.startsWith(".") || ["@updf/core", "@updf/core/resources", "@updf/core/pdf"].includes(specifier),
-      "JPEG must use public core data/resource/PDF surfaces only",
-    );
-  if (owner === "core")
-    assert.ok(
-      specifier === "@updf/layout-kernel/arithmetic" || specifier.startsWith("."),
-      "Core may depend only on kernel arithmetic, not fonts/text/boxes/layout/tables",
-    );
-  if (owner === "layout-kernel") assert.ok(specifier.startsWith("."), "Kernel must have zero runtime dependencies");
-  if (owner === "text")
-    assert.ok(
-      specifier.startsWith(".") || specifier.startsWith("@updf/core") || specifier === "@updf/layout-kernel/arithmetic",
-      "Text must depend only on core and kernel arithmetic",
-    );
-  if (owner === "fonts")
-    assert.ok(specifier.startsWith(".") || specifier.startsWith("@updf/core"), "Fonts must depend only on core");
-  if (owner === "layout")
-    assert.ok(
-      specifier.startsWith(".") || /^@updf\/(?:core|text|layout-kernel)(?:\/|$)/u.test(specifier),
-      "Layout must remain core/text/kernel-only, without a font implementation",
-    );
-  if (owner === "tables")
-    assert.ok(
-      specifier.startsWith(".") ||
-        ["@updf/core", "@updf/core/vdom", "@updf/core/jsx-runtime", "@updf/layout"].includes(specifier),
-      "Tables must use supported public layout/core surfaces only",
-    );
-}
 function sourceEdges(owner: string, text: string, path: string, root: string): void {
   for (const match of text.matchAll(/(?:from\s+|import\s*\()['"]([^'"]+)['"]/gu)) {
     if (match[1]) packageEdge(owner, match[1]);
-    if (owner === "core" && match[1] === "@updf/layout-kernel/arithmetic")
+    if (owner === "core" && match[1] === "@updf/layout-boxes/arithmetic")
       assert.equal(path.slice(join(root, "packages").length + 1), "core/src/measurement/arithmetic.ts");
   }
   for (const match of text.matchAll(/from ['"](@updf\/[^'"]+\/internal(?:-drawing)?)['"]/gu)) {
@@ -300,8 +280,10 @@ export async function checkSeams(root: string): Promise<void> {
     "Scanner",
   ]);
   for (const owner of [
+    "barcodes",
+    "assets",
     "core",
-    "layout-kernel",
+    "layout-boxes",
     "layout",
     "tables",
     "geometry",
@@ -309,7 +291,9 @@ export async function checkSeams(root: string): Promise<void> {
     "fonts",
     "text",
     "fontkit",
+    "fontkite",
     "jpeg",
+    "png",
   ]) {
     for (const path of await files(join(root, "packages", owner, "src"))) {
       const text = await readFile(path, "utf8");

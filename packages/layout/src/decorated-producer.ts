@@ -21,6 +21,7 @@ import {
 import type { ExtensionLifetime } from "./extension-producer.js";
 import type { Extensions } from "./extension-types.js";
 import type { FragmentState } from "./fragment-state.js";
+import { decorationFit, nestedPlacement } from "./fragment-fit.js";
 import type { FragmentCall, FragmentPaintContext, FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
 import { resolveFragment, resolvePaint } from "./protocol-runtime.js";
 
@@ -65,6 +66,13 @@ function* candidate(
       ...(budget ? { budget } : {}),
       ...(state ? { state } : {}),
       ...(request.reserve ? { reserve: offsetReservation(request.reserve, overhead) } : {}),
+      parentFit: decorationFit(
+        request,
+        entries.filter((entry) => entry.edge === "before").map((entry) => entry.height),
+        entries.filter((entry) => entry.edge === "after").map((entry) => entry.height),
+      ),
+      fitScale: Math.max(request.fitScale ?? 0, request.freshHeight, overhead),
+      nativePlacement: nestedPlacement(request.nativePlacement, reserved(entries, "before")),
     },
   };
   if (!fragment) return undefined;

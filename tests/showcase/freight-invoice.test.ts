@@ -49,7 +49,7 @@ test("followup46 opt-in freight: Node bytes, actual sources, one accessible page
     await app.close();
   }
 });
-test("freight extended: two complete desktop/mobile pages, Node parity, title and download lifecycle", async () => {
+test("freight extended: original two-page desktop/mobile invoice, Node parity, title and download lifecycle", async () => {
   const resources = await freightFonts();
   const app = await site();
   try {

@@ -21,7 +21,7 @@ qpdf --check artifacts/freight-invoice/updf-freight-invoice.pdf
 pdffonts artifacts/freight-invoice/updf-freight-invoice.pdf
 pdftotext -bbox artifacts/freight-invoice/updf-freight-invoice.pdf -
 pdftoppm -png -r 110 artifacts/freight-invoice/updf-freight-invoice.pdf artifacts/freight-invoice/preview
-npx tsx --test tests/integration/freight-invoice.test.ts tests/integration/freight-auto-margin.test.ts
+npx tsx --test tests/integration/freight-*.test.ts
 npm run build:showcase
 SHOWCASE_CHROMIUM=/usr/bin/chromium npm run test:showcase
 ```
@@ -42,14 +42,31 @@ description (maximum 40 characters, one line of input; long words wrap by code
 point). Identical inputs produce identical Node/browser/download bytes. PDF.js
 shows every page with accessible labels and actual A4 sizes, including at 320px widths.
 
-Composition uses only existing `Document`, `Flow`, `Row/Column`, `Block` and
-`Paragraph` APIs: A4 portrait, 12pt margins, 112pt reserved header, paired billing
-panels, four equal shipment tracks and a naturally measured financial summary. A weighted empty
-column (2) beside the summary (3) places it in the right 60%. The large gap is the
+The freight controls edit buyer/address lines, vehicle/goods lines, charge descriptions,
+net GBP amounts and VAT percentages. Add/remove buttons enforce 1–20 rows. Decimal
+strings become integer pence/basis points without floating-point currency multiplication.
+Credits are supported; editor amounts are bounded to ±9999.99 GBP and VAT to 0–100%.
+Buyer input is limited to 600 characters/8 nonempty lines; vehicle input to 400/6;
+charge descriptions to 200 characters. Inputs stay in memory, never uploaded or persisted.
+Changes regenerate the PDF after the existing debounce. Invalid input keeps the previous
+download, preview and source arguments together. Reset and switching presets restore
+the selected mock fixture. The source arguments show the complete captured invoice data.
+
+The original visual design from revision `904307b` is preserved: A4 portrait,
+12pt margins, 112pt reserved header with three equal columns, paired equal-width
+billing panels, and **route / vehicle / shipment / charges side by side** in four
+equal columns. The detailed net reconciliation and invoice total remain on the
+right, with terms and three payment-placeholder columns below. There is no
+full-width charge table or alternative redesigned preset.
+
+Composition uses the public `Document`, `Flow`, `Row/Column`, `Block` and `Paragraph`
+APIs backed by the shared box engine; the showcase does not import `layout-boxes`
+or manage staged measurement. Editable data uses this same original template.
+The large gap is the
 auto margin above the single terminal `<Block keepTogether style={{ marginTop: "auto" }}>`
-in `Flow.Body` (#53), not a spacer, manual XY, table layout or imported background.
+in `Flow.Body` (#53), not a spacer, manual XY or imported background.
 The summary moves intact to a fresh page when needed, then bottom-aligns in its
-current body. Only the 112pt header repeats, with final PageContext counts.
+current body. The 112pt document header repeats with final PageContext counts.
 There is no financial Flow.Footer, fixed summary height or one-page budget;
 existing bounded engine defaults remain unchanged. There is no repeat shipment UI.
 
@@ -58,12 +75,20 @@ from zero at ties. Net charges £16.35 at 0%, £218.40 at 20% and £32.75 at 20%
 yield taxes £0.00, £43.68 and £6.55: net **£267.50**, VAT **£50.23**, gross
 **£317.73**. This is demonstration policy, not legal/tax advice or engine formulas.
 The application accepts **1–20 charges**, a stable single-shipment demonstration
-bound, not an engine feature. Count-valid content still must fit atomically on a
-fresh body; excessively tall shipment/summary content fails clearly, without
-clipping, splitting or raising engine limits. Eight charges add real port handling,
+bound, not a guarantee that any 20 descriptions fit. The entire shipment panel and
+financial summary are each atomic: they move intact or fail if too tall for a fresh
+page. Shorten oversized inputs; the editor retains the previous PDF on errors.
+No clipping, charge-table pagination or engine-limit increases are used. Eight charges add mock port handling,
 deck securing, customs service (0%), cold storage and a signed return-crate credit.
 Expected net **£379.00**, VAT **£67.33**, gross **£446.33**. Charges appear once in
-the shipment and once in the net reconciliation, not duplicated shipment rows.
+the shipment and once in the net reconciliation, as in the original design.
+Regression fixtures exercise the original summary-only continuation page and long
+buyer/address/shipment text. The redesigned twenty-charge table preset was removed.
+Text wrapping and alignment reserve space for glyph side bearings. The vehicle
+paragraph "Goods: reusable exhibition display crates with refrigeration monitoring
+and protective handling" now renders, including its formerly rejected line-leading
+`w`. Width-sweep and PDF tests preserve the complete text and ink bounds; genuinely
+oversized tokens, glyphs or line heights still reject rather than clipping.
 
 Both real Liberation Sans faces are prepared with `@updf/fontkit` and passed to
 layout **and** rendering; bold is not synthesized. See
@@ -72,15 +97,15 @@ The parser is loaded only by the opt-in freight closure, never core, initial UI,
 other demos or Plasma. Browser assets carry the OFL notice, installed dependency
 licenses and upstream MIT declarations/metadata for distributions omitting a
 standalone license, plus the Brotli decoder's Apache notice. Integral 14pt text
-line heights, larger integral heading heights and 1pt rules avoid the known
-fractional reservation limitation without changing the engine.
+line heights and larger integral heading heights keep the example readable;
+rules are 1pt. Engine guards remain unchanged.
 
 Independent literals, qpdf, font embedding bytes, Poppler word bounds/no-overlap,
 raster fills/money borders/whitespace and realistic negative controls protect this
 example. Wrapped description and shipment text preserve the bottom anchor;
-overflow fails closed. See `docs/evidence/freight-auto-margin.md` for current
-migration gates and the actual sanitized before/after source; historical evidence
-remains in `docs/evidence/freight-invoice46.md`.
+oversized indivisible content fails closed. `docs/evidence/freight-auto-margin.md`
+and `docs/evidence/freight-invoice46.md` preserve historical implementation evidence;
+current regressions verify the restored original geometry and editable-data path.
 
 ## #46-A: invoice
 

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { textDemo } from "../../apps/showcase/src/text.js";
+import { metadata } from "../../apps/showcase/src/demo-metadata.js";
 import { pdf, rendered, screenshot, site, source } from "./helpers.js";
 
 test("desktop workspace pairs inputs with preview and discloses real source below", async () => {
@@ -18,7 +19,11 @@ test("desktop workspace pairs inputs with preview and discloses real source belo
     assert.ok(inputs.x + inputs.width < preview.x);
     assert.ok(code.y >= preview.y + preview.height);
     assert.equal(await page.locator("#example optgroup").count(), 4);
-    assert.equal(await page.locator("#example option").count(), 16);
+    assert.equal(await page.locator("#example option").count(), 21);
+    const ids = await page
+      .locator("#example option")
+      .evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value));
+    assert.deepEqual(ids.sort(), Object.keys(metadata).sort());
     await screenshot(page, "s6-desktop");
     await page.locator("#example-code summary").focus();
     await page.keyboard.press("Space");

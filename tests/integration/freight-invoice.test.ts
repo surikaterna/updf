@@ -11,6 +11,18 @@ import { freightFonts } from "../fixtures/fonts/freight-fonts.js";
 import { freightGeometry, freightMultipageGeometry, freightRaster } from "./freight-pdf-checks.js";
 import { eraseRegion } from "./manifest-pdf-checks.js";
 
+test("freight preset PDFs match the pre-redesign 904307b byte oracles", async () => {
+  const resources = await freightFonts();
+  // Captured before #71; changing the design must not silently update this compatibility oracle.
+  for (const [data, expected] of [
+    [mockFreightInvoice, "480d191ac1e0378aa0f210ba86fdc9b344df93ed92a053620b023240b55cc43b"],
+    [extendedFreightInvoice, "2b5e475c5bc30ec9a61ac85a06c2ee0657894c86a28f70a746e1df2d14afe819"],
+  ] as const) {
+    const { bytes } = freightInvoiceExample(resources, "Single mock freight passage", data);
+    assert.equal(createHash("sha256").update(bytes).digest("hex"), expected);
+  }
+});
+
 test("freight independent literal pence, signed per-charge half-up and unsafe range guards", () => {
   assert.deepEqual(calculateFreight(mockFreightInvoice.charges), {
     taxes: [0, 4368, 655],
@@ -151,7 +163,7 @@ test("freight real qpdf/fonts/Poppler bbox and raster, stable variants and reali
       );
   }
 });
-test("freight extended real charges naturally advance one intact summary, final headers and literal totals", async () => {
+test("freight extended charges preserve the original shipment and move the intact summary to page two", async () => {
   const example = freightInvoiceExample(await freightFonts(), undefined, extendedFreightInvoice);
   assert.equal(example.result.pageCount, 2);
   const [billing, shipment, summary] = example.result.placements;
@@ -202,7 +214,7 @@ function assertFreightText(text: string) {
     assert.ok(text.includes(value), value);
   assert.equal((text.match(/Invoice Total/gu) ?? []).length, 1);
 }
-test("freight summary measures variable labels and counts rather than reserving a financial footer", async () => {
+test("freight original summary measures its charge reconciliation rather than reserving a fixed footer", async () => {
   const resources = await freightFonts();
   const examples = [
     mockFreightInvoice,

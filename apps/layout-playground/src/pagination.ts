@@ -3,7 +3,7 @@ import {
   type FragmentPlacement,
   type FragmentProvider,
   type FragmentSource,
-} from "@updf/layout-kernel/fragmentation";
+} from "@updf/layout-boxes/fragmentation";
 import { PlaygroundError } from "./error.js";
 import type { Placement, Region, Snapshot, Unit } from "./snapshot.js";
 

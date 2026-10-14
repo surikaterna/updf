@@ -1,5 +1,5 @@
-import type { BoxLayout } from "@updf/layout-kernel/boxes";
-import type { FragmentCounts } from "@updf/layout-kernel/fragmentation";
+import type { BoxLayout } from "@updf/layout-boxes/boxes";
+import type { FragmentCounts } from "@updf/layout-boxes/fragmentation";
 import type { TextLineMeasurement } from "@updf/text";
 import type { SourceNode } from "./boxes.js";
 

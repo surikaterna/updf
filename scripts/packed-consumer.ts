@@ -36,7 +36,8 @@ const graphs: Record<string, readonly string[]> = {};
 try {
   const tarballs = new Map<string, string>();
   for (const name of [
-    "layout-kernel",
+    "assets",
+    "layout-boxes",
     "core",
     "jpeg",
     "fonts",
@@ -51,19 +52,19 @@ try {
     tarballs.set(name, await pack(`packages/${name}`, packs));
   tarballs.set("cmr", await pack("apps/cmr", packs));
   for (const names of [
-    ["layout-kernel"],
-    ["layout-kernel", "core"],
-    ["layout-kernel", "core", "jpeg"],
-    ["layout-kernel", "core", "jpeg", "fonts", "text"],
-    ["layout-kernel", "core", "text"],
-    ["layout-kernel", "core", "fonts", "text", "cmr"],
-    ["core", "layout-kernel", "fonts", "text", "layout"],
-    ["core", "layout-kernel", "fonts", "text", "layout", "tables"],
-    ["layout-kernel", "core", "geometry"],
-    ["layout-kernel", "core", "fonts", "text", "geometry", "svg", "cmr"],
-    ["layout-kernel", "core", "geometry", "svg"],
-    ["layout-kernel", "core", "geometry", "svg", "text", "layout", "tables"],
-    ["layout-kernel", "core", "fonts", "text", "fontkit"],
+    ["layout-boxes"],
+    ["layout-boxes", "core"],
+    ["layout-boxes", "core", "jpeg"],
+    ["layout-boxes", "core", "jpeg", "fonts", "text"],
+    ["layout-boxes", "core", "text"],
+    ["layout-boxes", "core", "fonts", "text", "cmr"],
+    ["core", "layout-boxes", "fonts", "text", "layout"],
+    ["core", "layout-boxes", "fonts", "text", "layout", "tables"],
+    ["layout-boxes", "core", "geometry"],
+    ["layout-boxes", "core", "fonts", "text", "geometry", "svg", "cmr"],
+    ["layout-boxes", "core", "geometry", "svg"],
+    ["layout-boxes", "core", "geometry", "svg", "text", "layout", "tables"],
+    ["layout-boxes", "core", "fonts", "text", "assets", "fontkit"],
     ["legacy"],
   ]) {
     const paths = names.map((name) => {
@@ -76,7 +77,7 @@ try {
     await absent(directory, ["fontkit", "react", "react-dom"]);
     await absent(
       directory,
-      ["layout-kernel", "jpeg", "fonts", "text", "layout", "tables", "geometry", "svg", "fontkit", "legacy"]
+      ["assets", "layout-boxes", "jpeg", "fonts", "text", "layout", "tables", "geometry", "svg", "fontkit", "legacy"]
         .filter((name) => !names.includes(name))
         .map((name) => `@updf/${name}`),
     );
@@ -98,7 +99,7 @@ try {
       await typeConsumer(directory, ["measurement-template.tsx", "fonts-template.ts"]);
       await typeConsumer(directory, ["measurement-template.tsx", "fonts-template.ts"], true);
     }
-    if (names.length === 1 && names.includes("layout-kernel")) graphs.kernel = await kernelProof(directory);
+    if (names.length === 1 && names.includes("layout-boxes")) graphs.kernel = await kernelProof(directory);
     if (names.includes("layout") && names.includes("fonts")) {
       await typeConsumer(directory, [
         "content-template.tsx",

@@ -2,10 +2,11 @@ import { exceeds, fail, sum } from "@updf/core/internal";
 import { derivedAxis } from "./axis.js";
 import { paintContainerSteps } from "./container-paint.js";
 import { containerReservation, reserveAncestors } from "./container-reservation.js";
+import { nestedPlacement, parentFit } from "./fragment-fit.js";
 import type { FragmentCall, FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
 import { resolveFragment, resolvePaint } from "./protocol-runtime.js";
 import { clamp, type Sizing } from "./sizing.js";
-import { type Stack, type StackSelection, selectStackSteps, stack } from "./stack.js";
+import { type Stack, type StackSelection, selectStackSteps, stack, stackHeight } from "./stack.js";
 
 function contentCapacity(box: Sizing, height: number, path: string): number {
   if (height <= box.vertical) return 0;
@@ -17,7 +18,7 @@ function* splittable(
   request: FragmentRequest,
   path: string,
 ): Generator<FragmentCall, PlacedFragment | undefined, PlacedFragment | undefined> {
-  if (exceeds(sum([request.usedHeight, box.vertical]), request.freshHeight)) return undefined;
+  if (exceeds(sum([request.usedHeight, box.vertical]), request.freshHeight, request.fitScale)) return undefined;
   const capacity = contentCapacity(box, request.freshHeight, path);
   const reserve = containerReservation(box, request, path);
   reserveAncestors(reserve, request.budget, request.state, 0);
@@ -28,6 +29,8 @@ function* splittable(
     width: box.contentWidth,
     reserve,
     definiteAlignment: false,
+    parentFit: parentFit(request, box.vertical),
+    nativePlacement: nestedPlacement(request.nativePlacement, box.inset.top),
   });
   if (!selected) return undefined;
   const height = sum([box.vertical, selected.height]);
@@ -51,7 +54,7 @@ function* atomic(
   path: string,
   alignment: PreparedBlock["contentAlignment"],
 ): Generator<FragmentCall, PlacedFragment | undefined, PlacedFragment | undefined> {
-  if (exceeds(sum([request.usedHeight, height]), request.freshHeight)) return undefined;
+  if (exceeds(sum([request.usedHeight, height]), request.freshHeight, request.fitScale)) return undefined;
   const reserve = containerReservation(box, request, path, { height, hidden });
   reserveAncestors(reserve, request.budget, request.state, 0);
   const selected = yield* selectStackSteps(content, {
@@ -65,7 +68,12 @@ function* atomic(
     reserve,
     definiteAlignment: alignment !== undefined,
     alignmentHeight: alignment?.height ?? 0,
+    parentFit: parentFit(request, 0, 0, height),
+    nativePlacement: hidden
+      ? undefined
+      : nestedPlacement(request.nativePlacement, box.inset.top, height - box.inset.bottom),
   });
+  if ((!selected || selected.nextOffset !== content.extent) && request.fitState?.nativeRefused) return undefined;
   if (!selected || selected.nextOffset !== content.extent || selected.advance)
     fail("TYPE", path, "Closed/kept blocks cannot contain page advance controls");
   if (hidden && height <= (box.borders.borderTop?.width ?? 0) + (box.borders.borderBottom?.width ?? 0))
@@ -89,6 +97,10 @@ function painted(
   };
   return fragment;
 }
+interface ResolvedContainerGeometry {
+  readonly bodyHeight: number;
+  readonly height: number;
+}
 function containerPlan(
   box: Sizing,
   children: readonly PreparedBlock[],
@@ -96,20 +108,23 @@ function containerPlan(
   freshHeight: number,
   path: string,
   blockRole = false,
+  resolved?: ResolvedContainerGeometry,
 ) {
-  const initial = stack(children, box.gap, 0, Math.max(1, freshHeight - box.vertical), path);
-  const natural = sum([initial.height, box.vertical]);
-  const height = clamp(box.style.height ?? natural, box.style.minHeight, box.style.maxHeight);
-  const clipped = height < natural;
+  const natural = sum([resolved?.bodyHeight ?? stackHeight(children, box.gap), box.vertical]);
+  const authoredHeight = clamp(box.style.height ?? natural, box.style.minHeight, box.style.maxHeight);
+  const height = resolved?.height ?? authoredHeight;
+  // Metric fit does not undo an authored hidden clamp or turn stretch into clipping.
+  const clipped = height < natural && (!resolved || (box.style.overflow === "hidden" && authoredHeight < natural));
+  const overflows = resolved ? exceeds(natural, height) : clipped;
   const aligned = children.some((child) => child.autoMargin);
   const containsAutoAlignment = children.some((child) => child.autoMargin || child.containsAutoAlignment);
   const definiteAlignment = blockRole && box.style.height !== undefined && aligned;
   const contentAlignment = definiteAlignment
     ? { height: height - box.vertical, capacity: contentCapacity(box, height, path) }
     : undefined;
-  if (clipped && (box.style.marginTop === "auto" || containsAutoAlignment))
+  if ((clipped || overflows) && (box.style.marginTop === "auto" || containsAutoAlignment))
     fail("VERTICAL_OVERFLOW", path, "Auto alignment cannot clip its child or explicit-height parent");
-  if (clipped && box.style.overflow !== "hidden")
+  if (overflows && box.style.overflow !== "hidden")
     fail("VERTICAL_OVERFLOW", path, "Natural children exceed the constrained border-box height");
   if (clipped && height <= (box.borders.borderTop?.width ?? 0) + (box.borders.borderBottom?.width ?? 0))
     fail("GEOMETRY", path, "Hidden content requires a positive padding-edge clip");
@@ -122,7 +137,7 @@ function containerPlan(
     contentCapacity(box, freshHeight, path),
     path,
   );
-  const whole = keepTogether || box.style.height !== undefined || clipped;
+  const whole = keepTogether || box.style.height !== undefined || clipped || overflows;
   const hidden =
     box.style.overflow === "hidden" &&
     (box.style.height !== undefined || box.style.maxHeight !== undefined) &&
@@ -136,6 +151,7 @@ export function containerProducer(
   freshHeight: number,
   path: string,
   blockRole = false,
+  resolved?: ResolvedContainerGeometry,
 ): PreparedBlock {
   const { content, height, whole, hidden, contentAlignment, containsAutoAlignment } = containerPlan(
     box,
@@ -144,6 +160,7 @@ export function containerProducer(
     freshHeight,
     path,
     blockRole,
+    resolved,
   );
   const prepared: PreparedBlock = {
     ...(contentAlignment ? { contentAlignment } : {}),

@@ -24,7 +24,7 @@ interface Box {
   readonly lines: readonly string[];
 }
 
-function raster(boxes: readonly Box[], width: number, height: number): string {
+export function raster(boxes: readonly Box[], width: number, height: number): string {
   const buffer = Array.from({ length: height }, () => Array<string>(width).fill(" "));
   const occupied = new Set<number>();
   for (const box of boxes) {
