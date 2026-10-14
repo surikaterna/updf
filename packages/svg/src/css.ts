@@ -3,7 +3,7 @@ import { comments } from "./comments.js";
 import { validateDeclaration } from "./declaration.js";
 import { svgFail } from "./error.js";
 import { range } from "./source.js";
-import type { ClassRule, Declaration, SVGDiagnostic } from "./types.js";
+import type { ClassRule, Declaration, SVGPreparationDiagnostic } from "./types.js";
 
 export const properties = Object.freeze([
   "fill",
@@ -22,7 +22,11 @@ export const properties = Object.freeze([
   "display",
 ]);
 
-function declaration(part: string, path: string, span: SourceSpan): { name: string; value: string } | undefined {
+function declaration(
+  part: string,
+  path: string,
+  span: SourceSpan | undefined,
+): { name: string; value: string } | undefined {
   const trimmed = part.trim();
   if (!trimmed) return undefined;
   // Find the delimiter once, then trim disjoint slices; whitespace never backtracks.
@@ -36,8 +40,8 @@ function declaration(part: string, path: string, span: SourceSpan): { name: stri
 export function declarations(
   input: string,
   path: string,
-  span: SourceSpan,
-  diagnostics: SVGDiagnostic[],
+  span: SourceSpan | undefined,
+  diagnostics: SVGPreparationDiagnostic[],
   offsets?: readonly number[],
 ): readonly Declaration[] {
   const result: Declaration[] = [];
@@ -56,7 +60,7 @@ export function declarations(
           code: "SVG_STYLE",
           severity: "warning",
           path,
-          span: Object.freeze(location),
+          ...(location ? { span: Object.freeze(location) } : {}),
           message:
             "Invalid quoted stroke:'none' declaration discarded (not normalized); inherited/presentation stroke remains",
         }),
@@ -70,7 +74,7 @@ export function declarations(
         "Group/element opacity other than1 is unsupported; use fill/stroke opacity",
         location,
       );
-    const entry = Object.freeze({ name, value, path, span: Object.freeze(location) });
+    const entry = Object.freeze({ name, value, path, ...(location ? { span: Object.freeze(location) } : {}) });
     validateDeclaration(entry);
     result.push(entry);
   }
@@ -80,8 +84,8 @@ export function declarations(
 export function stylesheet(
   input: string,
   path: string,
-  span: SourceSpan,
-  diagnostics: SVGDiagnostic[],
+  span: SourceSpan | undefined,
+  diagnostics: SVGPreparationDiagnostic[],
   state: { count: number },
   offsets?: readonly number[],
 ): readonly ClassRule[] {

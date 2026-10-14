@@ -8,6 +8,7 @@ import { dualProof } from "./consumer/dual.js";
 import { absent, execute, install, pack, root } from "./consumer/install.js";
 import { kernelProof } from "./consumer/kernel.js";
 import { jpegProof } from "./consumer/jpeg.js";
+import { svgPeerProof } from "./consumer/svg-layout.js";
 import { coreRuntime, fontkitRuntime, geometryRuntime, svgRuntime } from "./consumer/runtime.js";
 import { allTypes, coreTypes, typeConsumer } from "./consumer/types.js";
 import { smokeFixture } from "./migration/legacy-smoke-fixture.js";
@@ -61,6 +62,8 @@ try {
     ["core", "layout-boxes", "fonts", "text", "layout", "tables"],
     ["layout-boxes", "core", "geometry"],
     ["layout-boxes", "core", "fonts", "text", "geometry", "svg", "cmr"],
+    ["layout-boxes", "core", "geometry", "svg"],
+    ["layout-boxes", "core", "geometry", "svg", "text", "layout", "tables"],
     ["layout-boxes", "core", "fonts", "text", "assets", "fontkit"],
     ["legacy"],
   ]) {
@@ -74,7 +77,7 @@ try {
     await absent(directory, ["fontkit", "react", "react-dom"]);
     await absent(
       directory,
-      ["assets", "layout-boxes", "jpeg", "fonts", "text", "tables", "geometry", "svg", "fontkit", "legacy"]
+      ["assets", "layout-boxes", "jpeg", "fonts", "text", "layout", "tables", "geometry", "svg", "fontkit", "legacy"]
         .filter((name) => !names.includes(name))
         .map((name) => `@updf/${name}`),
     );
@@ -97,7 +100,7 @@ try {
       await typeConsumer(directory, ["measurement-template.tsx", "fonts-template.ts"], true);
     }
     if (names.length === 1 && names.includes("layout-boxes")) graphs.kernel = await kernelProof(directory);
-    if (names.includes("layout")) {
+    if (names.includes("layout") && names.includes("fonts")) {
       await typeConsumer(directory, [
         "content-template.tsx",
         "mixed-template.tsx",
@@ -150,7 +153,7 @@ try {
       await typeConsumer(directory, ["geometry-template.ts"]);
       await typeConsumer(directory, ["geometry-template.ts"], true);
     }
-    if (names.includes("tables")) {
+    if (names.includes("tables") && names.includes("fonts")) {
       await typeConsumer(directory, ["tables-template.tsx"]);
       await typeConsumer(directory, ["tables-template.tsx"], true);
       await typeConsumer(directory, ["composable-tables-template.tsx"]);
@@ -160,6 +163,7 @@ try {
       assert.ok(!graphs.composableTables.some((path) => /\/layout\/dist\/tables\//u.test(path)));
     }
     if (names.includes("svg")) {
+      await svgPeerProof(directory, names.includes("layout"));
       await execute(directory, svgRuntime);
       graphs.svg = await installedGraph(directory, "@updf/svg");
       graphs.tree = await installedGraph(directory, "@updf/svg/tree");
@@ -209,7 +213,7 @@ try {
   await mkdir(join(root, "artifacts"), { recursive: true });
   await writeFile(join(root, "artifacts/installed-graphs.json"), `${JSON.stringify(graphs, null, 2)}\n`);
   console.log(
-    "Twelve clean external tarball closures passed: kernel, drawing-only core, JPEG-only, mixed JPEG/fonts/text, host-metrics text, fonts/text/CMR, layout, tables, geometry, SVG, Fontkit absent/present, legacy; NodeNext/Bundler declarations without source aliases.",
+    "Fourteen clean external tarball closures passed, including SVG without optional layout and SVG/layout/tables; NodeNext/Bundler declarations without source aliases.",
   );
 } finally {
   for (const directory of directories) await rm(directory, { recursive: true, force: true });

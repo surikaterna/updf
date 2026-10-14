@@ -2,7 +2,7 @@ import { attributes, namespaces, tag } from "./attributes.js";
 import { stylesheet } from "./css.js";
 import { svgFail } from "./error.js";
 import { concatenate } from "./source.js";
-import type { ClassRule, SVGDiagnostic, XMLElement, XMLText } from "./types.js";
+import type { ClassRule, SVGPreparationDiagnostic, XMLElement, XMLText } from "./types.js";
 
 export interface Inspection {
   readonly names: ReadonlyMap<XMLElement, string>;
@@ -22,7 +22,7 @@ function visit(
   parent: Readonly<Record<string, string>>,
   names: Map<XMLElement, string>,
   rules: ClassRule[],
-  diagnostics: SVGDiagnostic[],
+  diagnostics: SVGPreparationDiagnostic[],
   budget: { count: number },
   root: boolean,
 ): void {
@@ -57,7 +57,7 @@ function visit(
     visit(child, scope, names, rules, diagnostics, budget, false);
   }
 }
-export function inspect(root: XMLElement, diagnostics: SVGDiagnostic[]): Inspection {
+export function inspect(root: XMLElement, diagnostics: SVGPreparationDiagnostic[]): Inspection {
   const names = new Map<XMLElement, string>();
   const rules: ClassRule[] = [];
   visit(root, {}, names, rules, diagnostics, { count: 0 }, true);

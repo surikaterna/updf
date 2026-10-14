@@ -62,7 +62,7 @@ function entityValue(entity: string, start: number, path: string): string {
     });
   return String.fromCodePoint(code);
 }
-export function entities(text: string, start: number, path: string, literal = false): SourceText {
+export function entities(text: string, start: number, path: string, literal = false): Required<SourceText> {
   const offsets: number[] = [];
   const pieces: string[] = [];
   let offset = 0;
