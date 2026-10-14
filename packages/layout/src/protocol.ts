@@ -3,9 +3,10 @@ import type { BoxPlacement } from "@updf/layout-boxes/boxes";
 import type { OutputBudget } from "./budget.js";
 import type { FragmentState } from "./fragment-state.js";
 import type { GeneratedInterval } from "./generated-interval.js";
+import type { FitFrame } from "./fragment-fit.js";
 
 /** Private producer seam. Public callback results are checked before reaching this seam. */
-export interface FragmentRequest {
+export interface FragmentRequest extends FitFrame {
   readonly offset: number;
   readonly availableHeight: number;
   readonly freshHeight: number;
@@ -17,6 +18,7 @@ export interface FragmentRequest {
   readonly budget?: OutputBudget;
   readonly state?: FragmentState;
   readonly reserve?: AncestorReservation;
+  readonly fitState?: { nativeRefused: boolean };
 }
 export interface AncestorReservation {
   readonly parent?: AncestorReservation;

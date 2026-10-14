@@ -1,6 +1,7 @@
 import type { NodeDefinition, PaintingGroupNode } from "@updf/core";
 import { commands } from "@updf/core/internal";
 import { multiply } from "@updf/core/painting";
+import type { Matrix } from "@updf/core/painting";
 import { mapped, svgFail } from "./error.js";
 import type { Inspection } from "./inspect.js";
 import { attribute } from "./numbers.js";
@@ -8,7 +9,15 @@ import { geometry } from "./shapes.js";
 import { cascade, defaults, resolved, type Style } from "./style.js";
 import { transform } from "./transform.js";
 import type { SVGDiagnostic, SVGTarget, XMLElement } from "./types.js";
-import { viewBox, viewport } from "./viewport.js";
+import { placeViewport, prepareViewport, type Viewport, viewBox, viewport } from "./viewport.js";
+
+export interface PreparedPainting {
+  readonly intrinsicWidth: number;
+  readonly intrinsicHeight: number;
+  readonly viewport: Viewport;
+  readonly transform: Matrix;
+  readonly children: readonly NodeDefinition[];
+}
 
 interface State {
   readonly inspection: Inspection;
@@ -21,7 +30,7 @@ function children(node: XMLElement, style: Style, hidden: boolean, state: State)
     node.children.flatMap((child) => (child.kind === "element" ? emit(child, style, hidden, state) : [])),
   );
 }
-function nestedViewport(node: XMLElement, content: readonly NodeDefinition[]): PaintingGroupNode {
+function nestedViewport(node: XMLElement, content: readonly NodeDefinition[], t: Matrix): PaintingGroupNode {
   const box = viewBox(node);
   const target = {
     x: attribute(node, "x"),
@@ -30,12 +39,6 @@ function nestedViewport(node: XMLElement, content: readonly NodeDefinition[]): P
     h: attribute(node, "height", box[3], true),
   };
   if (!target.w || !target.h) return Object.freeze({ type: "paintGroup", children: Object.freeze([]) });
-  const t = transform(
-    node.attrs.transform?.value,
-    `${node.path}/@transform`,
-    node.attrs.transform?.span ?? node.span,
-    node.attrs.transform?.offsets,
-  );
   const child = Object.freeze({
     type: "paintGroup",
     transform: viewport(node, target),
@@ -67,7 +70,7 @@ function emit(node: XMLElement, parent: Style, suppressed: boolean, state: State
       const content = children(node, style, hidden, state);
       return [
         name === "svg"
-          ? nestedViewport(node, content)
+          ? nestedViewport(node, content, matrix)
           : Object.freeze({ type: "paintGroup", transform: matrix, children: content }),
       ];
     }
@@ -82,13 +85,11 @@ function emit(node: XMLElement, parent: Style, suppressed: boolean, state: State
     mapped(error, node.path, node.span);
   }
 }
-export function compile(
+export function preparePainting(
   root: XMLElement,
-  target: SVGTarget,
   inspection: Inspection,
   diagnostics: SVGDiagnostic[],
-): PaintingGroupNode {
-  // Target clip is owned outside viewBox/root transforms, in caller viewport space.
+): PreparedPainting {
   const style = cascade(root, defaults, inspection.rules, diagnostics);
   for (const key of ["x", "y", "width", "height"])
     if (root.attrs[key]) attribute(root, key, 0, key === "width" || key === "height");
@@ -99,9 +100,19 @@ export function compile(
     root.attrs.transform?.span ?? root.span,
     root.attrs.transform?.offsets,
   );
+  const spec = prepareViewport(root);
+  return Object.freeze({
+    intrinsicWidth: attribute(root, "width", 0, true),
+    intrinsicHeight: attribute(root, "height", 0, true),
+    viewport: spec,
+    transform: sourceTransform,
+    children: children(root, style, style.display === "none", state),
+  });
+}
+export function placePainting(prepared: PreparedPainting, target: SVGTarget): PaintingGroupNode {
   // Outermost SVG uses its initial 50%/50% viewport transform-origin (unlike g).
   // Root transforms act outside viewBox scaling, but inside caller placement/clip.
-  const rootTransform = multiply(multiply([1, 0, 0, 1, target.w / 2, target.h / 2], sourceTransform), [
+  const rootTransform = multiply(multiply([1, 0, 0, 1, target.w / 2, target.h / 2], prepared.transform), [
     1,
     0,
     0,
@@ -109,11 +120,11 @@ export function compile(
     -target.w / 2,
     -target.h / 2,
   ]);
-  const matrix = multiply(rootTransform, viewport(root, target));
+  const matrix = multiply(rootTransform, placeViewport(prepared.viewport, target));
   const child = Object.freeze({
     type: "paintGroup",
     transform: matrix,
-    children: children(root, style, style.display === "none", state),
+    children: prepared.children,
   } satisfies PaintingGroupNode);
   return Object.freeze({
     type: "paintGroup",

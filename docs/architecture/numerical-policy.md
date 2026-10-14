@@ -58,6 +58,13 @@ units, provide exact mathematical sums, or guarantee geometry certification.
 Nonfinite arithmetic propagates. Do not substitute JSON long-double encodings or
 bit patches for these operations.
 
+`MetricSum.fork()` snapshots both the running total and its hidden compensation;
+`preview(value)` predicts the same result as `add(value)` without changing committed
+state. They support tentative selection and preserve the original recurrence. The
+historical source certificate still pins the original arithmetic and executable
+output, with only the two explicitly pinned additive methods admitted. Mutation
+controls cover both old formulas and the new snapshot behavior.
+
 The existing `exceeds(actual, bound, operationScale = 0)` is unchanged:
 
 ```text
@@ -122,20 +129,51 @@ Tolerance must not grant an extra terminal cell. Host projection does not create
 a global unit scale for the kernel.
 
 PDF native certificates, legacy conversions and existing source validation stay
-unchanged until an explicit mapped migration. This policy does not authorize
-loosening PDF certificate boundaries or modifying SVG/host behavior.
+exact. The mapped atomic-adapter integration below uses those certificates before
+painting; it does not loosen their boundaries or silently resize SVG geometry.
+
+### Atomic adapter selection and native placement
+
+The shared layout host carries private placement bounds and ancestor reservations
+through stacks, containers, Rows and decorations. For a measured atomic adapter,
+an underestimated subtraction-based `availableHeight` may be raised to its natural
+height only if the original metric relation and every captured native constraint
+pass. Returned heights are checked again before node copying. The public request
+still exposes only its existing five scalar fields, with exact width/progress
+identity; the private fit chain is not a caller-supplied provenance tag.
+
+The kernel's `fitsMaterialized` is a non-throwing exact counterpart to native
+endpoint checking, using the same `(start + offset) + extent` association. It
+returns false for invalid domains and does not mint a `DerivedAxis` capacity
+certificate. `materializedStart` still throws on failure; the final paint checks
+remain active. Selection may defer an unrepresentable atomic placement instead of
+discovering the contradiction after painting starts.
+
+Decoration subtraction records only the actual local subtraction operands as its
+operation scale. Ancestor metric/native constraints remain independently enforced;
+page coordinates and unrelated widths do not enlarge approximate allowances.
+Explicit hidden overflow remains an authored clip, not a new automatic fallback.
+
+Examples at a zero-origin body: `[4.9, 0.1]` fits 5 and `[1.2, 1.1]` fits 2.3
+without changing target heights. `[0.1, 0.2]` in 0.3 and three 10.3-height fixed
+targets in 30.9 remain two pages when the native endpoint cannot be certified.
+At a translated origin, the native association may be different; the actual
+certificate decides. Metric fit alone is never treated as permission to shrink,
+crop, overlap or extend the page. This is not a migration of all splittable-provider
+or low-level fixed-geometry contracts.
 
 ## Adoption status
 
 | Area | Current status |
 | --- | --- |
-| Metric arithmetic | Existing kernel implementation; text and core share/reexport it; unchanged in this change |
+| Metric arithmetic | Existing kernel recurrence and tolerance unchanged; additive fork/preview methods preserve compensation for tentative selection |
 | Public request occupied-height fit relation | Implemented in this change using unchanged `exceeds` default scale; operand domains remain exact |
 | Derived geometry containment | Policy for future bounded changes, not a region-engine implementation in this change |
 | Generic `layoutBoxes` | Optional `containment: "metric"` adopts bounded natural-height fit and immediate-parent lower/upper endpoint containment; default `"native"` remains strict, result reports its guarantee; production Row and standalone Column use staged boxes with metric containment while the host retains pagination and body/fragment extents |
-| Native exact certificates | Unchanged; their named contracts remain authoritative |
+| Native exact certificates | Exact valid-domain contracts preserved; non-throwing native fit predicate supports preflight |
 | Production core page guards | Mixed strict/tolerant, not migrated here |
-| Layout adapter measurement bounds, table-column width bounds | Remain exact/unmigrated; no blanket adoption claim |
+| Atomic adapter selection | Metric plus native preflight across captured parent frames; no public request shape or geometry-size change |
+| Layout adapter measurement bounds, table-column width bounds | Remain exact; no blanket adoption claim |
 
 In this repository the page guard is `inPage` in
 `packages/core/src/nodes/geometry.ts`, not `packages/core/src/core/bounds.ts`.

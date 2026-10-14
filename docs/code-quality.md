@@ -40,10 +40,13 @@ require imports, and its unused-variable and banned-type semantics differ.
 Those intentional tool-policy differences do not change the exact three
 principle boundaries below. No new custom general-purpose lint engine is added.
 
-The JSX runtime retains its existing namespace exception. Biome has no
-`allowDeclarations` option, so only `packages/core/src/jsx-runtime.ts` disables
-`noNamespace`; auditors should ensure namespaces there remain type-only and
-module-local. Other warning-only policies retain their previous severities.
+The public JSX runtimes retain a narrow namespace exception. Biome has no
+`allowDeclarations` option, so `packages/core/src/jsx-runtime.ts` and
+`packages/svg/src/jsx-runtime.ts` disable `noNamespace` for their type-only,
+module-scoped JSX declarations; the SVG development runtime re-exports that
+namespace. Auditors should ensure these declarations remain module-local, not
+global namespace augmentations. Other warning-only policies retain their previous
+severities.
 
 ## Exact principle boundaries
 

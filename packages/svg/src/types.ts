@@ -7,9 +7,9 @@ export interface SVGTarget {
   readonly w: number;
   readonly h: number;
 }
-/** Recoverable CSS warning; span uses half-open UTF-16 offsets into the original source. */
+/** Recoverable CSS warning; XML spans are original half-open UTF-16 offsets, absent for structured data. */
 export interface SVGDiagnostic extends DocumentDiagnostic {
-  readonly span: SourceSpan;
+  readonly span?: SourceSpan;
   readonly severity: "warning";
 }
 /** Frozen native painting tree and warning list; no DOM or external resources retained. */
@@ -20,15 +20,15 @@ export interface SVGCompilation {
 /** Absolute original UTF16 boundaries for every decoded character plus EOF. */
 export interface SourceText {
   readonly value: string;
-  readonly offsets: readonly number[];
-  readonly span: SourceSpan;
+  readonly offsets?: readonly number[];
+  readonly span?: SourceSpan;
 }
 export type Attribute = SourceText;
 export interface XMLText {
   readonly kind: "text";
   readonly text: string;
-  readonly offsets: readonly number[];
-  readonly span: SourceSpan;
+  readonly offsets?: readonly number[];
+  readonly span?: SourceSpan;
   readonly path: string;
 }
 export interface XMLElement {
@@ -36,7 +36,7 @@ export interface XMLElement {
   readonly name: string;
   readonly attrs: Readonly<Record<string, Attribute>>;
   readonly children: readonly (XMLElement | XMLText)[];
-  readonly span: SourceSpan;
+  readonly span?: SourceSpan;
   readonly path: string;
 }
 export interface XMLScanner {
@@ -47,7 +47,7 @@ export interface XMLScanner {
 export interface Declaration {
   readonly name: string;
   readonly value: string;
-  readonly span: SourceSpan;
+  readonly span?: SourceSpan;
   readonly path: string;
 }
 export interface ClassRule {

@@ -206,7 +206,17 @@ export class Paginator {
       definiteAlignment: true,
       alignmentHeight: this.geometry.vertical.nominalExtent,
     });
-    const fragment = aligned ? resolveFragment(item, aligned.request) : undefined;
+    const fragment = aligned
+      ? resolveFragment(item, {
+          ...aligned.request,
+          nativePlacement: {
+            axis: this.geometry.vertical,
+            offset: this.position.preview(aligned.margin),
+            minimum: this.bottom,
+          },
+          fitState: { nativeRefused: false },
+        })
+      : undefined;
     return { fragment, state, margin: aligned?.margin ?? 0 };
   }
   private recordFragment(

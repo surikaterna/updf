@@ -174,9 +174,13 @@ keepTogether, controls and body/fragment extents without synthetic authored heig
 
 ## Numerical authority and dependency cost
 
-`/arithmetic` exports the unchanged existing `MetricSum`, `sum` and `exceeds`
-bodies, with the original metric/nonfinite preconditions. `/geometry` exports
-the derived-axis/materialized-start certificate and certified row alignment.
+`/arithmetic` preserves the existing `MetricSum` recurrence, `sum` and `exceeds`
+bodies and their metric/nonfinite preconditions. Additive `MetricSum.fork()` and
+`preview(value)` preserve hidden compensation for tentative, non-mutating selection.
+`/geometry` exports the derived-axis/materialized-start certificate, exact
+`fitsMaterialized` predicate over `NativeBounds`, and certified row alignment.
+The predicate returns false for invalid domains or native endpoint overflow; it
+does not create a capacity certificate or turn metric fit into native fit.
 `@updf/core` now **depends explicitly on this package**, but its runtime graph
 imports only `/arithmetic`. A core-only install includes the **whole kernel
 tarball**, including boxes; tree shaking does not reduce installed cost.
@@ -277,7 +281,7 @@ uses all five subpaths; its companion test checks behavior and emitted comments.
 | `@updf/layout-boxes/fragmentation`: `createFragmentOperation`, `fragmentDefaults`, `FragmentOperation`, `FragmentSource`, `FragmentView`, `FragmentProvider`, `ProviderWork`, `FragmentLimits`, `FragmentCounts`, `FragmentUnit`, `SelectedRange`, `RangeRequest`, `PreparedSource`, `FragmentCursor`, `FragmentRegion`, `FragmentPlacement`, `RegionResult` | `fragmentation.ts`, `fragment-types.ts`, `fragment-work.ts` | Source versus physical units, default caps, lazy readers, progress/status, single-use cursor and poisoned lifecycle; most repeated numeric fields use grouped comments |
 | `@updf/layout-boxes/numeric`: `bits`, `value`, `dyadic`, `spacing`, `floorDyadic`, `successor` | `binary64.ts`; barrel `numeric.ts` | Unchecked finite/nonnegative preconditions, encoding bounds, dyadic units and undefined boundaries |
 | `@updf/layout-boxes/arithmetic`: `MetricSum`, `sum`, `exceeds` | `arithmetic.ts` | Mutable accumulation, nonfinite propagation, default scale and relative comparison, no implicit units |
-| `@updf/layout-boxes/geometry`: `DerivedAxis`, `derivedAxis`, `materializedStart`, `alignedTop` | `geometry.ts` | Frozen axis/conditioning, native association, required host validation, fit errors and alignment roles |
+| `@updf/layout-boxes/geometry`: `NativeBounds`, `DerivedAxis`, `derivedAxis`, `fitsMaterialized`, `materializedStart`, `alignedTop` | `geometry.ts` | Frozen axis/conditioning, exact fit predicates/native association, fit errors and alignment roles |
 
 These are host primitives, not the shape-drawing `@updf/geometry` package. They
 do not create pages, choose fresh-page oversize policy, paint, redact or clip.

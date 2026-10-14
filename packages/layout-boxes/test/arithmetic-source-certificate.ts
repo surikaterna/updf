@@ -69,13 +69,30 @@ function executable(source: string): string {
   }).outputText;
 }
 
-export function assertArithmeticPreserved(source: string): void {
+const snapshotMethods = `  fork(): MetricSum {
+    const copy = new MetricSum();
+    copy.total = this.total;
+    copy.correction = this.correction;
+    return copy;
+  }
+
+  preview(value: number): number {
+    return this.fork().add(value);
+  }
+
+`;
+
+export function assertArithmeticPreserved(source: string, snapshots = false): void {
   assert.equal(
     createHash("sha256").update(originalArithmetic).digest("hex"),
     "6c99483a778c69420c73b74c4745247479d484c4d6d0eacce1be1ed28b0dd620",
     "Pinned original arithmetic bytes",
   );
-  assert.equal(withoutStandaloneJSDoc(source), withoutStandaloneJSDoc(originalArithmetic), "Non-JSDoc source bytes");
+  // The original arithmetic stays byte-pinned; only these separately tested additive methods are admitted.
+  const expected = snapshots
+    ? originalArithmetic.replace("  add(value", `${snapshotMethods}  add(value`)
+    : originalArithmetic;
+  assert.equal(withoutStandaloneJSDoc(source), withoutStandaloneJSDoc(expected), "Non-JSDoc source bytes");
   // Comment line breaks can affect automatic semicolon insertion; byte filtering alone is not the proof.
-  assert.equal(executable(source), executable(originalArithmetic), "Historical executable output");
+  assert.equal(executable(source), executable(expected), "Historical executable output plus declared additions");
 }

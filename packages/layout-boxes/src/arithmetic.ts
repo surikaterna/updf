@@ -3,6 +3,19 @@ export class MetricSum {
   private total = 0;
   private correction = 0;
 
+  /** Independent accumulator snapshot for tentative selection without mutating committed occupancy. */
+  fork(): MetricSum {
+    const copy = new MetricSum();
+    copy.total = this.total;
+    copy.correction = this.correction;
+    return copy;
+  }
+
+  /** Predict the same compensated result as add, without advancing this accumulator. */
+  preview(value: number): number {
+    return this.fork().add(value);
+  }
+
   /** Accumulate one metric and return corrected total; nonfinite sums propagate, never clamp or throw here. */
   add(value: number): number {
     const next = this.total + value;

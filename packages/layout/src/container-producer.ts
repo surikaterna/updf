@@ -2,6 +2,7 @@ import { exceeds, fail, sum } from "@updf/core/internal";
 import { derivedAxis } from "./axis.js";
 import { paintContainerSteps } from "./container-paint.js";
 import { containerReservation, reserveAncestors } from "./container-reservation.js";
+import { nestedPlacement, parentFit } from "./fragment-fit.js";
 import type { FragmentCall, FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
 import { resolveFragment, resolvePaint } from "./protocol-runtime.js";
 import { clamp, type Sizing } from "./sizing.js";
@@ -17,7 +18,7 @@ function* splittable(
   request: FragmentRequest,
   path: string,
 ): Generator<FragmentCall, PlacedFragment | undefined, PlacedFragment | undefined> {
-  if (exceeds(sum([request.usedHeight, box.vertical]), request.freshHeight)) return undefined;
+  if (exceeds(sum([request.usedHeight, box.vertical]), request.freshHeight, request.fitScale)) return undefined;
   const capacity = contentCapacity(box, request.freshHeight, path);
   const reserve = containerReservation(box, request, path);
   reserveAncestors(reserve, request.budget, request.state, 0);
@@ -28,6 +29,8 @@ function* splittable(
     width: box.contentWidth,
     reserve,
     definiteAlignment: false,
+    parentFit: parentFit(request, box.vertical),
+    nativePlacement: nestedPlacement(request.nativePlacement, box.inset.top),
   });
   if (!selected) return undefined;
   const height = sum([box.vertical, selected.height]);
@@ -51,7 +54,7 @@ function* atomic(
   path: string,
   alignment: PreparedBlock["contentAlignment"],
 ): Generator<FragmentCall, PlacedFragment | undefined, PlacedFragment | undefined> {
-  if (exceeds(sum([request.usedHeight, height]), request.freshHeight)) return undefined;
+  if (exceeds(sum([request.usedHeight, height]), request.freshHeight, request.fitScale)) return undefined;
   const reserve = containerReservation(box, request, path, { height, hidden });
   reserveAncestors(reserve, request.budget, request.state, 0);
   const selected = yield* selectStackSteps(content, {
@@ -65,7 +68,12 @@ function* atomic(
     reserve,
     definiteAlignment: alignment !== undefined,
     alignmentHeight: alignment?.height ?? 0,
+    parentFit: parentFit(request, 0, 0, height),
+    nativePlacement: hidden
+      ? undefined
+      : nestedPlacement(request.nativePlacement, box.inset.top, height - box.inset.bottom),
   });
+  if ((!selected || selected.nextOffset !== content.extent) && request.fitState?.nativeRefused) return undefined;
   if (!selected || selected.nextOffset !== content.extent || selected.advance)
     fail("TYPE", path, "Closed/kept blocks cannot contain page advance controls");
   if (hidden && height <= (box.borders.borderTop?.width ?? 0) + (box.borders.borderBottom?.width ?? 0))

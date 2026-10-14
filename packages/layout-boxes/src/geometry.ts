@@ -3,12 +3,32 @@ import { sum } from "./arithmetic.js";
 import { bits, dyadic, floorDyadic, spacing, successor, value } from "./binary64.js";
 import { fail } from "./error.js";
 
-/** Frozen certified nonnegative axis; capacity may differ from nominal extent within a 32-local-ULP conditioning budget. */
-export interface DerivedAxis {
+/** Endpoint bounds only; unlike DerivedAxis this does not claim a certified capacity. */
+export interface NativeBounds {
   readonly start: number;
   readonly end: number;
+}
+/** Frozen certified nonnegative axis; capacity may differ from nominal extent within a 32-local-ULP conditioning budget. */
+export interface DerivedAxis extends NativeBounds {
   readonly nominalExtent: number;
   readonly capacity: number;
+}
+/** Exact native endpoint fit using (axis.start + offset) + extent; invalid domains return false. */
+export function fitsMaterialized(axis: NativeBounds, offset: number, extent: number): boolean {
+  if (
+    !Number.isFinite(axis.start) ||
+    !Number.isFinite(axis.end) ||
+    axis.start < 0 ||
+    axis.end < axis.start ||
+    !Number.isFinite(offset) ||
+    offset < 0 ||
+    !Number.isFinite(extent) ||
+    extent < 0
+  )
+    return false;
+  const start = axis.start + offset;
+  const end = start + extent;
+  return Number.isFinite(start) && Number.isFinite(end) && start >= axis.start && end <= axis.end;
 }
 function illConditioned(path: string): never {
   fail(
@@ -55,8 +75,7 @@ export function derivedAxis(start: number, end: number, path: string): DerivedAx
 /** Check native (start + offset) + extent stays in axis; GEOMETRY on overflow. Host must validate metric signs. */
 export function materializedStart(axis: DerivedAxis, offset: number, extent: number, path: string): number {
   const start = axis.start + offset;
-  const end = start + extent;
-  if (!Number.isFinite(start) || !Number.isFinite(end) || start < axis.start || end > axis.end)
+  if (!fitsMaterialized(axis, offset, extent))
     fail("GEOMETRY", path, "Materialized geometry exceeds its derived region under native coordinate association.");
   return start;
 }

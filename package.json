@@ -24,7 +24,7 @@
     "test:legacy": "npm test -w @updf/legacy",
     "test:legacy:comparison": "tsx scripts/migration/legacy-baseline.ts packages/legacy artifacts/legacy-after.json && tsx scripts/migration/legacy-comparison.ts docs/evidence/legacy-baseline.json artifacts/legacy-after.json",
     "build:browser": "vite build --config apps/browser-react/vite.config.ts && vite build --config apps/browser-react/vite.core.config.ts && vite build --config apps/browser-react/vite.vdom.config.ts && vite build --config apps/browser-react/vite.fonts.config.ts && vite build --config apps/browser-react/vite.measurement.config.ts && vite build --config apps/browser-react/vite.flow.config.ts && vite build --config apps/browser-react/vite.tables.config.ts && vite build --config apps/browser-react/vite.composable-tables.config.ts && vite build --config apps/browser-react/vite.geometry.config.ts && vite build --config apps/browser-react/vite.svg.config.ts && vite build --config apps/browser-react/vite.fontkit.config.ts && vite build --config apps/browser-fonts/vite.config.ts",
-    "test:browser": "tsx --test tests/browser/*.test.ts tests/svg-reference/browser.test.ts",
+    "test:browser": "tsx --test --test-concurrency=1 tests/browser/*.test.ts tests/svg-reference/browser.test.ts",
     "test:consumer": "tsx scripts/packed-consumer.ts",
     "check:graphs": "tsx scripts/graph-check.ts",
     "check:licenses": "tsx scripts/check-licenses.ts",

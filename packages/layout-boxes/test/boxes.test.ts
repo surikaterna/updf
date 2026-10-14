@@ -298,7 +298,7 @@ test("prepared source view and generic row share identical placements without re
 });
 test("arithmetic extraction preserves historical non-JSDoc bytes and executable output", async () => {
   const source = await readFile(new URL("../src/arithmetic.ts", import.meta.url), "utf8");
-  assertArithmeticPreserved(source);
+  assertArithmeticPreserved(source, true);
 });
 test("bad source callback metadata and invalid limits fail before unbounded work", () => {
   for (const change of [
