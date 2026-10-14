@@ -3,19 +3,16 @@ import { alignedRequest } from "./auto-margin.js";
 import { bits, dyadic, floorDyadic, value } from "./binary64.js";
 import { offsetReservation, reserveAncestors } from "./container-reservation.js";
 import { certifyGeneratedFragment, type GeneratedInterval, generatedIntervals } from "./generated-interval.js";
+import {
+  stack as modelStack,
+  stackHeight as modelStackHeight,
+  type Stack as ModelStack,
+  type StackEntry as ModelStackEntry,
+} from "./flow-composition/stack-model.js";
 import type { FragmentCall, FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
 
-export interface StackEntry {
-  readonly start: number;
-  readonly end: number;
-  readonly block?: PreparedBlock;
-  readonly space?: { readonly height: number; readonly capacity: number };
-}
-export interface Stack {
-  readonly entries: readonly StackEntry[];
-  readonly extent: number;
-  readonly height: number;
-}
+export type StackEntry = ModelStackEntry<PreparedBlock>;
+export type Stack = ModelStack<PreparedBlock>;
 export interface StackPiece {
   readonly left?: number;
   readonly fragment: PlacedFragment;
@@ -29,16 +26,7 @@ export interface StackSelection {
   readonly advance: boolean;
 }
 
-export function stackHeight(children: readonly PreparedBlock[], gap: number, blank = 0): number {
-  const height = new MetricSum();
-  let boxes = 0;
-  for (const child of children) {
-    if (!child.control && boxes++ > 0) height.add(gap);
-    height.add(child.naturalSize.height);
-  }
-  height.add(blank);
-  return height.value;
-}
+export const stackHeight = modelStackHeight<PreparedBlock>;
 
 export function stack(
   children: readonly PreparedBlock[],
@@ -47,27 +35,7 @@ export function stack(
   capacity: number,
   path: string,
 ): Stack {
-  const entries: StackEntry[] = [];
-  let extent = 0,
-    boxes = 0;
-  const append = (block: PreparedBlock | undefined, space?: StackEntry["space"]): void => {
-    // Binary64 has at most 2098 significant dyadic bits: 40 terms suffice for an exact remainder.
-    const count =
-      block?.extent ?? (space?.height ? Math.ceil(space.height / Math.max(space.capacity, Number.MIN_VALUE)) + 42 : 1);
-    const end = checkLimit(extent + count, Number.MAX_SAFE_INTEGER, path, "Block extent");
-    entries.push({ start: extent, end, ...(block ? { block } : {}), ...(space ? { space } : {}) });
-    extent = end;
-  };
-  for (const child of children) {
-    if (!child.control && boxes++ > 0 && gap) {
-      append(undefined, { height: gap, capacity: capacity > 0 ? capacity : gap });
-    }
-    append(child);
-  }
-  if (blank > 0 || !extent) {
-    append(undefined, { height: blank, capacity: capacity > 0 ? capacity : Math.max(blank, 1) });
-  }
-  return { entries, extent, height: stackHeight(children, gap, blank) };
+  return modelStack(children, gap, blank, capacity, path, checkLimit);
 }
 function locate(entries: readonly StackEntry[], offset: number): StackEntry {
   let low = 0,
