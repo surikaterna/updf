@@ -6,13 +6,14 @@ example are in [the package README](../packages/tables/README.md).
 
 ```text
 @updf/tables → @updf/layout → @updf/core
-application SVG/chart adapters → supported public layout/core (and optional SVG)
+application SVG helpers / chart adapters → supported public layout/core (and optional SVG)
 ```
 
 Choose `Table.Head`, `.Body`, `.Foot`, `.Row`, `.Cell`, `.HeaderCell` for JSX, or
 `table(readonlyTableInput)` for data. Install `tableExtension` once per local Flow
 extension scope; both paths use ordinary `layout()`, core `lower()` and `render()`.
-Cells stack Paragraphs, Blocks and owned chart/SVG block adapters. All-inline cells
+Cells stack Paragraphs, Blocks, canonical fixed SVG content and owned chart adapters.
+SVG helpers require no extension installation; dynamic adapters still do. All-inline cells
 get one implicit Paragraph; mixed naked inline/block content requires explicit
 Paragraphs. Finite numbers are accepted only at that implicit cell root, not as a
 global change to explicit Paragraph/Span or core text grammar.
@@ -47,8 +48,9 @@ case it emits once atomically. An enclosing empty Flow still contributes one pag
 
 The actual showcase module is `apps/showcase/src/tables.tsx`. Its chart uses C's
 public chart factory through the ordinary component bridge. SVG cells use a
-separate, application-owned optional chunk and inline adapter: text/chart selection
-does not load SVG, and core entry does not load layout/tables. Preview/download are
+separate, application-owned optional chunk with canonical fixed/native-inline helpers
+and no SVG registration: text/chart selection does not load SVG, and core entry does
+not load layout/tables. Preview/download are
 the exact Node/browser bytes; source display is the actual raw JSX module.
 
 Optional JPEG is available as [generic native placement](jpeg-images.md), not a

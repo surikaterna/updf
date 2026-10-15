@@ -15,7 +15,7 @@
 | root, `/authoring`: `PreparedSVGCompilation`, `SVGPreparationDiagnostic` | `src/types.ts` | Shared prepared result/warning types with optional spans; structured inputs never invent XML offsets |
 | `/jsx-runtime`: `jsx`, `jsxs`, `Fragment`, `JSX` (type namespace) | `src/jsx-runtime.ts` | Module-scoped automatic SVG JSX runtime; synchronous trusted components |
 | `/jsx-dev-runtime`: `jsxDEV`, `Fragment`, `JSX` (type namespace) | `src/jsx-dev-runtime.ts` | Development runtime; source bookkeeping does not invent XML spans |
-| `/layout`: `svgBlock`, `svgInline`, `svgAdapters` | `src/layout.ts` | Warning-free prepared painting to owned fixed block/inline descriptors; frozen tuple of exact adapter identities |
+| `/layout`: `svgBlock`, `svgInline` | `src/layout.ts` | Warning-free prepared painting to canonical `FixedBlock` / owned native `InlineVisual`; no registration |
 | `/layout`: `SvgSize` | `src/layout-size.ts` | Optional positive finite point width/height; viewBox ratio for one dimension, positive intrinsic pair for neither |
 
 This grouped inventory is not comprehensive field documentation. Import the root
@@ -52,12 +52,11 @@ For typed SVG TSX, reusable target-only components and diagnostic guidance, see
 
 ```ts
 import { prepareSVG } from "@updf/svg";
-import { svgAdapters, svgBlock, svgInline } from "@updf/svg/layout";
-import { createExtensions, paragraph } from "@updf/layout";
+import { svgBlock, svgInline } from "@updf/svg/layout";
+import { paragraph } from "@updf/layout";
 const graphic = prepareSVG('<svg width="20" height="10"><rect width="20" height="10"/></svg>');
-const extensions = createExtensions(svgAdapters);
 const children = [svgBlock(graphic, {}), paragraph({ children: svgInline(graphic, { width: 10 }) })];
-// Supply extensions to Flow or layout/measure options; text uses the host's explicit text service.
+// No SVG registration; paragraphs use the host's explicit text service/resources.
 ```
 
 Only `/layout` requires the exact-version optional `@updf/layout` peer. Root XML,
@@ -66,9 +65,12 @@ fonts. npm does not auto-install the absent optional peer. Importing `/layout`
 without it throws Node's ordinary `ERR_MODULE_NOT_FOUND` (`MODULE_NOT_FOUND` for
 require), like the optional Fontkit provider; the library does not swallow it.
 Helpers never parse XML, import the SVG JSX runtime, or store a private handle in
-descriptor props. Each descriptor owns placed native nodes; normal layout validation,
+layout data. Each result owns placed native nodes; normal layout validation,
 resources and source/output quotas still apply. No available-width scaling occurs.
 Both dimensions mean the exact viewport, preserving source meet/slice/none semantics.
+Block width reports the visual width, not the full region; inline advance is width,
+ascent is height, descent is zero (bottom baseline). The unpublished `svgAdapters`
+export is removed, without a compatibility shim. Other dynamic adapters still install.
 Missing/overflowing inferred dimensions fail `SVG_GEOMETRY` at `/SVG_VIEWPORT`;
 invalid fields retain core `TYPE`, `KEY` or `GEOMETRY` under that path.
 

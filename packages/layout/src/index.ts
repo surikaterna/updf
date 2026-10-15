@@ -30,6 +30,7 @@ export type {
   InlineMeasureContext,
   InlineMeasurement,
   InlineVisual,
+  NativeInlineInput,
   ParagraphContent,
   ParagraphProps,
   SpanContent,
@@ -71,7 +72,8 @@ export type {
   ScopedContent,
 } from "./extension-types.js";
 export { createExtensions, defineBlockAdapter, extension } from "./extensions.js";
-export { defineInlineAdapter, inline } from "./inline-adapters.js";
+export { fixed } from "./fixed-data.js";
+export { defineInlineAdapter, inline, nativeInline } from "./inline-adapters.js";
 export type { DocumentLayoutResult } from "./mixed-layout.js";
 export { layout } from "./mixed-layout.js";
 export type { PageBreakProps } from "./page-break.js";
@@ -98,6 +100,7 @@ export type { LineHeight, ParagraphStyle, PointLength, SpanStyle } from "./text-
 export { pt } from "./text-style.js";
 export type {
   FixedBlock,
+  FixedInput,
   FlowBlock,
   FlowDocumentDefinition,
   FlowPlacement,

@@ -37,6 +37,13 @@ export interface PageBreakBlock {
 /** Atomic native drawing block; oversized geometry fails rather than splitting. */
 export interface FixedBlock extends PageRegion {
   readonly type: "fixed";
+  /** Omitted fills the host region; explicit width is exact and must fit without scaling. */
+  readonly width?: number;
+}
+export interface FixedInput {
+  readonly width?: number;
+  readonly height: number;
+  readonly children: readonly NodeDefinition[];
 }
 /** Supported low-level flow block discriminated union; custom blocks use owned ExtensionBlock. */
 export type FlowBlock =

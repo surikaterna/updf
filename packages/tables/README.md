@@ -8,7 +8,7 @@ tables for the ordinary `@updf/core` JSX/runtime and `@updf/layout` block protoc
 ```
 
 No SVG, Fontkit, React, Node, private layout import or table-specific paginator.
-SVG/charts are application-owned public block/inline adapters. Optional
+SVG uses canonical fixed/native-inline content; dynamic charts use public adapters. Optional
 [JPEG native placement](../../docs/jpeg-images.md) is separate; no built-in cell
 Image, inline adaptation or image fragmentation API is introduced.
 
@@ -52,7 +52,7 @@ const bytes = render(lower(content, options), options);
 ```
 
 Install `tableExtension` **once** in the local Flow extension set, together with any
-chart/inline/SVG adapters. Data uses the same descriptor and producer:
+dynamic chart/inline adapters; SVG helpers require no registration. Data uses the same descriptor and producer:
 
 ```ts
 import { table } from "@updf/tables";

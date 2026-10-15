@@ -12,7 +12,7 @@ const profiles = {
   xml: 'export {pdf,painting} from "./tests/fixtures/svg-authoring/cost-xml.ts";',
   tsx: 'export {pdf,painting} from "./tests/fixtures/svg-authoring/cost-tsx.tsx";',
   both: 'export {pdf,painting} from "./tests/fixtures/svg-authoring/cost-xml.ts"; export {pdf as tsxPDF,painting as tsxPainting} from "./tests/fixtures/svg-authoring/cost-tsx.tsx";',
-  layout: 'export {svgBlock,svgInline,svgAdapters} from "@updf/svg/layout";',
+  layout: 'export {svgBlock,svgInline} from "@updf/svg/layout";',
   noSvgAddons: 'export {layout} from "@updf/layout"; export {table} from "@updf/tables";',
 };
 test("equivalent dynamic XML/TSX cost profiles retain one compiler and enforce parser-free boundaries", async () => {

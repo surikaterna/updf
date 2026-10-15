@@ -100,28 +100,25 @@ not a new global ambient framework.
 ## Optional block and inline placement
 
 The separate `@updf/svg/layout` entry exports `svgBlock(graphic, size)`,
-`svgInline(graphic, size)` and the frozen tuple `svgAdapters` (block, then inline).
+`svgInline(graphic, size)`, returning `FixedBlock` and `InlineVisual` respectively.
 Both XML `prepareSVG` and structured `prepareSVGTree` produce the same authentic
-handle type. Install the actual identities with `createExtensions(svgAdapters)`;
-when using tables or other adapters, compose them with
-`createExtensions([...svgAdapters, tableExtension, ...otherAdapters])`. Installation
-is local to the Flow/measurement operation, not global. Missing/wrong identities
-fail `KEY`; duplicate names/identities also fail `KEY`.
+handle type. Neither helper requires registration: they compile into layout's
+canonical `fixed` and `nativeInline` factories. The unpublished `svgAdapters` export
+and its two adapters are deleted, not aliased. Install only actual dynamic adapters,
+for example `createExtensions([tableExtension, ...otherAdapters])`, where needed.
 
 ```ts
 import { prepareSVG } from "@updf/svg";
-import { svgAdapters, svgBlock, svgInline } from "@updf/svg/layout";
-import { createExtensions, paragraph } from "@updf/layout";
+import { svgBlock, svgInline } from "@updf/svg/layout";
+import { paragraph } from "@updf/layout";
 const graphic = prepareSVG('<svg width="40" height="20" viewBox="0 0 40 20"><rect width="40" height="20"/></svg>');
-const extensions = createExtensions(svgAdapters);
 const children = [
   svgBlock(graphic, {}),
   paragraph({ children: ["Badge ", svgInline(graphic, { width: 20 })] }),
 ];
 ```
 
-Pass `extensions` to the Flow or layout/measure options. The host still provides
-its explicit text service/resources for paragraphs, including inline-only line
+The host still provides its explicit text service/resources for paragraphs, including inline-only line
 metrics. SVG adds no font implementation/provider. `svgBlock` is the default named
 block role; no generic role prop or extra `<SvgBlock>` wrapper is required. Existing
 `Block`, `Table.Cell` and `Paragraph` accept the corresponding descriptors. The
@@ -157,13 +154,14 @@ Both explicit dimensions select a viewport, **not unconditional stretch**:
 the shared compiler unchanged. Inline advance is width, ascent is height, descent
 is zero, baseline at the box bottom. Native ink is measured under the current
 operation, then translated from local top-left to baseline coordinates; block
-native output is validated by the existing host fragment protocol. Callbacks do
-not retain operation services. Ordinary resources and native/source/output budgets
+native output is validated in its exact visual width (also the reported width,
+not the full region). Layout owns scalar/native validation, ink capture and caches;
+SVG does not duplicate those quotas. Ordinary resources and native/source/output budgets
 apply per occurrence. Final serialization enforces output byte caps.
 
 Helpers authenticate before reading metadata and reject preparation warnings as
 `SVG_STYLE`, preserving paths and XML spans like `createSVGComponent`. Placement
-happens **before** descriptor creation. Props contain only an owned snapshot of
+happens **before** layout data creation. Results contain only an owned snapshot of
 width/height and immutable native nodes, never the WeakMap handle (generic layout
 snapshotting would lose its identity). Reusing a prepared graphic performs only
 placement arithmetic, not source parsing, style resolution or geometry compilation.
@@ -175,17 +173,20 @@ when absent throws normal `ERR_MODULE_NOT_FOUND` (require: `MODULE_NOT_FOUND`);
 there is no catch-and-ignore or dynamic global provider. `npm run test:consumer`
 proves 14 clean tarball closures, including missing/present peer, no-font placement,
 NodeNext/Bundler declarations without DOM/Node/React ambient types, separate SVG/core
-TSX modules, and canonical ESM/CJS prepared-handle/adapter identities in both loader
-orders. Core/layout/tables alone never import SVG.
+TSX modules, and real cross-loader block/inline construction, layout and rendering
+in both ESM/CJS import orders. Core/layout/tables alone never import SVG.
 
-The existing layout host retains conservative native-placement limitations.
-Subtraction can falsely defer `[4.9, 0.1]` in 5 points and `[1.2, 1.1]` in
-2.3 points. Metric fit does not imply native fit: `[0.1, 0.2]` in 0.3 points
+Direct `svgBlock` now uses canonical fixed native admission: `[4.9, 0.1]` in
+5 points and `[1.2, 1.1]` in 2.3 points fit on one page without subtraction
+false-deferral. Metric fit does not imply native fit: `[0.1, 0.2]` in 0.3 points
 and three 10.3-point blocks in 30.9 points at origin zero are examples where
-native endpoints can exceed the boundary. This feature does not promise one page
-or alter the shared layout arithmetic, native certificates, or placement protocol.
+native endpoints exceed the boundary and require two pages at origin zero, not a
+geometry error. Translated origins may certify different endpoints. Nested content
+still uses parent certificates and numerical edge cases may fail `GEOMETRY`; this
+is not general nested fixed admission. Shared arithmetic/certificates are unchanged.
 No shrinking, clipping, shifting, widening, or overlap workaround is introduced.
-See the [SVG-only integration evidence](evidence/svg-only.md).
+See [native visuals evidence](evidence/native-visuals.md). The earlier
+[SVG-only integration evidence](evidence/svg-only.md) is historical, not current results.
 
 ## Parser-free consumer proof
 

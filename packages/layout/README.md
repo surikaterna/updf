@@ -80,6 +80,16 @@ Prepared resources are owned handles, never font bytes or implicit fallback.
 
 ## Semantics
 
+Known native geometry needs no adapter: `fixed({ width?, height, children })`
+returns canonical block data; positive finite explicit width reports that exact
+width and validates children there, while omission fills the host region.
+`nativeInline({ advance, ascent, descent?, nodes })` returns an owned paragraph
+visual with host-computed ink. Advance is positive; ascent/descent are nonnegative
+with positive total height, descent defaults to zero, and local top-left native
+nodes have baseline at ascent. Deferred block/shared-edge recipes are not supported
+inline. Both factories snapshot caller data and preserve ordinary validation/quotas.
+Dynamic callback adapters remain available and require local extension installation.
+
 - Document contains ordered Page/Flow sections. Fixed Page children are positioned
   drawings; Flow children are block content. Each section begins a new page.
 - Flow.Header/Footer reserve positive finite heights; use Flow.Body or direct body

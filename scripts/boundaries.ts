@@ -83,6 +83,7 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/adapter-call.ts",
     "layout/src/container-reservation.ts",
     "layout/src/data.ts",
+    "layout/src/fixed-data.ts",
     "layout/src/budget.ts",
     "layout/src/paginator.ts",
     "layout/src/axis.ts",

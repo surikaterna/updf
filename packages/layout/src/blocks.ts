@@ -66,7 +66,7 @@ export function prepareLeaf(
   lifetime: ExtensionLifetime = { active: true },
   cache?: LeafCache,
 ): PreparedBlock {
-  record(value, ["type", "paragraph", "keepTogether", "height", "children", "props"], path);
+  record(value, ["type", "paragraph", "keepTogether", "width", "height", "children", "props"], path);
   if (value.type === "extension") {
     record(value, ["type", "props"], path);
     return extensionProducer(value, width, path, operation, extensions, lifetime, cache);
@@ -111,16 +111,18 @@ function fixedProducer(
   path: string,
   operation: LayoutOperation,
 ): PreparedBlock {
-  record(value, ["type", "height", "children"], path);
+  record(value, ["type", "width", "height", "children"], path);
+  const boxWidth = "width" in value ? number(value.width, `${path}/width`, true) : width;
+  if (boxWidth > width) fail("GEOMETRY", `${path}/width`, "Fixed width exceeds its host region");
   const height = number(value.height, `${path}/height`, true);
   array(value.children, operation.policy.nodes, `${path}/children`);
   const block = value as unknown as FlowBlock & { type: "fixed" };
   new OutputBudget(operation.policy).charge(block.children, path);
-  const work = operation.validateFixed(geometryNodes(block.children), width, height, path);
+  const work = operation.validateFixed(geometryNodes(block.children), boxWidth, height, path);
   return registerFixedProducer(
     atomicProducer(
       height,
-      width,
+      boxWidth,
       (context) => {
         if (!block.children.length) return [];
         context.budget.reserveWork(work, path);
