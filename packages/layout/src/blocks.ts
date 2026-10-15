@@ -23,6 +23,7 @@ import {
 } from "./emission-nodes.js";
 import { type ExtensionLifetime, extensionProducer } from "./extension-producer.js";
 import type { Extensions } from "./extension-types.js";
+import { registerFixedProducer } from "./fixed-admission.js";
 import type { LeafCache } from "./leaf-cache.js";
 import { paragraphFragments } from "./paragraph-fragments.js";
 import { paragraphProducer } from "./paragraph-producer.js";
@@ -116,29 +117,31 @@ function fixedProducer(
   const block = value as unknown as FlowBlock & { type: "fixed" };
   new OutputBudget(operation.policy).charge(block.children, path);
   const work = operation.validateFixed(geometryNodes(block.children), width, height, path);
-  return atomicProducer(
-    height,
-    width,
-    (context) => {
-      if (!block.children.length) return [];
-      context.budget.reserveWork(work, path);
-      context.budget.charge([{ type: "paintGroup", children: block.children }], path);
-      return [
-        {
-          type: "paintGroup",
-          transform: [1, 0, 0, 1, context.x, context.y],
-          children: snapshotEmissionData(
-            instantiateEmissionNodes(block.children, currentEmissionOrigin(operation)),
-            path,
-          ),
-        },
-      ];
-    },
-    (request) => {
-      if (!block.children.length) return;
-      request.budget?.reserveWork(work, path);
-      request.budget?.charge([{ type: "paintGroup", children: block.children }], path);
-    },
+  return registerFixedProducer(
+    atomicProducer(
+      height,
+      width,
+      (context) => {
+        if (!block.children.length) return [];
+        context.budget.reserveWork(work, path);
+        context.budget.charge([{ type: "paintGroup", children: block.children }], path);
+        return [
+          {
+            type: "paintGroup",
+            transform: [1, 0, 0, 1, context.x, context.y],
+            children: snapshotEmissionData(
+              instantiateEmissionNodes(block.children, currentEmissionOrigin(operation)),
+              path,
+            ),
+          },
+        ];
+      },
+      (request) => {
+        if (!block.children.length) return;
+        request.budget?.reserveWork(work, path);
+        request.budget?.charge([{ type: "paintGroup", children: block.children }], path);
+      },
+    ),
   );
 }
 function atomicProducer(

@@ -43,7 +43,7 @@ async function standaloneRuntime(directory: string): Promise<void> {
     directory,
     `
     import assert from 'node:assert/strict';
-    import { registerHooks } from 'node:module';
+     import { registerHooks, createRequire } from 'node:module';
     // Seal this consumer against unrelated ancestor /tmp/opencode/node_modules.
     const local = new URL('./node_modules/', import.meta.url).href;
     registerHooks({ resolve(specifier, context, next) {
@@ -53,7 +53,12 @@ async function standaloneRuntime(directory: string): Promise<void> {
       return resolved;
     }});
     const { LayoutInputError, resolveWidths } = await import('@updf/layout-boxes');
-    const { bits, dyadic } = await import('@updf/layout-boxes/numeric');
+     const { bits, dyadic } = await import('@updf/layout-boxes/numeric');
+     const { derivedAxis, tryMaterializedStart } = await import('@updf/layout-boxes/geometry');
+     const axis = derivedAxis(0, .3, '/packed');
+     assert.equal(tryMaterializedStart(axis, 0, .1), 0);
+     assert.equal(tryMaterializedStart(axis, .1, .2), undefined);
+     assert.equal(createRequire(import.meta.url)('@updf/layout-boxes/geometry').tryMaterializedStart(axis, 0, .1), 0);
      const { layoutBoxes, viewBox } = await import('@updf/layout-boxes/boxes');
      const prepared = {width:10,height:2,paddingTop:0,paddingBottom:0,paddingLeft:1,paddingRight:1,gap:1,alignItems:'start',childCount:2,childAt:i=>({width:i===0?3:4,height:1}),path:'/packed-row'};
      const placed = viewBox(prepared);
