@@ -52,11 +52,17 @@ export function derivedAxis(start: number, end: number, path: string): DerivedAx
   if (capacity <= 0 || start + capacity > end) illConditioned(path);
   return Object.freeze({ start, end, nominalExtent, capacity });
 }
-/** Check native (start + offset) + extent stays in axis; GEOMETRY on overflow. Host must validate metric signs. */
-export function materializedStart(axis: DerivedAxis, offset: number, extent: number, path: string): number {
+/** Nonthrowing native endpoint certificate; undefined on refusal. Host must validate metric signs. */
+export function tryMaterializedStart(axis: DerivedAxis, offset: number, extent: number): number | undefined {
   const start = axis.start + offset;
   const end = start + extent;
-  if (!Number.isFinite(start) || !Number.isFinite(end) || start < axis.start || end > axis.end)
+  if (!Number.isFinite(start) || !Number.isFinite(end) || start < axis.start || end > axis.end) return undefined;
+  return start;
+}
+/** Check native (start + offset) + extent stays in axis; GEOMETRY on overflow. Host must validate metric signs. */
+export function materializedStart(axis: DerivedAxis, offset: number, extent: number, path: string): number {
+  const start = tryMaterializedStart(axis, offset, extent);
+  if (start === undefined)
     fail("GEOMETRY", path, "Materialized geometry exceeds its derived region under native coordinate association.");
   return start;
 }

@@ -3,6 +3,7 @@ import { LayoutInputError } from "@updf/layout-boxes";
 import { type DerivedAxis, derivedAxis as derive, materializedStart as materialize } from "@updf/layout-boxes/geometry";
 
 export type { DerivedAxis };
+export { tryMaterializedStart } from "@updf/layout-boxes/geometry";
 export function derivedAxis(start: number, end: number, path: string): DerivedAxis {
   try {
     return derive(start, end, path);
