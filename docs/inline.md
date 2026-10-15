@@ -51,7 +51,8 @@ exceptions: they cannot mint mutable or callback-bearing props.
 Strings are text, arrays flatten in order, null/booleans are ignored. Numbers are
 **never coerced**, matching existing core text semantics. Present undefined style/
 paragraph fields, getters, holes, classes, cycles and copied capabilities reject.
-Native drawings are not inline content: use an installed inline adapter instead.
+Raw native nodes are not inline content: use `nativeInline` for static visuals,
+or an installed inline adapter for width/style-dependent measurement.
 
 `h`/the production and development JSX factories only capture owned props. They
 never invoke an author component while constructing its VNode. The core-owned
@@ -155,8 +156,14 @@ const metrics = measure(content, { width: 180 }, { ...options, extensions });
 props without freezing callers. The same owned `createExtensions` scope accepts
 block and inline adapters, validates duplicate names/identities and is local to an
 operation. An inline descriptor cannot be serialized/forged or used as a block.
-`defineBlockAdapter` remains the block visual path; `defineInlineAdapter` owns
-atomic inline visual measurement. Both use the same operation-local extension scope.
+`defineBlockAdapter` and `defineInlineAdapter` remain the advanced dynamic callback
+paths. Both use the same operation-local extension scope. For already-known native
+geometry, use `fixed({ width?, height, children })` as a block or
+`nativeInline({ advance, ascent, descent?, nodes })` inside a paragraph: neither
+requires installation. Native inline nodes use local top-left coordinates and the
+host computes ink, shifting by ascent to baseline coordinates. Deferred block and
+shared-edge recipes are not supported inline. Descriptor ownership, exact
+width/style caches and capture/occurrence quotas share the existing inline owner.
 
 Advance must be positive; ascent/descent nonnegative with positive total height.
 Nodes are native geometry at box top-left; declared ink coordinates are relative
@@ -182,8 +189,8 @@ Candidate-local forks charge selected inline painting once and discard probes.
 Real application examples: [native badge](../apps/showcase/src/inline-badge.ts),
 [actual TSX showcase](../apps/showcase/src/rich.tsx), and
 [optional SVG placement](../apps/showcase/src/optional-table-svg.ts). The separate
-[`@updf/svg/layout` entry](svg-authoring.md) provides `svgBlock`, `svgInline` and
-`svgAdapters`: prepared XML/structured graphics become native snapshots before
+[`@updf/svg/layout` entry](svg-authoring.md) provides `svgBlock` and `svgInline`
+without SVG registration (`svgAdapters` is removed): prepared XML/structured graphics become native snapshots before
 descriptor creation, and warnings reject before placement. Layout is an optional
 peer only for that entry; SVG's root/authoring and layout's root remain independent.
 The showcase Paragraph module is lazy,

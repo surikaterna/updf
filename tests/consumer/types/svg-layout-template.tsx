@@ -4,14 +4,14 @@ import { lower } from "@updf/core/vdom";
 import { createOwnedResource, type TextRun } from "@updf/core/resources";
 import { Block, createExtensions, Document, Flow, Paragraph } from "@updf/layout";
 import { prepareSVG } from "@updf/svg";
-import { svgAdapters, svgBlock, svgInline, type SvgSize } from "@updf/svg/layout";
+import { svgBlock, svgInline, type SvgSize } from "@updf/svg/layout";
 import { Table, tableExtension } from "@updf/tables";
 import { createTextService } from "@updf/text";
 import { graphic } from "./svg-graphic-template.js";
 
 const xml = prepareSVG('<svg viewBox="0 0 20 10"><rect x="2" y="3" width="5" height="4" fill="red"/></svg>');
 const size: SvgSize = { width: 40 };
-const extensions = createExtensions([...svgAdapters, tableExtension]);
+const extensions = createExtensions([tableExtension]);
 export const document = (
   <Document>
     <Flow

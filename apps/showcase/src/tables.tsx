@@ -1,16 +1,6 @@
 /** @jsxImportSource @updf/core */
 
-import {
-  type BlockAdapterIdentity,
-  type BlockContent,
-  blockComponent,
-  createExtensions,
-  Document,
-  Flow,
-  type InlineAdapterIdentity,
-  Paragraph,
-  pt,
-} from "@updf/layout";
+import { type BlockContent, blockComponent, createExtensions, Document, Flow, Paragraph, pt } from "@updf/layout";
 import { Table, type TableColumn, tableExtension } from "@updf/tables";
 import { chartAdapter } from "./chart.js";
 import { layout } from "./layout-options.js";
@@ -34,7 +24,6 @@ export const tableDefaults: TableControls = {
 };
 export interface TableVisual {
   readonly content: (index: number) => BlockContent;
-  readonly adapters: readonly (BlockAdapterIdentity | InlineAdapterIdentity)[];
 }
 const Chart = blockComponent(chartAdapter);
 function inventoryColumns(wide: boolean): readonly TableColumn[] {
@@ -57,7 +46,7 @@ export function tableDefinition(title: string, controls: TableControls = tableDe
       <Flow
         pageSize={{ width: wide ? 420 : 240, height: 240 }}
         margins={{ top: 16, right: 16, bottom: 16, left: 16 }}
-        extensions={createExtensions([tableExtension, chartAdapter, ...(visual?.adapters ?? [])])}
+        extensions={createExtensions([tableExtension, chartAdapter])}
       >
         <Paragraph style={{ lineHeight: pt(14) }}>{title}</Paragraph>
         <Table

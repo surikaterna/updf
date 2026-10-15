@@ -19,8 +19,12 @@ snapshot of open PRs. Inspect the actual base and its contributor instructions.
 
 ## Fixed native content
 
-The existing `FixedBlock` represents validated, known-height native content,
-including owned deferred emission recipes. There is no new public candidate
+`fixed({ width?, height, children })` snapshots canonical `FixedBlock` data for
+validated, known-height native content, including owned deferred block recipes.
+Height and explicit width are positive finite; omitted width fills the host region.
+Explicit width must fit exactly and is the reported width and native validation box,
+not the available region width. No shrinking or available-width inference occurs.
+There is no new public candidate
 marker. Only the final built-in fixed producer object is privately registered.
 Identity reuse retains registration; copies, wrappers, decorated producers,
 Rows and containers do not inherit it. Do not infer eligibility from atomic
@@ -38,10 +42,33 @@ are reused for painting and placement, not reconstructed by a second probe.
 Relative paint-part certificates and overlap checks remain separate.
 
 This is not nested admission. Nested fixed children, decorated content and
-containers retain their existing behavior and limitations. SVG currently uses
-conversion plus its strict adapter-fit checks; moving SVG to fixed native content
-is a future migration, **not implemented here**. Do not call this an SVG
-false-deferral fix.
+containers retain their existing behavior and limitations. `svgBlock` now compiles
+authentic prepared geometry into `fixed({ width, height, children })`: direct SVG
+therefore uses this admission path, fixing strict subtraction false-deferral for
+certifiable native endpoints. Nested numerical edges can still fail the parent
+certificate with `GEOMETRY`; this is not a promise of all nested fixed fits.
+
+## Native inline versus advanced adapters
+
+`nativeInline({ advance, ascent, descent?, nodes })` creates an owned `InlineVisual`
+without extension installation or measurement callbacks. Advance is positive finite;
+ascent/descent are finite nonnegative with positive total height. Native nodes use
+local top-left coordinates; the host measures clipped/transformed ink and translates
+it by ascent into baseline coordinates. Omitted descent is zero. Deferred block and
+shared-edge recipes reject: inline has no block-occurrence lifecycle.
+
+Native and callback inline sources share descriptor ownership, exact width/style
+operation-local caches, validation/capture and emitted-occurrence accounting.
+`defineInlineAdapter` plus `inline` remains the advanced dynamic callback path and
+requires local installation, as does `defineBlockAdapter` plus `extension` for
+dynamic block content. These are not required for known native snapshots.
+
+`svgInline` compiles prepared geometry into `nativeInline` with advance=width,
+ascent=height and zero descent. Both SVG helpers authenticate and preserve warning,
+size and clipping semantics before layout takes ownership. **Breaking unpublished
+API removal:** `svgAdapters` and both SVG adapter implementations are deleted, with
+no compatibility tuple/alias. Other adapters (tables, charts, badges) still install.
+SVG's `/layout` optional peer boundary remains parser/JSX-free.
 
 ## Three distinct numerical responsibilities
 

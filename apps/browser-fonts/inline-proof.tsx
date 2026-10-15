@@ -5,7 +5,7 @@ import type { PreparedFont } from "@updf/fonts";
 import { createExtensions, Document, Flow, measure, Paragraph, Span } from "@updf/layout";
 import { badge, badgeAdapter } from "../showcase/src/inline-badge.js";
 import { prepareSVG } from "@updf/svg";
-import { svgAdapters, svgInline } from "@updf/svg/layout";
+import { svgInline } from "@updf/svg/layout";
 import { textOptions } from "./text-options.js";
 
 const Theme = createContext({ color: [0, 0, 1] as const });
@@ -23,7 +23,7 @@ function Content() {
   );
 }
 export function inlineProof(font: PreparedFont) {
-  const extensions = createExtensions([badgeAdapter, ...svgAdapters]);
+  const extensions = createExtensions([badgeAdapter]);
   const options = textOptions({ resources: { Demo: font }, profile: "service" });
   const content = (
     <Theme.Provider value={{ color: [0, 0, 1] }}>

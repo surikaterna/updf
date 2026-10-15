@@ -51,6 +51,13 @@ export interface InlineVisual extends ContentHandle {
   readonly type: "inlineVisual";
   readonly props: unknown;
 }
+/** Native top-left box with baseline at ascent; omitted descent is zero. */
+export interface NativeInlineInput {
+  readonly advance: number;
+  readonly ascent: number;
+  readonly descent?: number;
+  readonly nodes: readonly NodeDefinition[];
+}
 // Child grammars are already readonly; keep them opaque rather than recursively
 // expanding core DeepReadonly through both content and VNode unions.
 export type InlineComponent<P extends object = SpanProps> = (
