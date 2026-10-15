@@ -124,6 +124,7 @@ export class Paginator {
   }
   private place(
     sourceIndex: number,
+    y: number,
     height: number,
     lines?: { start: number; end: number },
     path = `/body/${sourceIndex}`,
@@ -138,7 +139,7 @@ export class Paginator {
       pageIndex: this.pages.length - 1,
       box: {
         x,
-        y: materializedStart(this.geometry.vertical, this.cursor, height, path),
+        y,
         width,
         height,
       },
@@ -150,7 +151,7 @@ export class Paginator {
   }
   consume(item: PreparedBlock, index: number, path = `/body/${index}`): void {
     if (item.control === "advance") {
-      this.place(index, 0);
+      this.place(index, materializedStart(this.geometry.vertical, this.cursor, 0, `/body/${index}`), 0);
       this.advance(path);
       return;
     }
@@ -186,7 +187,7 @@ export class Paginator {
       });
       for (const node of nodes) this.pages.at(-1)?.children.push(node);
       this.bottom = Math.max(this.bottom, y + fragment.height);
-      this.recordFragment(item, index, fragment, offset, path);
+      this.recordFragment(item, index, fragment, offset, path, y);
       offset = fragment.nextOffset;
       state.adopt(selection.state);
       if (fragment.advance) this.advance(path);
@@ -215,9 +216,11 @@ export class Paginator {
     fragment: PlacedFragment,
     offset: number,
     path: string,
+    y: number,
   ): void {
     this.place(
       index,
+      y,
       fragment.height,
       fragment.lines,
       path,
