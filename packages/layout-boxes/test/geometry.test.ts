@@ -43,3 +43,11 @@ test("certificate retains translated native fits and tiny remainders without der
   assert.equal(tryMaterializedStart(derivedAxis(700, 730.9, ""), 20.6, 10.3), 720.6);
   assert.equal(tryMaterializedStart(derivedAxis(0, 1, ""), 0.9999999999999999, 1e-17), 0.9999999999999999);
 });
+
+test("bounds-only certificates permit zero-height and tiny remaining intervals without a derived axis", () => {
+  assert.equal(tryMaterializedStart({ start: 2, end: 2 }, 0, 0), 2);
+  assert.equal(tryMaterializedStart({ start: 2, end: 2 }, 0, 1), undefined);
+  const start = 0.9999999999999999;
+  assert.equal(tryMaterializedStart({ start, end: 1 }, 0, 1e-17), start);
+  assert.equal(tryMaterializedStart({ start, end: 1 }, 0, 1), undefined);
+});

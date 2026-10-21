@@ -4,8 +4,8 @@ import { alignedRequest } from "./auto-margin.js";
 import { materializedStart, tryMaterializedStart } from "./axis.js";
 import { OutputBudget } from "./budget.js";
 import { snapshot } from "./data.js";
-import { isFixedProducer } from "./fixed-admission.js";
 import { FragmentState } from "./fragment-state.js";
+import { prepareFragmentPaint } from "./fragment-paint-preparation.js";
 import type { PlacedFragment, PreparedBlock } from "./protocol.js";
 import { resolveFragment, resolvePaint } from "./protocol-runtime.js";
 import type { TemplateGeometry } from "./template.js";
@@ -68,71 +68,19 @@ export class Paginator {
     this.position = new MetricSum();
     this.bottom = this.geometry.vertical.start;
   }
-  private bodyStart(offset: number, height: number, path: string): number {
-    const y = materializedStart(this.geometry.vertical, offset, height, path);
-    if (y < this.bottom)
-      fail("GEOMETRY", path, "Materialized body blocks overlap under native coordinate association.");
-    this.bottom = y + height;
-    return y;
-  }
-  fit(height: number, path: string): void {
-    if (exceeds(height, this.geometry.body.height)) fail("LAYOUT_OVERSIZED", path, "Block cannot fit a fresh body");
-    if (exceeds(sum([this.cursor, height]), this.geometry.body.height)) this.advance(path);
-  }
-  fits(...heights: readonly number[]): boolean {
-    return !exceeds(sum([this.cursor, ...heights]), this.geometry.body.height);
-  }
   get pageIndex(): number {
     return this.pages.length - 1;
-  }
-  atomic(
-    index: number,
-    path: string,
-    x: number,
-    width: number,
-    height: number,
-    output: { nodes: number; text: number; commands: number; work: number },
-    paint: (y: number) => readonly NodeDefinition[],
-  ): FlowPlacement {
-    this.fit(height, path);
-    this.consume(
-      {
-        fragmentation: "atomic",
-        naturalSize: { width, height },
-        extent: 1,
-        x,
-        fragment: (request) => {
-          request.budget?.generated(output.nodes + 1, output.text, output.commands, output.work, path);
-          return {
-            nextOffset: 1,
-            height,
-            paint: (context) => {
-              context.start(0, height);
-              context.budget.generated(output.nodes + 1, output.text, output.commands, output.work, path);
-              return [
-                { type: "paintGroup", transform: [1, 0, 0, 1, x, context.y], children: snapshot(paint(context.y)) },
-              ];
-            },
-          };
-        },
-      },
-      index,
-      path,
-    );
-    const placement = this.placements.at(-1);
-    if (!placement) fail("TYPE", path, "Atomic producer did not place its fragment");
-    return placement;
   }
   private place(
     sourceIndex: number,
     height: number,
+    acceptedY: number,
     lines?: { start: number; end: number },
     path = `/body/${sourceIndex}`,
     x = this.geometry.body.x,
     width = this.geometry.body.width,
     sourceRange?: { readonly start: number; readonly end: number },
     sourceKeys?: readonly (string | number | null)[],
-    acceptedY?: number,
   ): void {
     this.placements.push({
       sourceIndex,
@@ -140,7 +88,7 @@ export class Paginator {
       pageIndex: this.pages.length - 1,
       box: {
         x,
-        y: acceptedY ?? materializedStart(this.geometry.vertical, this.cursor, height, path),
+        y: acceptedY,
         width,
         height,
       },
@@ -152,7 +100,7 @@ export class Paginator {
   }
   consume(item: PreparedBlock, index: number, path = `/body/${index}`): void {
     if (item.control === "advance") {
-      this.place(index, 0);
+      this.place(index, 0, materializedStart(this.geometry.vertical, this.cursor, 0, `/body/${index}`));
       this.advance(path);
       return;
     }
@@ -168,20 +116,27 @@ export class Paginator {
         continue;
       }
       this.validateSelection(item, fragment, offset, selection.margin, path);
-      const y = this.fragmentStart(item, fragment.height, selection.margin, path);
-      if (y === undefined) {
+      const admission = this.fragmentStart(fragment.height, selection.margin, path);
+      if (admission === undefined) {
         this.advance(path);
         continue;
       }
-      const origin = this.cursor;
-      const nodes = resolvePaint(fragment, {
-        x: item.x ?? this.geometry.body.x,
-        y,
-        budget: this.budget,
-        start: (relative, height) => this.bodyStart(sum([origin, relative]), height, path),
-      });
+      const { y, tentative } = admission;
+      const prepared = prepareFragmentPaint(
+        fragment,
+        {
+          x: item.x ?? this.geometry.body.x,
+          y,
+          page: { axis: this.geometry.vertical, origin: tentative.value, bottom: this.bottom },
+        },
+        this.budget,
+        path,
+      );
+      this.budget.reserveWork(prepared.work, path);
+      const nodes = resolvePaint(prepared.root);
       for (const node of nodes) this.pages.at(-1)?.children.push(node);
-      this.bottom = Math.max(this.bottom, y + fragment.height);
+      this.position = tentative;
+      this.bottom = Math.max(prepared.plannedBottom, y + fragment.height);
       this.recordFragment(item, index, fragment, offset, path, y);
       offset = fragment.nextOffset;
       state.adopt(selection.state);
@@ -201,20 +156,26 @@ export class Paginator {
       fragment.nextOffset > item.extent
     )
       fail("TYPE", path, "Fragment must make finite extent progress");
-    if (!Number.isFinite(fragment.height) || fragment.height < 0 || !this.fits(margin, fragment.height))
+    if (
+      !Number.isFinite(fragment.height) ||
+      fragment.height < 0 ||
+      exceeds(sum([this.cursor, margin, fragment.height]), this.geometry.body.height)
+    )
       fail("GEOMETRY", path, "Fragment exceeds available body height");
   }
-  private fragmentStart(item: PreparedBlock, height: number, margin: number, path: string): number | undefined {
-    if (isFixedProducer(item)) {
-      const y = tryMaterializedStart(this.geometry.vertical, this.cursor, height);
-      if (y !== undefined && y >= this.bottom) return y;
-      if (this.cursor > 0) return undefined;
+  private fragmentStart(height: number, margin: number, path: string): { y: number; tentative: MetricSum } | undefined {
+    const occupied = this.cursor > 0;
+    const tentative = this.position.fork();
+    if (margin !== 0) tentative.add(margin);
+    const candidate = tryMaterializedStart(this.geometry.vertical, tentative.value, height);
+    if (candidate !== undefined && candidate >= this.bottom) {
+      return { y: candidate, tentative };
     }
-    this.position.add(margin);
-    const y = materializedStart(this.geometry.vertical, this.cursor, height, path);
+    if (occupied) return undefined;
+    const y = materializedStart(this.geometry.vertical, tentative.value, height, path);
     if (y < this.bottom)
       fail("GEOMETRY", path, "Materialized body blocks overlap under native coordinate association.");
-    return y;
+    return { y, tentative };
   }
   private selection(item: PreparedBlock, offset: number, previous: FragmentState) {
     const state = previous.fork();
@@ -244,13 +205,13 @@ export class Paginator {
     this.place(
       index,
       fragment.height,
+      acceptedY,
       fragment.lines,
       path,
       item.x,
       item.naturalSize.width,
       { start: item.sourceExtent === 0 ? 0 : offset, end: item.sourceExtent === 0 ? 0 : fragment.nextOffset },
       item.sourceKeys?.slice(offset, fragment.nextOffset),
-      acceptedY,
     );
   }
   result(consumed: number): FlowResult {

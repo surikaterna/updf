@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
 import { fixtureFont } from "../fixtures/fonts/font-fixture.js";
-import { legacyInventory as tableExample } from "../fixtures/legacy-inventory.js";
+import { composableInventory as tableExample } from "../fixtures/composable-inventory.js";
 import { tableProof } from "../fixtures/table-proof.js";
 import {
   assertInventoryBackgrounds,
@@ -25,7 +25,7 @@ test("table PDFs have repeated headers, ordered unique body rows and spatial gri
   await writeFile(path, bytes);
   execFileSync("qpdf", ["--check", path]);
   const text = execFileSync("pdftotext", ["-raw", path, "-"], { encoding: "utf8" });
-  assert.equal(text.match(/Inventory item/gu)?.length, result.repeatedHeaderCount + 1);
+  assert.equal(text.match(/Inventory item/gu)?.length, result.placements.filter((p) => p.sourceIndex === 1).length);
   assert.deepEqual(
     text.match(/Item \d+/gu),
     Array.from({ length: 12 }, (_, i) => `Item ${i + 1}`),

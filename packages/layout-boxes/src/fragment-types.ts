@@ -58,6 +58,7 @@ export interface SelectedRange<C> {
  * including previously computed metrics supplied by callers. Values are never clamped.
  */
 export interface RangeRequest {
+  readonly mode?: never;
   readonly offset: number;
   readonly width: number;
   readonly height: number;
@@ -73,6 +74,37 @@ declare const cursorBrand: unique symbol;
 export interface FragmentCursor {
   readonly [cursorBrand]: true;
 }
+export interface CandidateRequest {
+  readonly offset: number;
+  readonly width: number;
+}
+/** Collect a remaining finite source without inventing a physical height bound. Work limits still apply. */
+export interface CompleteRequest extends CandidateRequest {
+  readonly mode: "complete";
+}
+export type SelectionRequest = RangeRequest | CompleteRequest;
+declare const candidateCursorBrand: unique symbol;
+/** Opaque single-use enumeration token, distinct from region cursors and endpoints. */
+export interface CandidateCursor {
+  readonly [candidateCursorBrand]: true;
+}
+declare const candidateEndpointBrand: unique symbol;
+/** Owned prefix metadata only; materialize explicitly to borrow host content. */
+export interface CandidateEndpoint {
+  readonly [candidateEndpointBrand]: true;
+  readonly start: number;
+  readonly end: number;
+  readonly height: number;
+  readonly unit: {
+    readonly start: number;
+    readonly end: number;
+    readonly height: number;
+    readonly top: number;
+  };
+}
+export type CandidateResult =
+  | { readonly done: true }
+  | { readonly done: false; readonly endpoint: CandidateEndpoint; readonly cursor: CandidateCursor };
 /**
  * Host region with nonempty ID and nonnegative finite lengths; usedHeight fits height
  * under the RangeRequest metric policy. Kernel does not create pages or retry blocked regions.
@@ -98,16 +130,25 @@ export interface RegionResult<C> {
   readonly placements: readonly FragmentPlacement<C>[];
   readonly cursor: FragmentCursor;
 }
-/** Owned lifecycle; prepare/select/start/fragment failures close the operation, close is idempotent. */
-export interface FragmentOperation<D, C> {
+/** Owned range-selection lifecycle; guarded failures close the operation, close is idempotent. */
+export interface RangeOperation<D, C> {
   /** Snapshot source metadata without cloning descriptor; repeat ID must have identical metadata/descriptor. */
   readonly prepare: (source: FragmentSource<D>) => PreparedSource;
   /** Undefined when the next unit cannot fit; exhausted sources return an empty range, not undefined. */
-  readonly select: (source: PreparedSource, request: RangeRequest) => SelectedRange<C> | undefined;
+  readonly select: (source: PreparedSource, request: SelectionRequest) => SelectedRange<C> | undefined;
+  readonly counts: () => FragmentCounts;
+  readonly close: () => void;
+}
+/** Full operation: ranges, candidate endpoints and indexed regions share one owner and ledger. */
+export interface FragmentOperation<D, C> extends RangeOperation<D, C> {
+  /** Resolve one source/width, without a host capacity or fitting decision. */
+  readonly candidates: (source: PreparedSource, request: CandidateRequest) => CandidateCursor;
+  /** Consume the cursor; terminal cursors return done without another provider call. */
+  readonly nextCandidate: (cursor: CandidateCursor) => CandidateResult;
+  /** Copy an owned prefix into a fresh frozen array; repeat calls each charge its unit count. */
+  readonly materializeCandidate: (endpoint: CandidateEndpoint) => SelectedRange<C>;
   /** Begin an indexed view; actual sources are read lazily during fragment. */
   readonly start: (view: FragmentView<D>) => FragmentCursor;
   /** Consume the cursor and return progress/status with a fresh cursor; host decides subsequent regions. */
   readonly fragment: (cursor: FragmentCursor, region: FragmentRegion) => RegionResult<C>;
-  readonly counts: () => FragmentCounts;
-  readonly close: () => void;
 }

@@ -43,6 +43,20 @@ export function exceeds(actual: number, bound: number, operationScale = 0): bool
 }
 `;
 
+// Exactly one approved additive API; historical recurrence and comparison bytes remain pinned.
+export const forkAddition = `  fork(): MetricSum {
+    const result = new MetricSum();
+    result.total = this.total;
+    result.correction = this.correction;
+    return result;
+  }
+
+`;
+export const expectedArithmetic = originalArithmetic.replace(
+  "  get value(): number {",
+  `${forkAddition}  get value(): number {`,
+);
+
 function withoutStandaloneJSDoc(source: string): string {
   const scanner = ts.createScanner(ts.ScriptTarget.Latest, false, ts.LanguageVariant.Standard, source, () => {
     assert.fail("Invalid source token in arithmetic certificate");
@@ -75,7 +89,7 @@ export function assertArithmeticPreserved(source: string): void {
     "6c99483a778c69420c73b74c4745247479d484c4d6d0eacce1be1ed28b0dd620",
     "Pinned original arithmetic bytes",
   );
-  assert.equal(withoutStandaloneJSDoc(source), withoutStandaloneJSDoc(originalArithmetic), "Non-JSDoc source bytes");
+  assert.equal(withoutStandaloneJSDoc(source), withoutStandaloneJSDoc(expectedArithmetic), "Non-JSDoc source bytes");
   // Comment line breaks can affect automatic semicolon insertion; byte filtering alone is not the proof.
-  assert.equal(executable(source), executable(originalArithmetic), "Historical executable output");
+  assert.equal(executable(source), executable(expectedArithmetic), "Historical executable output plus pinned fork");
 }

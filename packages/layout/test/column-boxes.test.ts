@@ -4,6 +4,7 @@ import { DocumentError } from "@updf/core";
 import { resolveWidths } from "@updf/layout-boxes";
 import { createLayoutOperation } from "../../../tests/fixtures/text-options.js";
 import { compile } from "../dist/cjs/block-compiler.js";
+import { OutputBudget } from "../dist/cjs/budget.js";
 import { deferColumnBody } from "../dist/cjs/column-content.js";
 import type { PreparedBlock } from "../dist/cjs/protocol.js";
 
@@ -164,10 +165,19 @@ test("standalone and Row-contained Column share height constraints and diagnosti
   diagnostic(() => prepare(column([], { style: { minHeight: 2, maxHeight: 1 } })), "GEOMETRY", "/column/style");
 });
 
-test("Column metric fractional bounds accept derived fit but reject material overflow", () => {
-  const block = prepare(column([spacer(0.2)], { style: { height: 0.3, paddingTop: 0.1 } }));
-  assert.equal(block.naturalSize.height, 0.3);
-  assert.equal(fragment(block)?.height, 0.3);
+test("Column metric fit retains exact native bounds before paint and rejects material overflow", () => {
+  const invalid = prepare(column([spacer(0.2)], { style: { height: 0.3, paddingTop: 0.1 } }));
+  assert.equal(invalid.naturalSize.height, 0.3);
+  diagnostic(() => fragment(invalid), "GEOMETRY", "/column");
+  const height = 0.30000000000000004;
+  const block = prepare(column([spacer(0.2)], { style: { height, paddingTop: 0.1 } }));
+  assert.equal(block.naturalSize.height, height);
+  const selected = fragment(block);
+  assert.ok(selected);
+  assert.equal(selected?.height, height);
+  assert.deepEqual(paintPrepared(selected, new OutputBudget(createLayoutOperation({}).policy)), [
+    { type: "paintGroup", transform: [1, 0, 0, 1, 0, 0], children: [] },
+  ]);
   diagnostic(
     () => prepare(column([spacer(0.21)], { style: { height: 0.3, paddingTop: 0.1 } })),
     "VERTICAL_OVERFLOW",
@@ -196,3 +206,4 @@ test("empty/padded/bordered Columns and nested Rows keep natural geometry", () =
   assert.equal(block.fragmentation, "splittable");
   assert.equal(fragment(block)?.height, 8);
 });
+import { paintPrepared } from "./prepared-paint.js";

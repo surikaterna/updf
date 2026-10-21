@@ -1,12 +1,10 @@
 import {
   array,
   DocumentError,
-  exceeds,
   fail,
   type LayoutOperation,
   number,
   validateDataObject as record,
-  sum,
 } from "@updf/core/internal";
 import type { TextMeasurement } from "@updf/text";
 import { compile } from "./block-compiler.js";
@@ -23,9 +21,10 @@ import {
 } from "./emission-nodes.js";
 import { type ExtensionLifetime, extensionProducer } from "./extension-producer.js";
 import type { Extensions } from "./extension-types.js";
-import { registerFixedProducer } from "./fixed-admission.js";
 import type { LeafCache } from "./leaf-cache.js";
+import { emptyGeometry, wholeBoxGeometry } from "./fragment-paint-preparation.js";
 import { paragraphFragments } from "./paragraph-fragments.js";
+import { frameFits } from "./selection-request.js";
 import { paragraphProducer } from "./paragraph-producer.js";
 import type { PreparedBlock } from "./protocol.js";
 import type { FlowBlock, FlowDocumentDefinition } from "./types.js";
@@ -66,7 +65,7 @@ export function prepareLeaf(
   lifetime: ExtensionLifetime = { active: true },
   cache?: LeafCache,
 ): PreparedBlock {
-  record(value, ["type", "paragraph", "keepTogether", "height", "children", "props"], path);
+  record(value, ["type", "paragraph", "keepTogether", "width", "height", "children", "props"], path);
   if (value.type === "extension") {
     record(value, ["type", "props"], path);
     return extensionProducer(value, width, path, operation, extensions, lifetime, cache);
@@ -86,7 +85,7 @@ export function prepareLeaf(
         paragraphFragments(lifetime),
       );
     const measurement = measured(block, width, path, operation, cache);
-    return paragraphProducer(block, measurement, width, path);
+    return paragraphProducer(block, measurement, width, path, paragraphFragments(lifetime));
   }
   if (value.type === "pageBreak") {
     record(value, ["type"], path);
@@ -95,12 +94,13 @@ export function prepareLeaf(
       naturalSize: { width, height: 0 },
       extent: 1,
       control: "advance",
-      fragment: () => ({ nextOffset: 1, height: 0, paint: () => [] }),
+      fragment: () => ({ geometry: emptyGeometry, nextOffset: 1, height: 0, paint: () => [] }),
     };
   }
   if (value.type === "spacer") {
     record(value, ["type", "height"], path);
-    return atomicProducer(number(value.height, `${path}/height`, true), width, () => []);
+    const height = number(value.height, `${path}/height`, true);
+    return atomicProducer(height, width, () => []);
   }
   if (value.type !== "fixed") fail("TYPE", `${path}/type`, "Unsupported flow block");
   return fixedProducer(value, width, path, operation);
@@ -111,37 +111,38 @@ function fixedProducer(
   path: string,
   operation: LayoutOperation,
 ): PreparedBlock {
-  record(value, ["type", "height", "children"], path);
+  record(value, ["type", "width", "height", "children"], path);
+  const boxWidth = "width" in value ? number(value.width, `${path}/width`, true) : width;
+  if (boxWidth > width) fail("GEOMETRY", `${path}/width`, "Fixed width exceeds its host region");
   const height = number(value.height, `${path}/height`, true);
   array(value.children, operation.policy.nodes, `${path}/children`);
   const block = value as unknown as FlowBlock & { type: "fixed" };
   new OutputBudget(operation.policy).charge(block.children, path);
-  const work = operation.validateFixed(geometryNodes(block.children), width, height, path);
-  return registerFixedProducer(
-    atomicProducer(
-      height,
-      width,
-      (context) => {
-        if (!block.children.length) return [];
-        context.budget.reserveWork(work, path);
-        context.budget.charge([{ type: "paintGroup", children: block.children }], path);
-        return [
-          {
-            type: "paintGroup",
-            transform: [1, 0, 0, 1, context.x, context.y],
-            children: snapshotEmissionData(
-              instantiateEmissionNodes(block.children, currentEmissionOrigin(operation)),
-              path,
-            ),
-          },
-        ];
-      },
-      (request) => {
-        if (!block.children.length) return;
-        request.budget?.reserveWork(work, path);
-        request.budget?.charge([{ type: "paintGroup", children: block.children }], path);
-      },
-    ),
+  const work = operation.validateFixed(geometryNodes(block.children), boxWidth, height, path);
+  return atomicProducer(
+    height,
+    boxWidth,
+    (context) => {
+      if (!block.children.length) return [];
+      context.budget.reserveWork(work, path);
+      context.budget.charge([{ type: "paintGroup", children: block.children }], path);
+      return [
+        {
+          type: "paintGroup",
+          transform: [1, 0, 0, 1, context.x, context.y],
+          children: snapshotEmissionData(
+            instantiateEmissionNodes(block.children, currentEmissionOrigin(operation)),
+            path,
+          ),
+        },
+      ];
+    },
+    (request) => {
+      if (!block.children.length) return;
+      request.budget?.reserveWork(work, path);
+      request.budget?.charge([{ type: "paintGroup", children: block.children }], path);
+    },
+    true,
   );
 }
 function atomicProducer(
@@ -149,16 +150,17 @@ function atomicProducer(
   width: number,
   paint: import("./protocol.js").PlacedFragment["paint"],
   reserve?: (request: import("./protocol.js").FragmentRequest) => void,
+  wholeBox = false,
 ): PreparedBlock {
   return {
     fragmentation: "atomic",
     naturalSize: { width, height },
     extent: 1,
     fragment(request) {
-      if (exceeds(sum([request.usedHeight, height]), request.freshHeight)) return undefined;
+      if (!frameFits(request, height)) return undefined;
       reserveAncestors(request.reserve, request.budget, request.state, height);
       reserve?.(request);
-      return { nextOffset: 1, height, paint };
+      return { geometry: wholeBox ? wholeBoxGeometry(height) : emptyGeometry, nextOffset: 1, height, paint };
     },
   };
 }

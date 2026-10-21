@@ -75,7 +75,7 @@ function owner(content: ReturnType<typeof h>) {
         fragmentation: "atomic",
         extent: 1,
         naturalSize: measured.size,
-        fragment: () => ({ status: "placed", nextOffset: 1, height: measured.size.height, nodes: measured.nodes }),
+        next: () => ({ end: 1, height: measured.size.height, nodes: measured.nodes }),
       };
     },
   });

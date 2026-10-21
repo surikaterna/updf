@@ -77,14 +77,22 @@ test("#51 exact semantic page edge retains strict native clip bounds", () => {
   );
 });
 
-test("#51 ordinary invoice with mocked ratio theme renders deterministically", () => {
+test("#51 ordinary invoice renders deterministically; mocked ratio semantic overflow rejects before paint", () => {
   const original = businessTheme.text.lineHeight;
   try {
-    Reflect.set(businessTheme.text, "lineHeight", 1.4);
     const options = textOptions({});
     const first = invoiceExample(undefined, undefined, options);
     assert.deepEqual(invoiceExample(undefined, undefined, options).bytes, first.bytes);
     assert.ok(first.bytes.length > 0);
+    Reflect.set(businessTheme.text, "lineHeight", 1.4);
+    assert.throws(
+      () => invoiceExample(undefined, undefined, options),
+      (error: unknown) =>
+        error instanceof DocumentError &&
+        error.diagnostics[0]?.code === "GEOMETRY" &&
+        error.diagnostics[0]?.path === "/document/children/body/1" &&
+        error.diagnostics[0]?.message === "Materialized child part exceeds its fragment reservation",
+    );
   } finally {
     businessTheme.text.lineHeight = original;
   }

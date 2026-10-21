@@ -22,6 +22,7 @@ test("kernel manifest, ES-only declarations, build config and license are indepe
     "./geometry",
     "./boxes",
     "./fragmentation",
+    "./internal-fragmentation",
     "./numeric",
   ]);
   assert.equal(

@@ -4,11 +4,11 @@ import { DocumentError } from "@updf/core";
 import { createDrawingLayoutOperation } from "@updf/core/internal-drawing";
 import { OutputBudget } from "../dist/budget.js";
 import { prepare } from "../dist/blocks.js";
-import { registerFixedProducer } from "../dist/fixed-admission.js";
 import { Paginator } from "../dist/paginator.js";
 import { template } from "../dist/template.js";
 import type { PreparedBlock } from "../dist/protocol.js";
 import { flow } from "./fixtures.js";
+import { wholeBoxGeometry } from "../dist/fragment-paint-preparation.js";
 
 function setup(limits = {}) {
   const operation = createDrawingLayoutOperation({ profile: "service", limits });
@@ -24,7 +24,7 @@ test("refused candidates discard budget/state, retry same offset and paint only 
   const owner = {};
   const selections: number[] = [],
     paints: number[] = [];
-  const candidate: PreparedBlock = registerFixedProducer({
+  const candidate: PreparedBlock = {
     fragmentation: "atomic",
     naturalSize: { width: 100, height: 0.2 },
     extent: 1,
@@ -36,6 +36,7 @@ test("refused candidates discard budget/state, retry same offset and paint only 
       return {
         nextOffset: 1,
         height: 0.2,
+        geometry: wholeBoxGeometry(0.2),
         paint(context) {
           paints.push(context.y);
           context.budget.generated(1, 2, 3, 4, "/candidate");
@@ -43,12 +44,13 @@ test("refused candidates discard budget/state, retry same offset and paint only 
         },
       };
     },
-  });
+  };
   try {
     paginator.consume(candidate, 1, "/candidate");
     assert.deepEqual(selections, [0, 0]);
     assert.deepEqual(paints, [0]);
-    assert.deepEqual(budget.totals(), { nodes: 1, text: 2, commands: 3, work: 4 });
+    // Two accepted whole-box declarations each add one node and one part preparation unit.
+    assert.deepEqual(budget.totals(), { nodes: 1, text: 2, commands: 3, work: 8 });
     assert.equal(paginator.placements[1]?.box.y, paints[0]);
     assert.equal(paginator.result(2).pageCount, 2);
   } finally {
@@ -65,7 +67,7 @@ test("candidate quotas and validation errors precede native admission, never pai
   ] as const) {
     const { operation, paginator } = setup(limits);
     let paints = 0;
-    const candidate = registerFixedProducer({
+    const candidate: PreparedBlock = {
       fragmentation: "atomic" as const,
       naturalSize: { width: 100, height: 0.2 },
       extent: 1,
@@ -74,13 +76,14 @@ test("candidate quotas and validation errors precede native admission, never pai
         return {
           nextOffset: 1,
           height: 0.2,
+          geometry: wholeBoxGeometry(0.2),
           paint: () => {
             paints++;
             return [];
           },
         };
       },
-    });
+    };
     try {
       assert.throws(
         () => paginator.consume(candidate, 1),
@@ -97,6 +100,44 @@ test("candidate quotas and validation errors precede native admission, never pai
   }
 });
 
+test("split roots may choose a different fresh prefix without adopting refused source progress", () => {
+  const { operation, paginator } = setup();
+  const offsets: number[] = [];
+  const paints: number[] = [];
+  const candidate: PreparedBlock = {
+    fragmentation: "splittable",
+    naturalSize: { width: 100, height: 10 },
+    extent: 3,
+    fragment(request) {
+      assert.ok(request.mode !== "complete", "paginator requests a bounded region");
+      offsets.push(request.offset);
+      return {
+        nextOffset: request.atFreshRegion ? 2 : request.offset + 1,
+        height: request.offset === 2 ? 0 : 0.2,
+        geometry: wholeBoxGeometry(request.offset === 2 ? 0 : 0.2),
+        paint: (context) => {
+          paints.push(context.y);
+          return [];
+        },
+      };
+    },
+  };
+  try {
+    paginator.consume(candidate, 1);
+    assert.deepEqual(offsets, [0, 0, 2]);
+    assert.deepEqual(paints, [0, 0.2]);
+    assert.deepEqual(
+      paginator.placements.slice(1).map((p) => p.sourceRange),
+      [
+        { start: 0, end: 2 },
+        { start: 2, end: 3 },
+      ],
+    );
+  } finally {
+    operation.close();
+  }
+});
+
 test("invalid fragment progress and height preserve errors before retry", () => {
   for (const [nextOffset, height, code] of [
     [0, 0.2, "TYPE"],
@@ -106,12 +147,17 @@ test("invalid fragment progress and height preserve errors before retry", () => 
   ] as const) {
     const { operation, paginator } = setup();
     try {
-      const candidate = registerFixedProducer({
+      const candidate: PreparedBlock = {
         fragmentation: "atomic" as const,
         naturalSize: { width: 100, height: 0.2 },
         extent: 1,
-        fragment: () => ({ nextOffset, height, paint: () => assert.fail("Must not paint") }),
-      });
+        fragment: () => ({
+          nextOffset,
+          height,
+          geometry: wholeBoxGeometry(height),
+          paint: () => assert.fail("Must not paint"),
+        }),
+      };
       assert.throws(
         () => paginator.consume(candidate, 1),
         (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === code,
@@ -141,19 +187,20 @@ test("page quota applies to recovery and paint exceptions propagate by identity 
   const sentinel = new Error("paint failed");
   let paints = 0;
   try {
-    const candidate = registerFixedProducer({
+    const candidate: PreparedBlock = {
       fragmentation: "atomic" as const,
       naturalSize: { width: 100, height: 0.2 },
       extent: 1,
       fragment: () => ({
         nextOffset: 1,
         height: 0.2,
+        geometry: wholeBoxGeometry(0.2),
         paint: () => {
           paints++;
           throw sentinel;
         },
       }),
-    });
+    };
     assert.throws(
       () => next.paginator.consume(candidate, 1),
       (error) => error === sentinel,

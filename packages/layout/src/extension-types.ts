@@ -85,24 +85,18 @@ export interface MeasuredContent {
   readonly size: { readonly width: number; readonly height: number };
   readonly nodes: readonly NodeDefinition[];
 }
-/** Source-unit offset and point region capacity; offset is not a vertical point coordinate. */
-export interface BlockFragmentRequest {
+/** Width-only source query; offsets/extents count legal source units, not points. */
+export interface BlockUnitRequest {
   readonly offset: number;
-  readonly availableHeight: number;
-  readonly freshHeight: number;
-  readonly atFreshRegion: boolean;
+  readonly extent: number;
   readonly width: number;
 }
-/** Defer without progress or place a progressing source range with local native nodes and point height. */
-export type BlockFragment =
-  | { readonly status: "defer" }
-  | {
-      readonly status: "placed";
-      readonly nextOffset: number;
-      readonly height: number;
-      readonly nodes: readonly NodeDefinition[];
-      readonly decorations?: DecorationPlan;
-    };
+/** One indivisible progressing legal group. Zero height requires empty nodes; nonempty native output needs a positive region. */
+export interface BlockUnit {
+  readonly end: number;
+  readonly height: number;
+  readonly nodes: readonly NodeDefinition[];
+}
 /** Measured adapter protocol; extent is positive source units, naturalSize is points, atomic blocks cannot split. */
 export interface MeasuredBlock {
   /** Resolve selected before/body/after root reports together, independently of decoration reservation. */
@@ -114,9 +108,10 @@ export interface MeasuredBlock {
   readonly naturalSize: { readonly width: number; readonly height: number };
   readonly extent: number;
   readonly decorations?: DecorationPlan;
-  readonly fragment: (request: BlockFragmentRequest) => BlockFragment;
+  /** Synchronous, bounded reader; lookahead/repeated queries are allowed, not an exactly-once callback. */
+  readonly next: (request: BlockUnitRequest) => BlockUnit;
 }
-/** Trusted synchronous callbacks; validate returns snapshot-compatible props, measure returns a fragment producer. */
+/** Trusted synchronous callbacks; validate returns snapshot-compatible props, measure returns a width-only unit producer. */
 export interface BlockAdapterDefinition<P> {
   readonly name: string;
   readonly validate: (input: unknown) => P;

@@ -58,11 +58,11 @@ function repeatedAdapter(captured: MeasureContext[], failFirst: boolean) {
         fragmentation: "atomic",
         naturalSize: { width: 100, height: 0 },
         extent: 1,
-        fragment: () => {
+        next: () => {
           for (const previous of captured.slice(0, -1)) expired(previous);
           assert.ok(context.measureText(textInput).lines.length);
           if (failFirst && captured.length === 1) throw new Error("first fragment failure");
-          return { status: "placed", nextOffset: 1, height: 0, nodes: [] };
+          return { end: 1, height: 0, nodes: [] };
         },
       };
     },
@@ -161,9 +161,9 @@ for (const fails of [false, true]) {
           fragmentation: "atomic",
           naturalSize: { width: 100, height: 0 },
           extent: 1,
-          fragment: () => {
+          next: () => {
             if (fails) throw new Error("fragment failure");
-            return { status: "placed", nextOffset: 1, height: 0, nodes: [] };
+            return { end: 1, height: 0, nodes: [] };
           },
         };
       },

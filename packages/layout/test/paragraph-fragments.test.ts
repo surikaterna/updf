@@ -8,7 +8,7 @@ import { authorParagraph, normalizeBlocks } from "../dist/cjs/content-normalize.
 import { measureParagraph } from "../dist/cjs/content-paragraph.js";
 import { contentProducer } from "../dist/cjs/content-producer.js";
 import type { ExtensionLifetime } from "../dist/cjs/extension-producer.js";
-import { closeParagraphFragments } from "../dist/cjs/paragraph-fragments.js";
+import { closeParagraphFragments, paragraphFragments } from "../dist/cjs/paragraph-fragments.js";
 
 const request = { availableHeight: 12, atFreshRegion: true, offset: 0, width: 80, freshHeight: 12, usedHeight: 0 };
 test("production authored paragraphs and repeated candidate trials share one nonforked work ledger", () => {
@@ -47,6 +47,7 @@ test("prepared native paragraph counts match final emission and fit trials never
   )[0]!;
   const measured = measureParagraph(authorParagraph(normalized)!, 80, operation, undefined, "/body");
   let paints = 0;
+  const lifetime: ExtensionLifetime = { active: true };
   const producer = contentProducer(
     {
       ...measured,
@@ -58,14 +59,17 @@ test("prepared native paragraph counts match final emission and fit trials never
     80,
     false,
     "/body",
+    paragraphFragments(lifetime),
   );
   const selected = producer.fragment({ ...request, budget: new OutputBudget(operation.policy) })!;
   producer.fragment({ ...request, budget: new OutputBudget(operation.policy) });
   assert.equal(paints, 0);
-  const actual = selected.paint({ x: 0, y: 0, start: (offset) => offset, budget: new OutputBudget(operation.policy) });
+  const actual = paintPrepared(selected, new OutputBudget(operation.policy));
   assert.equal(paints, 2);
   const budget = new OutputBudget(operation.policy);
   budget.charge(actual, "/body");
   assert.deepEqual(budget.totals(), measured.emissionCounts(0));
+  closeParagraphFragments(lifetime);
   operation.close();
 });
+import { paintPrepared } from "./prepared-paint.js";

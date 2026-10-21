@@ -4,7 +4,7 @@ import { DocumentError } from "@updf/core";
 import { bits, value } from "../dist/binary64.js";
 import {
   certifyGeneratedFragment,
-  generatedFragmentStart,
+  assertGeneratedPart,
   generatedIntervals,
   materializeGeneratedInterval,
 } from "../dist/generated-interval.js";
@@ -17,14 +17,16 @@ test("fragment certificates reject foreign parts, forged records and dishonest e
   const first = sequence.append(12.6, path);
   const second = sequence.append(12.6, path);
   const fragment = certifyGeneratedFragment({ height: 25.2 }, [first, second]);
-  assert.equal(generatedFragmentStart(fragment, second, 6, 12.6, 12.6, path), 18.6);
+  assertGeneratedPart(fragment, second, 12.6, 12.6, path);
+  assert.equal(materializeGeneratedInterval(second, 6, reservation(fragment.height), path).start, 18.6);
   const foreign = generatedIntervals().append(12.6, path);
   for (const certificate of [foreign, { ...second }])
-    assert.throws(() => generatedFragmentStart(fragment, certificate, 6, 12.6, 12.6, path), DocumentError);
-  assert.throws(() => generatedFragmentStart({ height: 25.2 }, second, 6, 12.6, 12.6, path), DocumentError);
-  assert.throws(() => generatedFragmentStart(fragment, second, 6, 12.6, value(bits(12.6) + 1n), path), DocumentError);
+    assert.throws(() => assertGeneratedPart(fragment, certificate, 12.6, 12.6, path), DocumentError);
+  assert.throws(() => assertGeneratedPart({ height: 25.2 }, second, 12.6, 12.6, path), DocumentError);
+  assert.throws(() => assertGeneratedPart(fragment, second, 12.6, value(bits(12.6) + 1n), path), DocumentError);
   const dishonest = certifyGeneratedFragment({ height: value(bits(25.2) - 1n) }, [first, second]);
-  assert.throws(() => generatedFragmentStart(dishonest, second, 6, 12.6, 12.6, path), DocumentError);
+  assertGeneratedPart(dishonest, second, 12.6, 12.6, path);
+  assert.throws(() => materializeGeneratedInterval(second, 6, reservation(dishonest.height), path), DocumentError);
 });
 
 test("ordinary native fitting extents are preserved exactly", () => {

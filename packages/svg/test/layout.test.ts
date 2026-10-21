@@ -1,18 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, render } from "@updf/core";
-import { block, createExtensions, defineBlockAdapter, document, extension, flow, paragraph } from "@updf/layout";
+import { block, createExtensions, document, flow, paragraph } from "@updf/layout";
 import { table, tableExtension } from "@updf/tables";
 import { layout, measure, textOptions } from "../../../tests/fixtures/text-options.js";
 import { prepareSVG } from "@updf/svg";
 import { compilePreparedSVG, prepareSVGTree, type PreparedSvg } from "@updf/svg/authoring";
 import { jsx } from "@updf/svg/jsx-runtime";
-import { svgAdapters, svgBlock, svgInline, type SvgSize } from "@updf/svg/layout";
+import { svgBlock, svgInline, type SvgSize } from "@updf/svg/layout";
 
 const xml =
   '<svg width="40" height="30" viewBox="0 0 20 10"><rect x="2" y="1" width="16" height="8" fill="red"/></svg>';
 const prepared = prepareSVG(xml);
-const extensions = createExtensions(svgAdapters);
+const extensions = createExtensions([]);
 const margins = { top: 0, right: 0, bottom: 0, left: 0 };
 function run(children: NonNullable<Parameters<typeof flow>[0]["children"]>, installed = extensions, height = 100) {
   return layout(
@@ -28,9 +28,6 @@ function rejects(callback: () => unknown, code: string, path?: string) {
       (path === undefined || error.diagnostics[0]?.path === path),
   );
 }
-function props(size: SvgSize) {
-  return svgBlock(prepared, size).props as { width: number; height: number; nodes: readonly unknown[] };
-}
 test("viewport sizing uses explicit dimensions, then viewBox ratio, then intrinsic pair", () => {
   for (const [size, width, height] of [
     [{}, 40, 30],
@@ -38,19 +35,25 @@ test("viewport sizing uses explicit dimensions, then viewBox ratio, then intrins
     [{ height: 20 }, 40, 20],
     [{ width: 70, height: 80 }, 70, 80],
   ] as const) {
-    const value = props(size);
+    const value = svgBlock(prepared, size);
+    assert.equal(value.type, "fixed");
     assert.equal(value.width, width);
     assert.equal(value.height, height);
-    assert.deepEqual(value.nodes, [compilePreparedSVG(prepared, { x: 0, y: 0, w: width, h: height }).node]);
+    assert.deepEqual(value.children, [compilePreparedSVG(prepared, { x: 0, y: 0, w: width, h: height }).node]);
+    assert.deepEqual(measure(value, { width: 100 }).size, { width, height });
   }
   const intrinsic = prepareSVG('<svg width="40px" height="20"><rect width="10" height="10"/></svg>');
-  assert.equal((svgBlock(intrinsic, { height: 10 }).props as { width: number }).width, 20);
+  assert.equal(svgBlock(intrinsic, { height: 10 }).width, 20);
   const noIntrinsic = prepareSVG('<svg viewBox="0 0 20 10"/>');
   rejects(() => svgBlock(noIntrinsic, {}), "SVG_GEOMETRY", "/SVG_VIEWPORT");
   assert.ok(svgBlock(noIntrinsic, { width: 10, height: 20 }));
   const partial = prepareSVG('<svg width="9" viewBox="0 0 20 10"/>');
   rejects(() => svgInline(partial, {}), "SVG_GEOMETRY", "/SVG_VIEWPORT");
-  assert.equal((svgInline(partial, { width: 10 }).props as { height: number }).height, 5);
+  assert.equal(
+    measure(paragraph({ style: { fontSize: 1 }, children: svgInline(partial, { width: 10 }) }), { width: 100 }).lines[0]
+      ?.baseline,
+    5,
+  );
 });
 test("invalid sizing, derived overflow and malicious handles reject before getters", () => {
   for (const width of [0, -1, NaN, Infinity]) rejects(() => svgBlock(prepared, { width }), "GEOMETRY");
@@ -101,9 +104,6 @@ test("XML and direct structured handles give identical block and inline native o
   const b = run(children(structured));
   assert.deepEqual(a.document, b.document);
   assert.deepEqual(render(a.document), render(b.document));
-  assert.ok(Object.isFrozen(svgAdapters));
-  assert.equal(svgAdapters[0].name, "svgBlock");
-  assert.equal(svgAdapters[1].name, "svgInline");
 });
 test("baseline-bottom inline metrics and clipping preserve meet/slice/none semantics", () => {
   const result = measure(
@@ -113,34 +113,25 @@ test("baseline-bottom inline metrics and clipping preserve meet/slice/none seman
   );
   assert.equal(result.lines[0]?.baseline, 20);
   assert.equal(result.lines[0]?.fragments[0]?.advance, 40);
+  assert.deepEqual(result.inkBounds, { empty: false, left: 4, right: 36, top: 2, bottom: 18 });
   for (const preserve of ["xMidYMid meet", "xMidYMid slice", "none"]) {
     const graphic = prepareSVG(
       `<svg viewBox="0 0 20 10" preserveAspectRatio="${preserve}"><rect width="20" height="10"/></svg>`,
     );
-    assert.deepEqual((svgBlock(graphic, { width: 10, height: 30 }).props as { nodes: unknown }).nodes, [
+    assert.deepEqual(svgBlock(graphic, { width: 10, height: 30 }).children, [
       compilePreparedSVG(graphic, { x: 0, y: 0, w: 10, h: 30 }).node,
     ]);
   }
 });
-test("capabilities are local, exact identities, and fixed oversized SVG never silently shrinks", () => {
+test("canonical SVG requires no installation and oversized content never silently shrinks", () => {
   const content = svgBlock(prepared, {});
-  rejects(() => run(content, createExtensions([])), "KEY");
-  const foreign = defineBlockAdapter({
-    name: "svgBlock",
-    validate: (p) => p,
-    measure: () => {
-      throw new Error("foreign");
-    },
-  });
-  rejects(() => run(content, createExtensions([foreign])), "KEY");
-  rejects(() => createExtensions([...svgAdapters, svgAdapters[0]]), "KEY");
+  assert.equal(run(content).pageCount, 1);
+  assert.deepEqual(measure(content, { width: 100 }).size, { width: 40, height: 30 });
   rejects(() => run(content, extensions, 20), "LAYOUT_OVERSIZED");
   rejects(() => run(svgBlock(prepared, { width: 101 })), "GEOMETRY");
+  rejects(() => measure(svgBlock(prepared, { width: 100 + Number.EPSILON * 64 }), { width: 100 }), "GEOMETRY");
 });
-test("manual adapter props retain native validation and source/output budgets", () => {
-  const raw = { width: 10, height: 10, nodes: [{ type: "foreign" }] };
-  rejects(() => run(extension(svgAdapters[0], raw as never)), "TYPE");
-  rejects(() => run(extension(svgAdapters[0], { ...props({}), extra: 1 } as never)), "KEY");
+test("canonical SVG retains per-operation source/output budgets", () => {
   const content = document({
     children: flow({
       pageSize: { width: 100, height: 100 },
@@ -153,7 +144,7 @@ test("manual adapter props retain native validation and source/output budgets", 
   rejects(() => render(layout(content).document, { limits: { outputBytes: 100 }, profile: "service" }), "LIMIT");
 });
 test("styled table/block/paragraph composition preserves explicit text resources", () => {
-  const installed = createExtensions([...svgAdapters, tableExtension]);
+  const installed = createExtensions([tableExtension]);
   const children = table({
     columns: [{ width: 100 }],
     style: { padding: 2, fontSize: 8 },

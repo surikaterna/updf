@@ -58,6 +58,14 @@ units, provide exact mathematical sums, or guarantee geometry certification.
 Nonfinite arithmetic propagates. Do not substitute JSON long-double encodings or
 bit patches for these operations.
 
+`MetricSum.fork()` is an additive owner-level snapshot: it copies both the running
+total and hidden correction into an independent accumulator. Tentative accumulation
+must not reconstruct that state from `.value`; collapsed sums can round differently.
+The existing `add` recurrence, `value`, `sum` and `exceeds` executable bodies and
+operation order remain unchanged, not the entire historical source file. A fork
+neither validates domains nor certifies metric fit or native geometry. Paginator
+uses it only for nonzero tentative margins and commits it after native admission.
+
 The existing `exceeds(actual, bound, operationScale = 0)` is unchanged:
 
 ```text
@@ -129,7 +137,7 @@ loosening PDF certificate boundaries or modifying SVG/host behavior.
 
 | Area | Current status |
 | --- | --- |
-| Metric arithmetic | Existing kernel implementation; text and core share/reexport it; unchanged in this change |
+| Metric arithmetic | Existing recurrence/comparison preserved; additive `MetricSum.fork()` snapshots total and correction; text and core share/reexport the owner |
 | Public request occupied-height fit relation | Implemented in this change using unchanged `exceeds` default scale; operand domains remain exact |
 | Derived geometry containment | Policy for future bounded changes, not a region-engine implementation in this change |
 | Generic `layoutBoxes` | Optional `containment: "metric"` adopts bounded natural-height fit and immediate-parent lower/upper endpoint containment; default `"native"` remains strict, result reports its guarantee; production Row and standalone Column use staged boxes with metric containment while the host retains pagination and body/fragment extents |

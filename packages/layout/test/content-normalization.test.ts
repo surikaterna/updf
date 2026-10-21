@@ -3,8 +3,8 @@ import test from "node:test";
 import { richInput } from "../../../tests/fixtures/rich-input.js";
 import { DocumentError } from "@updf/core";
 import { type ComponentContext, h } from "@updf/core/vdom";
-import { Block, block, Paragraph, paragraph, Span, span } from "@updf/layout";
-import { layoutTableFlow, measure } from "../../../tests/fixtures/text-options.js";
+import { Block, block, document, flow, Paragraph, paragraph, Span, span } from "@updf/layout";
+import { layout, measure } from "../../../tests/fixtures/text-options.js";
 
 function reject(callback: () => unknown, code: string, path?: RegExp): void {
   assert.throws(
@@ -62,17 +62,21 @@ test("D: subnormal text advances retain representable native boxes without a poi
   assert.equal(measured.size.height, 12);
   assert.equal(measured.lines[0]?.advance, 0);
 });
-test("D: the shared compiler normalizes authored prose in the existing mixed table entry and closes wrapper contexts", () => {
+test("D: the shared compiler normalizes authored prose in public flow and closes wrapper contexts", () => {
   let retained: ComponentContext | undefined;
   const Child = (_props: Record<never, never>, context: ComponentContext) => {
     retained = context;
     return "x";
   };
-  const pageTemplate = { width: 120, height: 120, margins: { top: 10, right: 10, bottom: 10, left: 10 } };
-  const result = layoutTableFlow({
-    pageTemplate,
-    body: [block({ children: [paragraph({ children: h(Child, {}) })] })],
-  });
+  const result = layout(
+    document({
+      children: flow({
+        pageSize: { width: 120, height: 120 },
+        margins: { top: 10, right: 10, bottom: 10, left: 10 },
+        children: block({ children: [paragraph({ children: h(Child, {}) })] }),
+      }),
+    }),
+  );
   assert.equal(result.pageCount, 1);
   assert.ok(retained);
   const context = retained;

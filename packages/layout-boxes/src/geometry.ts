@@ -52,8 +52,12 @@ export function derivedAxis(start: number, end: number, path: string): DerivedAx
   if (capacity <= 0 || start + capacity > end) illConditioned(path);
   return Object.freeze({ start, end, nominalExtent, capacity });
 }
-/** Nonthrowing native endpoint certificate; undefined on refusal. Host must validate metric signs. */
-export function tryMaterializedStart(axis: DerivedAxis, offset: number, extent: number): number | undefined {
+/** Nonthrowing native endpoint certificate using bounds only (including empty bounds); host validates metric signs. */
+export function tryMaterializedStart(
+  axis: Readonly<Pick<DerivedAxis, "start" | "end">>,
+  offset: number,
+  extent: number,
+): number | undefined {
   const start = axis.start + offset;
   const end = start + extent;
   if (!Number.isFinite(start) || !Number.isFinite(end) || start < axis.start || end > axis.end) return undefined;

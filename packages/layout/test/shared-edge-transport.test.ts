@@ -55,10 +55,7 @@ function deferredParent(content: BlockContent) {
         extent: 1,
         naturalSize: { width: 80, height: 10 },
         decorations,
-        fragment: (request) =>
-          request.availableHeight < 10
-            ? { status: "defer" }
-            : { status: "placed", nextOffset: 1, height: 10, nodes: [marker] },
+        next: () => ({ end: 1, height: 10, nodes: [marker] }),
       };
     },
   });
@@ -91,7 +88,7 @@ test("direct before/body/after markers share one translated interval and retain 
         extent: 1,
         naturalSize: { width: 80, height: 10 },
         decorations,
-        fragment: () => ({ status: "placed", nextOffset: 1, height: 10, nodes: [body] }),
+        next: () => ({ end: 1, height: 10, nodes: [body] }),
       };
     },
   });
@@ -123,7 +120,7 @@ test("deferred root reports join only after rendering with current page context;
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: 80, height: 4 },
-        fragment: () => ({ status: "placed", nextOffset: 1, height: 4, nodes: [marker] }),
+        next: () => ({ end: 1, height: 4, nodes: [marker] }),
       };
     },
   });
@@ -161,9 +158,8 @@ test("B1 deferred aggregate root retains internal logical boundaries and bounded
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: 80, height: 10 },
-        fragment: () => ({
-          status: "placed",
-          nextOffset: 1,
+        next: () => ({
+          end: 1,
           height: 10,
           nodes: [before, { type: "paintGroup", transform: [1, 0, 0, 1, 0, 5], children: [after] }],
         }),
@@ -192,7 +188,7 @@ test("serialized marker output is ordinary native content, not a forged shared r
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: 80, height: 10 },
-        fragment: () => ({ status: "placed", nextOffset: 1, height: 10, nodes: [marker] }),
+        next: () => ({ end: 1, height: 10, nodes: [marker] }),
       };
     },
   });
@@ -214,7 +210,7 @@ test("report allocations, content geometry, ownership and closed factory context
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: 80, height: 10 },
-        fragment: () => ({ status: "placed", nextOffset: 1, height: 10, nodes: [marker!] }),
+        next: () => ({ end: 1, height: 10, nodes: [marker!] }),
       };
     },
   });
@@ -235,7 +231,7 @@ test("generated edge paint participates in node and path-command output budgets"
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: 80, height: 10 },
-        fragment: () => ({ status: "placed", nextOffset: 1, height: 10, nodes: [marker] }),
+        next: () => ({ end: 1, height: 10, nodes: [marker] }),
       };
     },
   });
@@ -285,7 +281,7 @@ test("a deferred nested child report is painted locally, not lifted as the reser
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: 80, height: 4 },
-        fragment: () => ({ status: "placed", nextOffset: 1, height: 4, nodes: [marker] }),
+        next: () => ({ end: 1, height: 4, nodes: [marker] }),
       };
     },
   });
@@ -330,7 +326,7 @@ test("deferred participating root clips its content but emits shared paint outsi
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: 80, height: 10 },
-        fragment: () => ({ status: "placed", nextOffset: 1, height: 10, nodes: [marker] }),
+        next: () => ({ end: 1, height: 10, nodes: [marker] }),
       };
     },
   });
@@ -360,11 +356,11 @@ test("a cached fragment callback mints reports with the current occurrence's mea
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: 80, height: 10 },
-        fragment() {
+        next() {
           paths.push(context.sourcePath);
           const marker = context.edgeRegion(region(10, [{ ...top, sourcePath: `${context.sourcePath}/row` }]));
           assert.equal(sharedEdgeEmission(marker)?.path, context.sourcePath);
-          return { status: "placed", nextOffset: 1, height: 10, nodes: [marker] };
+          return { end: 1, height: 10, nodes: [marker] };
         },
       };
     },

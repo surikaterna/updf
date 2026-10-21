@@ -47,7 +47,7 @@ test("F-AUD01 R2 generic fixed transport retains owned recipes without a table-s
         extent: 1,
         naturalSize: { width: context.width, height: 0 },
         decorations,
-        fragment: () => ({ status: "placed", nextOffset: 1, height: 0, nodes: [] }),
+        next: () => ({ end: 1, height: 0, nodes: [] }),
       };
     },
   });

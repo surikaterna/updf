@@ -1,6 +1,6 @@
 import { exceeds } from "./arithmetic.js";
 import { fail } from "./error.js";
-import type { FragmentSource, RangeRequest } from "./fragment-types.js";
+import type { CandidateRequest, FragmentSource, RangeRequest, SelectionRequest } from "./fragment-types.js";
 import { number, record, trackLimit } from "./width-validation.js";
 
 export function safeInteger(value: unknown, path: string): number {
@@ -30,7 +30,7 @@ export function sourceSnapshot<D>(input: FragmentSource<D>): FragmentSource<D> {
     width: ownedWidth,
   });
 }
-export function rangeRequest(input: RangeRequest): RangeRequest {
+export function rangeRequest(input: unknown): RangeRequest {
   const data = record(input, ["offset", "width", "height", "usedHeight"], "/request");
   const height = number(data.height, "/request/height");
   const usedHeight = number(data.usedHeight, "/request/usedHeight");
@@ -41,4 +41,30 @@ export function rangeRequest(input: RangeRequest): RangeRequest {
     height,
     usedHeight,
   });
+}
+export function candidateRequest(input: CandidateRequest): CandidateRequest {
+  const data = record(input, ["offset", "width"], "/request");
+  return Object.freeze({
+    offset: safeInteger(data.offset, "/request/offset"),
+    width: number(data.width, "/request/width"),
+  });
+}
+export function selectionRequest(input: SelectionRequest): SelectionRequest {
+  if (!input || typeof input !== "object" || !Object.hasOwn(input, "mode")) return rangeRequest(input);
+  const data = record(input, ["mode", "offset", "width"], "/request");
+  if (data.mode !== "complete") fail("VALUE", "/request/mode", "Expected complete selection mode");
+  return Object.freeze({
+    mode: "complete",
+    offset: safeInteger(data.offset, "/request/offset"),
+    width: number(data.width, "/request/width"),
+  });
+}
+export function validateSourceRequest<D>(source: FragmentSource<D>, request: CandidateRequest): void {
+  if (source.width.mode === "fixed" && request.width !== source.width.value)
+    fail("VALUE", source.path, "Prepared source width mismatch");
+  if (
+    request.offset > source.extent ||
+    (source.mode === "atomic" && request.offset !== 0 && request.offset !== source.extent)
+  )
+    fail("VALUE", source.path, "Invalid source offset");
 }

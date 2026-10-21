@@ -16,6 +16,14 @@ export class MetricSum {
     return this.value;
   }
 
+  /** Independent snapshot of accumulation state, not a fit or geometry guarantee. */
+  fork(): MetricSum {
+    const result = new MetricSum();
+    result.total = this.total;
+    result.correction = this.correction;
+    return result;
+  }
+
   /** Corrected current total, initially zero; reading does not reset the accumulator. */
   get value(): number {
     return this.total + this.correction;

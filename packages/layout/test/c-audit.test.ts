@@ -20,7 +20,7 @@ function output(nodes: readonly NodeDefinition[]): MeasuredBlock {
     fragmentation: "atomic",
     extent: 1,
     naturalSize: { width: 100, height: 1 },
-    fragment: () => ({ status: "placed", nextOffset: 1, height: 1, nodes }),
+    next: () => ({ end: 1, height: 1, nodes }),
   };
 }
 function diagnostic(run: () => unknown, code: string, path?: string): void {
@@ -60,9 +60,9 @@ test("C-F2: sibling provisional output exhausts nodes before an unvisited access
     validate: (input) => input,
     measure: () => ({
       ...output(tail),
-      fragment() {
+      next() {
         callbacks++;
-        return { status: "placed", nextOffset: 1, height: 1, nodes: tail };
+        return { end: 1, height: 1, nodes: tail };
       },
     }),
   });
@@ -85,9 +85,9 @@ test("C-F2: repeated descriptor fragment callbacks stop at cumulative candidate 
       measured++;
       return {
         ...output([rect]),
-        fragment() {
+        next() {
           callbacks++;
-          return { status: "placed", nextOffset: 1, height: 0, nodes: [] };
+          return { end: 1, height: 0, nodes: [] };
         },
       };
     },
@@ -99,9 +99,9 @@ test("C-F2: repeated descriptor fragment callbacks stop at cumulative candidate 
       measured++;
       return {
         ...output([rect]),
-        fragment() {
+        next() {
           callbacks++;
-          return { status: "placed", nextOffset: 1, height: 1, nodes: [rect] };
+          return { end: 1, height: 1, nodes: [rect] };
         },
       };
     },
@@ -143,11 +143,8 @@ test("C-F2: exact wrapper budget and footer retries commit only selected output"
       extent: 2,
       naturalSize: { width: 100, height: 40 },
       decorations: plan,
-      fragment(request) {
-        const count = Math.min(2 - request.offset, Math.floor(request.availableHeight / 20));
-        return count
-          ? { status: "placed", nextOffset: request.offset + count, height: count * 20, nodes: [rect] }
-          : { status: "defer" };
+      next(request) {
+        return { end: request.offset + 1, height: 20, nodes: [rect] };
       },
     }),
   });
@@ -166,7 +163,7 @@ test("C-F2: zero-height nested siblings do not release prior reservations or cre
   const empty = defineBlockAdapter({
     name: "empty",
     validate: (input) => input,
-    measure: () => ({ ...output([]), fragment: () => ({ status: "placed", nextOffset: 1, height: 0, nodes: [] }) }),
+    measure: () => ({ ...output([]), next: () => ({ end: 1, height: 0, nodes: [] }) }),
   });
   const input = flow([block({ children: [extension(drawing, {}), block({ children: [extension(empty, {})] })] })]);
   assert.equal(
@@ -217,9 +214,9 @@ test("C-F4: repeated nested extension measurements are reused but diagnostics bi
       measures++;
       return {
         ...output([]),
-        fragment() {
+        next() {
           calls++;
-          return { status: "placed", nextOffset: calls === 1 ? 1 : 0, height: 1, nodes: [] };
+          return { end: calls === 1 ? 1 : 0, height: 1, nodes: [] };
         },
       };
     },
@@ -234,7 +231,7 @@ test("C-F4: repeated nested extension measurements are reused but diagnostics bi
   assert.equal(measures, 1);
 });
 test("C-F5: ordinary/primitive stage throws become stable structured diagnostics without reading message getters", () => {
-  for (const stage of ["validate", "measure", "fragment"] as const) {
+  for (const stage of ["validate", "measure", "next"] as const) {
     for (const thrown of [new Error("failure"), new TypeError("failure"), "primitive", 42]) {
       const adapter = defineBlockAdapter({
         name: "throwing",
@@ -246,7 +243,7 @@ test("C-F5: ordinary/primitive stage throws become stable structured diagnostics
           if (stage === "measure") throw thrown;
           return {
             ...output([]),
-            fragment() {
+            next() {
               throw thrown;
             },
           };
@@ -288,7 +285,7 @@ test("C-F5: existing structured errors retain identity/span and failure closes c
       retained = context;
       return {
         ...output([]),
-        fragment() {
+        next() {
           throw original;
         },
       };
@@ -333,9 +330,9 @@ test("C-F4: a cached callback's measurement context uses its current occurrence 
       measured++;
       return {
         ...output([]),
-        fragment() {
+        next() {
           if (++calls === 2) context.measureText(richInput("A", 100, 10, 10, "unknown"));
-          return { status: "placed", nextOffset: 1, height: 1, nodes: [] };
+          return { end: 1, height: 1, nodes: [] };
         },
       };
     },

@@ -1,4 +1,5 @@
 import {
+  array,
   fail,
   finite,
   type LayoutOperation,
@@ -13,12 +14,23 @@ import type { TextStyle } from "@updf/text";
 import { adapterCall } from "./adapter-call.js";
 import { registerAdapter } from "./adapter-ownership.js";
 import { type BudgetTotals, OutputBudget } from "./budget.js";
-import type { InlineAdapter, InlineAdapterDefinition, InlineMeasurement, InlineVisual } from "./content-types.js";
+import type {
+  InlineAdapter,
+  InlineAdapterDefinition,
+  InlineMeasurement,
+  InlineVisual,
+  NativeInlineInput,
+} from "./content-types.js";
+import { isEmissionNode } from "./emission-nodes.js";
+import { isSharedEdgeNode } from "./shared-edge-emission.js";
 import type { Extensions } from "./extension-types.js";
 import { requireInstalled } from "./extensions.js";
 
 const definitions = new WeakMap<object, InlineAdapterDefinition<unknown>>();
-const descriptors = new WeakMap<object, object>();
+type VisualSource =
+  | { readonly kind: "adapter"; readonly adapter: object }
+  | { readonly kind: "native"; readonly input: Readonly<Required<NativeInlineInput>> };
+const descriptors = new WeakMap<object, VisualSource>();
 const caches = new WeakMap<LayoutOperation, WeakMap<object, Map<string, PreparedVisual>>>();
 const captures = new WeakMap<LayoutOperation, OutputBudget>();
 /** Define a frozen inline identity with trusted synchronous callbacks; install it in the local Extensions set. */
@@ -39,7 +51,25 @@ export function inline<P>(adapter: InlineAdapter<P>, props: P): InlineVisual {
   const descriptor = ownContentData(
     Object.freeze({ type: "inlineVisual" as const, props: snapshotData(props, "/props") }),
   );
-  descriptors.set(descriptor, adapter);
+  descriptors.set(descriptor, { kind: "adapter", adapter });
+  return descriptor;
+}
+/** Snapshot an owned native visual without an adapter or local extension installation. */
+export function nativeInline(input: NativeInlineInput): InlineVisual {
+  record(input, ["advance", "ascent", "descent", "nodes"], "/nativeInline");
+  const advance = number(input.advance, "/nativeInline/advance", true);
+  const ascent = number(input.ascent, "/nativeInline/ascent");
+  const descent = "descent" in input ? number(input.descent, "/nativeInline/descent") : 0;
+  number(sum([ascent, descent]), "/nativeInline/height", true);
+  array(input.nodes, Number.MAX_SAFE_INTEGER, "/nativeInline/nodes");
+  const props = snapshotData({ advance, ascent, descent, nodes: input.nodes }, "/nativeInline", (node) => {
+    // Inline painting has no deferred block-recipe occurrence lifecycle.
+    if (isEmissionNode(node) || isSharedEdgeNode(node))
+      fail("TYPE", "/nativeInline/nodes", "Native inline nodes cannot contain deferred block emissions");
+    return false;
+  });
+  const descriptor = ownContentData(Object.freeze({ type: "inlineVisual" as const, props }));
+  descriptors.set(descriptor, { kind: "native", input: props });
   return descriptor;
 }
 export interface PreparedVisual {
@@ -56,9 +86,9 @@ export function prepareVisual(
   extensions: Extensions | undefined,
   path: string,
 ): PreparedVisual {
-  const adapter = descriptors.get(descriptor);
-  if (!adapter) fail("TYPE", path, "Expected an owned inline descriptor");
-  requireInstalled(adapter, extensions, path);
+  const source = descriptors.get(descriptor);
+  if (!source) fail("TYPE", path, "Expected an owned inline descriptor");
+  if (source.kind === "adapter") requireInstalled(source.adapter, extensions, path);
   const cache = caches.get(operation) ?? new WeakMap<object, Map<string, PreparedVisual>>();
   caches.set(operation, cache);
   const values = cache.get(descriptor) ?? new Map<string, PreparedVisual>();
@@ -66,18 +96,18 @@ export function prepareVisual(
   const key = JSON.stringify([width, style]);
   const previous = values.get(key);
   if (previous) return { ...previous, path };
-  const visual = measureVisual(adapter, descriptor, width, style, operation, path);
+  const visual = measureVisual(source, descriptor, width, style, operation, path);
   values.set(key, visual);
   return visual;
 }
-function measureVisual(
+function adapterMeasurement(
   adapter: object,
   descriptor: object,
   width: number,
   style: TextStyle,
   operation: LayoutOperation,
   path: string,
-): PreparedVisual {
+): InlineMeasurement {
   const definition = definitions.get(adapter);
   if (!definition) fail("TYPE", path, "Expected an inline adapter");
   const origin = { path };
@@ -92,18 +122,30 @@ function measureVisual(
       return operation.nativeInk(nodes);
     },
   });
-  const value = adapterCall("measure", path, () => definition.measure(owned, context), origin);
+  return adapterCall("measure", path, () => definition.measure(owned, context), origin);
+}
+function measureVisual(
+  source: VisualSource,
+  descriptor: object,
+  width: number,
+  style: TextStyle,
+  operation: LayoutOperation,
+  path: string,
+): PreparedVisual {
+  const value =
+    source.kind === "native"
+      ? source.input
+      : adapterMeasurement(source.adapter, descriptor, width, style, operation, path);
   const capture = captures.get(operation) ?? new OutputBudget(operation.policy);
   captures.set(operation, capture);
   const trial = capture.fork();
-  validateVisual(value, operation, trial, path);
+  validateVisual(value, operation, trial, path, source.kind === "adapter");
   const actual = operation.nativeInk(value.nodes);
   const inkBounds = actual.empty
     ? actual
     : { ...actual, top: actual.top - value.ascent, bottom: actual.bottom - value.ascent };
-  checkInk(value, inkBounds, path);
+  if ("inkBounds" in value) checkInk(value, inkBounds, path);
   const measurement = snapshotData({ ...value, inkBounds }, path);
-  capture.adopt(trial);
   const bounds = measurement.inkBounds;
   const metrics: RunMetrics = {
     advance: measurement.advance,
@@ -117,6 +159,7 @@ function measureVisual(
   };
   const emission = new OutputBudget(operation.policy);
   emission.charge(measurement.nodes, path);
+  capture.adopt(trial);
   return { measurement, metrics, path, emissionCounts: emission.totals() };
 }
 function checkInk(value: InlineMeasurement, actual: InlineMeasurement["inkBounds"], path: string): void {
@@ -136,15 +179,25 @@ function validateVisual(
   operation: LayoutOperation,
   budget: OutputBudget,
   path: string,
-): asserts value is InlineMeasurement {
-  record(value, ["advance", "ascent", "descent", "inkBounds", "nodes"], path);
+  declared: boolean,
+): asserts value is InlineMeasurement | Required<NativeInlineInput> {
+  record(
+    value,
+    declared ? ["advance", "ascent", "descent", "inkBounds", "nodes"] : ["advance", "ascent", "descent", "nodes"],
+    path,
+  );
   const advance = number(value.advance, `${path}/advance`, true);
   const ascent = number(value.ascent, `${path}/ascent`);
   const descent = number(value.descent, `${path}/descent`);
   const height = sum([ascent, descent]);
   if (height <= 0) fail("GEOMETRY", path, "An inline visual needs positive box height");
-  record(value.inkBounds, ["empty", "left", "right", "top", "bottom"], `${path}/inkBounds`);
-  const bounds = value.inkBounds;
+  if (declared) validateInk(value.inkBounds, advance, ascent, descent, path);
+  budget.charge(value.nodes as InlineMeasurement["nodes"], path);
+  operation.validateFixed(value.nodes as InlineMeasurement["nodes"], advance, height, path);
+}
+function validateInk(value: unknown, advance: number, ascent: number, descent: number, path: string): void {
+  record(value, ["empty", "left", "right", "top", "bottom"], `${path}/inkBounds`);
+  const bounds = value;
   if (bounds.empty === false) {
     const left = number(bounds.left, path),
       right = number(bounds.right, path);
@@ -153,6 +206,4 @@ function validateVisual(
     if (left > right || right > advance || top > bottom || top < -ascent || bottom > descent)
       fail("GEOMETRY", path, "Inline ink must fit its declared box");
   } else if (bounds.empty !== true || Object.keys(bounds).length !== 1) fail("TYPE", path, "Expected ink bounds");
-  budget.charge(value.nodes as InlineMeasurement["nodes"], path);
-  operation.validateFixed(value.nodes as InlineMeasurement["nodes"], advance, height, path);
 }

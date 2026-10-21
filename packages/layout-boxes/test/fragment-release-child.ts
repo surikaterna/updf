@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createFragmentOperation, type ProviderWork } from "../src/fragmentation.js";
+import { createFragmentOperation, createRangeOperation, type ProviderWork } from "../src/fragmentation.js";
 
 function retainedOperation(poison: boolean) {
   const descriptor = Buffer.alloc(1024 * 1024);
@@ -29,12 +29,16 @@ function retainedOperation(poison: boolean) {
     },
   });
   op.select(prepared, { offset: 0, width: 10, height: 0, usedHeight: 0 });
+  const candidate = op.nextCandidate(op.candidates(prepared, { offset: 0, width: 10 }));
+  if (candidate.done) throw new Error("expected candidate");
   if (poison) assert.throws(() => op.select({} as typeof prepared, { offset: 0, width: 10, height: 0, usedHeight: 0 }));
   else op.close();
   return {
     op,
     prepared,
     cursor,
+    candidateCursor: candidate.cursor,
+    endpoint: candidate.endpoint,
     handle,
     refs: [descriptor, providerResource, viewResource].map((value) => new WeakRef(value)),
   };
@@ -44,7 +48,33 @@ function control() {
   return new WeakRef(Buffer.alloc(1024 * 1024));
 }
 
+function retainedRange(poison: boolean) {
+  const descriptor = Buffer.alloc(1024 * 1024);
+  const content = Buffer.alloc(1024 * 1024);
+  let handle: ProviderWork | undefined;
+  const op = createRangeOperation({
+    next: (_, { offset }, work) => {
+      handle = work;
+      return { end: offset + 1, height: 0, content };
+    },
+  });
+  const prepared = op.prepare({
+    id: "range",
+    path: "/range",
+    descriptor,
+    extent: 1,
+    mode: "atomic",
+    width: { mode: "fixed", value: 1 },
+  });
+  const request = { offset: 0, width: 1, height: 0, usedHeight: 0 };
+  op.select(prepared, request);
+  if (poison) assert.throws(() => op.select({} as typeof prepared, request));
+  else op.close();
+  return { op, prepared, request, handle, refs: [new WeakRef(descriptor), new WeakRef(content)] };
+}
+
 const retained = [retainedOperation(false), retainedOperation(true)];
+const ranges = [retainedRange(false), retainedRange(true)];
 const unregistered = control();
 const live = Buffer.alloc(1024 * 1024);
 const liveRef = new WeakRef(live);
@@ -62,4 +92,12 @@ for (const item of retained) {
   assert.throws(() => item.op.select(item.prepared, { offset: 0, width: 10, height: 0, usedHeight: 0 }));
   assert.throws(() => item.op.fragment(item.cursor, { id: "r", width: 10, height: 0, usedHeight: 0 }));
   assert.throws(() => item.handle!.consume(0));
+  assert.throws(() => item.op.nextCandidate(item.candidateCursor));
+  assert.throws(() => item.op.materializeCandidate(item.endpoint));
+}
+for (const item of ranges) {
+  for (const ref of item.refs) assert.equal(ref.deref(), undefined, "range owner must release host resources");
+  assert.ok(Object.isFrozen(item.op.counts()));
+  assert.throws(() => item.op.select(item.prepared, item.request), /closed/);
+  assert.throws(() => item.handle!.consume(0), /expired/);
 }

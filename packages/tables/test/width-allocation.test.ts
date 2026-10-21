@@ -32,7 +32,7 @@ test("allocation capabilities reject copies, cross-operation and closed contexts
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: 100, height: 0 },
-        fragment: () => ({ status: "placed", nextOffset: 1, height: 0, nodes: [] }),
+        next: () => ({ end: 1, height: 0, nodes: [] }),
       };
     },
   });

@@ -11,7 +11,7 @@ function structured(error: unknown): boolean {
   }
 }
 export function adapterCall<T>(
-  stage: "validate" | "measure" | "fragment",
+  stage: "validate" | "measure" | "next",
   path: string,
   callback: () => T,
   origin: AdapterOrigin,

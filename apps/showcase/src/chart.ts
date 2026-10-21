@@ -74,9 +74,8 @@ export const chartAdapter = defineBlockAdapter<ChartProps>({
       fragmentation: "atomic",
       extent: 1,
       naturalSize: { width: context.width, height: props.height },
-      fragment(request) {
-        if (props.height > request.availableHeight) return { status: "defer" };
-        return { status: "placed", nextOffset: 1, height: props.height, nodes: nodes(props, context.width) };
+      next() {
+        return { end: 1, height: props.height, nodes: nodes(props, context.width) };
       },
     };
   },

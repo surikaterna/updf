@@ -160,14 +160,36 @@ test("native line/block association cannot overlap another body reservation or a
   });
   const template = { height: 1.5, margins: { top: 1, right: 0, bottom: 0, left: 0 } };
   rejects(flow([{ type: "paragraph", paragraph: p }], template), "GEOMETRY", "/body/0");
-  rejects(
-    flow(
-      ["A", "B", "C"].map((text) => ({ type: "paragraph", paragraph: { ...p, runs: [{ text }] } })),
-      template,
-    ),
-    "GEOMETRY",
-    "/body/2",
+  const input = flow(
+    ["A", "B", "C"].map((text) => ({ type: "paragraph", paragraph: { ...p, runs: [{ text }] } })),
+    template,
   );
+  const result = layoutFlow(input);
+  const document = agrees(input, 2);
+  assert.equal(result.consumed, 3);
+  assert.deepEqual(
+    result.placements.map(({ sourceIndex, pageIndex, box }) => [sourceIndex, pageIndex, box]),
+    [0, 1, 2].map((sourceIndex) => [
+      sourceIndex,
+      sourceIndex === 2 ? 1 : 0,
+      { x: 0, y: sourceIndex === 1 ? 1.1 : 1, width: 100, height: 0.1 },
+    ]),
+  );
+  for (const [pageIndex, page] of document.pages.entries()) {
+    assert.equal(page.children.length, pageIndex === 0 ? 2 : 1);
+    for (const [index, node] of page.children.entries()) {
+      assert.ok(node.type === "richText");
+      assert.deepEqual(
+        { x: node.x, y: node.y, width: node.width, height: node.height },
+        result.placements[pageIndex === 0 ? index : 2]?.box,
+      );
+      assert.equal(node.paragraphs[0]?.runs[0]?.text, ["A", "B", "C"][pageIndex === 0 ? index : 2]);
+      assert.ok(node.x >= 0 && node.x + node.width <= page.width);
+      assert.ok(node.y >= template.margins.top && node.y + node.height <= page.height);
+    }
+  }
+  const [first, second] = result.placements;
+  assert.ok(first && second && first.box.y + first.box.height <= second.box.y);
   rejects(
     flow([], {
       height: 800.9,

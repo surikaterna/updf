@@ -139,7 +139,7 @@ function widthProbe(seen: { tag: string; width: number }[]) {
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: context.width, height: 8 },
-        fragment: () => ({ status: "placed", nextOffset: 1, height: 8, nodes: [] }),
+        next: () => ({ end: 1, height: 8, nodes: [] }),
       };
     },
   });

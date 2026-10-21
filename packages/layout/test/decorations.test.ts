@@ -77,12 +77,12 @@ test("owned plans reject getters, forged serialized identities and nonprogressin
       extent: 2,
       naturalSize: { width: 100, height: 0 },
       decorations: plan,
-      fragment: () => ({ status: "placed", nextOffset: 0, height: 0, nodes: [] }),
+      next: () => ({ end: 0, height: 0, nodes: [] }),
     }),
   });
   rejects(() => layoutFlow(flow([extension(adapter, {})]), {}, createExtensions([adapter])), "TYPE");
 });
-test("last reservation trials have at most two synchronous candidates and do not amplify emitted budgets", () => {
+test("last reservation trials use bounded unit lookahead without adopting rejected output budgets", () => {
   let calls = 0;
   const plan = createDecorationPlan([{ edge: "after", repeat: "last", height: 10, nodes: [] }]);
   const adapter = defineBlockAdapter({
@@ -93,14 +93,11 @@ test("last reservation trials have at most two synchronous candidates and do not
       extent: 2,
       naturalSize: { width: 100, height: 40 },
       decorations: plan,
-      fragment(request) {
+      next(request) {
         calls++;
-        const count = Math.min(2 - request.offset, Math.floor(request.availableHeight / 20));
-        if (!count) return { status: "defer" };
         return {
-          status: "placed",
-          nextOffset: request.offset + count,
-          height: count * 20,
+          end: request.offset + 1,
+          height: 20,
           nodes: [richNode("A", { height: 20 }, { lineHeight: 10 })],
         };
       },
@@ -112,13 +109,12 @@ test("last reservation trials have at most two synchronous candidates and do not
     createExtensions([adapter]),
   );
   assert.equal(result.pageCount, 2);
-  assert.ok(calls <= 5);
+  assert.ok(calls <= 7);
 });
 test("later candidate callbacks cannot mutate nodes of an already selected fragment", () => {
   const plan = createDecorationPlan([{ edge: "after", repeat: "last", height: 10, nodes: [] }]);
   const shared = {
-    status: "placed" as const,
-    nextOffset: 1,
+    end: 1,
     height: 20,
     nodes: [] as import("@updf/core").NodeDefinition[],
   };
@@ -130,13 +126,10 @@ test("later candidate callbacks cannot mutate nodes of an already selected fragm
       extent: 2,
       naturalSize: { width: 100, height: 40 },
       decorations: plan,
-      fragment(request) {
-        const count = Math.min(2 - request.offset, Math.floor(request.availableHeight / 20));
-        if (!count) return { status: "defer" };
-        shared.nextOffset = request.offset + count;
-        shared.height = count * 20;
+      next(request) {
+        shared.end = request.offset + 1;
         shared.nodes = [
-          richNode(count === 1 ? "selected" : "discarded", { height: shared.height }, { lineHeight: 10 }),
+          richNode(request.offset === 0 ? "selected" : "discarded", { height: shared.height }, { lineHeight: 10 }),
         ];
         return shared;
       },

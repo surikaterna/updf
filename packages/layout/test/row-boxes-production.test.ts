@@ -90,7 +90,7 @@ test("unconstrained hidden stretch preserves authored clip semantics and measure
         fragmentation: "atomic",
         naturalSize: { width, height },
         extent: 1,
-        fragment: () => ({ height, nextOffset: 1, paint: () => [] }),
+        fragment: () => ({ height, geometry: wholeBoxGeometry(height), nextOffset: 1, paint: () => [] }),
       });
     },
     (block) => {
@@ -180,7 +180,7 @@ test("Row completion measures actual stack gaps around controls, not child-count
     fragmentation: "atomic",
     extent: 1,
     naturalSize: { width: 80, height },
-    fragment: () => ({ height, nextOffset: 1, paint: () => [] }),
+    fragment: () => ({ height, geometry: wholeBoxGeometry(height), nextOffset: 1, paint: () => [] }),
   });
   compileRow(
     { type: "row", children: [{ type: "column", style: { gap: 0.1 }, children: [] }] },
@@ -211,3 +211,4 @@ test("Row completion measures actual stack gaps around controls, not child-count
     DocumentError,
   );
 });
+import { wholeBoxGeometry } from "../dist/cjs/fragment-paint-preparation.js";

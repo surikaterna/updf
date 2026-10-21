@@ -79,7 +79,7 @@ const owner = defineBlockAdapter({
       fragmentation: "atomic",
       extent: 1,
       naturalSize: result.size,
-      fragment: () => ({ status: "placed", nextOffset: 1, height: result.size.height, nodes: result.nodes }),
+      next: () => ({ end: 1, height: result.size.height, nodes: result.nodes }),
     };
   },
 });

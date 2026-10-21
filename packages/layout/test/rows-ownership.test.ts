@@ -34,9 +34,8 @@ test("Rows compose charts and SVG through ordinary public adapter contracts", ()
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: context.width, height: 40 },
-        fragment: () => ({
-          status: "placed",
-          nextOffset: 1,
+        next: () => ({
+          end: 1,
           height: 40,
           nodes: [
             renderSVG('<svg viewBox="0 0 10 10"><rect width="10" height="10" fill="blue"/></svg>', {
@@ -110,9 +109,9 @@ test("deferred Rows emit only selected occurrences and retain owned adapter cont
         fragmentation: "atomic",
         extent: 1,
         naturalSize: measured.size,
-        fragment() {
+        next() {
           fragments++;
-          return { status: "placed", nextOffset: 1, height: measured.size.height, nodes: measured.nodes };
+          return { end: 1, height: measured.size.height, nodes: measured.nodes };
         },
       };
     },

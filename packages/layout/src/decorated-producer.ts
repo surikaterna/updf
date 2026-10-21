@@ -21,6 +21,7 @@ import {
 import type { ExtensionLifetime } from "./extension-producer.js";
 import type { Extensions } from "./extension-types.js";
 import type { FragmentState } from "./fragment-state.js";
+import { fragmentGeometry } from "./fragment-paint-preparation.js";
 import type { FragmentCall, FragmentPaintContext, FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
 import { resolveFragment, resolvePaint } from "./protocol-runtime.js";
 
@@ -51,7 +52,8 @@ function* candidate(
   path: string,
 ): Generator<FragmentCall, Candidate | undefined, PlacedFragment | undefined> {
   const overhead = sum([reserved(entries, "before"), reserved(entries, "after")]);
-  if (overhead > request.availableHeight || overhead > request.freshHeight) return undefined;
+  if (request.mode !== "complete" && (overhead > request.availableHeight || overhead > request.freshHeight))
+    return undefined;
   const budget = request.budget?.fork(),
     state = request.state?.fork();
   reserveAncestors(request.reserve, budget, state, overhead);
@@ -60,8 +62,12 @@ function* candidate(
     block: base,
     request: {
       ...request,
-      availableHeight: request.availableHeight - overhead,
-      freshHeight: request.freshHeight - overhead,
+      ...(request.mode === "complete"
+        ? {}
+        : {
+            availableHeight: request.availableHeight - overhead,
+            freshHeight: request.freshHeight - overhead,
+          }),
       ...(budget ? { budget } : {}),
       ...(state ? { state } : {}),
       ...(request.reserve ? { reserve: offsetReservation(request.reserve, overhead) } : {}),
@@ -76,32 +82,56 @@ function* candidate(
   };
 }
 function regions(
-  entries: readonly StaticDecoration[],
+  entries: readonly { readonly entry: StaticDecoration; readonly part: number }[],
   edge: "before" | "after",
   context: FragmentPaintContext,
-  offset: number,
   path: string,
   index?: number,
   width = 0,
   origin?: EmissionOrigin,
 ): NodeDefinition[] {
   const nodes: NodeDefinition[] = [];
-  for (const entry of entries) {
+  for (const { entry, part } of entries) {
     if (entry.edge !== edge) continue;
     const deferred = deferredNode(entry, index, width);
     if (deferred) {
-      nodes.push(deferredGroup(deferred, [1, 0, 0, 1, context.x, context.start(offset, entry.height)]));
+      nodes.push(deferredGroup(deferred, [1, 0, 0, 1, context.x, context.partPositions[part]!]));
     } else if (entry.nodes.length) {
       context.budget.charge([{ type: "paintGroup", children: entry.nodes }], path);
       nodes.push({
         type: "paintGroup",
-        transform: [1, 0, 0, 1, context.x, context.start(offset, entry.height)],
+        transform: [1, 0, 0, 1, context.x, context.partPositions[part]!],
         children: snapshotEmissionData(instantiateEmissionNodes(entry.nodes, origin), path),
       });
     }
-    offset = sum([offset, entry.height]);
   }
   return nodes;
+}
+function decorationGeometry(entries: readonly StaticDecoration[], placed: PlacedFragment, before: number) {
+  const parts = [],
+    ordered = [],
+    regions = [];
+  for (const edge of ["before", "after"] as const) {
+    let offset = edge === "before" ? 0 : sum([before, placed.height]);
+    if (edge === "after") ordered.push({ child: 0 });
+    for (const entry of entries) {
+      if (entry.edge !== edge) continue;
+      const part = parts.length;
+      parts.push({ offset, height: entry.height, reservation: "whole-box" as const });
+      ordered.push({ part });
+      regions.push({ entry, part });
+      offset = sum([offset, entry.height]);
+    }
+  }
+  return {
+    regions,
+    geometry: fragmentGeometry(
+      parts,
+      [{ fragment: placed, x: 0, y: before, frame: "relative" }],
+      ordered,
+      "positioned-box",
+    ),
+  };
 }
 function* decorated(
   base: PreparedBlock,
@@ -125,26 +155,21 @@ function* decorated(
   releaseDiscarded(chosen.entries, entries, request.budget, path);
   if (chosen.state) request.state?.adopt(chosen.state);
   const placed = chosen.fragment;
+  const prepared = decorationGeometry(entries, placed, before);
   reserveAncestors(request.reserve, request.budget, request.state, sum([before, placed.height, after]));
   const result: PlacedFragment = {
     ...placed,
+    geometry: prepared.geometry,
     height: sum([before, placed.height, after]),
-    paint: (context) => resolvePaint(result, context),
+    paint: (context) => resolvePaint({ fragment: result, context }),
     *paintSteps(context) {
       const index = fragmentIndex(plan);
       const width = base.naturalSize.width;
       const origin = currentEmissionOrigin(operation);
-      const nodes = regions(entries, "before", context, 0, path, index, width, origin);
-      const content = yield {
-        fragment: placed,
-        context: {
-          ...context,
-          y: context.y + before,
-          start: (offset, height) => context.start(sum([before, offset]), height),
-        },
-      };
+      const nodes = regions(prepared.regions, "before", context, path, index, width, origin);
+      const content = yield context.children[0]!;
       for (const node of content) nodes.push(node);
-      const footer = regions(entries, "after", context, sum([before, placed.height]), path, index, width, origin);
+      const footer = regions(prepared.regions, "after", context, path, index, width, origin);
       for (const node of footer) nodes.push(node);
       return nodes;
     },

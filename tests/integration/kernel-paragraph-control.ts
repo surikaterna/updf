@@ -25,8 +25,22 @@ function replacement(source: string, hits: string[]): Plugin {
     setup(builder) {
       builder.onLoad({ filter: producerPath }, ({ path }) => {
         hits.push(path);
-        // Keep historical relative imports in the same source or canonical Node graph as the producer.
-        return { contents: source, loader: "ts", resolveDir: dirname(path) };
+        // The pinned selection/painting control stays immutable; only its private transport is ported.
+        const contents = source
+          .replace(
+            "      nextOffset: keep ? 1 : end,",
+            `
+      geometry: {
+        parts: intervals.map(certificate => ({offset: certificate.sourceStart, height: certificate.semanticExtent, certificate, reservation: "slot"})),
+        children: [], order: intervals.map((_, part) => ({part})),
+      },
+      nextOffset: keep ? 1 : end,`,
+          )
+          .replace(
+            "context.start(offset.value, line.height, intervals[index - request.offset])",
+            "context.partPositions[index - request.offset]",
+          );
+        return { contents, loader: "ts", resolveDir: dirname(path) };
       });
     },
   };

@@ -40,11 +40,11 @@ const adapter = Layout.defineBlockAdapter<{ readonly heights: readonly number[] 
       fragmentation: "atomic",
       extent: 1,
       naturalSize: { width: context.width, height },
-      fragment(request) {
-        if (height > request.availableHeight) return { status: "defer" };
+      next(request) {
+        if (!Object.isFrozen(request) || Object.keys(request).sort().join() !== "extent,offset,width")
+          throw new Error("unit request leaked capacity");
         return {
-          status: "placed",
-          nextOffset: 1,
+          end: 1,
           height,
           nodes: [{ type: "rect", x: 0, y: 0, width: context.width, height, paint: { stroke: null } }],
         };
@@ -135,10 +135,20 @@ if (!bytes.length) {
     fragmentation: "atomic",
     naturalSize: { width: 100, height: 10 },
     extent: 1,
-    // @ts-expect-error Async fragment producers are not supported.
-    fragment: async () => ({ status: "defer" }),
+    // @ts-expect-error Async unit readers are not supported.
+    next: async () => ({ end: 1, height: 0, nodes: [] }),
   };
   void asyncBlock;
+  // @ts-expect-error Old public callback request type is deleted, not aliased.
+  const oldRequest: Layout.BlockFragmentRequest = {};
+  // @ts-expect-error Old public callback result type is deleted, not aliased.
+  const oldResult: Layout.BlockFragment = {};
+  void [oldRequest, oldResult];
+  const query: Layout.BlockUnitRequest = { offset: 0, extent: 1, width: 100 };
+  // @ts-expect-error Provider queries expose no capacity.
+  void query.availableHeight;
+  // @ts-expect-error Provider queries expose no fresh-region decision.
+  void query.atFreshRegion;
   // @ts-expect-error Derived-axis certificates remain private.
   const certificate: Layout.DerivedAxis = { start: 0, end: 100, nominalExtent: 100, capacity: 1000 };
   void certificate;

@@ -19,6 +19,8 @@ export async function kernelProof(directory: string): Promise<readonly string[]>
   await typeConsumer(directory, ["kernel-template.ts", "kernel-fragmentation-template.ts"]);
   await typeConsumer(directory, ["kernel-template.ts", "kernel-fragmentation-template.ts"], true);
   await standaloneRuntime(directory);
+  await candidateRuntime(directory);
+  await rangeRuntime(directory);
   await execute(
     directory,
     `import assert from 'node:assert/strict';
@@ -37,6 +39,63 @@ export async function kernelProof(directory: string): Promise<readonly string[]>
   assert.ok(boxes.every((path) => path.startsWith("@updf/layout-boxes/dist/")));
   assert.ok(graph.every((path) => path.startsWith("@updf/layout-boxes/dist/")));
   return [...new Set([...graph, ...boxes, ...fragments])];
+}
+async function rangeRuntime(directory: string): Promise<void> {
+  await execute(
+    directory,
+    `
+    import assert from 'node:assert/strict';
+    import {createRequire} from 'node:module';
+    for (const {createRangeOperation} of [
+      await import('@updf/layout-boxes/fragmentation'),
+      createRequire(import.meta.url)('@updf/layout-boxes/fragmentation')
+    ]) {
+      const op = createRangeOperation({next: (_, {offset}, work) => {
+        work.consume(1); return {end:offset+1,height:1,content:offset};
+      }});
+      assert.deepEqual(Object.keys(op).sort(), ['close','counts','prepare','select']);
+      const source = op.prepare({id:'r',path:'/r',descriptor:{},extent:2,mode:'splittable',width:{mode:'fixed',value:8}});
+      assert.equal(op.select(source,{offset:0,width:8,height:1,usedHeight:0}).end,1);
+      assert.deepEqual(op.counts(),{attempts:1,sourceVisits:1,sourceReads:1,measurements:2,unitsExamined:2,outputFragments:1,providerUnits:2});
+      assert.equal(op.select(source,{mode:'complete',offset:1,width:8}).end,2);
+      assert.deepEqual(op.counts(),{attempts:2,sourceVisits:2,sourceReads:1,measurements:3,unitsExamined:3,outputFragments:2,providerUnits:3});
+      op.close();
+      assert.throws(()=>op.select(source,{offset:0,width:8,height:1,usedHeight:0}));
+    }
+  `,
+  );
+}
+async function candidateRuntime(directory: string): Promise<void> {
+  await execute(
+    directory,
+    `
+    import assert from 'node:assert/strict';
+    import {createRequire} from 'node:module';
+    for (const {createFragmentOperation} of [
+      await import('@updf/layout-boxes/fragmentation'),
+      createRequire(import.meta.url)('@updf/layout-boxes/fragmentation')
+    ]) {
+      const content = {};
+      const op = createFragmentOperation({next: (_, {offset}, work) => {
+        work.consume(2); return {end:offset+1, height:1, content};
+      }});
+      const source = op.prepare({id:'a',path:'/a',descriptor:{},extent:2,mode:'splittable',width:{mode:'reflow'}});
+      const first = op.nextCandidate(op.candidates(source,{offset:0,width:10}));
+      assert.equal(first.done,false);
+      const second = op.nextCandidate(first.cursor);
+      assert.deepEqual(op.nextCandidate(second.cursor),{done:true});
+      assert.deepEqual(first.endpoint,{start:0,end:1,height:1,unit:{start:0,end:1,height:1,top:0}});
+      assert.deepEqual(Reflect.ownKeys(first.cursor),[]);
+      const selected = op.materializeCandidate(first.endpoint);
+      assert.equal(selected.units[0].content,content);
+      assert.ok(Object.isFrozen(selected.units));
+      assert.notEqual(op.materializeCandidate(first.endpoint).units,selected.units);
+      assert.deepEqual(op.counts(),{attempts:6,sourceVisits:1,sourceReads:1,measurements:2,unitsExamined:2,outputFragments:4,providerUnits:4});
+      op.close();
+      assert.throws(()=>op.materializeCandidate(first.endpoint));
+    }
+  `,
+  );
 }
 async function standaloneRuntime(directory: string): Promise<void> {
   await execute(

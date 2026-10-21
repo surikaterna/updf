@@ -203,7 +203,7 @@ test("container normalization preserves extension/decoration capabilities and ca
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: context.width, height: 4 },
-        fragment: () => ({ status: "placed", nextOffset: 1, height: 4, nodes: [] }),
+        next: () => ({ end: 1, height: 4, nodes: [] }),
       };
     },
   });

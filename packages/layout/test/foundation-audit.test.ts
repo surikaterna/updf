@@ -2,14 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, type NodeDefinition } from "@updf/core";
 import { h } from "@updf/core/vdom";
-import { createLayoutOperation, layoutTableFlow, lower, render } from "../../../tests/fixtures/text-options.js";
+import { createLayoutOperation, lower, render } from "../../../tests/fixtures/text-options.js";
 import {
   LegacyFlow as Flow,
   type FlowDocumentDefinition,
   layoutFlow,
 } from "../../../tests/fixtures/transitional-layout.js";
 import { Paginator } from "../dist/cjs/paginator.js";
-import { Tables } from "../dist/cjs/tables/vdom.js";
 import { template } from "../dist/cjs/template.js";
 import { flow } from "./fixtures.js";
 
@@ -25,18 +24,14 @@ function limited(run: () => unknown): void {
 function parity(input: FlowDocumentDefinition): void {
   const native = render(layoutFlow(input).document);
   assert.deepEqual(render(lower(h(Flow.Document, input))), native);
-  assert.deepEqual(render(layoutTableFlow(input).document), native);
-  assert.deepEqual(render(lower(h(Tables.Document, input))), native);
   const service = { profile: "service" } as const;
   limited(() => layoutFlow(input, service));
-  limited(() => layoutTableFlow(input, service));
   limited(() => lower(h(Flow.Document, input), service));
-  limited(() => lower(h(Tables.Document, input), service));
 }
-test("F4: depth-3000 fixed native data and Flow/Tables VDOM share exact trusted bytes", () => {
+test("F4: depth-3000 fixed native data and Flow VDOM share exact trusted bytes", () => {
   parity(flow([{ type: "fixed", height: 20, children: [deep()] }]));
 });
-test("F4: depth-3000 repeated header/footer conversion is iterative in both VDOM adapters", () => {
+test("F4: depth-3000 repeated header/footer conversion is iterative in the Flow VDOM adapter", () => {
   const region = { height: 10, children: [deep()] };
   parity(flow([{ type: "pageBreak" }], { header: region, footer: region }));
 });

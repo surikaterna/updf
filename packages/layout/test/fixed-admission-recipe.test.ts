@@ -44,7 +44,7 @@ function recipeFixture() {
         fragmentation: "atomic",
         extent: 1,
         naturalSize: measured.size,
-        fragment: () => ({ status: "placed", nextOffset: 1, height: 0, nodes: [] }),
+        next: () => ({ end: 1, height: 0, nodes: [] }),
       };
     },
   });

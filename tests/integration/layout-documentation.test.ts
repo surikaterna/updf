@@ -104,7 +104,7 @@ test("layout/table/kernel defining JSDoc survives ESM and canonical CJS declarat
     ["layout", "mixed-layout", "Paginate exactly one layout Document"],
     ["layout", "content-measure", "Natural, unpaginated border-box measurement in points"],
     ["layout", "content-types", "Default collapse"],
-    ["layout", "extension-types", "offset is not a vertical point coordinate"],
+    ["layout", "extension-types", "offsets/extents count legal source units, not points"],
     ["layout", "page-context", "flow index zero-based"],
     ["tables", "index", "Install tableExtension by identity"],
     ["tables", "types", "cell defaults applied at row priority"],

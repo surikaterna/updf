@@ -1,27 +1,33 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { DocumentError } from "@updf/core";
-import type { PreparedBlock } from "../dist/cjs/protocol.js";
+import type { FragmentRequest, PreparedBlock } from "../dist/cjs/protocol.js";
 import { rowProducer } from "../dist/cjs/row-producer.js";
 import { sizing } from "../dist/cjs/sizing.js";
+import { wholeBoxGeometry } from "../dist/cjs/fragment-paint-preparation.js";
 
 function column(height: number, selectedHeight = height): PreparedBlock {
   return {
     fragmentation: "atomic",
     naturalSize: { width: 20, height },
     extent: 1,
-    fragment: () => ({ height: selectedHeight, nextOffset: 1, paint: () => [] }),
+    fragment: () => ({
+      height: selectedHeight,
+      geometry: wholeBoxGeometry(selectedHeight),
+      nextOffset: 1,
+      paint: () => [],
+    }),
   };
 }
 const request = { offset: 0, availableHeight: 40, freshHeight: 40, atFreshRegion: true, width: 80, usedHeight: 0 };
-test("Row owns frozen prepared offsets reused across selections without changing child requests", () => {
-  const calls: unknown[] = [],
+test("Row reuses frozen offsets and requests complete Columns without synthetic capacities", () => {
+  const calls: FragmentRequest[] = [],
     child = column(3);
   const observed = {
     ...child,
-    fragment: (input: unknown) => {
+    fragment: (input: FragmentRequest) => {
       calls.push(input);
-      return child.fragment(request);
+      return child.fragment(input);
     },
   };
   const row = rowProducer(
@@ -44,10 +50,11 @@ test("Row owns frozen prepared offsets reused across selections without changing
   assert.equal(row.fragment(request)?.height, 13);
   assert.equal(row.fragment(request)?.height, 13);
   assert.equal(calls.length, 2);
-  const selected = calls[0] as typeof request;
-  assert.equal(selected.freshHeight, 3);
+  const selected = calls[0];
+  assert.ok(selected?.mode === "complete");
+  assert.deepEqual(Object.keys(selected).sort(), ["mode", "offset", "reserve", "width"]);
   assert.equal(selected.width, 20);
-  assert.equal(selected.usedHeight, 0);
+  assert.equal(selected.offset, 0);
 });
 test("complete Row children must retain prepared sizes instead of triggering placement reflow", () => {
   const row = rowProducer(

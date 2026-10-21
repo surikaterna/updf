@@ -107,6 +107,7 @@ try {
         "text-style-template.tsx",
         "rows-template.tsx",
         "auto-margin-template.tsx",
+        "native-visuals-template.tsx",
       ]);
       await typeConsumer(
         directory,
@@ -116,6 +117,7 @@ try {
           "text-style-template.tsx",
           "rows-template.tsx",
           "auto-margin-template.tsx",
+          "native-visuals-template.tsx",
         ],
         true,
       );

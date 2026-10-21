@@ -149,6 +149,15 @@ Wrapper-centering positions (#54) are not implemented by this kernel contract.
 
 ## Fragmentation: one fitting algorithm, two entry flows
 
+Consumers needing only prepared range selection use `createRangeOperation` and
+its `prepare`, `select`, `counts`, and `close` methods. The full
+`createFragmentOperation` additionally exposes candidate enumeration and indexed
+region flow. Both share the same registration, selector, cumulative work ledger,
+guard and poison lifecycle. The full operation releases its additional owned
+stores through that same close path. Optional capability implementations are not
+retained in range-only consumer output; they remain available to full consumers.
+No runtime validation is disabled by selecting the narrower operation.
+
 The separate `/fragmentation` entry is not retained/reexported by root or boxes.
 It remains in this zero-dependency shared package because source-unit prefix
 selection and region continuation are generic numerical utilities, used by both
@@ -190,9 +199,10 @@ not heap measurements or a hostile-code sandbox.
 
 ### PDF and terminal integration
 
-Typed PDF row bindings use kernel allocation/placements. Authored PDF paragraphs
-use kernel selection over prepared fixed-width measured lines (line-index extent),
-or one whole-paragraph atomic unit for keepTogether. They do **not** claim rich-text
+Typed PDF row bindings use kernel allocation/placements. Raw and authored PDF paragraphs
+share kernel selection over prepared fixed-width measured lines (line-index extent),
+or one whole-paragraph atomic unit for keepTogether. Empty paragraphs have one
+zero-height sentinel unit, not an exhausted zero-extent source. They do **not** claim rich-text
 reflow at new widths. The ASCII proof instead supplies character-offset reflow
 units, preserving characters/LF across differently sized regions, and consumes
 kernel placements. Recognized kernel errors map to PDF `DocumentError`; arbitrary
@@ -203,11 +213,17 @@ fonts and fresh-page oversized diagnostics remain in `@updf/layout`/core binding
 Legacy and transitional regression tests are intentionally retained; not all old
 layout-looking code/tests have been removed.
 
-The approved PDF compatibility mapping caps each **new internal work category**
-at `Number.MAX_SAFE_INTEGER` in one enclosing-operation ledger. It is not a
-practical CPU defense; budget design remains pending **#25**. Existing output
-node/text/path/page limits remain real, separate and candidate-forked. Standalone
-kernel protective defaults are not weakened.
+The historical paragraph compatibility mapping capped internal work categories
+at `Number.MAX_SAFE_INTEGER`; that is no longer the paragraph policy. Raw and rich
+paragraph selection now adopts unchanged finite `fragmentDefaults`, shared across
+sources and retries in one enclosing-operation ledger. This intentionally rejects
+some large valid workloads previously admitted; output node/text/path/page limits
+remain separate and candidate-forked. Kept paragraphs consume one provider-work
+unit, not one per painted line; measurement work remains separately owned. See
+[paragraph selection evidence](../evidence/paragraph-selection.md) for dirty-entry
+provenance, exact default-boundary tests and current gates. This does not claim a
+full paragraph measurement engine or a rewrite of nested composition. The unused
+B1 host session has since been removed; the public kernel candidate API is retained.
 
 ## Optional playground and debug/proof consumers
 

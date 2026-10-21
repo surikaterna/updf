@@ -21,7 +21,7 @@ const empty = (): MeasuredBlock => ({
   fragmentation: "atomic",
   extent: 1,
   naturalSize: { width: 100, height: 0 },
-  fragment: () => ({ status: "placed", nextOffset: 1, height: 0, nodes: [] }),
+  next: () => ({ end: 1, height: 0, nodes: [] }),
 });
 test("F generic public author parts capture cells without a table-specific normalizer/paginator", () => {
   const Part = defineBlockPart<{ readonly children?: string }>("test.part");
@@ -38,7 +38,7 @@ test("F generic public author parts capture cells without a table-specific norma
       return {
         ...empty(),
         naturalSize: measured.size,
-        fragment: () => ({ status: "placed", nextOffset: 1, height: measured.size.height, nodes: measured.nodes }),
+        next: () => ({ end: 1, height: measured.size.height, nodes: measured.nodes }),
       };
     },
   });
@@ -102,7 +102,7 @@ test("F zero source extent is generic metadata, never a substitute for strict fr
     measure: () => ({
       ...empty(),
       sourceExtent: 0,
-      fragment: () => ({ status: "placed", nextOffset: 0, height: 0, nodes: [] }),
+      next: () => ({ end: 0, height: 0, nodes: [] }),
     }),
   });
   assert.throws(

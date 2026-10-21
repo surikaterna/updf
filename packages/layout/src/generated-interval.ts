@@ -21,18 +21,6 @@ export function certifyGeneratedFragment<T extends object>(fragment: T, interval
   return fragment;
 }
 
-export function generatedFragmentStart(
-  fragment: Readonly<{ height: number }>,
-  interval: GeneratedInterval,
-  origin: number,
-  offset: number,
-  extent: number,
-  path: string,
-): number {
-  assertGeneratedPart(fragment, interval, offset, extent, path);
-  return materializeGeneratedInterval(interval, origin, { sourceStart: 0, sourceEnd: fragment.height }, path).start;
-}
-
 export function assertGeneratedPart(
   owner: object,
   interval: GeneratedInterval,
@@ -40,7 +28,12 @@ export function assertGeneratedPart(
   extent: number,
   path: string,
 ): void {
-  if (!fragments.get(owner)?.has(interval) || offset !== interval.sourceStart || extent !== interval.semanticExtent)
+  if (
+    !owned.has(interval) ||
+    !fragments.get(owner)?.has(interval) ||
+    offset !== interval.sourceStart ||
+    extent !== interval.semanticExtent
+  )
     fail("GEOMETRY", path, "Generated certificate does not own this fragment part.");
 }
 

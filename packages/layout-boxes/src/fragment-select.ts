@@ -1,41 +1,59 @@
 import { exceeds, MetricSum, sum } from "./arithmetic.js";
 import { fail } from "./error.js";
-import { safeInteger } from "./fragment-source.js";
-import type { FragmentProvider, FragmentSource, FragmentUnit, RangeRequest, SelectedRange } from "./fragment-types.js";
+import { safeInteger, validateSourceRequest } from "./fragment-source.js";
+import type {
+  FragmentProvider,
+  FragmentSource,
+  FragmentUnit,
+  SelectedRange,
+  SelectionRequest,
+} from "./fragment-types.js";
 import type { FragmentWork } from "./fragment-work.js";
 import { number, record } from "./width-validation.js";
 
 export function selectRange<D, C>(
   source: FragmentSource<D>,
-  request: RangeRequest,
+  request: SelectionRequest,
   provider: FragmentProvider<D, C>,
   work: FragmentWork,
   poison: () => void,
   health: () => void,
 ): SelectedRange<C> | undefined {
-  if (source.width.mode === "fixed" && request.width !== source.width.value)
-    fail("VALUE", source.path, "Prepared source width mismatch");
-  if (
-    request.offset > source.extent ||
-    (source.mode === "atomic" && request.offset !== 0 && request.offset !== source.extent)
-  )
-    fail("VALUE", source.path, "Invalid source offset");
-  const height = new MetricSum();
-  const units: FragmentUnit<C>[] = [];
-  let offset = request.offset;
-  while (offset < source.extent) {
-    const unit = nextUnit(source, offset, request.width, provider, work, poison, health);
-    if (exceeds(sum([request.usedHeight, height.value, unit.height]), request.height)) break;
+  validateSourceRequest(source, request);
+  const sequence = new UnitSequence<C>(request.offset);
+  while (sequence.offset < source.extent) {
+    const unit = nextUnit(source, sequence.offset, request.width, provider, work, poison, health);
+    if (
+      request.mode !== "complete" &&
+      exceeds(sum([request.usedHeight, sequence.height.value, unit.height]), request.height)
+    )
+      break;
     health();
     work.charge("outputFragments");
-    units.push(Object.freeze({ start: offset, end: unit.end, height: unit.height, content: unit.content }));
-    height.add(unit.height);
-    offset = unit.end;
+    sequence.accept(unit);
+    if (request.mode === "complete" && !Number.isFinite(sequence.height.value))
+      fail("GEOMETRY", source.path, "Complete selection height must be finite");
   }
-  if (!units.length && request.offset !== source.extent) return undefined;
-  return Object.freeze({ start: request.offset, end: offset, height: height.value, units: Object.freeze(units) });
+  if (!sequence.units.length && request.offset !== source.extent) return undefined;
+  return Object.freeze({
+    start: request.offset,
+    end: sequence.offset,
+    height: sequence.height.value,
+    units: Object.freeze(sequence.units),
+  });
 }
-function nextUnit<D, C>(
+/** One append-only owner for unit records and compensated height in both selection paths. */
+export class UnitSequence<C> {
+  readonly height = new MetricSum();
+  readonly units: FragmentUnit<C>[] = [];
+  constructor(public offset: number) {}
+  accept(unit: { end: number; height: number; content: C }): void {
+    this.units.push(Object.freeze({ start: this.offset, end: unit.end, height: unit.height, content: unit.content }));
+    this.height.add(unit.height);
+    this.offset = unit.end;
+  }
+}
+export function nextUnit<D, C>(
   source: FragmentSource<D>,
   offset: number,
   width: number,

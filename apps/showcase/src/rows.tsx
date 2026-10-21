@@ -23,7 +23,7 @@ export function rowExample(title: string, oversized = false) {
       <Flow
         pageSize={{ width: 360, height: 180 }}
         margins={{ top: 10, right: 10, bottom: 10, left: 10 }}
-        extensions={createExtensions([chartAdapter, ...tableVisual.adapters])}
+        extensions={createExtensions([chartAdapter])}
       >
         <Paragraph>{title}</Paragraph>
         <Block style={{ height: 120 }}>

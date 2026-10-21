@@ -14,6 +14,8 @@ an explicit conversion helper or source-unit range says otherwise.
 | `Document` (alias of `MixedDocument`), `Flow`, `Page`, `document`, `flow`, `page`, `flowHeader`, `flowBody`, `flowFooter` | `vdom.ts`, `document-data.ts` | Section/slot purposes, snapshots, paging/finalization |
 | `DocumentProps`, `PageProps`, `FlowProps`, `RegionProps`, `BodyProps`, `DocumentContent`, `DocumentContentData`, `PageContent`, `FlowContent`, `RegionContent` | `document-types.ts` | Grammar and ownership, point margins/reservations; selective field comments |
 | `Block`, `Paragraph`, `Span`, `paragraph`, `span`, `block` | `content-data.ts`, `container-data.ts` | JSX/data purpose, snapshots, clipping distinction |
+| `fixed`, `FixedInput` | `fixed-data.ts`, `types.ts` | Canonical fixed snapshots; optional exact visual width versus omitted fill width; owned deferred block recipes |
+| `nativeInline`, `NativeInlineInput` | `inline-adapters.ts`, `content-types.ts` | Owned native visual without installation; positive advance, nonnegative ascent/descent, host-computed baseline ink; no deferred block/shared-edge recipes |
 | `Content` (= `BlockContent`), `BlockContent`, `InlineContent`, `ImplicitInlineContent`, `ParagraphProps`, `SpanProps`, `ContentBlockProps`, `ParagraphContent`, `SpanContent`, `InlineVisual`, `BlockComponent`, `InlineComponent` | `content-types.ts` | Grammar and paragraph defaults; component/descriptor members mostly signature-level |
 | `Insets`, `BoxStyle`, `BlockStyle`, `ContainerBlock`, `BlockInput` | `container-types.ts` | Point insets/padding, local styling, overflow/atomic behavior; individual bound members not fully annotated |
 | `Row`, `Column`, `row`, `column`, `RowAlignment`, `RowStyle`, `ColumnStyle`, `RowInput`, `ColumnInput`, `RowBlock`, `ColumnBlock`, `RowProps`, `ColumnProps` | `row-vdom.ts`, `row-data.ts`, `row-types.ts` | Atomic Row versus standalone Column fragmentation, width/style roles; discriminant/props aliases use signatures |
@@ -23,7 +25,7 @@ an explicit conversion helper or source-unit range says otherwise.
 | `createDecorationPlan`, `DecorationPlan`, `StaticDecoration`, `BlockRegionProps` (Block.Header/Footer props) | `decorations.ts`, `decoration-types.ts`, `deferred-decoration.ts` | Owned reservations, repetition, final rendering and height fit |
 | `expandBorders`, `mergeBorders`, `BorderEdge`, `BorderPolicy`, `ExpandedBorders`, `BorderLayer` | `borders.ts` | Shorthand/null precedence, units, validation, freezing distinction |
 | `defineBlockAdapter`, `createExtensions`, `extension`, `blockComponent`, `defineBlockPart` | `extensions.ts`, `author-parts.ts` | Local identity installation, synchronous callbacks and snapshots |
-| `BlockAdapter`, `BlockAdapterIdentity`, `BlockAdapterDefinition`, `Extensions`, `ExtensionBlock`, `ReadonlyProps`, `MeasureContext`, `AdapterContentConstraints`, `MeasuredContent`, `MeasuredBlock`, `BlockFragmentRequest`, `BlockFragment`, `ContentDecoration`, `BlockPartIdentity`, `BlockPartComponent`, `BlockPart`, `ScopedContent` | `extension-types.ts` | Ownership/lifecycle, physical versus source units, progress; not every callback/metadata field |
+| `BlockAdapter`, `BlockAdapterIdentity`, `BlockAdapterDefinition`, `Extensions`, `ExtensionBlock`, `ReadonlyProps`, `MeasureContext`, `AdapterContentConstraints`, `MeasuredContent`, `MeasuredBlock`, `BlockUnitRequest`, `BlockUnit`, `ContentDecoration`, `BlockPartIdentity`, `BlockPartComponent`, `BlockPart`, `ScopedContent` | `extension-types.ts` | Ownership/lifecycle, width-only units, physical versus source units, progress; not every callback/metadata field |
 | `defineInlineAdapter`, `inline`, `InlineAdapter`, `InlineAdapterIdentity`, `InlineAdapterDefinition`, `InlineMeasureContext`, `InlineMeasurement` | `inline-adapters.ts`, `content-types.ts` | Identity, synchronous callback and metric contracts; context/type-brand fields partly signature-level |
 | `EdgeRegionInput`, `LocalEdgeClaim` | `shared-edge-types.ts` | Local units/ownership and existing inset comments; detailed conflict algorithm remains in linked border docs |
 | `FlowBlock`, `ParagraphBlock`, `FixedBlock`, `SpacerBlock`, `PageBreakBlock`, `PageRegion`, `PageTemplate`, `FlowDocumentDefinition`, `FlowPlacement`, `FlowResult` | `types.ts` | Low-level shape purposes, placement/source ranges; no restored layoutFlow API |
@@ -40,6 +42,15 @@ The declarations are authoritative for signatures; the README and linked
 
 - `layout` creates fixed pages; it does not serialize them. `measure` is natural,
   unpaginated measurement and returns no reusable painting capability.
+  Its height is the metric sum of complete selected fragment heights, not provider
+  natural-height hints. Adapter `measureContent` uses the same rule. Optional height
+  ceilings reject before painting; neither API shrinks or clips content to fit them.
+  Reported layout size is not a replacement for the separate native ink bounds.
+- Paragraph and adapter unit enumeration retains finite kernel work limits.
+  Already-resolved fixed/spacer/Row/closed frames use their validated dimensions
+  and a shared capacity predicate, without consuming unit-enumeration attempts.
+  Source/generated-node and page budgets, native admission and geometry checks
+  still apply; this is not a safety-disabled rendering mode.
 - Header/footer reservations are selected before final page/fragment callbacks;
   final content must fit, never repaginate the body.
 - Paragraphs split at complete lines. Atomic blocks/Rows defer intact and reject

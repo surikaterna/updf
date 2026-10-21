@@ -31,6 +31,7 @@ import { type PageInfo, pageBinding } from "./page-context.js";
 import { orientedSize } from "./page-size.js";
 import { type PaginationSession, paginate } from "./paginator.js";
 import { closeParagraphFragments } from "./paragraph-fragments.js";
+import { closeMeasuredSources } from "./measured-source.js";
 import { validateRegion } from "./region-overflow.js";
 import { renderRegion } from "./region-render.js";
 import { columnIdentity } from "./row-data.js";
@@ -122,6 +123,7 @@ export function layoutDocument(
   } finally {
     session.lifetime.active = false;
     closeParagraphFragments(session.lifetime);
+    closeMeasuredSources(session.lifetime);
   }
 }
 function sectionGuard(value: unknown, path: string): void {

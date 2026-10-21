@@ -1,12 +1,10 @@
 import {
   array,
-  exceeds,
   fail,
   type LayoutOperation,
   number,
   validateDataObject as record,
   snapshotData,
-  sum,
 } from "@updf/core/internal";
 import type { TextMeasurementInput } from "@updf/text";
 import { ancestors, withAdapter } from "./adapter-ancestors.js";
@@ -14,15 +12,14 @@ import { type AdapterOrigin, adapterCall } from "./adapter-call.js";
 import { measureAdapterContent } from "./adapter-content.js";
 import { reserveContentDecorations } from "./adapter-decorations.js";
 import { adapterSnapshot, readParts, scopedAdapter } from "./author-parts.js";
-import { reserveAncestors } from "./container-reservation.js";
-import { chargeSourceWork, preflight, preflightSource } from "./data.js";
+import { chargeSourceWork, preflightSource } from "./data.js";
 import { decorate } from "./decorated-producer.js";
 import { isDecorationPlan } from "./decorations.js";
-import { geometryNodes, instantiateEmissionNodes, snapshotEmissionData } from "./emission-nodes.js";
-import type { BlockFragmentRequest, Extensions, MeasureContext, MeasuredBlock } from "./extension-types.js";
+import type { Extensions, MeasureContext, MeasuredBlock } from "./extension-types.js";
 import { resolveExtension } from "./extensions.js";
 import type { ExtensionMeasurement, LeafCache } from "./leaf-cache.js";
-import type { FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
+import { measuredSource } from "./measured-source.js";
+import type { PreparedBlock } from "./protocol.js";
 import { edgeRegionNode } from "./shared-edge-emission.js";
 import { coordinateSharedEdges } from "./shared-edge-producer.js";
 import { ownEdgeRegion } from "./shared-edge-regions.js";
@@ -30,6 +27,7 @@ import { ownEdgeRegion } from "./shared-edge-regions.js";
 export interface ExtensionLifetime {
   active: boolean;
   paragraphFragments?: import("./paragraph-fragments.js").ParagraphFragments;
+  measuredSources?: import("./measured-source.js").MeasuredSources;
 }
 
 function progress(value: unknown, min: number, max: number, path: string): number {
@@ -121,8 +119,8 @@ function checkedMeasured(
   path: string,
   operation: LayoutOperation,
   origin: AdapterOrigin,
-  extensions?: Extensions,
-  lifetime?: ExtensionLifetime,
+  extensions: Extensions | undefined,
+  lifetime: ExtensionLifetime,
 ): PreparedBlock {
   const naturalSize = checkedMeasuredSize(measured, width, path);
   const extent = progress(measured.extent, 0, Number.MAX_SAFE_INTEGER, `${path}/extent`);
@@ -130,18 +128,18 @@ function checkedMeasured(
   const fragmentation = measured.fragmentation;
   if (fragmentation !== "atomic" && fragmentation !== "splittable") fail("TYPE", path, "Expected fragmentation mode");
   if (fragmentation === "atomic" && extent !== 1) fail("TYPE", path, "Atomic extent must be one");
-  const callback = measured.fragment;
+  const callback = measured.next;
   const decorations = measured.decorations;
   if ("decorations" in measured && !isDecorationPlan(decorations))
     fail("TYPE", path, "Expected owned decoration capability");
-  if (typeof callback !== "function") fail("TYPE", path, "Expected synchronous fragment callback");
+  if (typeof callback !== "function") fail("TYPE", path, "Expected synchronous next callback");
   const prepared = decorate(
     {
       naturalSize,
       extent,
       ...source,
       fragmentation,
-      fragment: (request) => checkedFragment(callback, request, extent, width, path, operation, origin, decorations),
+      fragment: measuredSource(measured, width, path, operation, origin, lifetime),
     },
     decorations,
     operation,
@@ -159,7 +157,7 @@ function checkedMeasuredSize(measured: MeasuredBlock, width: number, path: strin
       "fragmentation",
       "naturalSize",
       "extent",
-      "fragment",
+      "next",
       "decorations",
       "sourcePaths",
       "sourceKeys",
@@ -214,52 +212,4 @@ function checkedKeys(
     if (key !== null && typeof key !== "string" && (typeof key !== "number" || !Number.isFinite(key)))
       fail("TYPE", path, "Expected finite source keys");
   return snapshotData(value, path);
-}
-function checkedFragment(
-  callback: MeasuredBlock["fragment"],
-  request: FragmentRequest,
-  extent: number,
-  width: number,
-  path: string,
-  operation: LayoutOperation,
-  origin: AdapterOrigin,
-  decorations?: MeasuredBlock["decorations"],
-): PlacedFragment | undefined {
-  const { offset, availableHeight, freshHeight, atFreshRegion } = request;
-  const input: BlockFragmentRequest = Object.freeze({ offset, availableHeight, freshHeight, atFreshRegion, width });
-  const output = adapterCall("fragment", path, () => callback(input), origin);
-  record(output, ["status", "nextOffset", "height", "nodes", "decorations"], path);
-  if (output.status === "defer") {
-    record(output, ["status"], path);
-    return undefined;
-  }
-  if (output.status !== "placed") fail("TYPE", path, "Expected defer or placed fragment");
-  if ("decorations" in output && (!decorations || output.decorations !== decorations))
-    fail("TYPE", path, "Fragment decorations must match the measured owned reservation plan");
-  const nextOffset = progress(output.nextOffset, offset, extent, path);
-  const height = number(output.height, path);
-  if (exceeds(sum([request.usedHeight, height]), freshHeight))
-    fail("GEOMETRY", path, "Fragment exceeds available height");
-  reserveAncestors(request.reserve, request.budget, request.state, height);
-  if (!Array.isArray(output.nodes)) fail("TYPE", path, "Expected native output array");
-  if (output.nodes.length) request.budget?.charge([{ type: "paintGroup", children: output.nodes }], path);
-  array(output.nodes, operation.policy.nodes, `${path}/nodes`);
-  preflight(output.nodes, operation.policy);
-  if (output.nodes.length) operation.validateFixed(geometryNodes(output.nodes, operation), width, height, path);
-  const nodes = snapshotEmissionData(output.nodes, path);
-  return {
-    nextOffset,
-    height,
-    paint(paintContext) {
-      if (!nodes.length) return [];
-      paintContext.budget.charge([{ type: "paintGroup", children: nodes }], path);
-      return [
-        {
-          type: "paintGroup",
-          transform: [1, 0, 0, 1, paintContext.x, paintContext.y],
-          children: instantiateEmissionNodes(nodes, { from: origin.path, to: path }),
-        },
-      ];
-    },
-  };
 }

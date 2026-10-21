@@ -21,10 +21,7 @@ const svgAdapter = defineBlockAdapter<Record<never, never>>({
       fragmentation: "atomic",
       extent: 1,
       naturalSize: { width: context.width, height },
-      fragment: (request) =>
-        height > request.availableHeight
-          ? { status: "defer" }
-          : { status: "placed", nextOffset: 1, height, nodes: [compiled.node] },
+      next: () => ({ end: 1, height, nodes: [compiled.node] }),
     };
   },
 });

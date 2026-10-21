@@ -6,6 +6,7 @@ import type { PreparedBlock } from "../dist/cjs/protocol.js";
 import { compileRow } from "../dist/cjs/row-compiler.js";
 import { createLayoutOperation } from "../../../tests/fixtures/text-options.js";
 import { sizing } from "../dist/cjs/sizing.js";
+import { wholeBoxGeometry } from "../dist/cjs/fragment-paint-preparation.js";
 
 function productionRow(child: PreparedBlock): PreparedBlock | undefined {
   const tasks: (() => void)[] = [];
@@ -32,7 +33,7 @@ test("metric fit differs from native; explicit metric supports host", () => {
     fragmentation: "atomic",
     naturalSize: { width: 20, height: 0.2 },
     extent: 1,
-    fragment: () => ({ height: 0.2, nextOffset: 1, paint: () => [] }),
+    fragment: () => ({ height: 0.2, geometry: wholeBoxGeometry(0.2), nextOffset: 1, paint: () => [] }),
   };
   const columns = [child];
   const prepared = productionRow(child);

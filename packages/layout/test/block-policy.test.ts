@@ -37,9 +37,9 @@ test("aggregate generated budget rejects an unvisited output accessor before arr
       fragmentation: "atomic",
       extent: 1,
       naturalSize: { width: 100, height: 1 },
-      fragment() {
+      next() {
         callbackCalls++;
-        return { status: "placed", nextOffset: 1, height: 1, nodes };
+        return { end: 1, height: 1, nodes };
       },
     }),
   });
@@ -67,9 +67,9 @@ test("enormous adapter outputs fail configured nodes before inspecting any descr
       fragmentation: "atomic",
       extent: 1,
       naturalSize: { width: 100, height: 1 },
-      fragment() {
+      next() {
         calls++;
-        return { status: "placed", nextOffset: 1, height: 1, nodes: values };
+        return { end: 1, height: 1, nodes: values };
       },
     }),
   });
@@ -103,7 +103,7 @@ test("operation resource snapshot survives caller mutation and retained callback
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: 100, height: 1 },
-        fragment: () => ({ status: "defer" }),
+        next: () => ({ end: 1, height: 100, nodes: [] }),
       };
     },
   });
@@ -123,10 +123,10 @@ test("foreign or undeclared decoration capability cannot bypass reservation chec
       fragmentation: "atomic",
       extent: 1,
       naturalSize: { width: 100, height: 1 },
-      fragment: () => ({ status: "placed", nextOffset: 1, height: 1, nodes: [], decorations: plan }),
+      next: () => ({ end: 1, height: 1, nodes: [], decorations: plan }),
     }),
   });
-  rejects(() => layoutFlow(flow([extension(adapter, {})]), {}, createExtensions([adapter])), "TYPE");
+  rejects(() => layoutFlow(flow([extension(adapter, {})]), {}, createExtensions([adapter])), "KEY");
 });
 test("hidden container cannot mask malformed text/resource output or insufficient service page policy", () => {
   const item = block({
@@ -158,7 +158,7 @@ test("owned native VNodes are not extension/container data props, without a VDOM
       fragmentation: "atomic",
       extent: 1,
       naturalSize: { width: 100, height: 0 },
-      fragment: () => ({ status: "placed", nextOffset: 1, height: 0, nodes: [] }),
+      next: () => ({ end: 1, height: 0, nodes: [] }),
     }),
   });
   rejects(() => extension(adapter, { node }), "TYPE");
@@ -179,13 +179,10 @@ test("repeated semantic measurement during reservation trials uses the same oper
         extent: 2,
         naturalSize: { width: 100, height: 40 },
         decorations: plan,
-        fragment(request) {
+        next(request) {
           calls++;
           context.measureText(input);
-          const count = Math.min(2 - request.offset, Math.floor(request.availableHeight / 20));
-          return count
-            ? { status: "placed", nextOffset: request.offset + count, height: count * 20, nodes: [] }
-            : { status: "defer" };
+          return { end: request.offset + 1, height: 20, nodes: [] };
         },
       };
     },

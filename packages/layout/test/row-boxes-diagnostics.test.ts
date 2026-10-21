@@ -4,6 +4,7 @@ import { DocumentError } from "@updf/core";
 import { createLayoutOperation } from "../../../tests/fixtures/text-options.js";
 import { compileRow } from "../dist/cjs/row-compiler.js";
 import type { PreparedBlock } from "../dist/cjs/protocol.js";
+import { wholeBoxGeometry } from "../dist/cjs/fragment-paint-preparation.js";
 
 function prepare(input: Record<string, unknown>, heights: readonly number[] = []): void {
   const tasks: (() => void)[] = [];
@@ -19,7 +20,7 @@ function prepare(input: Record<string, unknown>, heights: readonly number[] = []
           fragmentation: "atomic",
           naturalSize: { width, height },
           extent: 1,
-          fragment: () => ({ height, nextOffset: 1, paint: () => [] }),
+          fragment: () => ({ height, geometry: wholeBoxGeometry(height), nextOffset: 1, paint: () => [] }),
         };
         target.push(child);
       }

@@ -205,9 +205,8 @@ test("real grouped marker PDF paints one seam inside the ancestor allocation, ou
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: 80, height: 20 },
-        fragment: () => ({
-          status: "placed",
-          nextOffset: 1,
+        next: () => ({
+          end: 1,
           height: 20,
           nodes: [
             { type: "paintGroup", clip: { x: 0, y: 0, width: 5, height: 5 }, children: [before] },
