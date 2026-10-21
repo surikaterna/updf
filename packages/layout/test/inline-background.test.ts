@@ -21,6 +21,7 @@ import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
 import { createLayoutOperation, layout, measure, render } from "../../../tests/fixtures/text-options.js";
 import { OutputBudget } from "../dist/cjs/budget.js";
 import { contentProducer } from "../dist/cjs/content-producer.js";
+import { closeParagraphFragments, paragraphFragments } from "../dist/cjs/paragraph-fragments.js";
 
 const yellow = [1, 1, 0] as const;
 const blue = [0, 0, 1] as const;
@@ -92,6 +93,7 @@ test("#43 generated highlight counts reject before output allocation and are cha
   const measured = measure(paragraph({ children: "A" }), { width: 100 });
   const operation = createLayoutOperation({ limits: { pathCommands: 4 } });
   let allocated = false;
+  const lifetime = { active: true };
   const producer = contentProducer(
     {
       lines: measured.lines,
@@ -106,6 +108,7 @@ test("#43 generated highlight counts reject before output allocation and are cha
     100,
     false,
     "/highlight",
+    paragraphFragments(lifetime),
   );
   const request = { availableHeight: 100, atFreshRegion: true, offset: 0, width: 100, freshHeight: 100, usedHeight: 0 };
   assert.throws(() => producer.fragment({ ...request, budget: new OutputBudget(operation.policy) }), DocumentError);
@@ -114,6 +117,7 @@ test("#43 generated highlight counts reject before output allocation and are cha
   assert.throws(() => producer.fragment({ ...request, budget: new OutputBudget(nodeOperation.policy) }), DocumentError);
   assert.equal(allocated, false);
   operation.close();
+  closeParagraphFragments(lifetime);
   nodeOperation.close();
 });
 test("#43 highlight metadata never enters visual text callbacks; invalid inherited resources fail before callbacks", () => {

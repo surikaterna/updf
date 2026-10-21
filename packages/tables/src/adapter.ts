@@ -2,7 +2,7 @@ import { defineBlockAdapter, type MeasureContext, type MeasuredBlock } from "@up
 import { error, number } from "./checks.js";
 import { decorations } from "./decorations.js";
 import { validateFonts } from "./font-validation.js";
-import { type MeasuredRow, measureRow, paintRows } from "./measure.js";
+import { measureRow, paintRows } from "./measure.js";
 import { fromParts } from "./parts.js";
 import type { ResolvedTableInput, TableDefinition } from "./types.js";
 import { data, validate } from "./validate.js";
@@ -43,24 +43,12 @@ function measuredResolved(table: ResolvedTableInput, context: MeasureContext): M
     ...(rows.length ? { sourcePaths: rows.map((_row, index) => `/props/body/${index}`) } : {}),
     sourceKeys: table.body.map((row) => row.key ?? null),
     naturalSize: { width, height: rows.reduce((sum, row) => sum + row.height, 0) },
-    fragment(request) {
-      if (!rows.length) return { status: "placed", nextOffset: 1, height: 0, nodes: [] };
-      const nextOffset = selectRows(rows, request.offset, request.availableHeight);
-      if (nextOffset === request.offset) return { status: "defer" };
-      const output = paintRows(rows.slice(request.offset, nextOffset), table, context);
-      return { status: "placed", nextOffset, height: output.height, nodes: output.nodes };
+    next(request) {
+      if (!rows.length) return { end: 1, height: 0, nodes: [] };
+      const output = paintRows([rows[request.offset]!], table, context);
+      return { end: request.offset + 1, height: output.height, nodes: output.nodes };
     },
   };
-}
-function selectRows(rows: readonly MeasuredRow[], offset: number, availableHeight: number): number {
-  let height = 0;
-  while (offset < rows.length) {
-    const row = rows[offset];
-    if (!row || height + row.height > availableHeight) break;
-    height += row.height;
-    offset++;
-  }
-  return offset;
 }
 /** Owned updf.table block adapter; install once via createExtensions for both table() data and Table JSX. */
 export const tableExtension = defineBlockAdapter<TableDefinition>({

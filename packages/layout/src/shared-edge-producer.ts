@@ -1,6 +1,7 @@
 import type { NodeDefinition } from "@updf/core";
 import type { LayoutOperation } from "@updf/core/internal";
 import type { PaintCall, PlacedFragment, PreparedBlock } from "./protocol.js";
+import { fragmentGeometry } from "./fragment-paint-preparation.js";
 import { resolveFragment, resolvePaint } from "./protocol-runtime.js";
 import { sharedEdgeGroupNode } from "./shared-edge-emission.js";
 
@@ -13,14 +14,12 @@ export function coordinateSharedEdges(base: PreparedBlock, operation: LayoutOper
       if (!placed) return undefined;
       const result: PlacedFragment = {
         ...placed,
-        paint: (context: Parameters<typeof placed.paint>[0]) => resolvePaint(result, context),
+        geometry: fragmentGeometry([], [{ fragment: placed, x: 0, y: 0, frame: "zero" }]),
+        paint: (context: Parameters<typeof placed.paint>[0]) => resolvePaint({ fragment: result, context }),
         *paintSteps(context): Generator<PaintCall, readonly NodeDefinition[], readonly NodeDefinition[]> {
           // Keep the placement outside the report ledger: subtracting a page origin
           // cannot recover the original binary64 local boundary coordinates.
-          const nodes = yield {
-            fragment: placed,
-            context: { ...context, x: 0, y: 0, start: (offset) => offset },
-          };
+          const nodes = yield context.children[0]!;
           context.budget.generated(1, 0, 0, 0, path);
           return [
             sharedEdgeGroupNode(nodes, {

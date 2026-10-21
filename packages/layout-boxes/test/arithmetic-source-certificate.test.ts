@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { assertArithmeticPreserved, originalArithmetic } from "./arithmetic-source-certificate.js";
+import { assertArithmeticPreserved, expectedArithmetic, originalArithmetic } from "./arithmetic-source-certificate.js";
 
-test("arithmetic certificate accepts original bytes and standalone documentation additions/replacements", () => {
-  assertArithmeticPreserved(originalArithmetic);
-  const documented = originalArithmetic
+test("arithmetic certificate accepts only original plus pinned fork and standalone documentation", () => {
+  assert.throws(() => assertArithmeticPreserved(originalArithmetic), /Non-JSDoc source bytes/);
+  assertArithmeticPreserved(expectedArithmetic);
+  const documented = expectedArithmetic
     .replace("Compensated positive metric accumulation; nonfinite totals remain failures.", "Updated public contract.")
     .replace("  add(value", "  /**\n   * Accumulate one metric.\n   */\n  add(value");
   assertArithmeticPreserved(documented);
@@ -19,6 +20,9 @@ test("arithmetic certificate rejects executable mutations in the documented curr
     ["this.total + value", "this.total - value"],
     ["2 * Number.EPSILON", "3 * Number.EPSILON"],
     ["return this.value;", 'return "/* not documentation */";'],
+    ["result.correction = this.correction;", "result.correction = 0;"],
+    ["return result;", "return this;"],
+    ["  fork(): MetricSum {", "  extra(): number { return 0; }\n  fork(): MetricSum {"],
   ] as const) {
     const mutated = source.replace(before, after);
     assert.notEqual(mutated, source, "Mutation control must change the input");
@@ -32,8 +36,8 @@ test("arithmetic certificate retains ordinary comments and rejects inline commen
     ["this.total + value", "this.total /** + value */"],
     ["return this.value;", 'return "/** not a comment */";'],
   ] as const) {
-    const mutated = originalArithmetic.replace(before, after);
-    assert.notEqual(mutated, originalArithmetic);
+    const mutated = expectedArithmetic.replace(before, after);
+    assert.notEqual(mutated, expectedArithmetic);
     assert.throws(() => assertArithmeticPreserved(mutated), { message: /Non-JSDoc source bytes/ });
   }
 });

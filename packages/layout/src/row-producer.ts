@@ -1,11 +1,14 @@
-import { exceeds, fail, sum } from "@updf/core/internal";
+import { exceeds, fail } from "@updf/core/internal";
 import type { BoxPlacement } from "@updf/layout-boxes/boxes";
 import { paintContainerSteps } from "./container-paint.js";
+import { prepareContainerPlacements } from "./container-placement.js";
 import { containerReservation, reserveAncestors } from "./container-reservation.js";
+import { fragmentGeometry } from "./fragment-paint-preparation.js";
 import type { FragmentCall, FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
 import { resolveFragment, resolvePaint } from "./protocol-runtime.js";
 import type { Sizing } from "./sizing.js";
 import type { StackPiece } from "./stack.js";
+import { frameFits, selectionContext } from "./selection-request.js";
 
 export function rowProducer(
   box: Sizing,
@@ -33,8 +36,11 @@ function* selectRow(
   request: FragmentRequest,
   path: string,
 ): Generator<FragmentCall, PlacedFragment | undefined, PlacedFragment | undefined> {
-  if (exceeds(height, request.freshHeight)) fail("VERTICAL_OVERFLOW", path, "Atomic Row exceeds a fresh page");
-  if (exceeds(sum([request.usedHeight, height]), request.freshHeight)) return undefined;
+  if (!frameFits(request, height)) {
+    if (request.mode !== "complete" && exceeds(height, request.freshHeight))
+      fail("VERTICAL_OVERFLOW", path, "Atomic Row exceeds a fresh page");
+    return undefined;
+  }
   const reserve = containerReservation(box, request, path, { height, hidden: false });
   reserveAncestors(reserve, request.budget, request.state, 0);
   const pieces: StackPiece[] = [];
@@ -42,17 +48,11 @@ function* selectRow(
     const column = columns[i];
     const offset = placement.children[i];
     if (!column || !offset) fail("TYPE", path, "Missing prepared Row placement");
-    const capacity = Math.max(1, column.naturalSize.height);
     const fragment = yield {
       block: column,
       request: {
-        ...request,
-        offset: 0,
-        usedHeight: 0,
-        freshHeight: capacity,
-        availableHeight: capacity,
-        atFreshRegion: true,
-        width: column.naturalSize.width,
+        ...selectionContext(request, 0, column.naturalSize.width),
+        mode: "complete",
         reserve,
       },
     };
@@ -70,11 +70,13 @@ function* selectRow(
 }
 function paintedRow(box: Sizing, pieces: readonly StackPiece[], height: number, path: string): PlacedFragment {
   const selection = { pieces, height: height - box.vertical, nextOffset: 1, advance: false };
+  const placements = prepareContainerPlacements(box, selection, height, false, path);
   const fragment: PlacedFragment = {
+    geometry: fragmentGeometry([], placements),
     height,
     nextOffset: 1,
-    paint: (context) => resolvePaint(fragment, context),
-    paintSteps: (context) => paintContainerSteps(box, selection, height, false, context, path),
+    paint: (context) => resolvePaint({ fragment, context }),
+    paintSteps: (context) => paintContainerSteps(box, height, false, context, path),
   };
   return fragment;
 }

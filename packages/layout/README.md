@@ -90,6 +90,28 @@ nodes have baseline at ascent. Deferred block/shared-edge recipes are not suppor
 inline. Both factories snapshot caller data and preserve ordinary validation/quotas.
 Dynamic callback adapters remain available and require local extension installation.
 
+### Block provider units
+
+`MeasuredBlock.next` is synchronous and receives exactly the frozen readonly
+`{ offset, extent, width }` request. Return `{ end, height, nodes }`: `end` must
+advance within the measured extent, height is finite/nonnegative, and nodes are
+unit-local native output. Atomic providers have extent one and consume it whole.
+The host chooses a prefix using actual unit heights; natural size is not a fit
+decision. Providers never receive remaining height or return defer/status results.
+The removed `fragment`, `BlockFragmentRequest` and `BlockFragment` have no aliases.
+
+Zero-height progress units require `nodes: []`. Nonempty zero-height payloads,
+including empty native groups, remain unsupported by the existing positive native
+validation-region contract. `fixed` still requires positive height. Measured
+decorations remain separate from units; empty tables retain those decorations.
+
+Units are eagerly validated and snapshotted before selection, including one
+lookahead unit. Cumulative generated-output and ancestor reservations are checked
+before copying. Lookahead can intentionally fail quota even when a shorter prefix
+fits; only the selected prefix adopts budget/state. Source work never rolls back.
+Each nonempty unit emits one charged native placement group. Operation contexts
+must not be retained after layout/measurement returns.
+
 - Document contains ordered Page/Flow sections. Fixed Page children are positioned
   drawings; Flow children are block content. Each section begins a new page.
 - Flow.Header/Footer reserve positive finite heights; use Flow.Body or direct body

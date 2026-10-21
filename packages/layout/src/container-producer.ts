@@ -1,11 +1,14 @@
 import { exceeds, fail, sum } from "@updf/core/internal";
 import { derivedAxis } from "./axis.js";
 import { paintContainerSteps } from "./container-paint.js";
+import { prepareContainerPlacements } from "./container-placement.js";
 import { containerReservation, reserveAncestors } from "./container-reservation.js";
-import type { FragmentCall, FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
+import { fragmentGeometry } from "./fragment-paint-preparation.js";
+import type { AncestorReservation, FragmentCall, FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
 import { resolveFragment, resolvePaint } from "./protocol-runtime.js";
 import { clamp, type Sizing } from "./sizing.js";
 import { type Stack, type StackSelection, selectStackSteps, stack, stackHeight } from "./stack.js";
+import { frameFits, selectionContext } from "./selection-request.js";
 
 function contentCapacity(box: Sizing, height: number, path: string): number {
   if (height <= box.vertical) return 0;
@@ -17,18 +20,12 @@ function* splittable(
   request: FragmentRequest,
   path: string,
 ): Generator<FragmentCall, PlacedFragment | undefined, PlacedFragment | undefined> {
-  if (exceeds(sum([request.usedHeight, box.vertical]), request.freshHeight)) return undefined;
-  const capacity = contentCapacity(box, request.freshHeight, path);
+  if (request.mode !== "complete" && exceeds(sum([request.usedHeight, box.vertical]), request.freshHeight))
+    return undefined;
   const reserve = containerReservation(box, request, path);
+  const local = contentRequest(box, request, reserve, path);
   reserveAncestors(reserve, request.budget, request.state, 0);
-  const selected = yield* selectStackSteps(content, {
-    ...request,
-    freshHeight: capacity,
-    availableHeight: capacity - request.usedHeight,
-    width: box.contentWidth,
-    reserve,
-    definiteAlignment: false,
-  });
+  const selected = yield* selectStackSteps(content, local);
   if (!selected) return undefined;
   const height = sum([box.vertical, selected.height]);
   reserveAncestors(reserve, request.budget, request.state, selected.height);
@@ -42,6 +39,24 @@ function* splittable(
   };
   return painted(fragmentBox, selected, height, false, path, selected.nextOffset);
 }
+function contentRequest(
+  box: Sizing,
+  request: FragmentRequest,
+  reserve: AncestorReservation,
+  path: string,
+): FragmentRequest {
+  if (request.mode === "complete")
+    return { ...selectionContext(request, request.offset, box.contentWidth), mode: "complete", reserve };
+  const capacity = contentCapacity(box, request.freshHeight, path);
+  return {
+    ...request,
+    freshHeight: capacity,
+    availableHeight: capacity - request.usedHeight,
+    width: box.contentWidth,
+    reserve,
+    definiteAlignment: false,
+  };
+}
 function* atomic(
   box: Sizing,
   content: Stack,
@@ -51,26 +66,35 @@ function* atomic(
   path: string,
   alignment: PreparedBlock["contentAlignment"],
 ): Generator<FragmentCall, PlacedFragment | undefined, PlacedFragment | undefined> {
-  if (exceeds(sum([request.usedHeight, height]), request.freshHeight)) return undefined;
+  if (!frameFits(request, height)) return undefined;
   const reserve = containerReservation(box, request, path, { height, hidden });
   reserveAncestors(reserve, request.budget, request.state, 0);
-  const selected = yield* selectStackSteps(content, {
-    ...request,
-    offset: 0,
-    freshHeight: alignment?.capacity ?? Math.max(content.height, 1),
-    availableHeight: alignment?.capacity ?? Math.max(content.height, 1),
-    usedHeight: 0,
-    atFreshRegion: true,
-    width: box.contentWidth,
-    reserve,
-    definiteAlignment: alignment !== undefined,
-    alignmentHeight: alignment?.height ?? 0,
-  });
+  const selected = yield* selectStackSteps(content, closedRequest(box, request, reserve, alignment));
   if (!selected || selected.nextOffset !== content.extent || selected.advance)
     fail("TYPE", path, "Closed/kept blocks cannot contain page advance controls");
+  if (height === 0 && selected.height > 0)
+    fail("GEOMETRY", path, "Zero-height container cannot discard positive content");
   if (hidden && height <= (box.borders.borderTop?.width ?? 0) + (box.borders.borderBottom?.width ?? 0))
     fail("GEOMETRY", path, "Hidden content requires a positive padding-edge clip");
   return painted(box, selected, height, hidden, path, 1);
+}
+function closedRequest(
+  box: Sizing,
+  request: FragmentRequest,
+  reserve: AncestorReservation,
+  alignment: PreparedBlock["contentAlignment"],
+): FragmentRequest {
+  const context = { ...selectionContext(request, 0, box.contentWidth), reserve };
+  if (!alignment) return { ...context, mode: "complete" };
+  return {
+    ...context,
+    freshHeight: alignment.capacity,
+    availableHeight: alignment.capacity,
+    usedHeight: 0,
+    atFreshRegion: true,
+    definiteAlignment: true,
+    alignmentHeight: alignment.height,
+  };
 }
 function painted(
   box: Sizing,
@@ -80,12 +104,14 @@ function painted(
   path: string,
   nextOffset: number,
 ): PlacedFragment {
+  const placements = prepareContainerPlacements(box, selection, height, hidden, path);
   const fragment: PlacedFragment = {
+    geometry: fragmentGeometry([], placements),
     nextOffset,
     height,
     advance: selection.advance,
-    paint: (context) => resolvePaint(fragment, context),
-    paintSteps: (context) => paintContainerSteps(box, selection, height, hidden, context, path),
+    paint: (context) => resolvePaint({ fragment, context }),
+    paintSteps: (context) => paintContainerSteps(box, height, hidden, context, path),
   };
   return fragment;
 }

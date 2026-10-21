@@ -80,6 +80,20 @@
         "default": "./dist/cjs/fragmentation.js"
       }
     },
+    "./internal-fragmentation": {
+      "browser": {
+        "types": "./dist/node/internal-fragmentation.d.mts",
+        "default": "./dist/internal-fragmentation.js"
+      },
+      "import": {
+        "types": "./dist/node/internal-fragmentation.d.mts",
+        "default": "./dist/node/internal-fragmentation.mjs"
+      },
+      "require": {
+        "types": "./dist/node/internal-fragmentation.d.cts",
+        "default": "./dist/cjs/internal-fragmentation.js"
+      }
+    },
     "./numeric": {
       "browser": {
         "types": "./dist/node/numeric.d.mts",

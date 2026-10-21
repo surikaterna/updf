@@ -4,12 +4,6 @@ import { lower as coreLower } from "@updf/core/vdom";
 import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
 import { layout as contentLayout, measure as contentMeasure } from "@updf/layout";
 import { createTextMeasurer, createTextService, type MeasureOptions, measureText as textMeasure } from "@updf/text";
-import {
-  layoutTableFlow as tableFlow,
-  layoutTableFlowUnknown as tableFlowUnknown,
-  layoutTable as tableLayout,
-  layoutTableUnknown as tableUnknown,
-} from "../../packages/layout/dist/cjs/tables/index.js";
 
 // A single explicit test composition keeps lower/layout and final render on the same runtime.
 const runtime = fontRuntime();
@@ -38,9 +32,3 @@ export function measurementOptions(options: Partial<MeasureOptions> = {}): Measu
 export const measureText = (input: Parameters<typeof textMeasure>[0], options: Partial<MeasureOptions> = {}) =>
   textMeasure(input, measurementOptions(options));
 export const createLayoutOperation: typeof coreOperation = (options) => coreOperation(textOptions(options));
-export const layoutTable: typeof tableLayout = (input, options = {}) => tableLayout(input, textOptions(options));
-export const layoutTableUnknown: typeof tableUnknown = (input, options = {}) =>
-  tableUnknown(input, textOptions(options));
-export const layoutTableFlow: typeof tableFlow = (input, options = {}) => tableFlow(input, textOptions(options));
-export const layoutTableFlowUnknown: typeof tableFlowUnknown = (input, options = {}) =>
-  tableFlowUnknown(input, textOptions(options));

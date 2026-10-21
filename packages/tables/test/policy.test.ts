@@ -66,9 +66,8 @@ test("F shared owned chart descriptors measure once across cell compilers, but e
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: context.width, height: 10 },
-        fragment: () => ({
-          status: "placed",
-          nextOffset: 1,
+        next: () => ({
+          end: 1,
           height: 10,
           nodes: [{ type: "rect", x: 0, y: 0, width: 10, height: 10, paint: { fill: [1, 0, 0], stroke: null } }],
         }),

@@ -15,7 +15,6 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
   ],
   "@updf/core/internal": [
     "barcodes/src/checks.ts",
-    "layout/src/index.ts",
     "layout/src/adapter-ownership.ts",
     "layout/src/adapter-content.ts",
     "layout/src/emission-nodes.ts",
@@ -25,17 +24,16 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/extension-types.ts",
     "layout/src/content-data.ts",
     "layout/src/content-types.ts",
-    "layout/src/text-style.ts",
     "layout/src/content-normalize.ts",
     "layout/src/content-role.ts",
     "layout/src/auto-margin.ts",
     "layout/src/content-block-parts.ts",
-    "layout/src/content-line-containers.ts",
     "layout/src/content-style.ts",
     "layout/src/content-paragraph.ts",
     "layout/src/content-producer.ts",
     "layout/src/content-measure.ts",
     "layout/src/natural-paint.ts",
+    "layout/src/fragment-paint-preparation.ts",
     "layout/src/inline-adapters.ts",
     "layout/src/inline-background.ts",
     "layout/src/vdom.ts",
@@ -54,20 +52,23 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/template.ts",
     "layout/src/blocks.ts",
     "layout/src/paragraph-producer.ts",
+    "layout/src/prepared-line-reports.ts",
     "layout/src/paragraph-emission.ts",
     "layout/src/paragraph-fragments.ts",
     "layout/src/extensions.ts",
     "layout/src/extension-producer.ts",
+    "layout/src/measured-source.ts",
     "layout/src/block-compiler.ts",
     "layout/src/column-sizing.ts",
     "layout/src/column-boxes.ts",
     "layout/src/row-compiler.ts",
     "layout/src/row-data.ts",
     "layout/src/row-vdom.ts",
+    "layout/src/selection-request.ts",
     "layout/src/row-producer.ts",
     "layout/src/row-boxes.ts",
     "layout/src/container-data.ts",
-    "layout/src/container-paint.ts",
+    "layout/src/container-placement.ts",
     "layout/src/container-producer.ts",
     "layout/src/decorations.ts",
     "layout/src/decorated-producer.ts",
@@ -89,14 +90,6 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/axis.ts",
     "layout/src/generated-interval.ts",
     "layout/src/width-resolver.ts",
-    "layout/src/tables/index.ts",
-    "layout/src/tables/vdom.ts",
-    "layout/src/tables/layout.ts",
-    "layout/src/tables/validate.ts",
-    "layout/src/tables/measure.ts",
-    "layout/src/tables/producer.ts",
-    "layout/src/tables/paint.ts",
-    "layout/src/tables/ink.ts",
     "geometry/src/arc.ts",
     "geometry/src/color.ts",
     "geometry/src/normalize.ts",
@@ -142,6 +135,7 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "text/src/index.ts",
   ],
   "@updf/geometry/internal": ["svg/src/numbers.ts"],
+  "@updf/layout-boxes/internal-fragmentation": ["layout/src/measured-source.ts"],
 };
 
 export function allowedInternal(file: string, specifier: string): void {
@@ -187,7 +181,7 @@ function sourceEdges(owner: string, text: string, path: string, root: string): v
     if (owner === "core" && match[1] === "@updf/layout-boxes/arithmetic")
       assert.equal(path.slice(join(root, "packages").length + 1), "core/src/measurement/arithmetic.ts");
   }
-  for (const match of text.matchAll(/from ['"](@updf\/[^'"]+\/internal(?:-drawing)?)['"]/gu)) {
+  for (const match of text.matchAll(/from ['"](@updf\/[^'"]+\/internal(?:-drawing|-fragmentation)?)['"]/gu)) {
     const specifier = match[1];
     assert.ok(specifier);
     allowedInternal(path.slice(join(root, "packages").length + 1), specifier);
@@ -207,6 +201,9 @@ const coreExports = [
   "Policy",
   "snapshot as snapshotData",
   "matrix",
+  "multiply",
+  "point",
+  "rectangle",
   "commands",
   "paint",
   "policy",

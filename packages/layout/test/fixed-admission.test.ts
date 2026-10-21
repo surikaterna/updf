@@ -1,16 +1,36 @@
 import assert from "node:assert/strict";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import test from "node:test";
+import ts from "typescript";
 import { DocumentError } from "@updf/core";
 import { createDrawingLayoutOperation } from "@updf/core/internal-drawing";
 import { layoutFlow } from "../../../tests/fixtures/transitional-layout.js";
 import { prepare } from "../dist/blocks.js";
-import { isFixedProducer } from "../dist/fixed-admission.js";
 import { Paginator } from "../dist/paginator.js";
 import { template } from "../dist/template.js";
 import type { PreparedBlock } from "../dist/protocol.js";
 import { flow } from "./fixtures.js";
 
 const fixed = (height: number) => ({ type: "fixed" as const, height, children: [] });
+
+test("active admission has no producer registry or natural-height classification", () => {
+  const root = new URL("../src/", import.meta.url);
+  assert.equal(existsSync(new URL("fixed-admission.ts", root)), false);
+  for (const name of readdirSync(root).filter((name) => name.endsWith(".ts"))) {
+    const source = readFileSync(new URL(name, root), "utf8");
+    assert.doesNotMatch(source, /fixed-admission|isFixedProducer|registerFixedProducer/u);
+  }
+  const source = ts.createSourceFile(
+    "paginator.ts",
+    readFileSync(new URL("paginator.ts", root), "utf8"),
+    ts.ScriptTarget.Latest,
+    true,
+  );
+  const owner = source.statements.find(ts.isClassDeclaration);
+  const admission = owner?.members.find((node) => node.name?.getText(source) === "fragmentStart");
+  assert.ok(admission);
+  assert.doesNotMatch(admission.getText(source), /naturalSize|fragmentation|\.type\b/u);
+});
 
 test("direct fixed admission preserves certifiable fits and recovers only refused native candidates", () => {
   const cases = [
@@ -71,14 +91,12 @@ function diagnostic(code: string, path: string) {
     error instanceof DocumentError && error.diagnostics[0]?.code === code && error.diagnostics[0]?.path === path;
 }
 
-test("registration belongs only to the final fixed identity; reuse works but copies and wrappers stay strict", () => {
+test("copies, spacers and composite roots receive the same prepaint admission", () => {
   const operation = createDrawingLayoutOperation({});
   try {
     const page = template(flow([], { height: 0.3 }).pageTemplate, operation);
     const first = prepare(fixed(0.1), 100, "/first", operation);
     const second = prepare(fixed(0.2), 100, "/second", operation);
-    assert.ok(isFixedProducer(second));
-    assert.equal(isFixedProducer({ ...second }), false);
     for (let reuse = 0; reuse < 2; reuse++) {
       const paginator = new Paginator(page, operation.policy);
       paginator.consume(first, 0);
@@ -87,19 +105,26 @@ test("registration belongs only to the final fixed identity; reuse works but cop
     }
     const strict = new Paginator(page, operation.policy);
     strict.consume(first, 0);
-    assert.throws(() => strict.consume({ ...second }, 1), diagnostic("GEOMETRY", "/body/1"));
+    strict.consume({ ...second }, 1);
+    assert.equal(strict.result(2).pageCount, 2);
     for (const value of [
       { type: "spacer", height: 0.2 },
+      { type: "block", style: { height: 0.2 }, children: [] },
+      { type: "row", children: [{ type: "column", width: 100, children: [fixed(0.2)] }] },
       { type: "block", children: [fixed(0.2)] },
       { type: "block", keepTogether: true, style: { marginTop: "auto" }, children: [fixed(0.2)] },
-    ])
-      assert.equal(isFixedProducer(prepare(value, 100, "/wrapper", operation, undefined, undefined, 0.3)), false);
+    ]) {
+      const paginator = new Paginator(page, operation.policy);
+      paginator.consume(first, 0);
+      paginator.consume(prepare(value, 100, "/wrapper", operation, undefined, undefined, 0.3), 1);
+      assert.equal(paginator.result(2).pageCount, 2);
+    }
   } finally {
     operation.close();
   }
 });
 
-test("unknown atomic actual heights, zero-height fragments and page controls retain old behavior", () => {
+test("unknown actual heights receive admission; zero-height progress and controls stay valid", () => {
   const operation = createDrawingLayoutOperation({});
   try {
     const page = template(flow([], { height: 0.3 }).pageTemplate, operation);
@@ -109,11 +134,16 @@ test("unknown atomic actual heights, zero-height fragments and page controls ret
       fragmentation: "atomic",
       naturalSize: { width: 100, height: 0 },
       extent: 1,
-      fragment: () => ({ nextOffset: 1, height: 0.2, paint: () => [] }),
+      fragment: () => ({ nextOffset: 1, height: 0.2, geometry: wholeBoxGeometry(0.2), paint: () => [] }),
     };
-    assert.throws(() => paginator.consume(atomic, 1), diagnostic("GEOMETRY", "/body/1"));
+    paginator.consume(atomic, 1);
+    assert.equal(paginator.result(2).pageCount, 2);
+    assert.equal(paginator.placements[1]?.box.height, 0.2);
     const zero = new Paginator(page, operation.policy);
-    zero.consume({ ...atomic, fragment: () => ({ nextOffset: 1, height: 0, paint: () => [] }) }, 0);
+    zero.consume(
+      { ...atomic, fragment: () => ({ nextOffset: 1, height: 0, geometry: wholeBoxGeometry(0), paint: () => [] }) },
+      0,
+    );
     assert.equal(zero.placements[0]?.box.y, 0);
     zero.consume(prepare({ type: "pageBreak" }, 100, "/break", operation), 1);
     assert.equal(zero.result(2).pageCount, 2);
@@ -121,3 +151,4 @@ test("unknown atomic actual heights, zero-height fragments and page controls ret
     operation.close();
   }
 });
+import { wholeBoxGeometry } from "../dist/fragment-paint-preparation.js";

@@ -3,7 +3,6 @@ import { execFileSync } from "node:child_process";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
 import { composableInventory } from "../fixtures/composable-inventory.js";
-import { legacyInventory } from "../fixtures/legacy-inventory.js";
 import {
   assertInventoryBackgrounds,
   assertInventoryContent,
@@ -15,8 +14,7 @@ import {
 test("F converted public-adapter pipeline preserves the historical 63-edge raster oracle without changing CMR/reference thresholds", async () => {
   const directory = new URL("../../artifacts/composable-tables/", import.meta.url);
   await mkdir(directory, { recursive: true });
-  const fresh = composableInventory("Inventory"),
-    legacy = legacyInventory("Inventory");
+  const fresh = composableInventory("Inventory");
   const weighted = composableInventory("Inventory", [
     { width: { weight: 140, min: 100 } },
     { width: { weight: 68, max: 68 }, style: { textAlign: "right" } },
@@ -30,7 +28,6 @@ test("F converted public-adapter pipeline preserves the historical 63-edge raste
     Array.from({ length: 12 }, (_, i) => `item-${i + 1}`),
   );
   await writeFile(new URL("converted.pdf", directory), fresh.bytes);
-  await writeFile(new URL("legacy.pdf", directory), legacy.bytes);
   const path = new URL("converted.pdf", directory).pathname;
   execFileSync("qpdf", ["--check", path]);
   const text = execFileSync("pdftotext", ["-raw", path, "-"], { encoding: "utf8" });

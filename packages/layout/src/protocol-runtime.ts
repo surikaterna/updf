@@ -1,9 +1,9 @@
 import type { NodeDefinition } from "@updf/core";
+import { assertPreparedChild, assertPreparedPaint } from "./fragment-paint-preparation.js";
 import type {
   FragmentCall,
-  FragmentPaintContext,
+  PreparedFragmentPaint,
   FragmentRequest,
-  PaintCall,
   PlacedFragment,
   PreparedBlock,
 } from "./protocol.js";
@@ -30,14 +30,14 @@ export function resolveFragment(block: PreparedBlock, request: FragmentRequest):
   }
   return result;
 }
-export function resolvePaint(fragment: PlacedFragment, context: FragmentPaintContext): readonly NodeDefinition[] {
+export function resolvePaint({ fragment, context }: PreparedFragmentPaint): readonly NodeDefinition[] {
+  assertPreparedPaint(fragment, context);
   if (!fragment.paintSteps) return fragment.paint(context);
-  const pending: Generator<PaintCall, readonly NodeDefinition[], readonly NodeDefinition[]>[] = [
-    fragment.paintSteps(context),
-  ];
+  const pending = [{ context, steps: fragment.paintSteps(context) }];
   let result: readonly NodeDefinition[] = [];
   while (pending.length) {
-    const step = pending.at(-1)?.next(result);
+    const current = pending.at(-1)!;
+    const step = current.steps.next(result);
     if (!step) break;
     result = [];
     if (step.done) {
@@ -45,8 +45,9 @@ export function resolvePaint(fragment: PlacedFragment, context: FragmentPaintCon
       result = step.value;
       continue;
     }
+    assertPreparedChild(current.context, step.value);
     const { fragment, context } = step.value;
-    if (fragment.paintSteps) pending.push(fragment.paintSteps(context));
+    if (fragment.paintSteps) pending.push({ context, steps: fragment.paintSteps(context) });
     else result = fragment.paint(context);
   }
   return result;

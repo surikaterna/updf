@@ -97,9 +97,9 @@ test("standalone hidden Column measures owned provider content once but emits ea
         fragmentation: "atomic",
         extent: 1,
         naturalSize: measured.size,
-        fragment() {
+        next() {
           fragments++;
-          return { status: "placed", nextOffset: 1, height: measured.size.height, nodes: measured.nodes };
+          return { end: 1, height: measured.size.height, nodes: measured.nodes };
         },
       };
     },

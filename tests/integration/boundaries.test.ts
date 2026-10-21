@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { test } from "node:test";
-import { allowedInternal, internalExports, packageEdge, portableGraph } from "../../scripts/boundaries.js";
+import { allowedInternal, files, internalExports, packageEdge, portableGraph } from "../../scripts/boundaries.js";
 
 test("graph checker negative controls reject native Node/globals/legacy/React/optional leakage", () => {
   for (const id of [
@@ -22,10 +24,38 @@ test("graph checker negative controls reject native Node/globals/legacy/React/op
 });
 
 test("internal seams reject noninventoried consumers", () => {
+  allowedInternal("layout/src/measured-source.ts", "@updf/layout-boxes/internal-fragmentation");
+  assert.throws(() => allowedInternal("tables/src/adapter.ts", "@updf/layout-boxes/internal-fragmentation"));
   allowedInternal("svg/src/numbers.ts", "@updf/geometry/internal");
   allowedInternal("fontkit/src/index.ts", "@updf/core/internal");
   assert.throws(() => allowedInternal("core/src/index.ts", "@updf/geometry/internal"));
   assert.throws(() => allowedInternal("svg/src/new.ts", "@updf/core/internal"));
+});
+
+test("retired layout table engine has no production files/deep imports; canonical tables remain", async () => {
+  const root = resolve(import.meta.dirname, "../..");
+  const paths = [...(await files(`${root}/packages`)), ...(await files(`${root}/apps`))];
+  const production = paths.filter((path) => /\/(?:src|dist)\/.*\.(?:ts|tsx|js|mjs|cts|mts)$/u.test(path));
+  assert.ok(!production.some((path) => /\/layout\/(?:src|dist(?:\/cjs|\/node)?)\/tables\//u.test(path)));
+  for (const path of production) {
+    const text = await readFile(path, "utf8");
+    assert.doesNotMatch(
+      text,
+      /(?:from\s+|import\s*\()["'][^"']*(?:@updf\/layout\/tables|layout\/(?:src|dist(?:\/cjs|\/node)?)\/tables\/)/u,
+      path,
+    );
+  }
+  for (const file of ["index", "vdom", "layout", "producer", "validate", "measure", "paint", "ink"])
+    assert.throws(() => allowedInternal(`layout/src/tables/${file}.ts`, "@updf/core/internal"));
+  packageEdge("tables", "@updf/layout");
+  assert.ok(production.some((path) => path.endsWith("/tables/src/adapter.ts")));
+  const consumers = await Promise.all(
+    ["apps/browser-fonts", "apps/showcase/src"].map(async (directory) => {
+      const sources = await files(`${root}/${directory}`);
+      return (await Promise.all(sources.map((path) => readFile(path, "utf8")))).join("\n");
+    }),
+  );
+  for (const text of consumers) assert.match(text, /from ["']@updf\/tables["']/u);
 });
 
 test("internal export inventory rejects broad exports and unexpected helpers", () => {
@@ -51,6 +81,22 @@ test("kernel edges reject every external runtime dependency", () => {
   packageEdge("layout-boxes", "./width-types.js");
   for (const name of ["@updf/core", "@updf/layout", "react", "node:fs", "fontkit", "foreign"])
     assert.throws(() => packageEdge("layout-boxes", name));
+});
+
+test("table providers cannot import private host selection or capacity helpers", async () => {
+  for (const name of ["@updf/layout/paginator", "@updf/layout/protocol", "@updf/layout-boxes/fragmentation"])
+    assert.throws(() => packageEdge("tables", name));
+  const root = resolve(import.meta.dirname, "../..");
+  const paths = await files(`${root}/packages/tables/src`);
+  for (const path of paths) {
+    const text = await readFile(path, "utf8");
+    assert.doesNotMatch(text, /\b(?:availableHeight|freshHeight|usedHeight|atFreshRegion|selectRows)\b/u, path);
+    assert.doesNotMatch(
+      text,
+      /(?:from\s+|import\s*\()["'][^"']*(?:layout\/src|layout\/dist|paginator|fragment-select)/u,
+      path,
+    );
+  }
 });
 
 test("barcode package edges permit only its explicit core/arithmetic seams", () => {

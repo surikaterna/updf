@@ -46,7 +46,7 @@ function headerAdapter(headerHeight: number) {
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: 80, height: headerHeight },
-        fragment: () => ({ status: "placed", nextOffset: 1, height: headerHeight, nodes: [marker] }),
+        next: () => ({ end: 1, height: headerHeight, nodes: [marker] }),
       };
     },
   });
@@ -82,7 +82,7 @@ function fixture(headerHeight: number, bodyHeight: number, deferred = false, dis
         extent: 1,
         naturalSize: { width: 80, height: bodyHeight },
         decorations,
-        fragment: () => ({ status: "placed", nextOffset: 1, height: bodyHeight, nodes: [marker] }),
+        next: () => ({ end: 1, height: bodyHeight, nodes: [marker] }),
       };
     },
   });

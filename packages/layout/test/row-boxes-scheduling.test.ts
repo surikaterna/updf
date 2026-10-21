@@ -5,6 +5,7 @@ import { createLayoutOperation } from "../../../tests/fixtures/text-options.js";
 import { deferColumnBody } from "../dist/cjs/column-content.js";
 import type { PreparedBlock } from "../dist/cjs/protocol.js";
 import { compileRow } from "../dist/cjs/row-compiler.js";
+import { wholeBoxGeometry } from "../dist/cjs/fragment-paint-preparation.js";
 
 function scheduledRows() {
   const operation = createLayoutOperation({});
@@ -29,7 +30,7 @@ function scheduledRows() {
         fragmentation: "atomic",
         naturalSize: { width, height },
         extent: 1,
-        fragment: () => ({ height, nextOffset: 1, paint: () => [] }),
+        fragment: () => ({ height, geometry: wholeBoxGeometry(height), nextOffset: 1, paint: () => [] }),
       });
     }
     active--;

@@ -2,6 +2,7 @@ import { checkLimit, exceeds, fail, MetricSum, sum } from "@updf/core/internal";
 import { alignedRequest } from "./auto-margin.js";
 import { bits, dyadic, floorDyadic, value } from "./binary64.js";
 import { offsetReservation, reserveAncestors } from "./container-reservation.js";
+import { emptyGeometry } from "./fragment-paint-preparation.js";
 import { certifyGeneratedFragment, type GeneratedInterval, generatedIntervals } from "./generated-interval.js";
 import type { FragmentCall, FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
 
@@ -85,20 +86,20 @@ function space(entry: StackEntry, request: FragmentRequest): PlacedFragment | un
   const sizing = entry.space;
   if (!sizing) return undefined;
   const left = request.state?.get(entry, request.offset) ?? dyadic(bits(sizing.height));
-  if (request.availableHeight <= 0 && left > 0n) return undefined;
-  const available = dyadic(bits(Math.max(0, request.availableHeight)));
+  if (request.mode !== "complete" && request.availableHeight <= 0 && left > 0n) return undefined;
+  const available = request.mode === "complete" ? left : dyadic(bits(Math.max(0, request.availableHeight)));
   const amount = left < available ? left : available;
   const encoded = floorDyadic(amount);
   const height = encoded === undefined ? 0 : value(encoded);
   if (left > 0n && height === 0) return undefined;
-  if (exceeds(sum([request.usedHeight, height]), request.freshHeight)) return undefined;
+  if (request.mode !== "complete" && exceeds(sum([request.usedHeight, height]), request.freshHeight)) return undefined;
   const remaining = left - dyadic(bits(height));
   const nextOffset = remaining === 0n ? entry.end - entry.start : request.offset + 1;
   if (remaining > 0n && nextOffset >= entry.end - entry.start)
     fail("GEOMETRY", "", "Space continuation exhausted its finite representation extent");
   request.state?.set(entry, nextOffset, remaining);
   reserveAncestors(request.reserve, request.budget, request.state, height);
-  return { height, nextOffset, paint: () => [] };
+  return { geometry: emptyGeometry, height, nextOffset, paint: () => [] };
 }
 export function* selectStackSteps(
   stack: Stack,
@@ -112,20 +113,11 @@ export function* selectStackSteps(
   while (offset < stack.extent) {
     const entry = locate(stack.entries, offset);
     const prefix = height.value;
-    const local = {
-      ...request,
-      offset: offset - entry.start,
-      usedHeight: sum([request.usedHeight, height.value]),
-      availableHeight: request.availableHeight - height.value,
-      atFreshRegion: request.atFreshRegion && height.value === 0,
-      ...(request.budget ? { budget: request.budget.fork() } : {}),
-      ...(request.state ? { state: request.state.fork() } : {}),
-      ...(request.reserve ? { reserve: offsetReservation(request.reserve, prefix) } : {}),
-    };
+    const local = stackRequest(request, offset - entry.start, prefix);
     const aligned = entry.block ? alignedRequest(entry.block, local) : { margin: 0, request: local };
     if (!aligned) break;
     const fragment = entry.block?.control
-      ? { nextOffset: 1, height: 0, advance: true, paint: () => [] }
+      ? { geometry: emptyGeometry, nextOffset: 1, height: 0, advance: true, paint: () => [] }
       : entry.block
         ? yield { block: entry.block, request: aligned.request }
         : space(entry, local);
@@ -146,6 +138,22 @@ export function* selectStackSteps(
     }
   }
   return offset === request.offset ? undefined : { pieces, nextOffset: offset, height: height.value, advance };
+}
+function stackRequest(request: FragmentRequest, offset: number, prefix: number): FragmentRequest {
+  return {
+    ...request,
+    offset,
+    ...(request.mode === "complete"
+      ? {}
+      : {
+          usedHeight: sum([request.usedHeight, prefix]),
+          availableHeight: request.availableHeight - prefix,
+          atFreshRegion: request.atFreshRegion && prefix === 0,
+        }),
+    ...(request.budget ? { budget: request.budget.fork() } : {}),
+    ...(request.state ? { state: request.state.fork() } : {}),
+    ...(request.reserve ? { reserve: offsetReservation(request.reserve, prefix) } : {}),
+  };
 }
 function checkProgress(fragment: PlacedFragment, offset: number, extent: number): void {
   if (!Number.isSafeInteger(fragment.nextOffset) || fragment.nextOffset <= offset || fragment.nextOffset > extent)

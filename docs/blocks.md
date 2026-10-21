@@ -202,8 +202,8 @@ Zero height permits only empty static nodes. `DecorationPlan` is a privately bra
 deeply immutable capability, not a serialized plan. Copies/JSON lookalikes reject.
 
 Container inputs or an adapter's `MeasuredBlock.decorations` may declare the plan.
-If a placed callback result repeats a `decorations` field, it must be exactly the
-same declared identity; a callback cannot introduce an unreserved foreign plan.
+An adapter's `next` callback returns only `{ end, height, nodes }`; a `decorations`
+field is rejected even when it repeats the declared plan's identity.
 Headers/footers reserve before selecting content, including atomic head + content
 + foot fit. Last-only reservations use at most two candidate constraints: a
 final-capable candidate, then a nonfinal candidate if needed. An unreserved final
@@ -223,11 +223,16 @@ recipes. PageContext/FragmentContext are sealed during finalization; see
 there is no global name registry. `extension(adapter, props)` creates an owned
 descriptor. Its installed identity, not an arbitrary `kind` string, determines
 which producer is invoked. Public measured outputs have finite natural size,
-positive safe extent, atomic extent one and checked placed/defer results.
+positive safe extent and atomic extent one. `MeasuredBlock.next` receives only
+frozen `{ offset, extent, width }` and returns `{ end, height, nodes }`. The host
+selects complete units by actual height; providers cannot inspect capacity or
+return placed/defer/status results. Old fragment types and callbacks reject.
 
 Callbacks are trusted executable code, not a sandbox. A callback or hostile Proxy
 can consume host CPU/memory regardless of output validation. Strict finite progress
-is required of returned fragments; zero-height progress is legal. A paginator defer
+is required of returned units; zero-height progress requires `nodes: []`. Nonempty
+zero-height native payloads (even empty groups) remain outside the existing positive
+native validation-region contract. A paginator defer
 moves only once to a fresh region at that offset, then fresh failure is structured
 oversize. Public contexts expose measurement width and operation-bound text
 measurement only; retained callbacks fail after operation closure.
@@ -243,9 +248,12 @@ candidate trials do not charge source text again. Only semantic measurements are
 cached; occurrence producers and diagnostic origins are rebound for each use.
 Gap/minHeight continuation consumes actual remaining region height with private
 exact dyadic bookkeeping and finite safe-integer progress ordinals, not fixed
-fresh-region chunks or point-sized iteration. There are no new hidden work caps.
+fresh-region chunks or point-sized iteration. The public unit bridge shares one
+finite-default kernel operation across occurrences for the extension lifetime.
+Lookahead is eagerly validated and quota-checked before fit, so a rejected unit
+can exhaust quota; only the selected prefix adopts tentative budget/state.
 
-Validate/measure/fragment callback throws become stable `DocumentError` diagnostics
+Validate/measure/next callback throws become stable `DocumentError` diagnostics
 with callback stage and current source origin. Existing `DocumentError` instances
 and spans are preserved without prefixing them again. Arbitrary thrown objects'
 message/toString/getters are not read. Measurement callbacks still close in `finally`.

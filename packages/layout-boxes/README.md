@@ -174,8 +174,11 @@ keepTogether, controls and body/fragment extents without synthetic authored heig
 
 ## Numerical authority and dependency cost
 
-`/arithmetic` exports the unchanged existing `MetricSum`, `sum` and `exceeds`
-bodies, with the original metric/nonfinite preconditions. `/geometry` exports
+`/arithmetic` exports `MetricSum`, `sum` and `exceeds`, with unchanged existing
+accumulation/comparison bodies and metric/nonfinite preconditions. The additive
+`MetricSum.fork()` method snapshots both total and hidden compensation into an
+independent accumulator; it is not validation, fit or geometry certification.
+`/geometry` exports
 the derived-axis/materialized-start certificate and certified row alignment.
 `@updf/core` now **depends explicitly on this package**, but its runtime graph
 imports only `/arithmetic`. A core-only install includes the **whole kernel
@@ -198,7 +201,26 @@ handling. Root and `/boxes` do not retain or reexport fragmentation, so box-only
 consumers keep their narrow dependency graph.
 Neither the package root nor `/boxes` reexports fragmentation or retains its code.
 
-An operation supports both prepared range queries (`prepare`, `select`) and flat
+For prepared range selection alone, use `createRangeOperation` from the same
+subpath. Its frozen `RangeOperation` exposes `prepare`, `select`, `counts`, and
+`close`, without retaining indexed-region or candidate-enumeration implementations
+in a bundled consumer. It shares source registration, the selector, validation,
+cumulative limits, poisoning, and lifetime cleanup with the full operation.
+Production paragraph and measured block-unit selection use this narrow capability.
+Use the full operation when a consumer needs candidate endpoints or region flow;
+those features remain supported together under its single owner and ledger.
+This is static capability selection, not a less-validated production mode.
+
+Both operations also accept `select(source, { mode: "complete", offset, width })`
+to collect the remaining finite source. This explicit form has no physical height
+or occupied-height fields; mixing them into it rejects. It uses the same unit
+reader, compensated accumulation, source ownership and cumulative work limits as
+bounded selection. Nonfinite accumulated height rejects. Complete selection is
+not native placement permission: hosts still validate authored constraints and
+geometry. Omitting height from a bounded request does not implicitly select this
+mode.
+
+The full operation supports both prepared range queries (`prepare`, `select`) and flat
 indexed column flow (`start`, `fragment`). They use the same maximal-prefix selector.
 Sources have immutable unique `id`/descriptor identities, `path`, nonnegative safe
 integer `extent`, atomic/splittable mode, and either fixed width or reflow width.

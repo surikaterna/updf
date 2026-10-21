@@ -74,7 +74,7 @@ test("fixed factory retains owned measured recipe identity and final page/fragme
         extent: 1,
         naturalSize: { width: context.width, height: 0 },
         decorations,
-        fragment: () => ({ status: "placed", nextOffset: 1, height: 0, nodes: [] }),
+        next: () => ({ end: 1, height: 0, nodes: [] }),
       };
     },
   });

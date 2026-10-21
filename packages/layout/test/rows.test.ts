@@ -69,7 +69,7 @@ test("all track and inset constraints fail before any adapter measurement", () =
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: context.width, height: 2 },
-        fragment: () => ({ status: "placed", nextOffset: 1, height: 2, nodes: [] }),
+        next: () => ({ end: 1, height: 2, nodes: [] }),
       };
     },
   });

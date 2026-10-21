@@ -35,9 +35,8 @@ function producer(
         fragmentation: "atomic",
         extent: 1,
         naturalSize: result.size,
-        fragment(request) {
-          if (result.size.height > request.availableHeight) return { status: "defer" };
-          return { status: "placed", nextOffset: 1, height: result.size.height, nodes: result.nodes };
+        next() {
+          return { end: 1, height: result.size.height, nodes: result.nodes };
         },
       };
     },

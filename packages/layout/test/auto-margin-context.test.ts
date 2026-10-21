@@ -51,9 +51,9 @@ test("#53 complete direct/slot body eligibility rejects before any adapter measu
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: 100, height: 10 },
-        fragment() {
+        next() {
           fragments++;
-          return { status: "placed", nextOffset: 1, height: 10, nodes: [] };
+          return { end: 1, height: 10, nodes: [] };
         },
       };
     },
@@ -76,7 +76,7 @@ test("#53 complete direct/slot body eligibility rejects before any adapter measu
 });
 
 test("#53 full measured height is fitted before callbacks and accepted callback sees the aligned offset once", () => {
-  const requests: { offset: number; availableHeight: number }[] = [];
+  const requests: { offset: number; extent: number; width: number }[] = [];
   const adapter = defineBlockAdapter({
     name: "auto-once",
     validate: (value) => value,
@@ -84,9 +84,9 @@ test("#53 full measured height is fitted before callbacks and accepted callback 
       fragmentation: "atomic",
       extent: 1,
       naturalSize: { width: 100, height: 20 },
-      fragment(request) {
+      next(request) {
         requests.push(request);
-        return { status: "placed", nextOffset: 1, height: 20, nodes: [] };
+        return { end: 1, height: 20, nodes: [] };
       },
     }),
   });
@@ -98,7 +98,7 @@ test("#53 full measured height is fitted before callbacks and accepted callback 
   assert.equal(result.placements[1]?.box.y, 80);
   assert.equal(requests.length, 1);
   assert.equal(requests[0]?.offset, 0);
-  assert.equal(requests[0]?.availableHeight, 20);
+  assert.deepEqual(Object.keys(requests[0]!).sort(), ["extent", "offset", "width"]);
 });
 
 test("#53 reused terminal owners capture providers; page/fragment callbacks run once after pagination", () => {

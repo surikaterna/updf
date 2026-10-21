@@ -1,24 +1,28 @@
 /** `@updf/layout-boxes/fragmentation`: bounded source-unit selection across host regions, without painting or pages. */
 import { fail } from "./error.js";
+import { CandidateStore } from "./fragment-candidates.js";
+import { providerSnapshot, RangeState } from "./fragment-range.js";
 import { type CursorState, flowRegion } from "./fragment-regions.js";
 import { selectRange } from "./fragment-select.js";
-import { rangeRequest, safeInteger, sourceSnapshot } from "./fragment-source.js";
+import { candidateRequest, rangeRequest, safeInteger, validateSourceRequest } from "./fragment-source.js";
 import type {
+  CandidateCursor,
+  CandidateEndpoint,
+  CandidateRequest,
   FragmentCursor,
   FragmentLimits,
   FragmentOperation,
   FragmentProvider,
   FragmentRegion,
-  FragmentSource,
   FragmentView,
   PreparedSource,
-  RangeRequest,
 } from "./fragment-types.js";
 import { FragmentWork } from "./fragment-work.js";
 import { record } from "./width-validation.js";
 
 export type * from "./fragment-types.js";
 export { fragmentDefaults } from "./fragment-work.js";
+export { createRangeOperation } from "./fragment-range.js";
 
 /**
  * Create a frozen synchronous operation with cumulative budgets (fragmentDefaults).
@@ -33,70 +37,47 @@ export function createFragmentOperation<D, C>(
   providerInput: FragmentProvider<D, C>,
   limits?: FragmentLimits,
 ): FragmentOperation<D, C> {
-  const data = record(providerInput, ["next"], "/provider");
-  if (typeof data.next !== "function") fail("TYPE", "/provider/next", "Expected provider callback");
-  const provider = Object.freeze({ next: data.next }) as FragmentProvider<D, C>;
+  const provider = providerSnapshot(providerInput);
   const state = new OperationState(provider, new FragmentWork(limits));
   return Object.freeze<FragmentOperation<D, C>>({
     prepare: (source) => state.prepare(source),
     select: (source, request) => state.select(source, request),
+    candidates: (source, request) => state.candidates(source, request),
+    nextCandidate: (cursor) => state.nextCandidate(cursor),
+    materializeCandidate: (endpoint) => state.materializeCandidate(endpoint),
     start: (view) => state.start(view),
     fragment: (cursor, region) => state.fragment(cursor, region),
     counts: () => state.work.counts(),
     close: () => state.poison(),
   });
 }
-class OperationState<D, C> {
-  private sources = new WeakMap<PreparedSource, FragmentSource<D>>();
-  private readonly ids = new Map<string, PreparedSource>();
-  private readonly descriptors = new Map<D, string>();
+class OperationState<D, C> extends RangeState<D, C> {
+  private readonly candidateStore = new CandidateStore<D, C>();
   private cursors = new WeakMap<FragmentCursor, CursorState<D>>();
   private views = new WeakMap<FragmentView<D>, { entries: Map<number, PreparedSource>; seen: Set<PreparedSource> }>();
-  private active = true;
-  private running = false;
-  constructor(
-    private provider: FragmentProvider<D, C> | undefined,
-    readonly work: FragmentWork,
-  ) {}
-  poison = (): void => {
-    this.active = false;
-    this.provider = undefined;
-    this.ids.clear();
-    this.descriptors.clear();
-    this.sources = new WeakMap();
+  protected override releaseCapabilities(): void {
     this.cursors = new WeakMap();
     this.views = new WeakMap();
-  };
-  private health = (): void => {
-    if (!this.active) fail("VALUE", "/operation", "Fragment operation is closed");
-  };
-  private guard<T>(run: () => T): T {
-    try {
-      this.health();
-      if (this.running) fail("VALUE", "/operation", "Reentrant fragment operations are not supported");
-      this.running = true;
-      const result = run();
-      this.health();
-      return result;
-    } catch (error) {
-      this.poison();
-      throw error;
-    } finally {
-      this.running = false;
-    }
+    this.candidateStore.clear();
   }
-  prepare = (input: FragmentSource<D>): PreparedSource =>
-    this.guard(() => {
-      this.work.charge("sourceReads");
-      return registerSource(sourceSnapshot(input), this.sources, this.ids, this.descriptors);
-    });
-  select = (prepared: PreparedSource, input: RangeRequest) =>
+  candidates = (prepared: PreparedSource, input: CandidateRequest) =>
     this.guard(() => {
       this.work.charge("attempts");
       this.work.charge("sourceVisits");
-      const source = this.sources.get(prepared);
-      if (!source) fail("VALUE", "/source", "Foreign prepared source");
-      return selectRange(source, rangeRequest(input), this.provider!, this.work, this.poison, this.health);
+      const source = this.source(prepared);
+      const request = candidateRequest(input);
+      validateSourceRequest(source, request);
+      return this.candidateStore.start(source, request);
+    });
+  nextCandidate = (token: CandidateCursor) =>
+    this.guard(() => {
+      this.work.charge("attempts");
+      return this.candidateStore.next(token, this.provider!, this.work, this.poison, this.health);
+    });
+  materializeCandidate = (token: CandidateEndpoint) =>
+    this.guard(() => {
+      this.work.charge("attempts");
+      return this.candidateStore.materialize(token, this.work);
     });
   private cursor = (state: CursorState<D>): FragmentCursor => {
     const token = Object.freeze({}) as FragmentCursor;
@@ -121,12 +102,12 @@ class OperationState<D, C> {
       return flowRegion(state, region, {
         read: (view, index) => {
           const prepared = this.read(view, index);
-          const source = this.sources.get(prepared)!;
+          const source = this.source(prepared);
           return { prepared, id: source.id, path: source.path, extent: source.extent };
         },
         select: (prepared, offset, usedHeight) =>
           selectRange(
-            this.sources.get(prepared)!,
+            this.source(prepared),
             { offset, width: region.width, height: region.height, usedHeight },
             this.provider!,
             this.work,
@@ -145,39 +126,12 @@ class OperationState<D, C> {
     this.work.charge("sourceReads");
     const input = view.at(index);
     this.health();
-    const prepared = registerSource(sourceSnapshot(input), this.sources, this.ids, this.descriptors);
+    const prepared = this.register(input);
     if (seen.has(prepared)) fail("VALUE", "/view", "Duplicate indexed source identity");
     seen.add(prepared);
     entries.set(index, prepared);
     return prepared;
   }
-}
-function registerSource<D>(
-  source: FragmentSource<D>,
-  sources: WeakMap<PreparedSource, FragmentSource<D>>,
-  ids: Map<string, PreparedSource>,
-  descriptors: Map<D, string>,
-): PreparedSource {
-  const previous = ids.get(source.id);
-  if (previous) {
-    const old = sources.get(previous)!;
-    if (
-      old.descriptor !== source.descriptor ||
-      old.path !== source.path ||
-      old.extent !== source.extent ||
-      old.mode !== source.mode ||
-      old.width.mode !== source.width.mode ||
-      (old.width.mode === "fixed" && source.width.mode === "fixed" && old.width.value !== source.width.value)
-    )
-      fail("VALUE", source.path, "Source identity must remain immutable and unique");
-    return previous;
-  }
-  if (descriptors.has(source.descriptor)) fail("VALUE", source.path, "Descriptor identity must be unique");
-  const prepared = Object.freeze({}) as PreparedSource;
-  sources.set(prepared, source);
-  ids.set(source.id, prepared);
-  descriptors.set(source.descriptor, source.id);
-  return prepared;
 }
 function viewSnapshot<D>(input: FragmentView<D>): FragmentView<D> {
   const data = record(input, ["count", "at"], "/view");

@@ -63,7 +63,7 @@ export function autoSpace(available: number, height: number, definite: boolean):
 
 /** Fit the full atomic border box before selecting any descendant callbacks. */
 export function alignedRequest(block: PreparedBlock, request: FragmentRequest) {
-  if (!block.autoMargin) return { margin: 0, request };
+  if (!block.autoMargin || request.mode === "complete") return { margin: 0, request };
   const height = block.naturalSize.height;
   if (exceeds(sum([request.usedHeight, height]), request.freshHeight)) return undefined;
   const available =

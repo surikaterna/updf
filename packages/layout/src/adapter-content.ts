@@ -1,10 +1,10 @@
-import { fail, type LayoutOperation, number, validateDataObject as record, sum } from "@updf/core/internal";
+import { fail, type LayoutOperation, number, validateDataObject as record } from "@updf/core/internal";
 import { compile } from "./block-compiler.js";
 import { normalizeBlocks } from "./content-normalize.js";
 import { geometryNodes, snapshotEmissionData } from "./emission-nodes.js";
 import type { ExtensionLifetime } from "./extension-producer.js";
 import type { AdapterContentConstraints, Extensions, MeasuredContent } from "./extension-types.js";
-import { paintNatural } from "./natural-paint.js";
+import { paintNatural, prepareNatural } from "./natural-paint.js";
 
 export function measureAdapterContent(
   content: unknown,
@@ -35,10 +35,10 @@ export function measureAdapterContent(
     unpaginated: true,
     ...(extensions ? { extensions } : {}),
   });
-  const height = sum(prepared.map((block) => block.naturalSize.height));
+  const { height, roots } = prepareNatural(prepared, width, operation.policy, `${path}/content`);
   if (limit !== undefined && height > limit)
     fail("VERTICAL_OVERFLOW", `${path}/constraints/height`, "Content exceeds height");
-  const nodes = paintNatural(prepared, width, operation.policy, `${path}/content`);
+  const nodes = paintNatural(roots);
   // Measurement trials do not commit generated occurrences; selected owner fragments do.
   operation.nativeInk(geometryNodes(nodes));
   return snapshotEmissionData({ size: { width, height }, nodes }, `${path}/measurement`);

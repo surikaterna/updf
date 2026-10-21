@@ -6,7 +6,7 @@ import { DocumentError } from "@updf/core";
 import { fixtureFont } from "../../../tests/fixtures/fonts/font-fixture.js";
 import { render } from "../../../tests/fixtures/text-options.js";
 import {
-  type BlockFragment,
+  type BlockUnit,
   createExtensions,
   defineBlockAdapter,
   extension,
@@ -17,12 +17,12 @@ import {
 } from "../../../tests/fixtures/transitional-layout.js";
 import { flow } from "./fixtures.js";
 
-function measured(fragment: MeasuredBlock["fragment"], extent = 1): MeasuredBlock {
+function measured(next: MeasuredBlock["next"], extent = 1): MeasuredBlock {
   return {
     fragmentation: extent === 1 ? "atomic" : "splittable",
     naturalSize: { width: 100, height: 0 },
     extent,
-    fragment,
+    next,
   };
 }
 function run(measure: () => MeasuredBlock, preceding = 0) {
@@ -36,7 +36,38 @@ function run(measure: () => MeasuredBlock, preceding = 0) {
 function rejects(callback: () => unknown, code: string): void {
   assert.throws(callback, (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === code);
 }
-const empty = (nextOffset = 1, height = 0): BlockFragment => ({ status: "placed", nextOffset, height, nodes: [] });
+const empty = (end = 1, height = 0): BlockUnit => ({ end, height, nodes: [] });
+
+test("unmarked public atomic and splittable roots use actual fragment native admission", () => {
+  for (const extent of [1, 2]) {
+    const calls: number[] = [];
+    const adapter = defineBlockAdapter({
+      name: "test.uniform-admission",
+      validate: (input) => input,
+      measure: () =>
+        measured((request) => {
+          calls.push(request.offset);
+          assert.deepEqual(Object.keys(request).sort(), ["extent", "offset", "width"]);
+          assert.ok(Object.isFrozen(request));
+          return empty(extent, 0.2);
+        }, extent),
+    });
+    const result = layoutFlow(
+      flow([{ type: "spacer", height: 0.1 }, extension(adapter, {})], { height: 0.3 }),
+      {},
+      createExtensions([adapter]),
+    );
+    assert.deepEqual(calls, [0, 0]);
+    assert.equal(result.pageCount, 2);
+    assert.deepEqual(
+      result.placements.map((p) => [p.pageIndex, p.box.y, p.box.height]),
+      [
+        [0, 0, 0.1],
+        [1, 0, 0.2],
+      ],
+    );
+  }
+});
 
 test("generic fragments permit zero height only with strict finite extent progress", () => {
   const offsets: number[] = [];
@@ -47,7 +78,7 @@ test("generic fragments permit zero height only with strict finite extent progre
     }, 3),
   );
   assert.deepEqual(offsets, [0, 1, 2]);
-  assert.equal(result.placements.length, 3);
+  assert.equal(result.placements.length, 1);
   assert.equal(result.pageCount, 1);
 });
 test("nonprogress, reversed, fractional, infinite, NaN and out-of-extent offsets reject", () => {
@@ -59,17 +90,17 @@ test("unsafe/nonpositive extent and an atomic extent other than one reject", () 
     rejects(() => run(() => measured(() => empty(), extent)), "TYPE");
   rejects(() => run(() => ({ ...measured(() => empty(), 2), fragmentation: "atomic" })), "TYPE");
 });
-test("defer moves once from a partial region; fresh defer is a structured oversize", () => {
-  const fresh: boolean[] = [];
+test("engine retries the identical unit query on a fresh region and reports oversize", () => {
+  const offsets: number[] = [];
   const result = run(
     () =>
       measured((request) => {
-        fresh.push(request.atFreshRegion);
-        return request.atFreshRegion ? empty(1, 20) : { status: "defer" };
+        offsets.push(request.offset);
+        return empty(1, 20);
       }),
     30,
   );
-  assert.deepEqual(fresh, [false, true]);
+  assert.deepEqual(offsets, [0, 0]);
   assert.equal(result.pageCount, 2);
   let calls = 0;
   rejects(
@@ -78,18 +109,20 @@ test("defer moves once from a partial region; fresh defer is a structured oversi
         () =>
           measured(() => {
             calls++;
-            return { status: "defer" };
+            return empty(1, 41);
           }),
         30,
       ),
     "LAYOUT_OVERSIZED",
   );
   assert.equal(calls, 2);
-  rejects(() => run(() => measured(() => ({ status: "defer" }))), "LAYOUT_OVERSIZED");
+  // Obsolete runtime ABI is a negative control, never a fallback.
+  rejects(() => run(() => measured(() => ({ status: "defer" }) as unknown as BlockUnit)), "KEY");
 });
-test("nonfinite/negative height and a dishonest available-height claim reject", () => {
-  for (const height of [-1, Number.POSITIVE_INFINITY, Number.NaN, 41])
+test("nonfinite/negative unit height rejects; oversized valid units are engine decisions", () => {
+  for (const height of [-1, Number.POSITIVE_INFINITY, Number.NaN])
     rejects(() => run(() => measured(() => empty(1, height))), "GEOMETRY");
+  rejects(() => run(() => measured(() => empty(1, 41))), "LAYOUT_OVERSIZED");
 });
 test("measured dimensions, modes and callbacks are checked as unknown output", () => {
   for (const width of [0, -1, Number.NaN, Number.POSITIVE_INFINITY])
@@ -98,7 +131,9 @@ test("measured dimensions, modes and callbacks are checked as unknown output", (
     () => run(() => ({ ...measured(() => empty()), fragmentation: "foreign" }) as unknown as MeasuredBlock),
     "TYPE",
   );
-  rejects(() => run(() => ({ ...measured(() => empty()), fragment: undefined }) as unknown as MeasuredBlock), "TYPE");
+  rejects(() => run(() => ({ ...measured(() => empty()), next: undefined }) as unknown as MeasuredBlock), "TYPE");
+  // The old measured callback property is forbidden even when next is present.
+  rejects(() => run(() => ({ ...measured(() => empty()), fragment: () => empty() })), "KEY");
 });
 test("callback output getters, thenables and foreign native kinds never integrate", () => {
   let reads = 0;
@@ -109,19 +144,18 @@ test("callback output getters, thenables and foreign native kinds never integrat
       return 0;
     },
   });
-  rejects(() => run(() => measured(() => getter as BlockFragment)), "TYPE");
+  rejects(() => run(() => measured(() => getter as BlockUnit)), "TYPE");
   assert.equal(reads, 0);
   rejects(() => run(() => Promise.resolve(measured(() => empty())) as unknown as MeasuredBlock), "TYPE");
+  rejects(() => run(() => measured(() => Promise.resolve(empty()) as unknown as BlockUnit)), "TYPE");
   rejects(
-    () =>
-      run(() =>
-        measured(
-          () =>
-            ({ status: "placed", nextOffset: 1, height: 10, nodes: [{ type: "chart" }] }) as unknown as BlockFragment,
-        ),
-      ),
+    () => run(() => measured(() => ({ end: 1, height: 10, nodes: [{ type: "chart" }] }) as unknown as BlockUnit)),
     "TYPE",
   );
+});
+test("obsolete result keys reject rather than supplying compatibility defaults", () => {
+  for (const key of ["status", "nextOffset", "decorations", "fragment", "defer"])
+    rejects(() => run(() => measured(() => ({ ...empty(), [key]: null }))), "KEY");
 });
 test("fragment node arrays reject holes, getters and extra fields without invoking getters", () => {
   let reads = 0;
@@ -133,7 +167,7 @@ test("fragment node arrays reject holes, getters and extra fields without invoki
     },
   });
   for (const nodes of [Array(1), getter, Object.assign([], { extra: true })])
-    rejects(() => run(() => measured(() => ({ status: "placed", nextOffset: 1, height: 10, nodes }))), "TYPE");
+    rejects(() => run(() => measured(() => ({ end: 1, height: 10, nodes }))), "TYPE");
   assert.equal(reads, 0);
 });
 test("installed extension name and identity are both required and operation-local", () => {
@@ -221,8 +255,7 @@ test("generated policy reserves aggregate wrapper output before snapshotting ano
     validate: (input) => input,
     measure: () =>
       measured(() => ({
-        status: "placed",
-        nextOffset: 1,
+        end: 1,
         height: 10,
         nodes: [{ type: "richText", x: 0, y: 0, height: 10, ...richInput("A", 100, 10, 10) }],
       })),
@@ -264,7 +297,7 @@ test("mutating callback results afterward cannot change delivered native nodes",
   const nodes: import("@updf/core").NodeDefinition[] = [
     { type: "rect", x: 0, y: 0, width: 10, height: 10, paint: { stroke: null } },
   ];
-  const result = run(() => measured(() => ({ status: "placed", nextOffset: 1, height: 10, nodes })));
+  const result = run(() => measured(() => ({ end: 1, height: 10, nodes })));
   const bytes = render(result.document);
   nodes.length = 0;
   assert.deepEqual(render(result.document), bytes);

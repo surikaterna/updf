@@ -71,7 +71,7 @@ test("generic owned handles retain exact identity in authoring snapshots and ada
         fragmentation: "atomic",
         extent: 1,
         naturalSize: { width: 1, height: 1 },
-        fragment: () => ({ status: "placed", nextOffset: 1, height: 1, nodes: [] }),
+        next: () => ({ end: 1, height: 1, nodes: [] }),
       };
     },
   });

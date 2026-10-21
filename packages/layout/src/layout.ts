@@ -17,6 +17,7 @@ import type { Extensions } from "./extension-types.js";
 import { validateExtensions } from "./extensions.js";
 import { paginate } from "./paginator.js";
 import { closeParagraphFragments } from "./paragraph-fragments.js";
+import { closeMeasuredSources } from "./measured-source.js";
 import { template } from "./template.js";
 import type { FlowDocumentDefinition, FlowResult } from "./types.js";
 
@@ -27,6 +28,7 @@ export function layout(input: unknown, operation: LayoutOperation, extensions?: 
   } finally {
     lifetime.active = false;
     closeParagraphFragments(lifetime);
+    closeMeasuredSources(lifetime);
   }
 }
 function activeLayout(
