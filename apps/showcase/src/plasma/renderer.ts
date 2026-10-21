@@ -2,6 +2,8 @@ import { getDocument, type PDFDocumentLoadingTask } from "pdfjs-dist";
 import { HEIGHT, plasmaPDF, WIDTH } from "./frame.js";
 import { WorkerSession } from "./worker-session.js";
 
+export { plasmaPDF } from "./frame.js";
+
 export interface PlasmaFrame {
   readonly index: number;
   readonly canvas: HTMLCanvasElement;

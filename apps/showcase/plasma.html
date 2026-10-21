@@ -15,10 +15,12 @@
         <button id="play" type="button">Play</button>
         <button id="pause" type="button" disabled>Pause</button>
         <button id="reset" type="button">Reset</button>
+        <button id="download" type="button" disabled>Download current frame (PDF)</button>
         <label for="buffer">Extra buffered frames (1–50)</label>
         <input id="buffer" type="number" min="1" max="50" step="1" value="10" required />
       </div>
       <p id="status" role="status">Stopped. Press Play to load the pipeline.</p>
+      <p id="download-status" aria-live="polite"></p>
       <pre id="metrics" aria-label="Playback measurements"></pre>
       <p>Target 25 fps, not a speed guarantee. 32×20 vector cells, fixed 320×200 backing pixels, responsive retro scaling without device-pixel multiplication. The queue excludes the displayed frame and one conversion in flight. A larger buffer absorbs jitter, not a sustained production deficit. Hidden tabs pause; resume explicitly. Reset to change the buffer.</p>
       <p>Local implementation awaiting independent audit; not deployed. <a href="./notices/LICENSE">UPDF MIT</a> · <a href="./notices/LICENSE.svgpath">Fontello MIT</a> · <a href="./notices/REUSE.md">Provenance</a> · <a href="./notices/LICENSE.pdfjs">PDF.js Apache-2.0</a></p>
