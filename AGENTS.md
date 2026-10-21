@@ -6,6 +6,14 @@ with agents. Existing authoring documentation under `docs/agents/` is separate.
 
 - Keep changes scoped and files cohesive. Preserve unrelated work and existing
   behavior unless the task explicitly requires a change.
+- Follow [layout content roles](docs/architecture/layout-content-roles.md): distinguish
+  block/inline participation, atomic/split fragmentation, and Row/Column layout mode.
+  Reuse existing owners before adding abstractions. Direct built-in FixedBlock
+  native admission is not a general fit framework or an SVG migration.
+- Keep host measurement, fragment policy, budgets and native painting separate
+  from staged box layout and shared metric arithmetic. Preserve exact native
+  certificates; justify micro-costs with paired evidence, not blanket EPS or
+  fixed-point rewrites. Verify actual base instructions, not historical PR status.
 - Follow [code quality](docs/code-quality.md): source files at most 400 lines,
   functions under 50 lines, and control-flow nesting at most three levels. Use
   comments for intent, invariants, or non-obvious tradeoffs, not code narration.
