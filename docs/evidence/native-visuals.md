@@ -1,6 +1,22 @@
 # Canonical native visuals: S1 + S2 integration
 
-## Provenance and bounded scope
+## Current delivery and provenance addendum
+
+The sections below preserve the **historical implementation-stage record** of S1/S2,
+including its measurements, hashes, bounded scope and then-pending audit handoff.
+That snapshot used base `c61d0dd4` and was subsequently committed as `b70da49`;
+the later integrated delivery is `133c519` on [PR87](https://github.com/surikaterna/updf/pull/87).
+[CI run 39566312526](https://github.com/surikaterna/updf/actions/runs/39566312526)
+passed all three jobs at `133c519`.
+
+The independent full-migration architecture/correctness review and R1/R2 delta
+re-audit closed before `133c519`. The later full-migration base was already
+`b70da49`; the eleven-path delta re-audit was not a fresh audit of every baseline
+SVG/native-visual file. The pending/unstaged wording below describes the earlier
+handoff, not the current integrated delivery. PR87 remains open; no merge or
+publication is claimed.
+
+## Historical provenance and bounded scope
 
 Issue **N/A**. Worktree `/home/sprawl/projects/updf/trees/native-visuals`, branch
 `feature/native-visuals`, unchanged HEAD/base
@@ -97,7 +113,7 @@ Its drawing/Helvetica/prepared/measurement-host/JPEG/JPEG-mixed gzip sizes are
 12334/20065/21367/7469/14811/23840; fonts/barcode/PNG functionality remains covered
 by the integrated suites and showcase.
 
-## Gates and self-check
+## Historical gates and self-check
 
 All checks are serial where they mutate dist. Temp-sensitive commands use:
 
