@@ -1,6 +1,22 @@
 # Direct FixedBlock native admission evidence
 
-## Delivery identity and limits
+## Current delivery and provenance addendum
+
+The sections below preserve the **historical implementation-stage record**.
+Changes were subsequently committed as `c61d0dd4`.
+The [PR86 delivery report](https://github.com/surikaterna/updf/pull/86) records
+independent audit **PASS** for the hash-matched sixteen-file delivery scope;
+pending/unstaged wording below describes the earlier handoff.
+[CI run 38811898718](https://github.com/surikaterna/updf/actions/runs/38811898718)
+passed at `c61d0dd`.
+
+The completion section below records gates and self-checks, not an independent
+audit pass. This addendum attributes that pass to the PR86 delivery report; it
+does not freshly re-certify standalone `c61d0dd4` or apply the later integrated
+`133c519` audit to it. Historical measurements, hashes and handoff wording are
+preserved, not rewritten as if already committed when measured.
+
+## Historical delivery identity and limits
 
 Ad-hoc issue: N/A. Worktree:
 `/home/sprawl/projects/updf/trees/layout-native-admission`, branch
@@ -223,7 +239,7 @@ Local provenance (SHA-256; ignored generated artifacts, not committed fixtures):
 | `artifacts/font-browser.png` | `bb7dc80792e569d24449a02897e1e3dbc9c93d754aed2f8d8ffbe365ff5f0ccc` |
 | `artifacts/installed-graphs.json` | `a7e69d447abc330ff2dd9a5e10d498c454511ee2478d384052b44e6d95f0499f` |
 
-## Self-check and stopping point
+## Historical self-check and stopping point
 
 Required gate completion and the dedicated real deferred-recipe proof are now
 complete. **Status: implemented, ready for independent Auditor; not verified.**
