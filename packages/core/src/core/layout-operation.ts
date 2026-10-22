@@ -27,9 +27,13 @@ import type { Policy, OperationOptions as RenderOptions } from "./policy.js";
 import { type ResolvedTextResources as ResolvedFonts, textService } from "./text-resources.js";
 import { measureResolvedText } from "./text-measurement.js";
 import { validate } from "./validate.js";
+import type { CompositionInput, ComposedTextFrame } from "./composition-types.js";
+import { compositionMethods } from "./prepared-text.js";
 
 /** Internal adapter seam: no resolved resources or serializer plans escape. */
 export interface LayoutOperation {
+  readonly composeText: (input: CompositionInput, path: string) => ComposedTextFrame;
+  readonly composedText: (frame: ComposedTextFrame, path: string) => NodeDefinition;
   readonly policy: Policy;
   readonly scoped: <T>(scope: object, invoke: () => T) => T;
   readonly finalContext: <T, R>(context: RendererBinding<T>, value: T, invoke: () => R) => R;
@@ -73,6 +77,7 @@ export function layoutOperation(
   };
   return Object.freeze({
     policy: budget.policy,
+    ...compositionMethods(fonts, budget, check),
     lineBox(style: TextStyle, height: LineHeight, path: string) {
       check();
       return textService(fonts, path).lineBox(style, height, { bindings: fonts.bindings, budget }, path);

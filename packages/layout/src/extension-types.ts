@@ -1,4 +1,5 @@
 import type { NodeDefinition } from "@updf/core";
+import type { CompositionInput, ComposedTextFrame } from "@updf/core/resources";
 import type { ContentHandle } from "@updf/core/internal";
 import type { VNode } from "@updf/core/vdom";
 import type { TextMeasurement, TextMeasurementInput } from "@updf/text";
@@ -34,6 +35,8 @@ export interface MeasureContext {
   /** Charge bounded adapter work to the operation's source-node budget before scanning. */
   readonly chargeSourceWork: (count: number, sourcePath: string) => void;
   readonly measureText: (input: TextMeasurementInput) => TextMeasurement;
+  readonly composeText: (input: CompositionInput) => ComposedTextFrame;
+  readonly composedText: (frame: ComposedTextFrame) => NodeDefinition;
   readonly measureContent: ContentMeasurer;
   readonly readParts: (content: BlockContent, allowed: readonly BlockPartIdentity[]) => readonly BlockPart[];
   readonly reserveDecorations: (entries: readonly ContentDecoration[]) => DecorationPlan;

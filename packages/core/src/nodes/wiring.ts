@@ -53,6 +53,7 @@ import {
   xObjectInk,
   xObjectKeys,
 } from "./xobject.js";
+import { lowerPreparedText, measurePreparedText, preparedTextKeys, validatePreparedText } from "./prepared-text.js";
 
 export function measurement<K extends NodeKind>(kind: K): MeasurementHandler<K> {
   const handlers: MeasurementPhase = {
@@ -60,6 +61,7 @@ export function measurement<K extends NodeKind>(kind: K): MeasurementHandler<K> 
     line: (node, context) => measureLine(node, context.path),
     path: (node, context) => measurePath(node, context.path),
     richText: (node, context) => measureRichText(node, context.path, context.fonts, context.budget),
+    preparedText: (node, context) => measurePreparedText(node, context.path, context.fonts),
     paintGroup: measurePaintGroup,
     xObject: (node, context) => measureXObject(node, context.path, context.fonts.bindings),
   };
@@ -73,6 +75,7 @@ export function acceptedKeys(kind: NodeKind): readonly string[] {
     line: lineKeys,
     path: pathKeys,
     richText: richTextKeys,
+    preparedText: preparedTextKeys,
     paintGroup: paintGroupKeys,
     xObject: xObjectKeys,
   } satisfies Record<NodeKind, readonly string[]>;
@@ -85,6 +88,7 @@ export function validation(kind: NodeKind): ValidationHandler {
     line: validateLine,
     path: validatePath,
     richText: validateRichText,
+    preparedText: validatePreparedText,
     paintGroup: validatePaintGroup,
     xObject: validateXObject,
   } satisfies Record<NodeKind, ValidationHandler>;
@@ -97,6 +101,7 @@ export function painting<K extends NodeKind>(kind: K): PaintHandler<K> {
     line: paintLine,
     path: paintPath,
     richText: paintRichText,
+    preparedText: paintRichText,
     paintGroup: paintPaintGroup,
     xObject: paintXObject,
   };
@@ -109,6 +114,7 @@ export function ink<K extends NodeKind>(kind: K): InkHandler<K> {
     line: lineInk,
     path: pathInk,
     richText: richTextInk,
+    preparedText: richTextInk,
     paintGroup: paintGroupInk,
     xObject: xObjectInk,
   };
@@ -121,6 +127,7 @@ export function collection<K extends NodeKind>(kind: K): CollectionHandler<K> | 
     line: collectLine,
     path: collectPath,
     richText: collectRichText,
+    preparedText: collectRichText,
     paintGroup: null,
     xObject: collectXObject,
   };
@@ -133,6 +140,7 @@ export function lowering(kind: NodeKind): LoweringHandler {
     line: lowerLine,
     path: lowerPath,
     richText: lowerRichText,
+    preparedText: lowerPreparedText,
     paintGroup: lowerPaintGroup,
     xObject: lowerXObject,
   } satisfies Record<NodeKind, LoweringHandler>;
@@ -145,6 +153,7 @@ export function nativeWork(kind: NodeKind): NativeWorkHandler | null {
     line: lineWork,
     path: pathWork,
     richText: richTextWork,
+    preparedText: null,
     paintGroup: null,
     xObject: null,
   } satisfies Record<NodeKind, NativeWorkHandler | null>;
@@ -157,6 +166,7 @@ export function measurementProof<K extends NodeKind>(kind: K): MeasurementProofH
     line: null,
     path: null,
     richText: measureRichText,
+    preparedText: measurePreparedText,
     paintGroup: null,
     xObject: (node, path, fonts) => measureXObject(node, path, fonts.bindings),
   };

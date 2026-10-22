@@ -48,6 +48,7 @@ function context(
       return origin.path;
     },
     ancestors: ancestors(operation),
+    ...compositionContext(operation, lifetime, origin),
     chargeSourceWork: (count, sourcePath) => {
       if (!lifetime.active) fail("MEASUREMENT_CONTEXT", origin.path, "Layout operation has closed");
       if (!Number.isSafeInteger(count) || count < 0) fail("TYPE", origin.path, "Expected nonnegative work count");
@@ -72,6 +73,21 @@ function context(
       return operation.measureText(input, origin.path);
     },
   });
+}
+function compositionContext(operation: LayoutOperation, lifetime: ExtensionLifetime, origin: AdapterOrigin) {
+  const check = () => {
+    if (!lifetime.active) fail("MEASUREMENT_CONTEXT", origin.path, "Layout operation has closed");
+  };
+  return {
+    composeText: (input: Parameters<MeasureContext["composeText"]>[0]) => {
+      check();
+      return operation.composeText(input, origin.path);
+    },
+    composedText: (frame: Parameters<MeasureContext["composedText"]>[0]) => {
+      check();
+      return operation.composedText(frame, origin.path);
+    },
+  };
 }
 
 export function extensionProducer(

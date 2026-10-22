@@ -9,6 +9,7 @@ const barcodeImports = new Set([
 ]);
 
 export function packageEdge(owner: string, specifier: string): void {
+  if (owner === "text-flow") textFlowEdge(specifier);
   if (owner === "barcodes")
     assert.ok(specifier.startsWith(".") || barcodeImports.has(specifier), "Barcodes must keep encoders local");
   if (owner === "fontkite")
@@ -53,4 +54,10 @@ export function packageEdge(owner: string, specifier: string): void {
         ["@updf/core", "@updf/core/vdom", "@updf/core/jsx-runtime", "@updf/layout"].includes(specifier),
       "Tables must use supported public layout/core surfaces only",
     );
+}
+function textFlowEdge(specifier: string): void {
+  assert.ok(
+    specifier.startsWith(".") || /^@updf\/(?:core|layout)(?:\/|$)/u.test(specifier),
+    "Text flow must depend only on core/layout; no font loader, decoder or reverse dependency",
+  );
 }

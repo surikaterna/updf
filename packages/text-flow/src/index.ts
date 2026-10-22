@@ -1,0 +1,37 @@
+import type { ParagraphDefinition } from "@updf/core/resources";
+import { array, fail, number, validateDataObject } from "@updf/core/internal";
+import { blockComponent, defineBlockAdapter } from "@updf/layout";
+
+/** Numeric points, not browser CSS lengths. maxHeight is a ceiling, not reserved space. */
+export interface TextFlowProps {
+  readonly paragraphs: readonly ParagraphDefinition[];
+  readonly style: { readonly width?: number; readonly maxHeight: number };
+}
+function validate(value: unknown): TextFlowProps {
+  validateDataObject(value, ["paragraphs", "style"], "/textFlow");
+  array(value.paragraphs, Number.MAX_SAFE_INTEGER, "/textFlow/paragraphs");
+  validateDataObject(value.style, ["width", "maxHeight"], "/textFlow/style");
+  number(value.style.maxHeight, "/textFlow/style/maxHeight");
+  if ("width" in value.style) number(value.style.width, "/textFlow/style/width", true);
+  // Text semantics are validated once by the owning text service, with operation bindings.
+  return value as unknown as TextFlowProps;
+}
+/** Explicit local extension; prepared paragraphs only, no exclusions or arbitrary child parsing. */
+export const textFlowAdapter = defineBlockAdapter<TextFlowProps>({
+  name: "updf.text-flow",
+  validate,
+  measure(props, context) {
+    const width = props.style.width ?? context.width;
+    if (width > context.width) fail("GEOMETRY", context.sourcePath, "TextFlow width exceeds available region");
+    const frame = context.composeText({ width, maxHeight: props.style.maxHeight, paragraphs: props.paragraphs });
+    const nodes = frame.height === 0 ? Object.freeze([]) : Object.freeze([context.composedText(frame)]);
+    return {
+      fragmentation: "atomic",
+      extent: 1,
+      naturalSize: Object.freeze({ width, height: frame.height }),
+      next: () => ({ end: 1, height: frame.height, nodes }),
+    };
+  },
+});
+/** Typed TSX facade over the same explicit adapter identity. */
+export const TextFlow = blockComponent<TextFlowProps>(textFlowAdapter);

@@ -23,6 +23,20 @@
         "types": "./dist/node/index.d.cts",
         "default": "./dist/cjs/index.js"
       }
+    },
+    "./composition": {
+      "browser": {
+        "types": "./dist/node/composition.d.mts",
+        "default": "./dist/composition.js"
+      },
+      "import": {
+        "types": "./dist/node/composition.d.mts",
+        "default": "./dist/node/composition.mjs"
+      },
+      "require": {
+        "types": "./dist/node/composition.d.cts",
+        "default": "./dist/cjs/composition.js"
+      }
     }
   },
   "dependencies": {

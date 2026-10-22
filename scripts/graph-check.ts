@@ -31,6 +31,10 @@ for (const build of builds) {
   }
   const optional = build === "dist-fontkit" || build === "font-browser";
   portableGraph(modules, optional, build === "dist");
+  assert.ok(
+    !modules.some((id) => /\/packages\/text-flow\/|\/text\/dist\/composition\.js$/u.test(id)),
+    `${build} imported unrequested composition addon`,
+  );
   assert.ok(!modules.some((id) => /\/packages\/jpeg\//u.test(id)), `${build} imported unrequested JPEG`);
   assert.ok(!modules.some((id) => /\/packages\/png\/|\/fflate\//u.test(id)), `${build} imported unrequested PNG`);
   assert.ok(

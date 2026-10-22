@@ -1,6 +1,7 @@
 import { fail } from "./error.js";
 import { isExecutableNode } from "./node-ownership.js";
 import { isOwnedResource } from "./owned-resource.js";
+import { isPreparedTextPayload } from "./prepared-text-ownership.js";
 
 export const pointer = (key: PropertyKey): string => String(key).replaceAll("~", "~0").replaceAll("/", "~1");
 
@@ -67,22 +68,33 @@ interface CopyTask {
   readonly path: string;
   readonly assign: (value: unknown) => void;
 }
+interface SnapshotHooks {
+  readonly opaque: (value: unknown, path: string) => boolean;
+  readonly visit: (value: unknown, path: string) => void;
+}
 function container(value: object, path: string): object {
   if (Array.isArray(value)) {
     arrayShape(value, path);
     return [];
   }
-  dataRecord(value, path);
-  return Object.getPrototypeOf(value) === null ? Object.create(null) : {};
+  const prototype: unknown = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) fail("TYPE", path, "Class instances are not data props");
+  return prototype === null ? Object.create(null) : {};
 }
-function copyTask(
-  task: CopyTask,
-  tasks: (() => void)[],
-  active: Set<object>,
-  opaque: (value: unknown, path: string) => boolean,
-): void {
+/** Keep only one pending sibling; validate its descriptor when it is consumed. */
+function* recordItems(value: object, path: string): Generator<readonly [string, unknown]> {
+  for (const key of Reflect.ownKeys(value)) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (typeof key !== "string" || !descriptor || !("value" in descriptor) || !descriptor.enumerable)
+      fail("TYPE", `${path}/${pointer(key)}`, "Expected enumerable own data fields");
+    yield [key, descriptor.value];
+  }
+}
+function copyTask(task: CopyTask, tasks: (() => void)[], active: Set<object>, hooks: SnapshotHooks): void {
   const { value, path, assign } = task;
-  if (isOwnedResource(value) || opaque(value, path)) {
+  // Charge every occurrence before any terminal shortcut, assignment or child copy.
+  hooks.visit(value, path);
+  if (isOwnedResource(value) || isPreparedTextPayload(value) || hooks.opaque(value, path)) {
     assign(value);
     return;
   }
@@ -100,7 +112,7 @@ function copyTask(
     active.delete(value);
     Object.freeze(result);
   });
-  copyChildren(value, result, path, tasks, active, opaque);
+  copyChildren(value, result, path, tasks, active, hooks);
 }
 function copyChildren(
   value: object,
@@ -108,7 +120,7 @@ function copyChildren(
   path: string,
   tasks: (() => void)[],
   active: Set<object>,
-  opaque: (value: unknown, path: string) => boolean,
+  hooks: SnapshotHooks,
 ): void {
   if (Array.isArray(value)) {
     scheduleArray(value, path, tasks, (item, index) => {
@@ -122,26 +134,47 @@ function copyChildren(
         },
         tasks,
         active,
-        opaque,
+        hooks,
       );
     });
     return;
   }
-  for (const key of Object.keys(value).reverse()) {
-    const next = {
-      value: Reflect.get(value, key),
-      path: `${path}/${pointer(key)}`,
-      assign: (item: unknown) => {
-        Object.defineProperty(result, key, { value: item, enumerable: true });
+  copyRecord(value, result, path, tasks, active, hooks);
+}
+function copyRecord(
+  value: object,
+  result: object,
+  path: string,
+  tasks: (() => void)[],
+  active: Set<object>,
+  hooks: SnapshotHooks,
+): void {
+  const items = recordItems(value, path);
+  const advance = (): void => {
+    const item = items.next();
+    if (item.done) return;
+    const [key, child] = item.value;
+    tasks.push(advance);
+    copyTask(
+      {
+        value: child,
+        path: `${path}/${pointer(key)}`,
+        assign: (item: unknown) => {
+          Object.defineProperty(result, key, { value: item, enumerable: true });
+        },
       },
-    };
-    tasks.push(() => copyTask(next, tasks, active, opaque));
-  }
+      tasks,
+      active,
+      hooks,
+    );
+  };
+  tasks.push(advance);
 }
 export function snapshot<T>(
   value: T,
   path: string,
   opaque: (value: unknown, path: string) => boolean = () => false,
+  visit: (value: unknown, path: string) => void = () => {},
 ): T {
   let result: unknown;
   const tasks: (() => void)[] = [];
@@ -153,7 +186,7 @@ export function snapshot<T>(
       result = item;
     },
   };
-  copyTask(task, tasks, active, opaque);
+  copyTask(task, tasks, active, { opaque, visit });
   while (tasks.length) tasks.pop()?.();
   // Shape is preserved only after descriptor validation and an owned frozen copy.
   return result as T;

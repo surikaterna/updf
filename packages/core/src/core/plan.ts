@@ -1,12 +1,15 @@
 import type { PrivateFragment } from "../measurement/lines.js";
 import type { Matrix, PaintGroup, PathNode, ResolvedDrawing } from "../painting/types.js";
-import type { LineNode, RectangleNode, RichTextNode, XObjectNode } from "../types.js";
+import type { LineNode, PreparedTextNode, RectangleNode, RichTextNode, XObjectNode } from "../types.js";
 import type { OwnedResource } from "./owned-resource.js";
 export interface MeasuredXObject extends XObjectNode {
   readonly owned: OwnedResource;
   readonly path: string;
 }
 export interface MeasuredRichText extends RichTextNode {
+  readonly fragments: readonly PrivateFragment[];
+}
+export interface MeasuredPreparedText extends PreparedTextNode {
   readonly fragments: readonly PrivateFragment[];
 }
 
@@ -29,6 +32,7 @@ export interface MeasuredPaintGroup extends PaintGroup<MeasuredNode> {
 }
 export type MeasuredNode =
   | MeasuredRichText
+  | MeasuredPreparedText
   | MeasuredRectangle
   | MeasuredLineNode
   | MeasuredPath

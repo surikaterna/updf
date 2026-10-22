@@ -121,6 +121,8 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "fonts/src/provider.ts",
     "fonts/src/runtime.ts",
     "text/src/inline.ts",
+    "text/src/composition.ts",
+    "text-flow/src/index.ts",
     "text/src/line-height.ts",
     "text/src/lines.ts",
     "text/src/measure.ts",
@@ -238,6 +240,8 @@ const coreExports = [
   "work",
   "textOnce",
   "inputNode",
+  "compositionWork",
+  "visitPreparedText",
 ];
 async function checkDrawingExports(root: string): Promise<void> {
   const drawing = await readFile(join(root, "packages/core/src/internal-drawing.ts"), "utf8");
@@ -287,6 +291,7 @@ export async function checkSeams(root: string): Promise<void> {
     "svg",
     "fonts",
     "text",
+    "text-flow",
     "fontkit",
     "fontkite",
     "jpeg",
@@ -336,6 +341,10 @@ const resourceExports = [
   "TextRuntime",
   "TextService",
   "TextServiceContext",
+  "CompositionInput",
+  "CompositionPlan",
+  "ComposedTextFrame",
+  "OccupiedTextBand",
   "TextMeasurer",
   "MeasureOptions",
   "InlineLine",

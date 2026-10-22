@@ -44,6 +44,7 @@ try {
     "text",
     "layout",
     "tables",
+    "text-flow",
     "geometry",
     "svg",
     "fontkit",
@@ -60,6 +61,7 @@ try {
     ["layout-boxes", "core", "fonts", "text", "cmr"],
     ["core", "layout-boxes", "fonts", "text", "layout"],
     ["core", "layout-boxes", "fonts", "text", "layout", "tables"],
+    ["core", "layout-boxes", "fonts", "text", "layout", "text-flow"],
     ["layout-boxes", "core", "geometry"],
     ["layout-boxes", "core", "fonts", "text", "geometry", "svg", "cmr"],
     ["layout-boxes", "core", "geometry", "svg"],
@@ -77,7 +79,20 @@ try {
     await absent(directory, ["fontkit", "react", "react-dom"]);
     await absent(
       directory,
-      ["assets", "layout-boxes", "jpeg", "fonts", "text", "layout", "tables", "geometry", "svg", "fontkit", "legacy"]
+      [
+        "assets",
+        "layout-boxes",
+        "jpeg",
+        "fonts",
+        "text",
+        "layout",
+        "tables",
+        "text-flow",
+        "geometry",
+        "svg",
+        "fontkit",
+        "legacy",
+      ]
         .filter((name) => !names.includes(name))
         .map((name) => `@updf/${name}`),
     );
@@ -89,6 +104,12 @@ try {
       await typeConsumer(directory, ["jpeg-template.tsx"], true);
     }
     if (names.includes("text")) graphs.text = await installedGraph(directory, "@updf/text");
+    if (names.includes("text-flow")) {
+      await typeConsumer(directory, ["text-flow-template.tsx"]);
+      await typeConsumer(directory, ["text-flow-template.tsx"], true);
+      graphs.textFlow = await installedGraph(directory, "@updf/text-flow");
+      graphs.composition = await installedGraph(directory, "@updf/text/composition");
+    }
     if (names.includes("text") && !names.includes("fonts")) {
       await typeConsumer(directory, ["host-metrics-template.ts"]);
       await typeConsumer(directory, ["host-metrics-template.ts"], true);
@@ -215,7 +236,7 @@ try {
   await mkdir(join(root, "artifacts"), { recursive: true });
   await writeFile(join(root, "artifacts/installed-graphs.json"), `${JSON.stringify(graphs, null, 2)}\n`);
   console.log(
-    "Fourteen clean external tarball closures passed, including SVG without optional layout and SVG/layout/tables; NodeNext/Bundler declarations without source aliases.",
+    "Fifteen clean external tarball closures passed, including optional rectangular text-flow; NodeNext/Bundler declarations without source aliases.",
   );
 } finally {
   for (const directory of directories) await rm(directory, { recursive: true, force: true });
