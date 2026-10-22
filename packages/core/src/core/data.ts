@@ -1,7 +1,7 @@
 import { fail } from "./error.js";
 import { isExecutableNode } from "./node-ownership.js";
 import { isOwnedResource } from "./owned-resource.js";
-import { isPreparedTextPayload } from "./prepared-text-ownership.js";
+import { isNativeLeafPayload } from "./native-leaf-ownership.js";
 
 export const pointer = (key: PropertyKey): string => String(key).replaceAll("~", "~0").replaceAll("/", "~1");
 
@@ -94,7 +94,7 @@ function copyTask(task: CopyTask, tasks: (() => void)[], active: Set<object>, ho
   const { value, path, assign } = task;
   // Charge every occurrence before any terminal shortcut, assignment or child copy.
   hooks.visit(value, path);
-  if (isOwnedResource(value) || isPreparedTextPayload(value) || hooks.opaque(value, path)) {
+  if (isOwnedResource(value) || isNativeLeafPayload(value) || hooks.opaque(value, path)) {
     assign(value);
     return;
   }

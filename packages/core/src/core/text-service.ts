@@ -16,8 +16,6 @@ import { captureTextCallback } from "./text-capture.js";
 import { validateMeasurement } from "./text-measurement-output.js";
 import { validateInline, validateLineBox, validateRich } from "./text-output.js";
 import { style } from "./text-output-shapes.js";
-import type { CompositionInput, CompositionPlan } from "./composition-types.js";
-import { captureComposition } from "./composition-output.js";
 
 export interface TextServiceContext {
   readonly bindings: ReadonlyMap<string, OwnedResource>;
@@ -25,7 +23,6 @@ export interface TextServiceContext {
 }
 /** Structural capability contract; core neither selects fonts nor computes text metrics. */
 export interface TextService {
-  compose?(input: CompositionInput, context: TextServiceContext, path: string): CompositionPlan;
   measure(input: TextMeasurementInput, context: TextServiceContext, path: string): TextMeasurement;
   validate(input: unknown, context: TextServiceContext, path: string): void;
   rich(
@@ -54,7 +51,7 @@ export function ownTextService(value: unknown): TextService {
   dataRecord(value, path);
   validateDataObject(
     value,
-    ["measure", "validate", "rich", "inline", "validateStyle", "resolveStyle", "lineBox", "compose"],
+    ["measure", "validate", "rich", "inline", "validateStyle", "resolveStyle", "lineBox"],
     path,
   );
   const unchanged = () => {};
@@ -67,6 +64,5 @@ export function ownTextService(value: unknown): TextService {
     resolveStyle: captureTextCallback(value, "resolveStyle", path, style),
     lineBox: captureTextCallback(value, "lineBox", path, validateLineBox),
   });
-  if (Object.hasOwn(value, "compose")) callbacks.compose = captureComposition(value, path);
   return Object.freeze(callbacks) as TextService;
 }

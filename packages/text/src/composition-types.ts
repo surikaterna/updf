@@ -1,5 +1,4 @@
-import type { PrivateFragment } from "../measurement/lines.js";
-import type { ParagraphDefinition, TextMeasurement } from "../measurement/types.js";
+import type { PrivateFragment, ParagraphDefinition, TextMeasurement } from "@updf/core/resources";
 
 export interface CompositionInput {
   readonly width: number;

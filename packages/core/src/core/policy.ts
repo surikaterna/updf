@@ -4,6 +4,7 @@ import type { OwnedResource } from "./owned-resource.js";
 import type { ResourceProvider } from "./resource-types.js";
 import { validateDataObject as record } from "./schema.js";
 import type { TextService } from "./text-service.js";
+import type { OperationCapability } from "./operation-capability.js";
 
 /** Optional resource budgets. Counts are nonnegative safe integers; text uses Unicode code points. */
 export interface Limits {
@@ -32,6 +33,7 @@ export interface OperationOptions {
   readonly resources?: Readonly<Record<string, OwnedResource>>;
   /** Explicit operation-bound text measurement and painting service. */
   readonly text?: TextService;
+  readonly capability?: OperationCapability<unknown>;
   /** Host-selected resource collectors; installation is local to each operation. */
   readonly providers?: readonly ResourceProvider[];
 }
@@ -50,7 +52,7 @@ const limitKeys = Object.keys(SERVICE_LIMITS);
 const trusted = Object.freeze(Object.fromEntries(limitKeys.map((key) => [key, Number.MAX_SAFE_INTEGER]))) as Policy;
 
 export function policy(options: unknown = {}, additional: readonly string[] = []): Policy {
-  return policyWithKeys(options, ["profile", "limits", "resources", "text", "providers", ...additional]);
+  return policyWithKeys(options, ["profile", "limits", "resources", "text", "capability", "providers", ...additional]);
 }
 export function policyWithKeys(options: unknown, keys: readonly string[]): Policy {
   record(options, keys, "/options");

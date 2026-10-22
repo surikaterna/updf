@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, render, type NodeDefinition } from "@updf/core";
-import { createLayoutOperation, snapshotData } from "@updf/core/internal";
+import { createLayoutOperation as coreOperation, snapshotData } from "@updf/core/internal";
 import { nativeNodeToVdom } from "@updf/core/internal-drawing";
 import { h, lower } from "@updf/core/vdom";
-import type { CompositionPlan, ComposedTextFrame, TextService } from "@updf/core/resources";
+import { useOperationCapability } from "@updf/core/resources";
+import type { CompositionPlan, ComposedTextFrame } from "@updf/text/composition";
 import { createHelvetica } from "@updf/fonts";
-import { compositionOptions } from "../../../tests/fixtures/text-flow/options.js";
+import { compositionOptions, createLayoutOperation, installation } from "../../../tests/fixtures/text-flow/options.js";
 import { rectangular } from "../../../tests/fixtures/text-flow/rectangular.js";
 import { fontOptions } from "../../../tests/fixtures/fonts/font-options.js";
 
@@ -44,30 +45,26 @@ test("prepared native data traverses the ordinary VDOM lowering and exact native
 });
 
 test("optional capability is explicit, missing errors use origin, malformed presence rejects synchronously", () => {
-  const plain = createLayoutOperation(fontOptions());
+  const plain = coreOperation(fontOptions());
   try {
-    rejects(() => plain.composeText(input(), "/adapter"), "FONT_RESOURCE", "/adapter");
+    rejects(() => useOperationCapability(plain, installation.capability), "MEASUREMENT_CONTEXT");
   } finally {
     plain.close();
   }
-  for (const compose of [undefined, null, 3, Promise.resolve({})]) {
+  for (const capability of [null, 3, Promise.resolve({}), {}]) {
     const options = fontOptions();
-    rejects(
-      () => createLayoutOperation({ ...options, text: { ...options.text, compose } as unknown as TextService }),
-      "FONT_RESOURCE",
-      "/options/text/compose",
-    );
+    rejects(() => coreOperation({ ...options, capability } as never), "MEASUREMENT_CONTEXT", "/options/capability");
   }
   let reads = 0;
   const options = fontOptions();
-  const text = {
-    ...options.text,
-    get compose() {
+  const malformed = {
+    ...options,
+    get capability() {
       reads++;
       return () => ({});
     },
   };
-  rejects(() => createLayoutOperation({ ...options, text: text as unknown as TextService }), "TYPE");
+  rejects(() => coreOperation(malformed as never), "TYPE");
   assert.equal(reads, 0);
 });
 
@@ -85,29 +82,20 @@ test("frames require active exact owner, copies/JSON/forged payloads reject; out
   const bytes = render(document(node), options);
   assert.deepEqual(render(snapshotData(document(node), "/copy"), options), bytes);
   rejects(() => render(JSON.parse(JSON.stringify(document(node))), options), "MEASUREMENT_CONTEXT");
-  if (node.type !== "preparedText") assert.fail("Expected preparedText");
+  if (node.type !== "nativeLeaf") assert.fail("Expected nativeLeaf");
   rejects(() => render(document({ ...node, payload: { ...node.payload } }), options), "MEASUREMENT_CONTEXT");
   rejects(() => render(document({ ...node, width: node.width + Number.EPSILON * node.width }), options), "GEOMETRY");
   rejects(() => render(document(node), { ...options, resources: { Helvetica: createHelvetica() } }), "FONT_RESOURCE");
 });
 
-test("service callback and receiver, input data, reports and selected output are captured", () => {
-  const options = compositionOptions();
-  const original = options.text!;
+test("input data, reports and selected output are captured", () => {
   let output: CompositionPlan | undefined;
-  const text = {
-    ...original,
-    compose(...args: Parameters<NonNullable<TextService["compose"]>>) {
-      assert.equal(this, text);
-      assert.ok(Object.isFrozen(args[0].paragraphs[0]?.runs));
-      output = structuredReport(original.compose!(...args));
-      return output;
-    },
-  };
-  const operation = createLayoutOperation({ ...options, text });
-  text.compose = () => {
-    throw new Error("live callback used");
-  };
+  const options = compositionOptions({}, (plan, captured) => {
+    assert.ok(Object.isFrozen(captured.paragraphs[0]?.runs));
+    output = structuredReport(plan);
+    return output;
+  });
+  const operation = createLayoutOperation(options);
   const request = input();
   const frame = operation.composeText(request, "/origin");
   const node = operation.composedText(frame, "/origin");
@@ -155,4 +143,25 @@ test("composition attempts retain cumulative charges, including failed compositi
   const textLimited = createLayoutOperation({ ...options, limits: { textCodePoints: 1 } });
   rejects(() => textLimited.composeText(input(), "/text"), "LIMIT");
   textLimited.close();
+});
+
+test("a malformed later sealed leaf rejects the whole native graph before any collection or painting", () => {
+  const options = compositionOptions();
+  const operation = createLayoutOperation(options);
+  const node = operation.composedText(operation.composeText(input()), "/leaf");
+  if (node.type !== "nativeLeaf") assert.fail("Expected nativeLeaf");
+  operation.close();
+  let collections = 0;
+  const provider = {
+    ...options.providers[0]!,
+    collectText() {
+      collections++;
+    },
+  };
+  const children = [node, { ...node, height: node.height + 1 }];
+  rejects(
+    () => render({ version: 1, pages: [{ width: 120, height: 120, children }] }, { ...options, providers: [provider] }),
+    "GEOMETRY",
+  );
+  assert.equal(collections, 0);
 });

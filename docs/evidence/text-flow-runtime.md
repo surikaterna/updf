@@ -1,5 +1,10 @@
 # Rectangular composition runtime slice
 
+Historical runtime architecture and preserved cost captures. The PR89 surgical
+refactor removes its universal composition methods and feature-specific native
+builtin; see [current refactor evidence](text-flow-surgical.md). Measurements below
+remain historical, not overwritten or relabeled as the new implementation.
+
 **Implemented; pending independent audit, not verified.** Issue: N/A. Integration
 owner: Engineer. Worktree `/home/sprawl/projects/updf/trees/text-flow-design`, branch
 `feature/text-flow-design`; base/HEAD both

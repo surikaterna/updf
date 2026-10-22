@@ -95,4 +95,12 @@ Run root `npm run build`, `npm run typecheck`, `npm test`, and `npm run test:con
 The packed consumer includes a minimal typed host runtime without fonts or Fontkit.
 See the [breaking migration guide](../../docs/migration/fonts-text.md).
 
+Optional rectangular composition is isolated at `@updf/text/composition`:
+`createTextComposition({ runtime, defaultFont? })` returns `{ text, capability }`.
+Pass both in operation options, with the existing resources/providers. This creates
+one existing service closure, not another runtime or ledger. Bind the capability
+to `createTextFlow(capability)` from `@updf/text-flow`; see its
+[installer migration](../text-flow/README.md). Ordinary text has no composition
+callback, frame state or composition implementation dependency.
+
 MIT licensed. No publication, deployment, or Git delivery is authorized.

@@ -1,12 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { render, type NodeDefinition } from "@updf/core";
-import { createLayoutOperation } from "@updf/core/internal";
 import { createPreparedFont } from "@updf/fonts";
 import { measureText, type RichTextInput } from "@updf/text";
 import { fixtureFont, fontInput } from "../../../tests/fixtures/fonts/font-fixture.js";
 import { fontMeasurementOptions } from "../../../tests/fixtures/fonts/font-options.js";
-import { compositionOptions } from "../../../tests/fixtures/text-flow/options.js";
+import { compositionOptions, createLayoutOperation } from "../../../tests/fixtures/text-flow/options.js";
 import { rectangular, rectangularCases } from "../../../tests/fixtures/text-flow/rectangular.js";
 
 function parity(value: RichTextInput, Demo?: ReturnType<typeof createPreparedFont>) {

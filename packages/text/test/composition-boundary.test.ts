@@ -1,22 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError } from "@updf/core";
-import { createLayoutOperation } from "@updf/core/internal";
-import type { CompositionPlan, TextService } from "@updf/core/resources";
-import { compositionOptions } from "../../../tests/fixtures/text-flow/options.js";
+import type { CompositionPlan } from "@updf/text/composition";
+import { compositionOptions, createLayoutOperation } from "../../../tests/fixtures/text-flow/options.js";
 import { rectangular } from "../../../tests/fixtures/text-flow/rectangular.js";
 
 const input = () => ({ ...rectangular("AB"), maxHeight: 100 });
 function withOutput(change: (plan: CompositionPlan) => unknown) {
-  const options = compositionOptions();
-  const original = options.text!;
-  const text = {
-    ...original,
-    compose(...args: Parameters<NonNullable<TextService["compose"]>>) {
-      return change(original.compose!(...args));
-    },
-  } as TextService;
-  return createLayoutOperation({ ...options, text });
+  return createLayoutOperation(compositionOptions({}, change));
 }
 test("malformed synchronous composition output rejects before issuing any frame", () => {
   for (const change of [

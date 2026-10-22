@@ -6,7 +6,7 @@ import type {
   LineNode,
   PaintingGroupNode,
   PathNode,
-  PreparedTextNode,
+  NativeLeafNode,
   RectangleNode,
   RichTextNode,
   XObjectNode,
@@ -55,7 +55,7 @@ export interface NativeProps {
   page: { readonly width: number; readonly height: number; readonly children: VDOMChild };
   group: { readonly x?: number; readonly y?: number; readonly children: VDOMChild };
   richText: Omit<RichTextNode, "type">;
-  preparedText: Omit<PreparedTextNode, "type">;
+  nativeLeaf: Omit<NativeLeafNode, "type">;
   rect: Omit<RectangleNode, "type">;
   line: Omit<LineNode, "type">;
   path: Omit<PathNode, "type">;

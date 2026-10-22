@@ -1,4 +1,6 @@
 import type { ParagraphDefinition } from "@updf/core/resources";
+import { useOperationCapability, type OperationCapability } from "@updf/core/resources";
+import type { TextCompositionOperation } from "@updf/text/composition";
 import { array, fail, number, validateDataObject } from "@updf/core/internal";
 import { blockComponent, defineBlockAdapter } from "@updf/layout";
 
@@ -17,14 +19,16 @@ function validate(value: unknown): TextFlowProps {
   return value as unknown as TextFlowProps;
 }
 /** Explicit local extension; prepared paragraphs only, no exclusions or arbitrary child parsing. */
-export const textFlowAdapter = defineBlockAdapter<TextFlowProps>({
+export function createTextFlow(capability: OperationCapability<TextCompositionOperation>) {
+const textFlowAdapter = defineBlockAdapter<TextFlowProps>({
   name: "updf.text-flow",
   validate,
   measure(props, context) {
     const width = props.style.width ?? context.width;
     if (width > context.width) fail("GEOMETRY", context.sourcePath, "TextFlow width exceeds available region");
-    const frame = context.composeText({ width, maxHeight: props.style.maxHeight, paragraphs: props.paragraphs });
-    const nodes = frame.height === 0 ? Object.freeze([]) : Object.freeze([context.composedText(frame)]);
+    const composition = useOperationCapability(context, capability);
+    const frame = composition.composeText({ width, maxHeight: props.style.maxHeight, paragraphs: props.paragraphs });
+    const nodes = frame.height === 0 ? Object.freeze([]) : Object.freeze([composition.composedText(frame)]);
     return {
       fragmentation: "atomic",
       extent: 1,
@@ -34,4 +38,6 @@ export const textFlowAdapter = defineBlockAdapter<TextFlowProps>({
   },
 });
 /** Typed TSX facade over the same explicit adapter identity. */
-export const TextFlow = blockComponent<TextFlowProps>(textFlowAdapter);
+const TextFlow = blockComponent<TextFlowProps>(textFlowAdapter);
+return Object.freeze({ TextFlow, textFlowAdapter });
+}

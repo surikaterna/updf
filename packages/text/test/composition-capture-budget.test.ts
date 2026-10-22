@@ -1,9 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError } from "@updf/core";
-import { createLayoutOperation, snapshotData } from "@updf/core/internal";
-import type { TextService } from "@updf/core/resources";
-import { compositionOptions } from "../../../tests/fixtures/text-flow/options.js";
+import { snapshotData } from "@updf/core/internal";
+import { compositionOptions, createLayoutOperation } from "../../../tests/fixtures/text-flow/options.js";
 import { rectangular } from "../../../tests/fixtures/text-flow/rectangular.js";
 
 const input = () => ({ ...rectangular("AB"), maxHeight: 100 });
@@ -12,7 +11,7 @@ function terminals() {
   const operation = createLayoutOperation(options);
   try {
     const node = operation.composedText(operation.composeText(input(), "/seed"), "/seed");
-    if (node.type !== "preparedText") assert.fail("Expected preparedText");
+    if (node.type !== "nativeLeaf") assert.fail("Expected nativeLeaf");
     return [options.resources!.Helvetica, node.payload];
   } finally {
     operation.close();
@@ -77,18 +76,13 @@ test("output capture charges nested extras before copying wide records, arrays a
     "x".repeat(10_000),
     ...terminals().map((terminal) => Array(10_000).fill(terminal)),
   ]) {
-    const options = compositionOptions();
     const nested = typeof extra === "string" ? undefined : observed(extra);
     let calls = 0;
-    const text = {
-      ...options.text!,
-      compose(...args: Parameters<NonNullable<TextService["compose"]>>) {
-        calls++;
-        const plan = options.text!.compose!(...args);
-        return { ...plan, measurement: { ...plan.measurement, extra: nested?.value ?? extra } };
-      },
-    };
-    const operation = createLayoutOperation({ ...options, text, limits: { nodes: 200 } });
+    const options = compositionOptions({}, (plan) => {
+      calls++;
+      return { ...plan, measurement: { ...plan.measurement, extra: nested?.value ?? extra } };
+    });
+    const operation = createLayoutOperation({ ...options, limits: { nodes: 200 } });
     try {
       limit(() => operation.composeText(input(), "/output"));
       assert.ok((nested?.reads() ?? 0) < 200);
@@ -140,15 +134,10 @@ test("snapshot visits all occurrences before copying while identity terminals by
 
 test("bounded composition output retains exact owned-resource and prepared-payload identities", () => {
   for (const terminal of terminals()) {
-    const options = compositionOptions();
-    const text = {
-      ...options.text!,
-      compose(...args: Parameters<NonNullable<TextService["compose"]>>) {
-        const plan = options.text!.compose!(...args);
-        return { ...plan, measurement: { ...plan.measurement, extra: [terminal] } };
-      },
-    };
-    const operation = createLayoutOperation({ ...options, text, limits: { nodes: 200 } });
+    const options = compositionOptions({}, (plan) => {
+      return { ...plan, measurement: { ...plan.measurement, extra: [terminal] } };
+    });
+    const operation = createLayoutOperation({ ...options, limits: { nodes: 200 } });
     try {
       const frame = operation.composeText(input(), "/identity");
       const extra = (frame.measurement as unknown as { extra: unknown[] }).extra;

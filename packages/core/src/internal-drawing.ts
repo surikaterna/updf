@@ -17,11 +17,5 @@ export function createDrawingLayoutOperation(options: LowerOptions) {
   const owned = operation(options, ["registry", "resourceMetadata"]);
   const state = operationState(owned.fonts, owned.budget, options);
   state.drawing = (input, width, height, path) => lowerDrawing(input, state, width, height, path);
-  const adapter = layoutOperation(owned.fonts, owned.budget, () => !state.closed, state);
-  return Object.freeze({
-    ...adapter,
-    close() {
-      state.closed = true;
-    },
-  });
+  return layoutOperation(owned.fonts, owned.budget, () => !state.closed, state, true);
 }

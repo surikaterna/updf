@@ -24,13 +24,27 @@ test("emitted browser/Node graphs isolate composition and retain both opt-in pos
       const composer = paths.some((path) => /\/text\/dist\/(?:cjs\/)?composition\.js$/u.test(path));
       assert.equal(addon, profile === "textFlow", `${platform}/${profile} addon`);
       assert.equal(composer, profile === "textFlow", `${platform}/${profile} composer`);
+      if (profile !== "textFlow") {
+        assert.ok(!paths.some((path) => /\/composition(?:-[\w-]+)?\.js$/u.test(path)), "Feature module retained");
+        const code = result.outputFiles[0]!.text;
+        assert.ok(
+          !/composeText|composedText|Composition work|Occupied text band|composed frame/u.test(code),
+          `${platform}/${profile} retains composition behavior`,
+        );
+      }
       if (profile === "textFlow")
         assert.ok(!paths.some((path) => /packages\/(?:svg|png|jpeg|fontkit|fontkite)\//u.test(path)));
     }
   }
 });
 test("text-flow edges reject loader/decoder/optional machinery and core/layout reverse imports", () => {
-  for (const specifier of ["./local.js", "@updf/core", "@updf/core/resources", "@updf/layout"])
+  for (const specifier of [
+    "./local.js",
+    "@updf/core",
+    "@updf/core/resources",
+    "@updf/layout",
+    "@updf/text/composition",
+  ])
     packageEdge("text-flow", specifier);
   for (const specifier of [
     "node:fs",
@@ -41,7 +55,7 @@ test("text-flow edges reject loader/decoder/optional machinery and core/layout r
     "@updf/svg",
     "@updf/png",
     "@updf/jpeg",
-    "@updf/text/composition",
+    "@updf/text",
   ])
     assert.throws(() => packageEdge("text-flow", specifier));
   for (const owner of ["core", "layout", "text"]) assert.throws(() => packageEdge(owner, "@updf/text-flow"));

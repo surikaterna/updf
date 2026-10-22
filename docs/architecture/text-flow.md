@@ -3,6 +3,7 @@
 **BROADER PROPOSAL — NOT IMPLEMENTED.** Exclusions/contours and later phases below
 remain a design, not available authoring APIs. A separately assigned rectangular,
 no-exclusion runtime slice is now implemented, pending independent audit; see
+[surgical refactor evidence](../evidence/text-flow-surgical.md), prior
 [runtime evidence](../evidence/text-flow-runtime.md) and the
 [actual phased API](../../packages/text-flow/README.md). Observations and unresolved
 transport discussion below describe the original source baseline, not that new

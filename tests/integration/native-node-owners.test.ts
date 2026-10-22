@@ -119,7 +119,7 @@ test("all six AST/VDOM paths preserve native data, operators, clips, text and re
 
 test("kind inventory is exact and primitive reservation is case-insensitive, not native construction", () => {
   assert.equal(Object.isFrozen(nativeNodeKinds), true);
-  assert.deepEqual(new Set(nativeNodeKinds), new Set([...nodes.map((node) => node.type), "preparedText"]));
+  assert.deepEqual(new Set(nativeNodeKinds), new Set([...nodes.map((node) => node.type), "nativeLeaf"]));
   for (const kind of nativeNodeKinds) {
     assert.equal(isNativeNodeKind(kind), true);
     for (const name of [kind[0]!.toUpperCase() + kind.slice(1), kind.toUpperCase()])

@@ -2,9 +2,9 @@
 import { render } from "@updf/core";
 import type { ParagraphDefinition } from "@updf/core/resources";
 import { createHelvetica, fontRuntime, fontProvider } from "@updf/fonts";
-import { createCompositionTextService } from "@updf/text/composition";
+import { createTextComposition } from "@updf/text/composition";
 import { Document, Flow, createExtensions, layout } from "@updf/layout";
-import { TextFlow, textFlowAdapter } from "@updf/text-flow";
+import { createTextFlow } from "@updf/text-flow";
 
 const paragraphs: readonly ParagraphDefinition[] = [
   {
@@ -17,9 +17,11 @@ const paragraphs: readonly ParagraphDefinition[] = [
   },
 ];
 const runtime = fontRuntime();
+const composition = createTextComposition({ runtime });
+const { TextFlow, textFlowAdapter } = createTextFlow(composition.capability);
 const options = {
   resources: { Helvetica: createHelvetica() },
-  text: createCompositionTextService({ runtime }),
+  ...composition,
   providers: [fontProvider(runtime)],
 };
 const result = layout(

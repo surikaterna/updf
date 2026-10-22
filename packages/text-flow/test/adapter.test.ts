@@ -3,12 +3,15 @@ import test from "node:test";
 import { DocumentError, render, type NodeDefinition } from "@updf/core";
 import { h } from "@updf/core/vdom";
 import { createExtensions, defineBlockAdapter, document, extension, flow, layout, paragraph, pt,
-  type BlockContent, type BlockAdapterIdentity, type MeasureContext, type BlockUnitRequest } from "@updf/layout";
-import { TextFlow, textFlowAdapter } from "@updf/text-flow";
-import { compositionOptions } from "../../../tests/fixtures/text-flow/options.js";
+  type BlockContent, type BlockAdapterIdentity, type BlockUnitRequest } from "@updf/layout";
+import { createTextFlow } from "@updf/text-flow";
+import { useOperationCapability } from "@updf/core/resources";
+import type { TextCompositionOperation } from "@updf/text/composition";
+import { compositionOptions, installation } from "../../../tests/fixtures/text-flow/options.js";
 import { rectangular } from "../../../tests/fixtures/text-flow/rectangular.js";
 
 const props = () => ({ paragraphs: rectangular("AB").paragraphs, style: { maxHeight: 100 } });
+const { TextFlow, textFlowAdapter } = createTextFlow(installation.capability);
 const margins = { top: 0, right: 0, bottom: 0, left: 0 };
 function content(children: BlockContent, height = 40, adapters: readonly BlockAdapterIdentity[] = [textFlowAdapter]) {
   return document({ children: flow({ pageSize: { width: 100, height }, margins,
@@ -17,9 +20,9 @@ function content(children: BlockContent, height = 40, adapters: readonly BlockAd
 function rejects(invoke: () => unknown, code: string) {
   assert.throws(invoke, (error: unknown) => error instanceof DocumentError && error.diagnostics[0]?.code === code);
 }
-function findPrepared(nodes: readonly NodeDefinition[]): Extract<NodeDefinition, { type: "preparedText" }> | undefined {
+function findPrepared(nodes: readonly NodeDefinition[]): Extract<NodeDefinition, { type: "nativeLeaf" }> | undefined {
   for (const node of nodes) {
-    if (node.type === "preparedText") return node;
+    if (node.type === "nativeLeaf") return node;
     if (node.type === "paintGroup") { const found = findPrepared(node.children); if (found) return found; }
   }
   return undefined;
@@ -49,14 +52,14 @@ test("adapter rejects unsupported props/modes and exact authored width exceeding
   assert.equal(findPrepared(narrow.document.pages[0]!.children)?.width, 80);
 });
 test("real operation closes composition contexts on success/failure; repeated next is deterministic", () => {
-  let retained: MeasureContext | undefined;
+  let retained: TextCompositionOperation | undefined;
   const requests: BlockUnitRequest[] = [];
   const probe = defineBlockAdapter({ name: "composition.probe", validate: (input) => input,
     measure(_props, context) {
       if (retained) rejects(() => retained!.composeText({ ...rectangular("A"), maxHeight: 100 }), "MEASUREMENT_CONTEXT");
-      retained = context;
-      const frame = context.composeText({ ...rectangular("AB"), maxHeight: 100 });
-      const nodes = [context.composedText(frame)];
+      retained = useOperationCapability(context, installation.capability);
+      const frame = retained.composeText({ ...rectangular("AB"), maxHeight: 100 });
+      const nodes = [retained.composedText(frame)];
       return { fragmentation: "atomic", extent: 1, naturalSize: { width: context.width, height: frame.height },
         next(request) { requests.push(request); return { end: 1, height: frame.height, nodes }; } };
     } });
@@ -77,4 +80,25 @@ test("repeated occurrences charge the same operation composition ledger and outp
   rejects(() => layout(content([one, extension(textFlowAdapter, props())], 100),
     { ...options, limits: { nodes: 200 } }), "LIMIT");
   rejects(() => layout(content([one, one], 100), { ...options, limits: { textCodePoints: 3 } }), "LIMIT");
+});
+
+test("adapter capability selection is explicit and failures retain the real origin", () => {
+  const options = compositionOptions();
+  const { capability: _capability, ...ordinary } = options;
+  const input = content(extension(textFlowAdapter, props()));
+  for (const selection of [ordinary, compositionOptions({}, (plan) => plan)]) {
+    assert.throws(() => layout(input, selection), (error: unknown) => error instanceof DocumentError &&
+      error.diagnostics[0]?.code === "MEASUREMENT_CONTEXT" &&
+      error.diagnostics[0]?.path === "/document/children/body/0");
+  }
+  const probe = defineBlockAdapter({ name: "origin.probe", validate: (value) => value,
+    measure(_props, context) {
+      const api = useOperationCapability(context, options.capability);
+      assert.throws(() => api.composeText({ ...rectangular("A"), maxHeight: 0 }, "/spoof"),
+        (error: unknown) => error instanceof DocumentError &&
+          error.diagnostics[0]?.path.startsWith(context.sourcePath) === true);
+      return { fragmentation: "atomic", extent: 1, naturalSize: { width: context.width, height: 0 },
+        next: () => ({ end: 1, height: 0, nodes: [] }) };
+    } });
+  layout(content(extension(probe, {}), 40, [probe]), options);
 });

@@ -2,20 +2,22 @@
 
 Opt-in **rectangular, atomic** composition of prepared rich paragraphs. This is
 not contour flow, browser floats or split pagination. Install the adapter explicitly
-in each Flow and select the optional text-service subpath:
+in each Flow and select the optional composition subpath:
 
 ```tsx
 /** @jsxImportSource @updf/core */
 import { Document, Flow, createExtensions, layout } from "@updf/layout";
-import { TextFlow, textFlowAdapter } from "@updf/text-flow";
-import { createCompositionTextService } from "@updf/text/composition";
+import { createTextFlow } from "@updf/text-flow";
+import { createTextComposition } from "@updf/text/composition";
 
 // runtime, resources, providers and preparedParagraphs come from your existing
 // text/font preparation. Use those same owned resource identities when rendering.
+const composition = createTextComposition({ runtime });
+const { TextFlow, textFlowAdapter } = createTextFlow(composition.capability);
 const options = {
   resources,
   providers,
-  text: createCompositionTextService({ runtime }),
+  ...composition,
 };
 const result = layout(
   <Document>
@@ -50,18 +52,19 @@ Arbitrary Paragraph/Span children are not parsed in this phase. There are no flo
 CSS length string, exclusion, contour, visual-slot, interval callback, or split-page
 props. No font loader, decoder or SVG dependency is installed by this package.
 
-Adapter authors may call `context.composeText({ width, maxHeight, paragraphs })`
-and `context.composedText(frame)`. Reports expose readonly width/height/measurement/
+Adapter authors call `useOperationCapability(context, composition.capability)`
+from `@updf/core/resources`, then call `composeText({ width, maxHeight, paragraphs })`
+and `composedText(frame)` on that operation API. Reports expose readonly width/height/measurement/
 occupied bands. Frames authorize output only in their active owning operation;
-copies, cross-operation frames and retained contexts reject. Native `preparedText`
+copies, cross-operation frames and retained contexts reject. Native `nativeLeaf`
 payloads are durable opaque identities, not portable JSON. They paint the captured
 selected runs without rewrapping or remeasurement, and require the same relevant
 owned font bindings. Core's existing snapshot owner preserves authorized identities
 only; forged/cloned/serialized payloads reject.
 
-Composition uses the existing operation ledger. Its separately named cumulative
-work counter is bounded by `limits.nodes`: attempts, captured data visits and
-Unicode scalar visits (before text allocation), plus emitted lines/fragments.
+Composition shares the existing operation ledger and resources. Its optional local
+cumulative counter is bounded by the existing `limits.nodes` policy: attempts,
+every captured data occurrence and every string Unicode scalar, before allocation.
 Failed attempts retain prior charges. Existing source/text/output/page limits
 remain independent and mandatory; trusted callbacks are not a code sandbox.
 
@@ -71,3 +74,13 @@ painting consumes those same baselines/fragments, not reconstructed rich-text
 boxes. Out-of-frame occupancy rejects rather than growing or clipping the frame.
 This proves no preselection, exclusion negotiation or multi-interval contract.
 Those features require separate design, implementation and audit.
+
+## Installer migration (PR89)
+
+`createCompositionTextService` is removed, not aliased. Replace its `text:` option
+with `...createTextComposition({ runtime, defaultFont? })`, then bind the returned
+capability through `createTextFlow(capability)`. The returned `text` is one ordinary
+seven-callback service using that same runtime closure; it has no `compose` method.
+There are no composition methods on universal layout contexts. Missing or different
+selected capabilities fail with `MEASUREMENT_CONTEXT` at the adapter origin.
+No service-identity lookup, automatic installation or global adapter is provided.

@@ -8,11 +8,6 @@ export interface WorkLedger {
   readonly logicalText: boolean;
   units: number;
   chars: number;
-  compositionWork: number;
-}
-/** Composition attempts accumulate independently of legacy diagnostic work units. */
-export function compositionWork(ledger: WorkLedger, amount: number, path: string): void {
-  ledger.compositionWork = checkLimit(ledger.compositionWork + amount, ledger.policy.nodes, path, "Composition work");
 }
 export function work(ledger: WorkLedger, amount: number, path: string): void {
   ledger.units = checkLimit(ledger.units + amount, Number.MAX_SAFE_INTEGER, path, "Internal work counter");
@@ -35,7 +30,6 @@ export function ledger(limits: Policy = policy(), logicalText = true): WorkLedge
     units: 0,
     chars: 0,
     nodes: 0,
-    compositionWork: 0,
     policy: limits,
     texts: new WeakMap(),
     inputs: new WeakSet(),

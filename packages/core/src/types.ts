@@ -14,9 +14,9 @@ export interface RichTextNode extends Box {
   readonly type: "richText";
   readonly paragraphs: readonly ParagraphDefinition[];
 }
-/** Sealed selected text. Payloads are issued by an active composition operation, not reconstructed data. */
-export interface PreparedTextNode extends Box {
-  readonly type: "preparedText";
+/** Sealed native selection issued by a checked operation capability, with no nested children. */
+export interface NativeLeafNode extends Box {
+  readonly type: "nativeLeaf";
   readonly payload: object;
 }
 
@@ -45,7 +45,7 @@ export type PaintingGroupNode = PaintGroup<NodeDefinition>;
 /** Supported fixed-page drawing data; arbitrary objects and unknown keys are rejected. */
 export type NodeDefinition =
   | RichTextNode
-  | PreparedTextNode
+  | NativeLeafNode
   | RectangleNode
   | LineNode
   | PathNode

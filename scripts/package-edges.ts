@@ -57,7 +57,9 @@ export function packageEdge(owner: string, specifier: string): void {
 }
 function textFlowEdge(specifier: string): void {
   assert.ok(
-    specifier.startsWith(".") || /^@updf\/(?:core|layout)(?:\/|$)/u.test(specifier),
-    "Text flow must depend only on core/layout; no font loader, decoder or reverse dependency",
+    specifier.startsWith(".") ||
+      specifier === "@updf/text/composition" ||
+      /^@updf\/(?:core|layout)(?:\/|$)/u.test(specifier),
+    "Text flow must depend only on core/layout and its selected composition contract; no font loader or decoder",
   );
 }

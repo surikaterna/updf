@@ -27,13 +27,10 @@ import type { Policy, OperationOptions as RenderOptions } from "./policy.js";
 import { type ResolvedTextResources as ResolvedFonts, textService } from "./text-resources.js";
 import { measureResolvedText } from "./text-measurement.js";
 import { validate } from "./validate.js";
-import type { CompositionInput, ComposedTextFrame } from "./composition-types.js";
-import { compositionMethods } from "./prepared-text.js";
+import { bindOperationCapabilityContext, selectOperationCapability } from "./operation-capability.js";
 
 /** Internal adapter seam: no resolved resources or serializer plans escape. */
 export interface LayoutOperation {
-  readonly composeText: (input: CompositionInput, path: string) => ComposedTextFrame;
-  readonly composedText: (frame: ComposedTextFrame, path: string) => NodeDefinition;
   readonly policy: Policy;
   readonly scoped: <T>(scope: object, invoke: () => T) => T;
   readonly finalContext: <T, R>(context: RendererBinding<T>, value: T, invoke: () => R) => R;
@@ -70,21 +67,21 @@ export function layoutOperation(
   budget: WorkLedger,
   active: () => boolean,
   parent?: State,
+  closesState = !parent,
 ): LayoutOperation {
   const state = parent ?? operationState(fonts, budget);
-  const check = (): void => {
-    if (!active() || state.closed) fail("MEASUREMENT_CONTEXT", "", "Lowering operation has closed");
+  const check = (path = ""): void => {
+    if (!active() || state.closed) fail("MEASUREMENT_CONTEXT", path, "Lowering operation has closed");
   };
-  return Object.freeze({
+  const result = Object.freeze({
     policy: budget.policy,
-    ...compositionMethods(fonts, budget, check),
     lineBox(style: TextStyle, height: LineHeight, path: string) {
       check();
       return textService(fonts, path).lineBox(style, height, { bindings: fonts.bindings, budget }, path);
     },
     ...contentMethods(state, fonts, budget, check),
     close() {
-      if (!parent) state.closed = true;
+      if (closesState) state.closed = true;
     },
     measureText(input: TextMeasurementInput, path: string) {
       check();
@@ -99,6 +96,20 @@ export function layoutOperation(
       validateGenerated(document, fonts, budget.policy);
     },
   });
+  if (fonts.capability) {
+    selectOperationCapability(result, fonts.capability, { bindings: fonts.bindings, budget, check }, state);
+    bindOperationCapabilityContext(
+      result,
+      result,
+      { path: "" },
+      {
+        get active() {
+          return active() && !state.closed;
+        },
+      },
+    );
+  }
+  return result;
 }
 type ContentMethods = Pick<
   LayoutOperation,
