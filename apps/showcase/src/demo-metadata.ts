@@ -15,6 +15,24 @@ const freightFiles =
   "examples/business: freight-invoice.tsx · freight-invoice-sections.tsx · freight-invoice-calculations.ts · freight-invoice-data.ts · freight-invoice-fonts.ts; scripts/freight-invoice-example.ts; apps/showcase/src/optional-freight-invoice.ts; tests/fixtures/fonts/FREIGHT.md";
 
 export const metadata: Record<DemoId, Metadata> = {
+  "text-flow-left": entry(
+    "Eevee PNG · left authored path wrap",
+    "Authored path wrapping; automatic transparency extraction pending. Straight closed paths, outer-side only; holes not used for text. External reference demo only: IconScout Eevee PNG via theosoti CodePen ogjjged. Loaded remotely; license unknown, no package redistribution license asserted.",
+    ["Text flow · lazy", "Real PNG", "Multiple pages"],
+    "text-flow.tsx · text-flow-image.ts · text-flow-asset.ts · optional-text-flow.ts",
+  ),
+  "text-flow-right": entry(
+    "Eevee PNG · right authored path wrap",
+    "Authored path wrapping; automatic transparency extraction pending. Straight closed paths, outer-side only; holes not used for text. External reference demo only: IconScout Eevee PNG via theosoti CodePen ogjjged. Loaded remotely; license unknown, no package redistribution license asserted.",
+    ["Text flow · lazy", "Real PNG", "Multiple pages"],
+    "text-flow.tsx · text-flow-image.ts · text-flow-asset.ts · optional-text-flow.ts",
+  ),
+  "text-flow-path": entry(
+    "Path: side wrapping (authored geometry)",
+    "One real filled Path paints and wraps ordinary Paragraph siblings. Straight closed paths, outer-side only; holes not used for text. Center wrapping and text inside holes remain pending.",
+    ["Text flow · lazy", "Native Path", "Authored geometry"],
+    "text-flow-path.tsx · optional-text-flow-path.ts",
+  ),
   code39: entry(
     "Code 39 vector barcode",
     "Native TSX bars with explicit modules, quiet zones and optional Mod-43. Oversized symbols reject instead of shrinking.",

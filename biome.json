@@ -15,6 +15,7 @@
       "packages/barcodes/**",
       "packages/fonts/**",
       "packages/text/**",
+      "packages/text-flow/**",
       "packages/jpeg/**",
       "packages/png/**",
       "apps/**",

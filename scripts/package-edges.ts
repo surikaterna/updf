@@ -1,4 +1,22 @@
 import assert from "node:assert/strict";
+export const sidePathImporters = [
+  "text-flow/src/path-band.ts",
+  "text-flow/src/path.ts",
+  "text-flow/src/side-selection.ts",
+  "text-flow/src/rectangle-policy.ts",
+  "text-flow/src/path-policy.ts",
+  "text-flow/src/atomic.ts",
+  "text/src/selection.ts",
+  "text/src/composition-work.ts",
+];
+export const participationImporters = [
+  "text-flow/src/sibling.ts",
+  "text-flow/src/sibling-source.ts",
+  "text-flow/src/sibling-selection.ts",
+  "text-flow/src/side-selection.ts",
+  "text-flow/src/side-policy.ts",
+  "text-flow/src/path-policy.ts",
+];
 
 const barcodeImports = new Set([
   "@updf/core",
@@ -9,6 +27,7 @@ const barcodeImports = new Set([
 ]);
 
 export function packageEdge(owner: string, specifier: string): void {
+  if (owner === "text-flow") textFlowEdge(specifier);
   if (owner === "barcodes")
     assert.ok(specifier.startsWith(".") || barcodeImports.has(specifier), "Barcodes must keep encoders local");
   if (owner === "fontkite")
@@ -37,8 +56,10 @@ export function packageEdge(owner: string, specifier: string): void {
   if (owner === "layout-boxes") assert.ok(specifier.startsWith("."), "Boxes must have zero runtime dependencies");
   if (owner === "text")
     assert.ok(
-      specifier.startsWith(".") || specifier.startsWith("@updf/core") || specifier === "@updf/layout-boxes/arithmetic",
-      "Text must depend only on core and kernel arithmetic",
+      specifier.startsWith(".") ||
+        specifier.startsWith("@updf/core") ||
+        ["@updf/layout-boxes/arithmetic", "@updf/layout-boxes/numeric"].includes(specifier),
+      "Text must depend only on core and inventoried kernel arithmetic/numeric helpers",
     );
   if (owner === "fonts")
     assert.ok(specifier.startsWith(".") || specifier.startsWith("@updf/core"), "Fonts must depend only on core");
@@ -53,4 +74,17 @@ export function packageEdge(owner: string, specifier: string): void {
         ["@updf/core", "@updf/core/vdom", "@updf/core/jsx-runtime", "@updf/layout"].includes(specifier),
       "Tables must use supported public layout/core surfaces only",
     );
+}
+function textFlowEdge(specifier: string): void {
+  assert.ok(
+    specifier.startsWith(".") ||
+      specifier === "@updf/text/composition" ||
+      specifier === "@updf/text/selection" ||
+      specifier === "@updf/text/internal-interpolation" ||
+      specifier === "@updf/layout-boxes/fragmentation" ||
+      specifier === "@updf/layout-boxes/numeric" ||
+      specifier === "@updf/geometry" ||
+      /^@updf\/(?:core|layout)(?:\/|$)/u.test(specifier),
+    "Text flow must depend only on core/layout and its selected composition contract; no font loader or decoder",
+  );
 }

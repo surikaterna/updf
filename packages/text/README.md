@@ -95,4 +95,26 @@ Run root `npm run build`, `npm run typecheck`, `npm test`, and `npm run test:con
 The packed consumer includes a minimal typed host runtime without fonts or Fontkit.
 See the [breaking migration guide](../../docs/migration/fonts-text.md).
 
+Optional rectangular composition is isolated at `@updf/text/composition`:
+`createTextComposition({ runtime, defaultFont? })` returns `{ text, capability }`.
+Pass both in operation options, with the existing resources/providers. This creates
+one existing service closure, not another runtime or ledger. Bind the capability
+to `createAtomicTextFlow(capability)` from `@updf/text-flow/atomic`; see its
+[installer migration](../text-flow/README.md). Ordinary text has no composition
+callback, frame state or composition implementation dependency.
+
+Sibling-only consumers select `@updf/text/selection`:
+`createTextSelection(TextServiceOptions)` returns `{ text, capability }` from one
+existing service closure, exposing only `InlineSelectionOperation`. Its continuation,
+selection, selected-line and options types are exported there. It reuses the same
+font/resource, inline band/indexing, lifecycle and cumulative work owners; atomic
+planning/profile geometry is not loaded. `/composition` remains combined, sharing
+one work counter across its composer and inline operations for mixed consumers.
+Neither feature is re-exported by the ordinary root.
+
+`@updf/text/internal-interpolation` exposes only the existing
+`conservativeSegmentDepth` binary64 certificate helper for the path addon. It is
+an internal leaf, not a second implementation or composition barrel; consumers must
+validate ordered finite segment/query domains before using it.
+
 MIT licensed. No publication, deployment, or Git delivery is authorized.

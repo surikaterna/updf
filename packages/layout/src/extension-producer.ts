@@ -1,4 +1,5 @@
 import {
+  bindOperationCapabilityContext,
   array,
   fail,
   type LayoutOperation,
@@ -42,7 +43,7 @@ function context(
   origin: AdapterOrigin,
   extensions?: Extensions,
 ): MeasureContext {
-  return Object.freeze<MeasureContext>({
+  const result = Object.freeze<MeasureContext>({
     width,
     get sourcePath() {
       return origin.path;
@@ -72,6 +73,8 @@ function context(
       return operation.measureText(input, origin.path);
     },
   });
+  bindOperationCapabilityContext(result, operation, origin, lifetime);
+  return result;
 }
 
 export function extensionProducer(

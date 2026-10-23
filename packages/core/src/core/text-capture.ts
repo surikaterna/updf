@@ -1,5 +1,9 @@
 import { ownDataValue, snapshot } from "./data.js";
 import { fail } from "./error.js";
+const captured = new WeakSet<object>();
+export function isOwnedTextOutput(value: object): boolean {
+  return captured.has(value);
+}
 
 export type OutputValidator = (value: unknown, path: string) => void;
 export function captureTextCallback(
@@ -18,11 +22,18 @@ export function captureTextCallback(
   };
 }
 /** Clone returned data but retain opaque run identities for the resource provider. */
-export function ownTextOutput<T>(value: T, path: string): T {
-  return snapshot(value, path, (item, at) => {
-    if (typeof item === "number" && !Number.isFinite(item)) fail("GEOMETRY", at, "Text output must be finite");
-    if (!at.endsWith("/run")) return false;
-    if (!item || typeof item !== "object") fail("FONT_RESOURCE", at, "Expected opaque text run");
-    return true;
-  });
+export function ownTextOutput<T>(value: T, path: string, visit: (item: unknown, at: string) => void = () => {}): T {
+  const result = snapshot(
+    value,
+    path,
+    (item, at) => {
+      if (typeof item === "number" && !Number.isFinite(item)) fail("GEOMETRY", at, "Text output must be finite");
+      if (!at.endsWith("/run")) return false;
+      if (!item || typeof item !== "object") fail("FONT_RESOURCE", at, "Expected opaque text run");
+      return true;
+    },
+    visit,
+  );
+  if (result && typeof result === "object") captured.add(result);
+  return result;
 }

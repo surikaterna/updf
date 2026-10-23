@@ -1,4 +1,4 @@
-import { fail, type Policy, validateDataObject as record } from "@updf/core/internal";
+import { fail, type Policy, validateDataObject as record, visitNativeLeaf } from "@updf/core/internal";
 import { isEmissionNode } from "./emission-nodes.js";
 
 interface Frame {
@@ -75,6 +75,7 @@ export function scanOutput(value: unknown, path: string, charges: OutputCharges,
       pending.push(frame(node.children, path, policy.nodes));
     }
     if (node.type === "richText") rich(node.paragraphs, path, charges, policy);
+    if (node.type === "nativeLeaf") visitNativeLeaf(node.payload, path, charges.text);
     const count =
       node.type === "path"
         ? frame(node.commands, path, Number.MAX_SAFE_INTEGER).values.length

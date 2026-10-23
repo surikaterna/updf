@@ -4,6 +4,7 @@ import type { OutputBudget } from "./budget.js";
 import type { FragmentState } from "./fragment-state.js";
 import type { GeneratedInterval } from "./generated-interval.js";
 import type { ContentLine } from "./content-types.js";
+import type { SourceProvenance } from "./source-provenance.js";
 
 /** Private producer seam. Public callback results are checked before reaching this seam. */
 export interface FragmentRequestContext {
@@ -84,6 +85,7 @@ export interface FragmentCall {
 }
 export type PaintCall = PreparedFragmentPaint;
 export interface PreparedBlock {
+  readonly provenance?: readonly SourceProvenance[];
   readonly rowPlacement?: BoxPlacement;
   readonly autoMargin?: boolean;
   readonly contentAlignment?: { readonly height: number; readonly capacity: number };

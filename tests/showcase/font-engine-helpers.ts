@@ -5,7 +5,7 @@ import { prepareFont as kite } from "@updf/fontkite";
 import { prepareFont as kit } from "@updf/fontkit";
 import { fontUriExample } from "../../apps/showcase/src/font-uri.js";
 import type { FontEngine, FontUriControls } from "../../apps/showcase/src/font-uri-controls.js";
-import { pdf } from "./helpers.js";
+import { pdf, showcaseOutput } from "./helpers.js";
 
 export async function expectedPdf(engine: FontEngine, title = "Hello portable PDF", size = 18, weight = "Regular") {
   const bytes = new Uint8Array(
@@ -19,7 +19,7 @@ export async function argumentsFor(page: Page): Promise<FontUriControls> {
 }
 export async function fontkitChunks(): Promise<readonly string[]> {
   const graph: { fileName: string; modules: string[] }[] = JSON.parse(
-    await readFile(new URL("../../apps/showcase/dist/chunk-graph.json", import.meta.url), "utf8"),
+    await readFile(showcaseOutput("chunk-graph.json"), "utf8"),
   );
   const files = graph
     .filter((chunk) => chunk.modules.some((name) => /\/(?:node_modules|packages)\/fontkit\//u.test(name)))

@@ -31,22 +31,7 @@ export function measureInline(
   budget: WorkLedger,
   path: string,
 ): readonly InlineLine[] {
-  if (typeof autoHeight !== "boolean") {
-    validateLineHeight(autoHeight.strut, `${path}/lineHeight`);
-    for (const [index, value] of (autoHeight.runs ?? []).entries())
-      validateLineHeight(value, `${path}/runs/${index}/lineHeight`);
-  }
-  const validation = autoHeight
-    ? {
-        ...paragraph,
-        lineHeight: paragraph.runs.reduce(
-          (height, run) => Math.max(height, run.style?.fontSize ?? paragraph.defaultStyle.fontSize),
-          paragraph.lineHeight,
-        ),
-      }
-    : paragraph;
-  validateInput({ width, paragraphs: [validation] }, fonts, budget, path);
-  const input = inlineAtoms(paragraph, visuals(), fonts, path);
+  const input = prepareInlineAtoms(paragraph, visuals, width, autoHeight, fonts, budget, path);
   const result: InlineLine[] = [];
   const height = new MetricSum();
   for (const wrapped of wrap(input, width, paragraph, budget, path)) {
@@ -69,7 +54,29 @@ export function measureInline(
   }
   return Object.freeze(result);
 }
-function nativeLine(measured: TextLineMeasurement, width: number, fonts: ResolvedFonts, path: string): InlineLine {
+export function prepareInlineAtoms(
+  paragraph: ParagraphDefinition,
+  visuals: () => readonly InlineMetric[],
+  width: number,
+  autoHeight: boolean | InlineLineHeights,
+  fonts: ResolvedFonts,
+  budget: WorkLedger,
+  path: string,
+): readonly Atom[] {
+  if (typeof autoHeight !== "boolean") {
+    validateLineHeight(autoHeight.strut, `${path}/lineHeight`);
+    for (const [index, value] of (autoHeight.runs ?? []).entries())
+      validateLineHeight(value, `${path}/runs/${index}/lineHeight`);
+  }
+  validateInput({ width, paragraphs: [paragraph] }, fonts, budget, path, !!autoHeight);
+  return inlineAtoms(paragraph, visuals(), fonts, path);
+}
+export function nativeLine(
+  measured: TextLineMeasurement,
+  width: number,
+  fonts: ResolvedFonts,
+  path: string,
+): InlineLine {
   const nativeHeights: number[] = [];
   const nativeWidths: number[] = [],
     nativePads: number[] = [];

@@ -1,6 +1,7 @@
 import type { PrivateFragment } from "../measurement/lines.js";
 import type { Matrix, PaintGroup, PathNode, ResolvedDrawing } from "../painting/types.js";
-import type { LineNode, RectangleNode, RichTextNode, XObjectNode } from "../types.js";
+import type { LineNode, NativeLeafNode, RectangleNode, RichTextNode, XObjectNode } from "../types.js";
+import type { SelectedNativeLeaf } from "./native-leaf.js";
 import type { OwnedResource } from "./owned-resource.js";
 export interface MeasuredXObject extends XObjectNode {
   readonly owned: OwnedResource;
@@ -8,6 +9,9 @@ export interface MeasuredXObject extends XObjectNode {
 }
 export interface MeasuredRichText extends RichTextNode {
   readonly fragments: readonly PrivateFragment[];
+}
+export interface MeasuredNativeLeaf extends NativeLeafNode {
+  readonly selected: SelectedNativeLeaf;
 }
 
 export interface MeasuredPage {
@@ -29,6 +33,7 @@ export interface MeasuredPaintGroup extends PaintGroup<MeasuredNode> {
 }
 export type MeasuredNode =
   | MeasuredRichText
+  | MeasuredNativeLeaf
   | MeasuredRectangle
   | MeasuredLineNode
   | MeasuredPath

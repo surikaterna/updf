@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { projectLicense } from "../../scripts/project-license.js";
-import { site } from "./helpers.js";
+import { site, showcaseOutput } from "./helpers.js";
 
 test("showcase serves the full project MIT license under the configured project subpath", async () => {
   const server = await site();
@@ -17,10 +17,7 @@ test("showcase serves the full project MIT license under the configured project 
     const response = await page.request.get(url.href);
     assert.equal(response.status(), 200);
     assert.equal(await response.text(), projectLicense);
-    assert.equal(
-      await readFile(new URL("../../apps/showcase/dist/notices/LICENSE", import.meta.url), "utf8"),
-      projectLicense,
-    );
+    assert.equal(await readFile(showcaseOutput("notices/LICENSE"), "utf8"), projectLicense);
     assert.match(await page.locator("footer").innerText(), /Copyright \(c\) 2026 Surikat AB/);
     assert.doesNotMatch(await page.locator("footer").innerText(), /unresolved/);
   } finally {
