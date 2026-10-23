@@ -213,3 +213,72 @@ The build-coupled `npm run typecheck` is intentionally not rerun for this test-o
 fix. No app dist build, preview/server mutation or cost rerun is needed.
 Status: implemented, pending focused independent re-audit; issue N/A. No new
 code-principles exceptions.
+
+## PR #89 clean CI build-order correction
+
+Correction base/HEAD: `91b0cc3218c8748c4d3fa356f4bdf3b0969f5c43`, branch
+`feature/text-flow-design`, worktree `/home/sprawl/projects/updf/trees/text-flow-design`.
+Issue: N/A. Independent audit approved the exact two-file correction: root build
+ordering plus this evidence update. Commit and publication to existing PR #89 were
+authorized; no tracker or preview mutation is in scope.
+
+`gh run view 39939521040 --log-failed` confirms all three jobs failed building
+text-flow: TS2307 in `src/path-band.ts:3` and `src/path.ts:4`, missing
+`@updf/geometry`. Run: <https://github.com/surikaterna/updf/actions/runs/39939521040>.
+CI tested merge `c1206287ba9857421028bf7f958d6aa12d7e02da` of the HEAD above into
+`244c0932c733accace68b7d8fb85cdc8f851d4e8`. Earlier local build/typecheck passes
+used existing outputs and did **not** prove clean build ordering.
+
+Only root `scripts.build` changes: move the existing geometry step immediately
+before text-flow. Geometry depends only on core, already built; text-flow's other
+dependencies (core, layout, text, layout-boxes) already precede it. All steps remain
+present once. No runtime, package API, dependency edge, lock or showcase script
+changes. No existing build-order test owner was found; the actual clean build is
+the risk-based regression proof, rather than new general graph infrastructure.
+
+Disposable source: `/tmp/opencode/updf-s1-clean-NHoQHAtf`. Parent `/tmp/opencode`
+was checked with `ls` before `mktemp -d /tmp/opencode/updf-s1-clean-XXXXXXXX`.
+Export/application commands from the worktree:
+
+```sh
+git archive 91b0cc3218c8748c4d3fa356f4bdf3b0969f5c43 | tar -x -C /tmp/opencode/updf-s1-clean-NHoQHAtf
+git diff -- package.json | git apply --directory=/tmp/opencode/updf-s1-clean-NHoQHAtf --unsafe-paths
+```
+
+Only the intended package.json patch was applied before validation. No dist or
+node_modules paths are tracked (`git ls-files '*/dist/*' 'node_modules/*'
+'*/node_modules/*'` returned empty); no installed dependency/output copy or symlink
+was reused. Node `v24.22.0`, npm `11.19.1`; CI used `v24.21.0` / `11.19.0`.
+From the disposable cwd, all passed (exit 0), in this order:
+
+```sh
+npm ci --ignore-scripts
+npm run typecheck
+npm run build:browser
+npm run build:showcase
+npm run build -w @updf/layout-playground
+npm run check:graphs
+npm run test:consumer
+```
+
+`typecheck` includes the entire root production package/example/legacy build from
+zero outputs, then `tsc --noEmit`. Install/build/check logs are retained as
+`/tmp/opencode/updf-pr89-clean-{install,typecheck,browser,showcase,playground,graphs,consumer}.log`;
+actual failed CI logs: `/tmp/opencode/updf-pr89-ci-failed.log`.
+From the live worktree: `npm run format:check`, `npm run lint`, `npm test`
+(1,579 passed, zero failed/skipped), and `git diff --check` passed.
+Test log: `/tmp/opencode/updf-pr89-test.log`.
+
+Protected-state before/after comparison (`python /tmp/opencode/updf-pr89-preserve.py
+before` / `after`) passed: all 545 tracked app/package source files, all 80 served
+showcase dist files and PID 665048's command unchanged. Live dist and root
+node_modules were not deleted/reinstalled; app builds wrote only in the disposable
+copy. Historical evidence remains unchanged. Code-principles checklist satisfied:
+cohesive two-file script/evidence scope, no new functions/nesting/comments or unsafe
+runtime patterns, risk-based clean regression proof, format/lint/tests pass, no
+approved exceptions. No Changeset: internal build-order correction only.
+
+The clean build evidence above validates the failed build step from zero outputs;
+it is not a passing GitHub CI claim. Hosted checks must be rerun after publication.
+Browser/SVG runtime suites and the entire workflow were not replayed locally for
+this script-only fix; the fresh hosted workflow remains authoritative.
