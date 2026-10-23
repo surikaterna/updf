@@ -2,10 +2,15 @@ import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import { isBuiltin } from "node:module";
 import { join } from "node:path";
-import { packageEdge } from "./package-edges.js";
+import { packageEdge, sidePathImporters } from "./package-edges.js";
 export { packageEdge } from "./package-edges.js";
-
 export const internalImporters: Readonly<Record<string, readonly string[]>> = {
+  "@updf/layout/internal-participation": [
+    "text-flow/src/sibling.ts",
+    "text-flow/src/sibling-source.ts",
+    "text-flow/src/sibling-selection.ts",
+    "text-flow/src/path-selection.ts",
+  ],
   "@updf/core/internal-drawing": [
     "svg/src/bridge.ts",
     "layout/src/mixed-layout.ts",
@@ -14,6 +19,12 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/region-render.ts",
   ],
   "@updf/core/internal": [
+    ...sidePathImporters,
+    "layout/src/participation.ts",
+    "layout/src/source-provenance.ts",
+    "text-flow/src/sibling.ts",
+    "text-flow/src/sibling-source.ts",
+    "text-flow/src/sibling-selection.ts",
     "barcodes/src/checks.ts",
     "layout/src/adapter-ownership.ts",
     "layout/src/adapter-content.ts",
@@ -30,10 +41,14 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/content-block-parts.ts",
     "layout/src/content-style.ts",
     "layout/src/content-paragraph.ts",
+    "layout/src/content-paragraph-output.ts",
+    "layout/src/content-inline-selection.ts",
     "layout/src/content-producer.ts",
     "layout/src/content-measure.ts",
     "layout/src/natural-paint.ts",
     "layout/src/fragment-paint-preparation.ts",
+    "layout/src/fragment-slot.ts",
+    "layout/src/fragment-state.ts",
     "layout/src/inline-adapters.ts",
     "layout/src/inline-background.ts",
     "layout/src/vdom.ts",
@@ -121,16 +136,28 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "fonts/src/provider.ts",
     "fonts/src/runtime.ts",
     "text/src/inline.ts",
+    "text/src/inline-selection.ts",
+    "text/src/inline-selection-input.ts",
+    "text/src/inline-band.ts",
+    "text/src/inline-band-interval.ts",
     "text/src/composition-operation.ts",
     "text/src/composition-output.ts",
     "text/src/composition-plan.ts",
+    "text/src/composition-exclusion.ts",
+    "text/src/composition-band.ts",
+    "text/src/exclusion.ts",
+    "text/src/profile-exclusion.ts",
+    "text/src/composition-profile.ts",
     "text-flow/src/index.ts",
     "text/src/line-height.ts",
     "text/src/lines.ts",
     "text/src/measure.ts",
     "text/src/source.ts",
+    "text/src/source-index.ts",
     "text/src/validate.ts",
     "text/src/wrap.ts",
+    "text/src/wrap-selector.ts",
+    "text/src/indexed-selector.ts",
     "text/src/ledger.ts",
     "text/src/service.ts",
     "text/src/measurer.ts",
@@ -141,12 +168,10 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
   "@updf/geometry/internal": ["svg/src/numbers.ts"],
   "@updf/layout-boxes/internal-fragmentation": ["layout/src/measured-source.ts"],
 };
-
 export function allowedInternal(file: string, specifier: string): void {
   const allowed = internalImporters[specifier];
   assert.ok(allowed?.includes(file), `Forbidden internal importer: ${file} -> ${specifier}`);
 }
-
 export function internalExports(text: string, expected: readonly string[]): void {
   const names = [...text.matchAll(/export (?:type )?\{([^}]+)\}/gu)].flatMap((match) =>
     (match[1] ?? "")
@@ -157,7 +182,6 @@ export function internalExports(text: string, expected: readonly string[]): void
   assert.deepEqual(names.sort(), [...expected].sort(), "Internal export inventory expanded");
   assert.ok(!/export\s+\*/u.test(text), "Internal wildcard export");
 }
-
 export async function files(directory: string): Promise<string[]> {
   const result: string[] = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -167,7 +191,6 @@ export async function files(directory: string): Promise<string[]> {
   }
   return result.sort();
 }
-
 export function portableGraph(modules: readonly string[], optional = false, react = false): void {
   assert.ok(
     !modules.some(
@@ -184,8 +207,12 @@ function sourceEdges(owner: string, text: string, path: string, root: string): v
     if (match[1]) packageEdge(owner, match[1]);
     if (owner === "core" && match[1] === "@updf/layout-boxes/arithmetic")
       assert.equal(path.slice(join(root, "packages").length + 1), "core/src/measurement/arithmetic.ts");
+    if (owner === "text" && match[1] === "@updf/layout-boxes/numeric")
+      assert.match(path, /\/text\/src\/(?:profile-interpolation|inline-band)\.ts$/u);
   }
-  for (const match of text.matchAll(/from ['"](@updf\/[^'"]+\/internal(?:-drawing|-fragmentation)?)['"]/gu)) {
+  for (const match of text.matchAll(
+    /from ['"](@updf\/[^'"]+\/internal(?:-drawing|-fragmentation|-participation)?)['"]/gu,
+  )) {
     const specifier = match[1];
     assert.ok(specifier);
     allowedInternal(path.slice(join(root, "packages").length + 1), specifier);
@@ -277,7 +304,6 @@ async function checkDrawingExports(root: string): Promise<void> {
     ),
   );
 }
-
 export async function checkSeams(root: string): Promise<void> {
   await checkResourceExports(root);
   await checkDrawingExports(root);
@@ -311,7 +337,6 @@ export async function checkSeams(root: string): Promise<void> {
     }
   }
 }
-
 const pdfExports = [
   "PdfScalar",
   "PdfString",

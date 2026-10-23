@@ -19,11 +19,15 @@ test("desktop workspace pairs inputs with preview and discloses real source belo
     assert.ok(inputs.x + inputs.width < preview.x);
     assert.ok(code.y >= preview.y + preview.height);
     assert.equal(await page.locator("#example optgroup").count(), 4);
-    assert.equal(await page.locator("#example option").count(), 21);
+    assert.equal(await page.locator("#example option").count(), 24);
     const ids = await page
       .locator("#example option")
       .evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value));
     assert.deepEqual(ids.sort(), Object.keys(metadata).sort());
+    assert.deepEqual(
+      ids.filter((id) => id.startsWith("text-flow-")),
+      ["text-flow-left", "text-flow-path", "text-flow-right"],
+    );
     await screenshot(page, "s6-desktop");
     await page.locator("#example-code summary").focus();
     await page.keyboard.press("Space");

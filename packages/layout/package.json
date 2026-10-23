@@ -9,6 +9,20 @@
     "README.md"
   ],
   "exports": {
+    "./internal-participation": {
+      "browser": {
+        "types": "./dist/node/internal-participation.d.mts",
+        "default": "./dist/internal-participation.js"
+      },
+      "import": {
+        "types": "./dist/node/internal-participation.d.mts",
+        "default": "./dist/node/internal-participation.mjs"
+      },
+      "require": {
+        "types": "./dist/node/internal-participation.d.cts",
+        "default": "./dist/cjs/internal-participation.js"
+      }
+    },
     ".": {
       "browser": {
         "types": "./dist/node/index.d.mts",

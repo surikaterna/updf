@@ -10,6 +10,7 @@ import type { PlacedFragment, PreparedBlock } from "./protocol.js";
 import { resolveFragment, resolvePaint } from "./protocol-runtime.js";
 import type { TemplateGeometry } from "./template.js";
 import type { FlowPlacement, FlowResult, PageRegion } from "./types.js";
+import { provenanceAt, provenanceRange } from "./source-provenance.js";
 
 interface MutablePage {
   width: number;
@@ -111,7 +112,7 @@ export class Paginator {
       const { fragment } = selection;
       if (!fragment) {
         if (this.cursor === 0)
-          fail("LAYOUT_OVERSIZED", `${path}${item.sourcePaths?.[offset] ?? ""}`, "Block cannot fit a fresh body");
+          fail("LAYOUT_OVERSIZED", provenanceAt(item, offset, path), "Block cannot fit a fresh body");
         this.advance(path);
         continue;
       }
@@ -202,16 +203,17 @@ export class Paginator {
     path: string,
     acceptedY: number,
   ): void {
+    const provenance = provenanceRange(item, offset, fragment.nextOffset);
     this.place(
-      index,
+      provenance.index ?? index,
       fragment.height,
       acceptedY,
       fragment.lines,
-      path,
+      provenance.path ?? path,
       item.x,
       item.naturalSize.width,
-      { start: item.sourceExtent === 0 ? 0 : offset, end: item.sourceExtent === 0 ? 0 : fragment.nextOffset },
-      item.sourceKeys?.slice(offset, fragment.nextOffset),
+      provenance.range,
+      provenance.keys,
     );
   }
   result(consumed: number): FlowResult {

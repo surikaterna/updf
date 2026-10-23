@@ -37,6 +37,13 @@ import { renderRegion } from "./region-render.js";
 import { columnIdentity } from "./row-data.js";
 import { type TemplateGeometry, template } from "./template.js";
 import type { FlowBlock, FlowPlacement } from "./types.js";
+import {
+  checkParticipation,
+  compileParticipation,
+  participationSources,
+  participationRole,
+  type ParticipationSource,
+} from "./participation.js";
 
 interface PlannedPage {
   readonly section: number;
@@ -148,6 +155,7 @@ function planFixed(node: NormalizedContent, section: number, session: Session): 
   session.planned.push({ section, page: { ...size, children: [] }, fixed: node });
 }
 interface FlowParts {
+  sources?: readonly ParticipationSource[];
   body: FlowBlock[];
   nodes: NormalizedContent[];
   header?: NormalizedContent;
@@ -156,18 +164,30 @@ interface FlowParts {
 }
 function flowParts(node: NormalizedContent, session: Session): FlowParts {
   if (typeof node.value === "string") fail("TYPE", node.path, "Expected Flow");
+  const installed = node.value.props.participation;
+  if (installed !== undefined) checkParticipation(installed);
   const children = session.operation.normalizeContent(
     node.value.props.children,
     sectionRecipe,
     `${node.path}/children`,
-    flowChildGuard,
+    installed === undefined
+      ? flowChildGuard
+      : (value, path, parent) => {
+          const role = participationRole(installed, value, parent);
+          flowChildGuard(role.value, path, role.parent);
+        },
     undefined,
     undefined,
     columnIdentity,
   );
   const result: FlowParts = { body: [], nodes: [], bodySlot: false };
   for (const child of children) appendFlowChild(child, result, session);
-  if (!result.bodySlot) result.body = convertBlocks(result.nodes, session.operation);
+  const participation = node.value.props.participation;
+  if (participation !== undefined) {
+    checkParticipation(participation);
+    if (result.bodySlot) fail("VDOM_HIERARCHY", node.path, "Participation requires direct body siblings");
+    result.sources = participationSources(result.nodes, session.operation, participation);
+  } else if (!result.bodySlot) result.body = convertBlocks(result.nodes, session.operation);
   return result;
 }
 function flowChildGuard(value: string | SemanticRecipe, path: string, parent: object | undefined): void {
@@ -206,7 +226,11 @@ function appendFlowChild(child: NormalizedContent, result: FlowParts, session: S
 }
 function planFlow(node: NormalizedContent, section: number, index: number, session: Session): void {
   if (typeof node.value === "string") fail("TYPE", node.path, "Expected Flow");
-  validateDataObject(node.value.props, ["pageSize", "orientation", "margins", "children", "extensions"], node.path);
+  validateDataObject(
+    node.value.props,
+    ["pageSize", "orientation", "margins", "children", "extensions", "participation"],
+    node.path,
+  );
   const props = node.value.props as unknown as FlowProps;
   validateExtensions(props.extensions);
   const parts = flowParts(node, session);
@@ -223,15 +247,8 @@ function planFlow(node: NormalizedContent, section: number, index: number, sessi
     },
     session.operation,
   );
-  const sourceRoot = `${node.path}/body`;
-  const prepared = compile(parts.body, geometry.body.width, sourceRoot, {
-    operation: session.operation,
-    lifetime: session.lifetime,
-    freshHeight: geometry.body.height,
-    ...(props.extensions ? { extensions: props.extensions } : {}),
-  });
   const offset = session.planned.length;
-  const result = paginate(geometry, prepared, session.operation.policy, { ...session, sourceRoot });
+  const result = paginateParts(parts, props, `${node.path}/body`, geometry, session);
   for (const placement of result.placements)
     session.placements.push({ ...placement, pageIndex: placement.pageIndex + offset });
   result.document.pages.forEach((page, pageIndex) => {
@@ -245,6 +262,28 @@ function planFlow(node: NormalizedContent, section: number, index: number, sessi
       ...(props.extensions ? { extensions: props.extensions } : {}),
     });
   });
+}
+function paginateParts(
+  parts: FlowParts,
+  props: FlowProps,
+  sourceRoot: string,
+  geometry: TemplateGeometry,
+  session: Session,
+) {
+  const scope = {
+    operation: session.operation,
+    lifetime: session.lifetime,
+    freshHeight: geometry.body.height,
+    ...(props.extensions ? { extensions: props.extensions } : {}),
+  };
+  const participating =
+    props.participation && compileParticipation(props.participation, parts.sources!, geometry.body.width, scope);
+  const prepared = participating?.blocks ?? compile(parts.body, geometry.body.width, sourceRoot, scope);
+  try {
+    return paginate(geometry, prepared, session.operation.policy, { ...session, sourceRoot });
+  } finally {
+    participating?.close();
+  }
 }
 function finalize(plan: PlannedPage, index: number, count: number, session: Session): PageDefinition {
   const info: PageInfo = {

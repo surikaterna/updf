@@ -2,20 +2,38 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { parseArgs } from "node:util";
 
 const root = process.cwd();
-const directory = resolve(root, "artifacts/text-flow/surgical-vs-baseline");
+const { values } = parseArgs({
+  options: {
+    out: { type: "string" },
+    paired: { type: "string" },
+    previous: { type: "string" },
+  },
+});
+const current = values.out ?? "surgical-vs-baseline";
+const directory = resolve(root, "artifacts/text-flow", current);
 const reports = await Promise.all(
-  ["library-baseline", "runtime-final", "surgical-vs-baseline", "surgical-vs-current"].map(async (name) => {
-    const bytes = await readFile(resolve(root, `artifacts/text-flow/${name}/report.json`));
-    return { name, sha256: createHash("sha256").update(bytes).digest("hex"), report: JSON.parse(bytes.toString()) };
-  }),
+  ["library-baseline", values.previous ?? "runtime-final", current, values.paired ?? "surgical-vs-current"].map(
+    async (name) => {
+      const bytes = await readFile(resolve(root, `artifacts/text-flow/${name}/report.json`));
+      return { name, sha256: createHash("sha256").update(bytes).digest("hex"), report: JSON.parse(bytes.toString()) };
+    },
+  ),
 );
 assert.deepEqual(reports[2]!.report.metrics, reports[3]!.report.metrics, "Both runs must measure the same delivery");
 for (const before of reports.slice(0, 2)) {
   assert.deepEqual(before.report.flags, reports[2]!.report.flags, "Measurement flags must remain paired");
   for (const [profile, input] of Object.entries(before.report.inputs))
-    if (profile !== "textFlow") assert.equal(input, reports[2]!.report.inputs[profile], `${profile} input changed`);
+    if (profile !== "textFlow" || values.previous)
+      assert.equal(input, reports[2]!.report.inputs[profile], `${profile} input changed`);
+}
+if (values.previous) {
+  for (const [key, before] of Object.entries(reports[1]!.report.metrics)) {
+    if (/^(?:emitted|pack)\//u.test(key) && !/^\w+\/@updf\/text(?:-flow)?\//u.test(key))
+      assert.equal(reports[2]!.report.metrics[key], before, `Unchanged package cost: ${key}`);
+  }
 }
 const groups: Record<string, RegExp> = {
   sealingAndAccounting: /\/core\/(?:native-leaf|native-leaf-ownership)\.js$/u,
@@ -32,7 +50,7 @@ function moduleBytes(meta: { outputs: Record<string, { inputs: Record<string, { 
     for (const [path, value] of Object.entries(output.inputs)) inputs[path] = (inputs[path] ?? 0) + value.bytesInOutput;
   return inputs;
 }
-for (const profile of ["drawing", "ordinaryText", "preparedFont", "jpeg", "layout", "textFlow"]) {
+for (const profile of Object.keys(reports[2]!.report.inputs)) {
   for (const platform of ["browser", "node"]) {
     const label = `${profile}-${platform}-min`;
     const meta = JSON.parse(await readFile(resolve(directory, `${label}.meta.json`), "utf8"));
@@ -72,6 +90,7 @@ const selected = Object.entries(report.metrics).filter(
 console.log(
   JSON.stringify(
     {
+      reports: summary.reports,
       metrics: selected.map(([key, current]) => ({
         key,
         current,

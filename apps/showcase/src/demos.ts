@@ -33,6 +33,9 @@ export type DemoId =
   | "code39"
   | "qr"
   | "flow"
+  | "text-flow-left"
+  | "text-flow-right"
+  | "text-flow-path"
   | "tables"
   | "blocks"
   | "mixed"
@@ -61,6 +64,9 @@ export function demoId(value: string): DemoId {
     value === "qr" ||
     value === "rich" ||
     value === "flow" ||
+    value === "text-flow-left" ||
+    value === "text-flow-right" ||
+    value === "text-flow-path" ||
     value === "blocks" ||
     value === "mixed" ||
     value === "rows" ||
@@ -90,6 +96,8 @@ export async function generate(
 ): Promise<{ bytes: Uint8Array; source: string; summary?: string }> {
   if (title.length > 40) throw new Error("Title must be at most 40 characters");
   if (id === "branding") return brandingResult(title, branding);
+  if (id === "text-flow-path") return pathResult(title);
+  if (id === "text-flow-left" || id === "text-flow-right") return textFlowResult(title, id, pngSignal);
   if (id === "jpeg") return jpegResult(title, jpeg);
   if (id === "font-uri") return fontUriResult(title, fontUri, fontSignal);
   if (id === "png") return pngResult(title, png, pngSignal);
@@ -120,6 +128,23 @@ async function flowResult(title: string, controls?: FlowControls) {
     bytes: result.bytes,
     source,
     summary: `${result.result.pageCount} pages; ${result.authoredParagraphCount} authored paragraphs; ${result.result.placements.length} fragments.`,
+  };
+}
+async function textFlowResult(title: string, id: "text-flow-left" | "text-flow-right", signal?: AbortSignal) {
+  const { textFlowExample, source } = await import("./optional-text-flow.js");
+  const result = await textFlowExample(title, id === "text-flow-left" ? "left" : "right", signal);
+  return {
+    bytes: result.bytes,
+    source,
+    summary: `${result.pageCount} pages; ${result.image.width} × ${result.image.height} source pixels. Authored path wrapping; automatic transparency extraction pending. Straight closed paths, outer-side only; holes not used for text. External reference demo only; license unknown.`,
+  };
+}
+async function pathResult(title: string) {
+  const { pathExample, source } = await import("./optional-text-flow-path.js");
+  return {
+    ...pathExample(title),
+    source,
+    summary: "Straight closed paths, outer-side only; holes not used for text. Same geometry paints and wraps.",
   };
 }
 async function barcodeResult(id: "code39" | "qr", title: string, controls?: BarcodeControls) {

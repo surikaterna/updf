@@ -6,7 +6,11 @@ import { resolve, relative } from "node:path";
 import { parseArgs } from "node:util";
 import { gzipSync } from "node:zlib";
 import { build, version } from "esbuild";
-import { textFlowCostInputs } from "./text-flow-cost-inputs.js";
+import { textFlowCostInputs, exclusionCostInput } from "./text-flow-cost-inputs.js";
+import { profileCostInput } from "./text-flow-profile-cost-input.js";
+import { sourceIndexGraph } from "./text-source-index-graph.js";
+import { siblingCostInput } from "./text-flow-sibling-cost-input.js";
+import { pathCostInput } from "./text-flow-path-cost-input.js";
 
 const { values } = parseArgs({
   options: {
@@ -71,26 +75,35 @@ async function packages() {
   return { libraries, privateApplications };
 }
 
-async function consumer(profile: string, contents: string, platform: "browser" | "node", minify: boolean) {
-  const label = `${profile}-${platform}-${minify ? "min" : "raw"}`;
-  const result = await build({
-    stdin: { contents, resolveDir: root, sourcefile: `${profile}.ts`, loader: "ts" },
-    bundle: true,
-    minify,
-    target: "es2022",
-    platform,
-    format: "esm",
-    conditions: platform === "browser" ? ["browser"] : ["node", "import"],
-    metafile: true,
-    write: false,
-  });
-  const bytes = result.outputFiles[0]?.contents;
-  assert.ok(bytes);
-  const modules = Object.keys(result.metafile.inputs);
+async function checkBandIsolation(modules: string[], optional: boolean) {
+  const bandModules = modules.filter((path) => /\/text\/dist\/(?:cjs\/)?composition-band\.js$/u.test(path));
+  assert.equal(bandModules.length > 0, optional, "Exclusion band graph isolation");
+  if (optional) return;
+  for (const path of modules.filter((path) => /\/text\/dist\//u.test(path))) {
+    const emitted = await readFile(resolve(root, path), "utf8");
+    assert.ok(
+      !/selectionBand|glyphTop|glyphBottom|lowLeading|profileDepth|Profile retry/u.test(emitted),
+      "Hidden exclusion geometry in ordinary module",
+    );
+  }
+}
+
+async function checkConsumerGraph(profile: string, modules: string[], platform: "browser" | "node") {
+  const composition = profile.startsWith("textFlow");
+  if (profile === "textFlowPath") {
+    assert.ok(modules.some((path) => /\/text-flow\/dist\/(?:cjs\/)?path-band\.js$/u.test(path)));
+    assert.ok(modules.some((path) => /\/geometry\/dist\/(?:cjs\/)?normalize\.js$/u.test(path)));
+  }
+  await checkBandIsolation(modules, composition);
+  assert.equal(
+    modules.some((path) => /\/(?:composition-profile|profile-exclusion|profile-interpolation)\.js$/u.test(path)),
+    composition,
+    "Profile graph isolation",
+  );
   assert.ok(!modules.some((path) => /packages\/[^/]+\/src\//u.test(path)), "Source alias in retained consumer");
   if (profile === "drawing")
     assert.ok(!modules.some((path) => /packages\/(?:text|fonts|layout)\//u.test(path)), "Drawing dependency leak");
-  if (profile !== "textFlow")
+  if (!composition)
     assert.ok(
       !modules.some((path) => /packages\/text-flow\/|\/text\/dist\/(?:cjs\/)?composition\.js$/u.test(path)),
       "Composition dependency leak",
@@ -111,6 +124,26 @@ async function consumer(profile: string, contents: string, platform: "browser" |
   }
   if (platform === "browser")
     assert.ok(!modules.some((path) => /packages\/[^/]+\/dist\/(?:node|cjs)\//u.test(path)), "Wrong browser condition");
+}
+
+async function consumer(profile: string, contents: string, platform: "browser" | "node", minify: boolean) {
+  const label = `${profile}-${platform}-${minify ? "min" : "raw"}`;
+  const result = await build({
+    stdin: { contents, resolveDir: root, sourcefile: `${profile}.ts`, loader: "ts" },
+    bundle: true,
+    minify,
+    target: "es2022",
+    platform,
+    format: "esm",
+    conditions: platform === "browser" ? ["browser"] : ["node", "import"],
+    metafile: true,
+    write: false,
+  });
+  const bytes = result.outputFiles[0]?.contents;
+  assert.ok(bytes);
+  const modules = Object.keys(result.metafile.inputs);
+  await checkConsumerGraph(profile, modules, platform);
+  await sourceIndexGraph(modules, result.outputFiles[0]!.text, profile.startsWith("textFlow"), root);
   metrics[`consumer/${label}/bytes`] = bytes.length;
   // Node emits a zero-mtime gzip header; level is fixed for paired measurements.
   metrics[`consumer/${label}/gzip`] = gzipSync(bytes, { level: 9 }).length;
@@ -153,7 +186,14 @@ for (const kind of ["browserEsm", "nodeFacade", "cjs"])
       .filter(([key]) => key.startsWith("emitted/") && key.endsWith(`/${kind}/${type}`))
       .reduce((sum, [, bytes]) => sum + bytes, 0);
 const consumers = [];
-for (const [profile, contents] of Object.entries(textFlowCostInputs())) {
+const inputs = {
+  ...textFlowCostInputs(),
+  textFlowExclusion: exclusionCostInput(),
+  textFlowProfile: profileCostInput(),
+  textFlowSiblings: siblingCostInput(),
+  textFlowPath: pathCostInput(),
+};
+for (const [profile, contents] of Object.entries(inputs)) {
   for (const platform of ["browser", "node"] as const) {
     for (const minify of [false, true]) consumers.push(await consumer(profile, contents, platform, minify));
   }
@@ -183,7 +223,7 @@ const report = {
   newRuntimePackages: ["@updf/text-flow"],
   ...workspace,
   consumers,
-  inputs: textFlowCostInputs(),
+  inputs,
   metrics,
   comparison: await compare(),
 };

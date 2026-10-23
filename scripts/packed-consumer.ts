@@ -61,7 +61,7 @@ try {
     ["layout-boxes", "core", "fonts", "text", "cmr"],
     ["core", "layout-boxes", "fonts", "text", "layout"],
     ["core", "layout-boxes", "fonts", "text", "layout", "tables"],
-    ["core", "layout-boxes", "fonts", "text", "layout", "text-flow"],
+    ["core", "layout-boxes", "fonts", "text", "layout", "geometry", "text-flow"],
     ["layout-boxes", "core", "geometry"],
     ["layout-boxes", "core", "fonts", "text", "geometry", "svg", "cmr"],
     ["layout-boxes", "core", "geometry", "svg"],
@@ -105,8 +105,16 @@ try {
     }
     if (names.includes("text")) graphs.text = await installedGraph(directory, "@updf/text");
     if (names.includes("text-flow")) {
-      await typeConsumer(directory, ["text-flow-template.tsx"]);
-      await typeConsumer(directory, ["text-flow-template.tsx"], true);
+      await typeConsumer(directory, [
+        "text-flow-template.tsx",
+        "text-flow-siblings-template.tsx",
+        "text-flow-path-template.tsx",
+      ]);
+      await typeConsumer(
+        directory,
+        ["text-flow-template.tsx", "text-flow-siblings-template.tsx", "text-flow-path-template.tsx"],
+        true,
+      );
       graphs.textFlow = await installedGraph(directory, "@updf/text-flow");
       graphs.composition = await installedGraph(directory, "@updf/text/composition");
     }
@@ -236,7 +244,7 @@ try {
   await mkdir(join(root, "artifacts"), { recursive: true });
   await writeFile(join(root, "artifacts/installed-graphs.json"), `${JSON.stringify(graphs, null, 2)}\n`);
   console.log(
-    "Fifteen clean external tarball closures passed, including optional rectangular text-flow; NodeNext/Bundler declarations without source aliases.",
+    "Fifteen clean external tarball closures passed, including rectangular and sibling text-flow; NodeNext/Bundler declarations without source aliases.",
   );
 } finally {
   for (const directory of directories) await rm(directory, { recursive: true, force: true });

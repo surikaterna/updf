@@ -91,14 +91,22 @@ function jpegClosure(chunks: readonly Chunk[], entry: Chunk): void {
 function pngClosure(chunks: readonly Chunk[], entry: Chunk): void {
   const optional = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-png.ts")));
   assert.ok(optional && entry.dynamicImports.includes(optional.fileName));
+  const textFlow = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-text-flow.ts")));
+  assert.ok(textFlow && entry.dynamicImports.includes(textFlow.fileName));
+  const path = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-text-flow-path.ts")));
+  assert.ok(path && entry.dynamicImports.includes(path.fileName));
+  assert.ok(closure(chunks, path).some((name) => /\/packages\/text-flow\//u.test(name)));
+  assert.ok(!closure(chunks, entry).some((name) => /\/packages\/text-flow\//u.test(name)));
   const modules = closure(chunks, optional);
   assert.ok(modules.some((name) => /\/packages\/png\//u.test(name)));
   assert.ok(!modules.some((name) => /\/node_modules\/(?:fflate|pako|tiny-inflate)\//u.test(name)));
   assert.ok(!modules.some((name) => /\/packages\/(jpeg|layout|tables|geometry|svg|fontkit)\//u.test(name)));
   const png = /\/packages\/png\/|\/fflate\//u;
+  assert.ok(closure(chunks, textFlow).some((name) => /\/packages\/png\//u.test(name)));
   assert.ok(!closure(chunks, entry).some((name) => png.test(name)));
   for (const chunk of chunks.filter((candidate) => entry.dynamicImports.includes(candidate.fileName))) {
-    if (chunk !== optional) assert.ok(!closure(chunks, chunk).some((name) => png.test(name)));
+    if (chunk !== optional && chunk !== textFlow)
+      assert.ok(!closure(chunks, chunk).some((name) => png.test(name)), chunk.fileName);
   }
   for (const chunk of chunks.filter((candidate) => candidate.isEntry && candidate !== entry))
     assert.ok(!closure(chunks, chunk, true).some((name) => png.test(name)));

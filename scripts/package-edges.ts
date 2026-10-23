@@ -1,4 +1,9 @@
 import assert from "node:assert/strict";
+export const sidePathImporters = [
+  "text-flow/src/path-band.ts",
+  "text-flow/src/path.ts",
+  "text-flow/src/path-selection.ts",
+];
 
 const barcodeImports = new Set([
   "@updf/core",
@@ -38,8 +43,10 @@ export function packageEdge(owner: string, specifier: string): void {
   if (owner === "layout-boxes") assert.ok(specifier.startsWith("."), "Boxes must have zero runtime dependencies");
   if (owner === "text")
     assert.ok(
-      specifier.startsWith(".") || specifier.startsWith("@updf/core") || specifier === "@updf/layout-boxes/arithmetic",
-      "Text must depend only on core and kernel arithmetic",
+      specifier.startsWith(".") ||
+        specifier.startsWith("@updf/core") ||
+        ["@updf/layout-boxes/arithmetic", "@updf/layout-boxes/numeric"].includes(specifier),
+      "Text must depend only on core and inventoried kernel arithmetic/numeric helpers",
     );
   if (owner === "fonts")
     assert.ok(specifier.startsWith(".") || specifier.startsWith("@updf/core"), "Fonts must depend only on core");
@@ -59,6 +66,9 @@ function textFlowEdge(specifier: string): void {
   assert.ok(
     specifier.startsWith(".") ||
       specifier === "@updf/text/composition" ||
+      specifier === "@updf/layout-boxes/fragmentation" ||
+      specifier === "@updf/layout-boxes/numeric" ||
+      specifier === "@updf/geometry" ||
       /^@updf\/(?:core|layout)(?:\/|$)/u.test(specifier),
     "Text flow must depend only on core/layout and its selected composition contract; no font loader or decoder",
   );

@@ -24,3 +24,10 @@ export function textFlowCostInputs(): Record<string, string> {
       export const size=text=>measure(paragraph({children:text,style:{fontSize:10,lineHeight:12}}),{width:100},options);`,
   };
 }
+
+export function exclusionCostInput(): string {
+  return textFlowCostInputs().textFlow!.replace(
+    "{paragraphs,style:",
+    "{paragraphs,exclusion:{shape:'rect',side:'left',width:80,height:40,top:8},style:",
+  );
+}

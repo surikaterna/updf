@@ -17,8 +17,8 @@ import { exceeds } from "./arithmetic.js";
 /** Optional feature accounting, sharing the real operation policy without a second ledger. */
 export function compositionCapture(scope: CapabilityScope) {
   let used = 0;
-  const charge = (path: string): void => {
-    used = checkLimit(used + 1, scope.budget.policy.nodes, path, "Composition work");
+  const charge = (path: string, amount = 1): void => {
+    used = checkLimit(used + amount, scope.budget.policy.nodes, path, "Composition work");
   };
   const visitor =
     (path: string) =>
@@ -27,10 +27,11 @@ export function compositionCapture(scope: CapabilityScope) {
       if (typeof item === "string") for (const _scalar of item) charge(path);
     };
   return {
+    work: (amount: number, path: string) => charge(path, amount),
     input(input: CompositionInput, path: string): CompositionInput {
       charge(path);
       const result = snapshotData(input, path, undefined, visitor(path));
-      validateDataObject(result, ["width", "maxHeight", "paragraphs"], path);
+      validateDataObject(result, ["width", "maxHeight", "paragraphs", "exclusion"], path);
       number(result.width, `${path}/width`, true);
       number(result.maxHeight, `${path}/maxHeight`);
       return result;

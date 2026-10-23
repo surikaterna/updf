@@ -21,8 +21,8 @@ export function compositionOptions(resources: OperationOptions["resources"] = {}
   const { service, fonts } = serviceClosure({ runtime, defaultFont: "Helvetica" });
   // The adversarial source callback shares the emitted ABI, but its private TS brand is distinct.
   const capability = compositionCapability(
-    (input, context, path) =>
-      change(composeRectangular(input, fonts(context), context, path), input) as CompositionPlan,
+    (input, context, path, charge) =>
+      change(composeRectangular(input, fonts(context), context, path, charge), input) as CompositionPlan,
   ) as unknown as typeof installation.capability;
   return {
     resources: { Helvetica: createHelvetica(), ...resources },
