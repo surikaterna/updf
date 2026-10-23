@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { DocumentError, render } from "@updf/core";
 import { createExtensions, document, extension, flow, layout } from "@updf/layout";
-import { createTextFlow, type EdgeProfileExclusion, type TextFlowProps } from "@updf/text-flow";
+import { createAtomicTextFlow, type EdgeProfileExclusion, type TextFlowProps } from "@updf/text-flow/atomic";
 import { compositionOptions, installation } from "../../../tests/fixtures/text-flow/options.js";
 import { silhouette } from "../../../tests/fixtures/text-flow/edge-profile.js";
 
-const { textFlowAdapter } = createTextFlow(installation.capability);
+const { textFlowAdapter } = createAtomicTextFlow(installation.capability);
 function input(props: TextFlowProps, height = 200) {
   return document({
     children: flow({

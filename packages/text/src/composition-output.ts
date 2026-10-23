@@ -7,19 +7,17 @@ import {
   ownTextOutput,
   snapshotData,
   number,
-  checkLimit,
   fail,
   type CapabilityScope,
 } from "@updf/core/internal";
 import type { CompositionInput, CompositionPlan } from "./composition-types.js";
 import { exceeds } from "./arithmetic.js";
+import { compositionWork } from "./composition-work.js";
 
 /** Optional feature accounting, sharing the real operation policy without a second ledger. */
 export function compositionCapture(scope: CapabilityScope) {
-  let used = 0;
-  const charge = (path: string, amount = 1): void => {
-    used = checkLimit(used + amount, scope.budget.policy.nodes, path, "Composition work");
-  };
+  const work = compositionWork(scope);
+  const charge = (path: string, amount = 1): void => work(amount, path);
   const visitor =
     (path: string) =>
     (item: unknown): void => {
@@ -27,7 +25,7 @@ export function compositionCapture(scope: CapabilityScope) {
       if (typeof item === "string") for (const _scalar of item) charge(path);
     };
   return {
-    work: (amount: number, path: string) => charge(path, amount),
+    work,
     input(input: CompositionInput, path: string): CompositionInput {
       charge(path);
       const result = snapshotData(input, path, undefined, visitor(path));

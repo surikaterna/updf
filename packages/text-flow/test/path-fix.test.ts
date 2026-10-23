@@ -6,13 +6,13 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { DocumentError, render } from "@updf/core";
 import { h } from "@updf/core/vdom";
 import { layout, Paragraph, Document, Flow, Block, pt } from "@updf/layout";
-import { siblingOptions, siblingFlow as f } from "../../../tests/fixtures/text-flow/siblings.js";
-import { protocolFixture } from "./sibling-protocol-fixture.js";
+import { siblingOptions, pathFlow as f } from "../../../tests/fixtures/text-flow/siblings.js";
+import { protocolFixture } from "./path-protocol-fixture.js";
 import { prepareFragmentPaint } from "../../layout/dist/cjs/fragment-paint-preparation.js";
 import { collectPreparedLines } from "../../layout/dist/cjs/prepared-line-reports.js";
 import type { ContentLine } from "@updf/layout";
 import type { BlockContent } from "@updf/layout";
-import type { FloatingPathProps, FloatingBlockProps } from "@updf/text-flow";
+import type { FloatingPathProps, FloatingBlockProps } from "@updf/text-flow/path";
 import { authoredGeometry } from "../src/path-band.js";
 
 const style = { width: 200, height: 36, float: "left" as const };
@@ -71,7 +71,7 @@ for (const side of ["left", "right"] as const)
         const proof = rasterProof(pdf);
         const text = execFileSync("pdftotext", ["-raw", "-", "-"], { input: pdf, encoding: "utf8" });
         assert.equal(text.replace(/\s/gu, ""), tail ? "AAAA" : "A");
-        const dir = `artifacts/text-flow/rectangle-clearance-vs-before/path-regression/${side}-${rectangle ? "rect" : "slope"}-${tail ? "tail" : "single"}`;
+        const dir = `artifacts/text-flow/entry-isolation-after/path-regression/${side}-${rectangle ? "rect" : "slope"}-${tail ? "tail" : "single"}`;
         mkdirSync(dir, { recursive: true });
         writeFileSync(`${dir}/output.pdf`, pdf);
         writeFileSync(`${dir}/output.ppm`, proof.ppm);

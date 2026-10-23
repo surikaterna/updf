@@ -12,6 +12,7 @@ import { svgPeerProof } from "./consumer/svg-layout.js";
 import { coreRuntime, fontkitRuntime, geometryRuntime, svgRuntime } from "./consumer/runtime.js";
 import { allTypes, coreTypes, typeConsumer } from "./consumer/types.js";
 import { smokeFixture } from "./migration/legacy-smoke-fixture.js";
+import { textFlowProof } from "./consumer/text-flow.js";
 
 async function coreProof(directory: string, graphs: Record<string, readonly string[]>): Promise<void> {
   await execute(directory, coreRuntime);
@@ -116,7 +117,13 @@ try {
         true,
       );
       graphs.textFlow = await installedGraph(directory, "@updf/text-flow");
+      graphs.textFlowPath = await installedGraph(directory, "@updf/text-flow/path");
+      graphs.textFlowAtomic = await installedGraph(directory, "@updf/text-flow/atomic");
+      graphs.selection = await installedGraph(directory, "@updf/text/selection");
       graphs.composition = await installedGraph(directory, "@updf/text/composition");
+      await typeConsumer(directory, ["text-flow-entry-negative-template.tsx"], false, false);
+      await typeConsumer(directory, ["text-flow-entry-negative-template.tsx"], true, false);
+      await textFlowProof(directory);
     }
     if (names.includes("text") && !names.includes("fonts")) {
       await typeConsumer(directory, ["host-metrics-template.ts"]);

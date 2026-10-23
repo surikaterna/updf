@@ -10,6 +10,34 @@
     "LICENSE"
   ],
   "exports": {
+    "./path": {
+      "browser": {
+        "types": "./dist/node/path-entry.d.mts",
+        "default": "./dist/path-entry.js"
+      },
+      "import": {
+        "types": "./dist/node/path-entry.d.mts",
+        "default": "./dist/node/path-entry.mjs"
+      },
+      "require": {
+        "types": "./dist/node/path-entry.d.cts",
+        "default": "./dist/cjs/path-entry.js"
+      }
+    },
+    "./atomic": {
+      "browser": {
+        "types": "./dist/node/atomic.d.mts",
+        "default": "./dist/atomic.js"
+      },
+      "import": {
+        "types": "./dist/node/atomic.d.mts",
+        "default": "./dist/node/atomic.mjs"
+      },
+      "require": {
+        "types": "./dist/node/atomic.d.cts",
+        "default": "./dist/cjs/atomic.js"
+      }
+    },
     ".": {
       "browser": {
         "types": "./dist/node/index.d.mts",

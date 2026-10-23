@@ -2,7 +2,20 @@ import assert from "node:assert/strict";
 export const sidePathImporters = [
   "text-flow/src/path-band.ts",
   "text-flow/src/path.ts",
-  "text-flow/src/path-selection.ts",
+  "text-flow/src/side-selection.ts",
+  "text-flow/src/rectangle-policy.ts",
+  "text-flow/src/path-policy.ts",
+  "text-flow/src/atomic.ts",
+  "text/src/selection.ts",
+  "text/src/composition-work.ts",
+];
+export const participationImporters = [
+  "text-flow/src/sibling.ts",
+  "text-flow/src/sibling-source.ts",
+  "text-flow/src/sibling-selection.ts",
+  "text-flow/src/side-selection.ts",
+  "text-flow/src/side-policy.ts",
+  "text-flow/src/path-policy.ts",
 ];
 
 const barcodeImports = new Set([
@@ -66,6 +79,8 @@ function textFlowEdge(specifier: string): void {
   assert.ok(
     specifier.startsWith(".") ||
       specifier === "@updf/text/composition" ||
+      specifier === "@updf/text/selection" ||
+      specifier === "@updf/text/internal-interpolation" ||
       specifier === "@updf/layout-boxes/fragmentation" ||
       specifier === "@updf/layout-boxes/numeric" ||
       specifier === "@updf/geometry" ||

@@ -1,10 +1,12 @@
 /** @jsxImportSource @updf/core */
 import { Document, Flow, Paragraph, Span, PageBreak, Block } from "@updf/layout";
 import { createTextFlow } from "@updf/text-flow";
+import { createPathTextFlow } from "@updf/text-flow/path";
 import { compositionOptions } from "./options.js";
 
 export const siblingOptions = compositionOptions();
 export const siblingFlow = createTextFlow(siblingOptions.capability);
+export const pathFlow = createPathTextFlow(siblingOptions.capability);
 export function siblingDocument(
   side: "left" | "right" = "left",
   before = 0,

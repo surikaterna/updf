@@ -193,3 +193,14 @@ parent corrections, S2 proof gate, early rectangle release blocker, dependency
 ordering, exact ownership/preview preservation and scoped validation evidence.
 Parent chooses the next fresh assignment; this document neither starts S0 nor
 reopens implementation automatically.
+
+## S1 implementation checkpoint (subsequent bounded assignment)
+
+S1 only: **implemented, pending independent audit; not verified**, based on clean
+`630e5d4f0b69921e8f85652fc2e0a78dd17548c1`. See
+[entry-isolation evidence](text-flow-entry-isolation.md) for the actual temporary
+root/path/atomic and text-selection contracts, 238-metric paired inventory, unshaken
+CJS isolation, runtime/native parity, quality gates and preserved 80-file preview.
+This additive checkpoint does not rewrite the original docs audit, upgrade prior
+milestone audit metadata, authorize delivery or begin S2. The parent must obtain
+independent S1 approval before assigning its successors.

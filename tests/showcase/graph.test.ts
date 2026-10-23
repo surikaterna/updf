@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
+import { showcaseOutput } from "./helpers.js";
 
 interface Chunk {
   readonly fileName: string;
@@ -23,7 +24,7 @@ function closure(chunks: readonly Chunk[], entry: Chunk, dynamic = false, seen =
 }
 
 test("production chunk graph keeps adapters optional; Fontkit belongs only to opt-in freight/font-URI demos", async () => {
-  const directory = new URL("../../apps/showcase/dist/", import.meta.url);
+  const directory = showcaseOutput();
   const chunks: Chunk[] = JSON.parse(await readFile(new URL("chunk-graph.json", directory), "utf8"));
   const entry = chunks.find((chunk) => chunk.isEntry && chunk.modules.some((name) => name.endsWith("/src/main.ts")));
   assert.ok(entry);
@@ -159,7 +160,7 @@ function engineClosure(chunks: readonly Chunk[], font: Chunk, engine: string): v
 }
 
 test("every installed package in the actual freight closure has byte-exact emitted notices", async () => {
-  const directory = new URL("../../apps/showcase/dist/", import.meta.url);
+  const directory = showcaseOutput();
   const chunks: Chunk[] = JSON.parse(await readFile(new URL("chunk-graph.json", directory), "utf8"));
   const freight = chunks.find((chunk) =>
     chunk.modules.some((name) => name.endsWith("/src/optional-freight-invoice.ts")),
@@ -260,7 +261,7 @@ async function notices(directory: URL): Promise<void> {
 
 test("both production HTML entries retain the /updf/ asset base", async () => {
   for (const name of ["index", "plasma"]) {
-    const html = await readFile(new URL(`../../apps/showcase/dist/${name}.html`, import.meta.url), "utf8");
+    const html = await readFile(showcaseOutput(`${name}.html`), "utf8");
     assert.ok(html.includes('src="/updf/assets/'));
     assert.ok(html.includes('href="/updf/assets/'));
   }

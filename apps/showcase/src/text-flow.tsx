@@ -3,15 +3,15 @@ import { render } from "@updf/core";
 import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
 import { createExtensions, Document, Flow, layout, Paragraph, Span, pt } from "@updf/layout";
 import { pngProvider } from "@updf/png";
-import { createTextComposition } from "@updf/text/composition";
-import { createTextFlow } from "@updf/text-flow";
+import { createTextSelection } from "@updf/text/selection";
+import { createPathTextFlow } from "@updf/text-flow/path";
 import { loadEevee, wrappingNotice } from "./text-flow-asset.js";
 import { eeveeAdapter, EeveeImage } from "./text-flow-image.js";
 
 const continuation =
   "Ordinary paragraphs continue naturally across pages. The image paints once, and lines below its authored outline return to the full body width. The changing side interval follows a manually drawn polygon, not automatic transparency extraction. ";
 
-function definition(f: ReturnType<typeof createTextFlow>, side: "left" | "right", title: string) {
+function definition(f: ReturnType<typeof createPathTextFlow>, side: "left" | "right", title: string) {
   return (
     <Document>
       <Flow
@@ -62,8 +62,8 @@ function definition(f: ReturnType<typeof createTextFlow>, side: "left" | "right"
 export async function textFlowExample(title: string, side: "left" | "right", signal?: AbortSignal) {
   const eevee = await loadEevee(signal);
   const runtime = fontRuntime();
-  const composition = createTextComposition({ runtime, defaultFont: "Helvetica" });
-  const f = createTextFlow(composition.capability);
+  const composition = createTextSelection({ runtime, defaultFont: "Helvetica" });
+  const f = createPathTextFlow(composition.capability);
   const options = {
     ...composition,
     resources: { Helvetica: createHelvetica(), eevee },

@@ -3,11 +3,11 @@ export function siblingCostInput(): string {
   return `import {layout,Document,Flow,Paragraph,Span} from '@updf/layout';
     import {h} from '@updf/core/vdom';
     import {createTextFlow} from '@updf/text-flow';
-    import {createTextComposition} from '@updf/text/composition';
+    import {createTextSelection} from '@updf/text/selection';
     import {createHelvetica,fontRuntime,fontProvider} from '@updf/fonts';
     import {render} from '@updf/core';
     const runtime=fontRuntime();
-    const composition=createTextComposition({runtime,defaultFont:'Helvetica'});
+    const composition=createTextSelection({runtime,defaultFont:'Helvetica'});
     const f=createTextFlow(composition.capability);
     const options={resources:{Helvetica:createHelvetica()},...composition,providers:[fontProvider(runtime)]};
     const content=h(Document,{children:h(Flow,{pageSize:{width:220,height:260},margins:{top:10,right:10,bottom:10,left:10},participation:f.participation,children:[

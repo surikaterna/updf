@@ -2,11 +2,11 @@
 import { render } from "@updf/core";
 import { createHelvetica, fontRuntime, fontProvider } from "@updf/fonts";
 import { Document, Flow, Paragraph, Span, layout } from "@updf/layout";
-import { createTextComposition } from "@updf/text/composition";
+import { createTextSelection } from "@updf/text/selection";
 import { createTextFlow } from "@updf/text-flow";
 
 const runtime = fontRuntime();
-const composition = createTextComposition({ runtime, defaultFont: "Helvetica" });
+const composition = createTextSelection({ runtime, defaultFont: "Helvetica" });
 const f = createTextFlow(composition.capability);
 const options = { ...composition, resources: { Helvetica: createHelvetica() }, providers: [fontProvider(runtime)] };
 const result = layout(

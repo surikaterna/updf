@@ -11,6 +11,7 @@ import { profileCostInput } from "./text-flow-profile-cost-input.js";
 import { sourceIndexGraph } from "./text-source-index-graph.js";
 import { siblingCostInput } from "./text-flow-sibling-cost-input.js";
 import { pathCostInput } from "./text-flow-path-cost-input.js";
+import { textFlowEntryGraph } from "./text-flow-entry-graph.js";
 
 const { values } = parseArgs({
   options: {
@@ -75,9 +76,9 @@ async function packages() {
   return { libraries, privateApplications };
 }
 
-async function checkBandIsolation(modules: string[], optional: boolean) {
+async function checkBandIsolation(modules: string[], atomic: boolean, optional: boolean) {
   const bandModules = modules.filter((path) => /\/text\/dist\/(?:cjs\/)?composition-band\.js$/u.test(path));
-  assert.equal(bandModules.length > 0, optional, "Exclusion band graph isolation");
+  assert.equal(bandModules.length > 0, atomic, "Exclusion band graph isolation");
   if (optional) return;
   for (const path of modules.filter((path) => /\/text\/dist\//u.test(path))) {
     const emitted = await readFile(resolve(root, path), "utf8");
@@ -89,21 +90,22 @@ async function checkBandIsolation(modules: string[], optional: boolean) {
 }
 
 async function checkConsumerGraph(profile: string, modules: string[], platform: "browser" | "node") {
-  const composition = profile.startsWith("textFlow");
+  const composition = profile.startsWith("textFlow") && !["textFlowSiblings", "textFlowPath"].includes(profile);
+  textFlowEntryGraph(profile, modules);
   if (profile === "textFlowPath") {
     assert.ok(modules.some((path) => /\/text-flow\/dist\/(?:cjs\/)?path-band\.js$/u.test(path)));
     assert.ok(modules.some((path) => /\/geometry\/dist\/(?:cjs\/)?normalize\.js$/u.test(path)));
   }
-  await checkBandIsolation(modules, composition);
+  await checkBandIsolation(modules, composition, profile.startsWith("textFlow"));
   assert.equal(
-    modules.some((path) => /\/(?:composition-profile|profile-exclusion|profile-interpolation)\.js$/u.test(path)),
+    modules.some((path) => /\/(?:composition-profile|profile-exclusion)\.js$/u.test(path)),
     composition,
     "Profile graph isolation",
   );
   assert.ok(!modules.some((path) => /packages\/[^/]+\/src\//u.test(path)), "Source alias in retained consumer");
   if (profile === "drawing")
     assert.ok(!modules.some((path) => /packages\/(?:text|fonts|layout)\//u.test(path)), "Drawing dependency leak");
-  if (!composition)
+  if (!profile.startsWith("textFlow"))
     assert.ok(
       !modules.some((path) => /packages\/text-flow\/|\/text\/dist\/(?:cjs\/)?composition\.js$/u.test(path)),
       "Composition dependency leak",
@@ -112,10 +114,6 @@ async function checkConsumerGraph(profile: string, modules: string[], platform: 
     assert.ok(
       modules.some((path) => /packages\/text-flow\/dist\//u.test(path)),
       "Missing addon positive control",
-    );
-    assert.ok(
-      modules.some((path) => /\/text\/dist\/(?:cjs\/)?composition\.js$/u.test(path)),
-      "Missing composition positive control",
     );
     assert.ok(
       !modules.some((path) => /packages\/(?:svg|jpeg|png|fontkit|fontkite)\//u.test(path)),

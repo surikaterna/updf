@@ -3,7 +3,7 @@ import type { NodeDefinition } from "@updf/core";
 import type { RGB } from "@updf/core/painting";
 import { parseColor } from "@updf/geometry";
 import type { BlockComponent, FixedBlock } from "@updf/layout";
-import type { FloatingBlockProps } from "./sibling.js";
+import type { FloatingBlockProps } from "./path-policy.js";
 import { authoredGeometry, pathShape, type PathShape, type PathBand, type Charge } from "./path-band.js";
 
 export interface FloatingPathProps {

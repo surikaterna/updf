@@ -2,13 +2,13 @@
 import { render } from "@updf/core";
 import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
 import { Document, Flow, layout, Paragraph, Span, pt } from "@updf/layout";
-import { createTextComposition } from "@updf/text/composition";
-import { createTextFlow } from "@updf/text-flow";
+import { createTextSelection } from "@updf/text/selection";
+import { createPathTextFlow } from "@updf/text-flow/path";
 
 export function pathExample(title: string) {
   const runtime = fontRuntime();
-  const composition = createTextComposition({ runtime, defaultFont: "Helvetica" });
-  const f = createTextFlow(composition.capability);
+  const composition = createTextSelection({ runtime, defaultFont: "Helvetica" });
+  const f = createPathTextFlow(composition.capability);
   const options = { ...composition, resources: { Helvetica: createHelvetica() }, providers: [fontProvider(runtime)] };
   const result = layout(
     <Document>

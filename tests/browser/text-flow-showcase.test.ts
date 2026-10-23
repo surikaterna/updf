@@ -34,7 +34,7 @@ async function scenario(page: Page, side: "left" | "right") {
   const bytes = await pdf(page, `text-flow-showcase-${side}.pdf`);
   assert.match(await page.locator("#demo-purpose").innerText(), /license unknown/);
   assert.ok((await page.locator("#status").innerText()).includes(wrappingNotice));
-  assert.ok((await page.locator("#source").textContent())?.includes("createTextFlow(composition.capability)"));
+  assert.ok((await page.locator("#source").textContent())?.includes("createPathTextFlow(composition.capability)"));
   assert.match((await page.locator("#source").textContent())!, /shapeOutside:\s*"M46 0 L/);
   const count = await page.locator("#preview canvas").count();
   assert.ok(count >= 2);

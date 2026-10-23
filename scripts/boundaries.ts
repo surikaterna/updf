@@ -2,15 +2,10 @@ import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import { isBuiltin } from "node:module";
 import { join } from "node:path";
-import { packageEdge, sidePathImporters } from "./package-edges.js";
+import { packageEdge, sidePathImporters, participationImporters } from "./package-edges.js";
 export { packageEdge } from "./package-edges.js";
 export const internalImporters: Readonly<Record<string, readonly string[]>> = {
-  "@updf/layout/internal-participation": [
-    "text-flow/src/sibling.ts",
-    "text-flow/src/sibling-source.ts",
-    "text-flow/src/sibling-selection.ts",
-    "text-flow/src/path-selection.ts",
-  ],
+  "@updf/layout/internal-participation": participationImporters,
   "@updf/core/internal-drawing": [
     "svg/src/bridge.ts",
     "layout/src/mixed-layout.ts",

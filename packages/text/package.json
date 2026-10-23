@@ -24,6 +24,34 @@
         "default": "./dist/cjs/index.js"
       }
     },
+    "./selection": {
+      "browser": {
+        "types": "./dist/node/selection.d.mts",
+        "default": "./dist/selection.js"
+      },
+      "import": {
+        "types": "./dist/node/selection.d.mts",
+        "default": "./dist/node/selection.mjs"
+      },
+      "require": {
+        "types": "./dist/node/selection.d.cts",
+        "default": "./dist/cjs/selection.js"
+      }
+    },
+    "./internal-interpolation": {
+      "browser": {
+        "types": "./dist/node/internal-interpolation.d.mts",
+        "default": "./dist/internal-interpolation.js"
+      },
+      "import": {
+        "types": "./dist/node/internal-interpolation.d.mts",
+        "default": "./dist/node/internal-interpolation.mjs"
+      },
+      "require": {
+        "types": "./dist/node/internal-interpolation.d.cts",
+        "default": "./dist/cjs/internal-interpolation.js"
+      }
+    },
     "./composition": {
       "browser": {
         "types": "./dist/node/composition.d.mts",

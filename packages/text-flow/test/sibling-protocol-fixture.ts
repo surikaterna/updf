@@ -8,25 +8,35 @@ import { checkRole } from "../../layout/dist/cjs/content-role.js";
 import { FragmentState } from "../../layout/dist/cjs/fragment-state.js";
 import { OutputBudget } from "../../layout/dist/cjs/budget.js";
 import type { Extensions } from "@updf/layout";
+import type { FlowParticipation } from "@updf/layout/internal-participation";
 
-export function protocolFixture(children?: unknown, extensions?: Extensions, width = 200, height = 100) {
+function defaultChildren() {
+  return [
+    h(f.Block, { style: { width: 72, height: 36, float: "left", backgroundColor: [0.2, 0.4, 0.6] } }, "visual"),
+    h(Paragraph, { children: "first paragraph rich source units" }, "one"),
+    h(Paragraph, { children: "second paragraph text continues at full width. ".repeat(10) }, "two"),
+  ];
+}
+export function protocolFixture(
+  children?: unknown,
+  extensions?: Extensions,
+  width = 200,
+  height = 100,
+  participation: FlowParticipation = f.participation,
+) {
   const operation = createLayoutOperation(options);
   const lifetime = { active: true };
   const nodes = operation.normalizeContent(
-    children ?? [
-      h(f.Block, { style: { width: 72, height: 36, float: "left", backgroundColor: [0.2, 0.4, 0.6] } }, "visual"),
-      h(Paragraph, { children: "first paragraph rich source units" }, "one"),
-      h(Paragraph, { children: "second paragraph text continues at full width. ".repeat(10) }, "two"),
-    ],
+    children ?? defaultChildren(),
     dataRecipe,
     "/siblings",
     (value, path, parent) => {
-      const role = participationRole(f.participation, value, parent);
+      const role = participationRole(participation, value, parent);
       checkRole(role.value, path, role.parent);
     },
   );
-  const sources = participationSources(nodes, operation, f.participation);
-  const compiled = compileParticipation(f.participation, sources, width, {
+  const sources = participationSources(nodes, operation, participation);
+  const compiled = compileParticipation(participation, sources, width, {
     operation,
     lifetime,
     freshHeight: height,

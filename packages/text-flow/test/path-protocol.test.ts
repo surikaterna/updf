@@ -3,8 +3,8 @@ import test from "node:test";
 import type { NodeDefinition } from "@updf/core";
 import { h } from "@updf/core/vdom";
 import { Paragraph, Span, createExtensions, defineInlineAdapter, inline, pt, type ContentLine } from "@updf/layout";
-import { siblingFlow as flow } from "../../../tests/fixtures/text-flow/siblings.js";
-import { protocolFixture } from "./sibling-protocol-fixture.js";
+import { pathFlow as flow } from "../../../tests/fixtures/text-flow/siblings.js";
+import { protocolFixture } from "./path-protocol-fixture.js";
 import { prepareFragmentPaint } from "../../layout/dist/cjs/fragment-paint-preparation.js";
 import { collectPreparedLines } from "../../layout/dist/cjs/prepared-line-reports.js";
 import { resolvePaint } from "../../layout/dist/cjs/protocol-runtime.js";
@@ -20,6 +20,21 @@ function report(f: ReturnType<typeof protocolFixture>, x = 0, y = 0) {
 function flatten(nodes: readonly NodeDefinition[]): readonly NodeDefinition[] {
   return nodes.flatMap((node) => (node.type === "paintGroup" ? flatten([...node.children]) : [node]));
 }
+test("path protocol fixture requires explicit children from its matching factory", () => {
+  assert.equal<[] extends Parameters<typeof protocolFixture> ? true : false>(false, false);
+  const f = protocolFixture([
+    h(flow.Block, { style: { width: 72, height: 36, float: "left" } }),
+    h(Paragraph, { children: "explicit path-factory rectangle and paragraph" }),
+  ]);
+  try {
+    const { lines, selected } = report(f);
+    assert.ok(selected.nextOffset > 0);
+    assert.ok(lines.length > 0);
+    assert.ok(lines[0]!.fragments[0]!.x >= 72);
+  } finally {
+    f.close();
+  }
+});
 for (const side of ["left", "right"] as const)
   test(`${side}: variable widths and actual tops span two paragraphs`, () => {
     const d = side === "left" ? "M0 0H100L20 96H0Z" : "M0 0H100V96H80Z";

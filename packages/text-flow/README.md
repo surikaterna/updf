@@ -10,11 +10,11 @@ the existing text/font capability. This is numeric PDF layout, not browser CSS.
 import { render } from "@updf/core";
 import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
 import { Document, Flow, Paragraph, Span, layout } from "@updf/layout";
-import { createTextComposition } from "@updf/text/composition";
+import { createTextSelection } from "@updf/text/selection";
 import { createTextFlow } from "@updf/text-flow";
 
 const runtime = fontRuntime();
-const composition = createTextComposition({ runtime, defaultFont: "Helvetica" });
+const composition = createTextSelection({ runtime, defaultFont: "Helvetica" });
 const f = createTextFlow(composition.capability);
 const options = {
   ...composition,
@@ -36,7 +36,7 @@ const result = layout(
 const pdf = render(result.document, options);
 ```
 
-- `createTextFlow(existingCapability)` adds `{ Block, Path, participation }`; it does not
+- `createTextFlow(existingCapability)` returns only `{ Block, participation }`; it does not
   install a second text service. Put that exact opaque participation handle on the
   Flow containing the marked Block. No global installation or adapter set is needed
   for this sibling feature. Ordinary inline adapters still use `extensions` normally.
@@ -45,7 +45,8 @@ const pdf = render(result.document, options);
   affected sequence; later content is ordinary. A second marker rejects explicitly.
   Flow.Body and nested marked Blocks are not supported by this bounded API.
 - Explicit finite positive `width`/`height`, `float: "left" | "right"`, and optional
-  `shapeOutside: "rect"` (default) or a straight path (below). Dimensions must fit the body. Float margins
+  `shapeOutside: "rect"` (default on omission only). Explicit `undefined` rejects.
+  Straight paths require the explicit `/path` entry below. Dimensions must fit the body. Float margins
   and auto alignment reject; no top offsets, wrap gaps or multiple floats.
   Other supported Block styles, children and decorations use the existing Block
   normalizer, box measurement, preparation and painter, not a separate visual path.
@@ -71,9 +72,13 @@ for exact gates, measured nonzero layout/addon costs and limitations.
 
 ## A real filled Path with the same Paragraph siblings
 
-Using the same `f`, `options` and `<Flow participation={f.participation}>` above:
+Select the path entry explicitly, using the same selection capability and operation
+options. Its Block accepts the full contour grammar; the root Block does not.
 
 ```tsx
+import { createPathTextFlow } from "@updf/text-flow/path";
+const f = createPathTextFlow(composition.capability);
+// Use this exact f.participation on the containing Flow.
 <f.Path
   key="illustration"
   d="M0 0 H100 L20 96 H0 Z"
@@ -103,9 +108,9 @@ For an arbitrary real visual, keep `f.Block` and author its contour explicitly:
 </f.Block>
 ```
 
-`shapeOutside` is `"rect" | string | { d, fillRule? }`. A string is SVG path data,
-**never a URL**. The optional addon depends on `@updf/geometry`; core/ordinary
-layout/text do not acquire a path parser dependency. Only normalized move/line/close
+On `/path`, `shapeOutside` is `"rect" | string | { d, fillRule? }`. A string is SVG path data,
+**never a URL**. Only this addon entry loads `@updf/geometry`; the root, `/atomic`,
+and core/ordinary layout/text do not acquire a path parser. Only normalized move/line/close
 commands, explicitly closed nonempty non-collinear subpaths inside the **resolved**
 local Block dimensions are accepted. Relative commands and H/V work. Cubics
 (including normalized curves/arcs), open/empty/degenerate/out-of-box contours
@@ -120,32 +125,33 @@ is cumulatively budgeted. Path protection continues past the nominal float botto
 until the owned conservative ink/box certificate clears the visual for **all**
 remaining Paragraph sources, not merely the first full-width line. Required gaps
 are included in the actual initial fragment height and its intact page deferral.
-There is no exclusion state or callback on subsequent pages. Existing legacy
-`"rect"` behavior/charges, including its immediate blocked-tail policy, are unchanged;
-that legacy mode does not gain this negative-leading safety contract. An authored
-rectangle **path** uses the stricter path policy. Parser/color diagnostics retain
+There is no exclusion state or callback on subsequent pages. Both rectangle and
+path modes retain S4's all-later-source negative-leading clearance certificate.
+Rectangles permit exact boundary contact and clamp blocked retries to the float
+bottom; an authored rectangle **path** keeps strict contact and predecessor-rounded
+side widths. Parser/color diagnostics retain
 the authored sibling's `d`, `fill` or `shapeOutside` field and parser offset.
 
 The runtime is implemented pending independent audit; exact evidence, geometry
 limits and nonzero retained-code costs are in
 [`text-flow-side-path.md`](../../docs/evidence/text-flow-side-path.md).
 
-## Experimental atomic composition (retained API)
+## Experimental atomic composition (explicit entry)
 
-The existing `TextFlow`/`textFlowAdapter` and rectangle/edge-profile APIs remain
-available; they are not aliases or replacements for sibling flow. Install the
+The existing `TextFlow`/`textFlowAdapter` and rectangle/edge-profile contracts move
+to `/atomic`; there are no root aliases or re-exports. Install the
 atomic adapter explicitly in each Flow and select the optional composition subpath:
 
 ```tsx
 /** @jsxImportSource @updf/core */
 import { Document, Flow, createExtensions, layout } from "@updf/layout";
-import { createTextFlow } from "@updf/text-flow";
+import { createAtomicTextFlow } from "@updf/text-flow/atomic";
 import { createTextComposition } from "@updf/text/composition";
 
 // runtime, resources, providers and preparedParagraphs come from your existing
 // text/font preparation. Use those same owned resource identities when rendering.
 const composition = createTextComposition({ runtime });
-const { TextFlow, textFlowAdapter } = createTextFlow(composition.capability);
+const { TextFlow, textFlowAdapter } = createAtomicTextFlow(composition.capability);
 const options = {
   resources,
   providers,
@@ -223,8 +229,22 @@ audit, not verified.
 
 `createCompositionTextService` is removed, not aliased. Replace its `text:` option
 with `...createTextComposition({ runtime, defaultFont? })`, then bind the returned
-capability through `createTextFlow(capability)`. The returned `text` is one ordinary
+capability through `createAtomicTextFlow(capability)` for atomic composition. The returned `text` is one ordinary
 seven-callback service using that same runtime closure; it has no `compose` method.
 There are no composition methods on universal layout contexts. Missing or different
 selected capabilities fail with `MEASUREMENT_CONTEXT` at the adapter origin.
 No service-identity lookup, automatic installation or global adapter is provided.
+
+## S1 static entry isolation
+
+Use `@updf/text/selection` for sibling-only documents. `/composition` remains a
+combined atomic + inline capability: mixed consumers may pass that **one** capability
+to all explicit factories, with one service closure/runtime and unchanged shared
+work accounting. The atomic adapter name/identity remains `updf.text-flow`.
+Root exports only `createTextFlow` and rectangle `FloatingBlockProps`; `/path`
+exports `createPathTextFlow`, full `FloatingBlockProps`, `FloatingPathProps` and
+`SideShape`; `/atomic` owns `createAtomicTextFlow`, `TextFlowProps` and exclusion types.
+There is no dynamic loader or registry. Browser entries are ESM; Node import facades
+still share the existing CJS implementations with require, not genuine Node ESM
+tree-shaking. These temporary explicit contracts precede S2's canonical migration;
+S2 is not implemented here. See [S1 evidence](../../docs/evidence/text-flow-entry-isolation.md).

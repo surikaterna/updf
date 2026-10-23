@@ -7,6 +7,8 @@ import { textFlowCostInputs } from "../../scripts/text-flow-cost-inputs.js";
 import { profileCostInput } from "../../scripts/text-flow-profile-cost-input.js";
 import { sourceIndexGraph } from "../../scripts/text-source-index-graph.js";
 import { siblingCostInput } from "../../scripts/text-flow-sibling-cost-input.js";
+import { pathCostInput } from "../../scripts/text-flow-path-cost-input.js";
+import { textFlowEntryGraph } from "../../scripts/text-flow-entry-graph.js";
 
 async function noExclusionGeometry(paths: string[], code: string) {
   const behavior = /selectionBand|glyphTop|glyphBottom|lowLeading|profileDepth|Profile retry/u;
@@ -23,8 +25,10 @@ test("emitted browser/Node graphs isolate composition and retain both opt-in pos
       ...textFlowCostInputs(),
       textFlowProfile: profileCostInput(),
       textFlowSiblings: siblingCostInput(),
+      textFlowPath: pathCostInput(),
     })) {
       const optional = profile.startsWith("textFlow");
+      const atomic = optional && !["textFlowSiblings", "textFlowPath"].includes(profile);
       const result = await build({
         stdin: { contents, resolveDir: process.cwd(), loader: "ts" },
         bundle: true,
@@ -39,14 +43,14 @@ test("emitted browser/Node graphs isolate composition and retain both opt-in pos
       const paths = Object.keys(result.metafile.inputs);
       await sourceIndexGraph(paths, result.outputFiles[0]!.text, optional);
       assert.ok(!paths.some((path) => /packages\/[^/]+\/src\//u.test(path)), "Source alias bypass");
-      checkAddon(paths, optional, `${platform}/${profile}`);
+      textFlowEntryGraph(profile, paths);
       assert.equal(
         paths.some((path) => /\/composition-band\.js$/u.test(path)),
-        optional,
+        atomic,
       );
       assert.equal(
-        paths.some((path) => /\/(?:composition-profile|profile-exclusion|profile-interpolation)\.js$/u.test(path)),
-        optional,
+        paths.some((path) => /\/(?:composition-profile|profile-exclusion)\.js$/u.test(path)),
+        atomic,
       );
       if (!optional) {
         assert.ok(!paths.some((path) => /\/composition(?:-[\w-]+)?\.js$/u.test(path)), "Feature module retained");
@@ -61,22 +65,6 @@ test("emitted browser/Node graphs isolate composition and retain both opt-in pos
     }
   }
 });
-function checkAddon(paths: string[], optional: boolean, label: string) {
-  assert.equal(
-    paths.some((path) => /packages\/text-flow\/dist\//u.test(path)),
-    optional,
-    `${label} addon`,
-  );
-  assert.equal(
-    paths.some((path) => /\/text\/dist\/(?:cjs\/)?composition\.js$/u.test(path)),
-    optional,
-    `${label} composer`,
-  );
-  assert.equal(
-    paths.some((path) => /\/text-flow\/dist\/(?:cjs\/)?sibling\.js$/u.test(path)),
-    optional,
-  );
-}
 test("text-flow edges reject loader/decoder/optional machinery and core/layout reverse imports", () => {
   packageEdge("text", "@updf/layout-boxes/numeric");
   assert.throws(() => packageEdge("text", "@updf/layout-boxes/geometry"));
@@ -86,6 +74,8 @@ test("text-flow edges reject loader/decoder/optional machinery and core/layout r
     "@updf/core/resources",
     "@updf/layout",
     "@updf/text/composition",
+    "@updf/text/selection",
+    "@updf/text/internal-interpolation",
     "@updf/layout/internal-participation",
     "@updf/layout-boxes/fragmentation",
   ])

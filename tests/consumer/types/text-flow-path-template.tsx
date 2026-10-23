@@ -2,12 +2,12 @@
 import { render } from "@updf/core";
 import { createHelvetica, fontRuntime, fontProvider } from "@updf/fonts";
 import { Document, Flow, Paragraph, layout } from "@updf/layout";
-import { createTextComposition } from "@updf/text/composition";
-import { createTextFlow, type SideShape, type FloatingPathProps } from "@updf/text-flow";
+import { createTextSelection } from "@updf/text/selection";
+import { createPathTextFlow, type SideShape, type FloatingPathProps } from "@updf/text-flow/path";
 
 const runtime = fontRuntime();
-const composition = createTextComposition({ runtime, defaultFont: "Helvetica" });
-const f = createTextFlow(composition.capability);
+const composition = createTextSelection({ runtime, defaultFont: "Helvetica" });
+const f = createPathTextFlow(composition.capability);
 const shape: SideShape = { d: "m0 0h100l-80 96h-20z", fillRule: "evenodd" };
 const path: FloatingPathProps = { d: shape.d, fill: "#3498db", style: { width: 100, height: 96, float: "right" } };
 const options = { ...composition, resources: { Helvetica: createHelvetica() }, providers: [fontProvider(runtime)] };

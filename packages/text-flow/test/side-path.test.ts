@@ -5,8 +5,8 @@ import { render, type NodeDefinition } from "@updf/core";
 import { h } from "@updf/core/vdom";
 import { layout, Paragraph, Document, Flow, pt } from "@updf/layout";
 import { sidePathDocument } from "../../../tests/fixtures/text-flow/side-path.js";
-import { siblingOptions, siblingFlow as f } from "../../../tests/fixtures/text-flow/siblings.js";
-import { protocolFixture } from "./sibling-protocol-fixture.js";
+import { siblingOptions, pathFlow as f } from "../../../tests/fixtures/text-flow/siblings.js";
+import { protocolFixture } from "./path-protocol-fixture.js";
 
 function flatten(nodes: Iterable<NodeDefinition>): NodeDefinition[] {
   return [...nodes].flatMap((node) => (node.type === "paintGroup" ? flatten(node.children) : [node]));

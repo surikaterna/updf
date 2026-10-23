@@ -7,7 +7,7 @@ import {
   type RichParagraphSource,
   type RichParagraphSelection,
 } from "@updf/layout/internal-participation";
-import type { InlineSelectionOperation } from "@updf/text/composition";
+import type { InlineSelectionOperation } from "@updf/text/selection";
 
 export interface SiblingSource {
   readonly author: ParticipationSource;

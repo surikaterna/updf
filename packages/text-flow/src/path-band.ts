@@ -2,7 +2,7 @@ import { DocumentError, fail, number, validateDataObject } from "@updf/core/inte
 import type { PathCommand } from "@updf/core/painting";
 import { parsePathData } from "@updf/geometry";
 import { bits, dyadic, successor, value } from "@updf/layout-boxes/numeric";
-import { conservativeSegmentDepth } from "@updf/text/composition";
+import { conservativeSegmentDepth } from "@updf/text/internal-interpolation";
 
 export type SideShape = "rect" | string | { readonly d: string; readonly fillRule?: "nonzero" | "evenodd" };
 export interface PathShape {

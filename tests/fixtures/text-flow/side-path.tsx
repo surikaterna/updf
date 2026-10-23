@@ -1,6 +1,6 @@
 /** @jsxImportSource @updf/core */
 import { Document, Flow, Paragraph, Span, Block } from "@updf/layout";
-import { siblingFlow as f } from "./siblings.js";
+import { pathFlow as f } from "./siblings.js";
 
 export const sidePathData = "M0 0 H100 L20 96 H0 Z";
 export function sidePathDocument(side: "left" | "right" = "left", before = 0) {

@@ -15,14 +15,14 @@ import {
   type BlockAdapterIdentity,
   type BlockUnitRequest,
 } from "@updf/layout";
-import { createTextFlow } from "@updf/text-flow";
+import { createAtomicTextFlow } from "@updf/text-flow/atomic";
 import { useOperationCapability } from "@updf/core/resources";
 import type { TextCompositionOperation } from "@updf/text/composition";
 import { compositionOptions, installation } from "../../../tests/fixtures/text-flow/options.js";
 import { rectangular } from "../../../tests/fixtures/text-flow/rectangular.js";
 
 const props = () => ({ paragraphs: rectangular("AB").paragraphs, style: { maxHeight: 100 } });
-const { TextFlow, textFlowAdapter } = createTextFlow(installation.capability);
+const { TextFlow, textFlowAdapter } = createAtomicTextFlow(installation.capability);
 const margins = { top: 0, right: 0, bottom: 0, left: 0 };
 function content(children: BlockContent, height = 40, adapters: readonly BlockAdapterIdentity[] = [textFlowAdapter]) {
   return document({

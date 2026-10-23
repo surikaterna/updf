@@ -1,0 +1,20 @@
+import { createOperationCapability } from "@updf/core/internal";
+import { serviceClosure, type TextServiceOptions } from "./service.js";
+import { inlineSelection } from "./inline-selection.js";
+import { compositionWork } from "./composition-work.js";
+export type {
+  InlineContinuation,
+  InlineSelection,
+  SelectedInlineLine,
+  InlineSelectionOperation,
+} from "./inline-selection-types.js";
+export type { TextServiceOptions } from "./service.js";
+
+/** Selection-only capability over one existing service closure and its owned fonts. */
+export function createTextSelection(options: TextServiceOptions) {
+  const { service, fonts } = serviceClosure(options);
+  return Object.freeze({
+    text: service,
+    capability: createOperationCapability((scope) => inlineSelection(scope, fonts, compositionWork(scope))),
+  });
+}

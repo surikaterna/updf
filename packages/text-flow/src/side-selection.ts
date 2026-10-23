@@ -1,5 +1,4 @@
 import { fail, MetricSum, sum } from "@updf/core/internal";
-import { bits, value } from "@updf/layout-boxes/numeric";
 import {
   compositeFragment,
   frameFits,
@@ -11,7 +10,7 @@ import {
   type PreparedBlock,
   type MeasuredParagraph,
 } from "@updf/layout/internal-participation";
-import type { PathBand } from "./path-band.js";
+import type { SideQuery } from "./side-policy.js";
 import type { SiblingSource, SiblingSources } from "./sibling-source.js";
 
 interface PositionedLine {
@@ -24,10 +23,10 @@ interface State {
   readonly height: MetricSum;
   end: number;
 }
-export function selectPathSiblings(
+export function selectSideSiblings(
   sources: SiblingSources,
   visual: PreparedBlock,
-  shape: PathBand | undefined,
+  query: SideQuery,
   side: "left" | "right",
   request: FragmentRequest,
 ) {
@@ -40,7 +39,7 @@ export function selectPathSiblings(
   if (!fragment) return undefined;
   const state: State = { lines: [], height: new MetricSum(), end: 1 };
   for (const [index, source] of sources.paragraphs.entries()) {
-    if (!selectParagraph(sources, source, index + 1, shape, side, visual.naturalSize, request.width, state)) break;
+    if (!selectParagraph(sources, source, index + 1, query, side, visual.naturalSize, request.width, state)) break;
   }
   const last = state.lines.at(-1);
   const height = Math.max(
@@ -69,7 +68,7 @@ function selectParagraph(
   sources: SiblingSources,
   source: SiblingSource,
   nextSource: number,
-  shape: PathBand | undefined,
+  query: SideQuery,
   side: "left" | "right",
   visual: { readonly width: number; readonly height: number },
   width: number,
@@ -81,11 +80,11 @@ function selectParagraph(
     const top = state.height.value;
     const continuation = source.bridge.resume(offset);
     const band = source.bridge.band(continuation, top);
-    if (clears(band.top, bottom, shape) && tailClears(sources, nextSource, top, bottom, shape)) return false;
-    const depth = shape ? shape.depth(band.top, band.bottom) : clears(band.top, bottom, shape) ? 0 : visual.width;
-    const available = shape ? remaining(width, depth) : width - depth;
+    if (query.clears(band.top, bottom) && tailClears(sources, nextSource, top, bottom, query)) return false;
+    const depth = query.depth(band.top, band.bottom);
+    const available = query.available(width, depth);
     if (available <= 0 || !source.bridge.canSelect(continuation, available)) {
-      const nextTop = !shape && top < bottom ? Math.min(bottom, band.nextTop) : band.nextTop;
+      const nextTop = query.retry(top, bottom, band.nextTop);
       state.height.add(nextTop - top);
       if (!(state.height.value > top)) fail("GEOMETRY", source.author.path, "Path retry did not progress");
       continue;
@@ -109,24 +108,15 @@ function tailClears(
   nextSource: number,
   top: number,
   bottom: number,
-  shape: PathBand | undefined,
+  query: SideQuery,
 ): boolean {
   // The owned certificate covers every remaining subset. Certify later sources too:
   // a later paragraph can have more backwards ink than the current full-width line.
   for (let i = nextSource; i < sources.paragraphs.length; i++) {
     const source = sources.paragraphs[i]!;
-    if (!clears(source.bridge.band(source.bridge.resume(0), top).top, bottom, shape)) return false;
+    if (!query.clears(source.bridge.band(source.bridge.resume(0), top).top, bottom)) return false;
   }
   return true;
-}
-function clears(top: number, bottom: number, shape: PathBand | undefined): boolean {
-  // Rectangles permit certified boundary contact; path edge queries include endpoints.
-  return shape ? top > bottom : top >= bottom;
-}
-function remaining(width: number, depth: number): number {
-  if (depth === 0) return width;
-  const n = width - depth;
-  return n <= 0 ? 0 : value(bits(n) - 1n);
 }
 function validateLine(
   measured: MeasuredParagraph,
