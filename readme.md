@@ -1,5 +1,14 @@
 # UPDF
 
+## Runtime security (CVE-2026-111497)
+
+Node development and CI use24.22.1; consumer hosts require Node24.22.1 or26.12.1 (or newer patched releases on those supported lines). The native browser runtime is outside this Node fix.
+
+See the [Node October 2026 security release](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases). Rebuild and redeploy affected images and artifacts; existing deployments and previously compiled executables are not updated by this source change.
+
+Shared patched-runtime smoke safely round-tripped HTTP `Content-Encoding: br` through native fetch on Node22.23.4,24.22.1,26.12.1 and Bun1.4.4. This is runtime evidence, not an application-suite or exploit test.
+
+
 A micro, portable PDF engine built around **immutable declarative data, typed
 reusable templates and native TSX**, with optional feature adapters kept outside
 the core runtime. Node and browsers use the same synchronous `Uint8Array` engine.
