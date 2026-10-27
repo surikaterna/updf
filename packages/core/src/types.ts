@@ -14,6 +14,11 @@ export interface RichTextNode extends Box {
   readonly type: "richText";
   readonly paragraphs: readonly ParagraphDefinition[];
 }
+/** Sealed native selection issued by a checked operation capability, with no nested children. */
+export interface NativeLeafNode extends Box {
+  readonly type: "nativeLeaf";
+  readonly payload: object;
+}
 
 /** Named normalized unit-square XObject, stretched to an explicit point box. Use groups for transforms/clips. */
 export interface XObjectNode extends Box {
@@ -38,7 +43,14 @@ export interface LineNode extends Painting {
 /** Recursive native drawing container with local transform/clip, without style inheritance. */
 export type PaintingGroupNode = PaintGroup<NodeDefinition>;
 /** Supported fixed-page drawing data; arbitrary objects and unknown keys are rejected. */
-export type NodeDefinition = RichTextNode | RectangleNode | LineNode | PathNode | PaintingGroupNode | XObjectNode;
+export type NodeDefinition =
+  | RichTextNode
+  | NativeLeafNode
+  | RectangleNode
+  | LineNode
+  | PathNode
+  | PaintingGroupNode
+  | XObjectNode;
 
 /** Positive page dimensions in points; children paint in array order within page bounds. */
 export interface PageDefinition {
@@ -70,6 +82,7 @@ export type DiagnosticCode =
   | "VDOM_REGISTRY"
   | "VDOM_COMPONENT"
   | "MEASUREMENT_CONTEXT"
+  | "PHASE"
   | "LAYOUT_OVERSIZED"
   | "FONT_DATA"
   | "FONT_RESOURCE"

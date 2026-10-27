@@ -9,6 +9,8 @@ import { beginExpansion } from "./progress.js";
 import { type SemanticRecipe, semanticRecipe } from "./recipes.js";
 import type { State } from "./state.js";
 import { Fragment, type Key } from "./types.js";
+import { checkState } from "./lifetime.js";
+import { ownDataValue } from "../core/data.js";
 
 export interface NormalizedContent {
   readonly key?: Key;
@@ -28,9 +30,63 @@ interface ContentScope {
 }
 const scopes = new WeakMap<object, ContentScope>();
 const depths = new WeakMap<State, number>();
+interface CapturedChildren {
+  readonly state: State;
+  readonly nodes: readonly NormalizedContent[];
+}
+const capturedChildren = new WeakMap<object, CapturedChildren>();
+const childInputs = new WeakMap<object, object>();
+
+/** Only declared layout owners expose children; opaque adapter props are never traversed. */
+export function contentChildren(node: NormalizedContent): unknown {
+  return (
+    childInputs.get(node) ??
+    (typeof node.value === "string" ? undefined : ownDataValue(node.value.props, "children", `${node.path}/children`))
+  );
+}
+
+export function captureChildren(node: NormalizedContent, state: State, nodes: readonly NormalizedContent[]): void {
+  checkState(state, node.path);
+  if (state.preparation !== "capturing" || !node.scope || scopes.get(node.scope)?.state !== state)
+    fail("MEASUREMENT_CONTEXT", node.path, "Expected capturing operation scope");
+  if (childInputs.has(node)) fail("MEASUREMENT_CONTEXT", node.path, "Children already captured");
+  const handle = Object.freeze(Object.create(null)) as object;
+  capturedChildren.set(handle, { state, nodes });
+  childInputs.set(node, handle);
+}
+
+export function replaceCapturedRecipe(node: NormalizedContent, state: State, recipe: SemanticRecipe): void {
+  if (state.closed || state.preparation !== "suspended" || !node.scope || scopes.get(node.scope)?.state !== state)
+    fail("MEASUREMENT_CONTEXT", node.path, "Expected suspended owned recipe");
+  if (node.children.length || Object.isFrozen(node))
+    fail("MEASUREMENT_CONTEXT", node.path, "Expected mutable captured leaf");
+  Object.defineProperty(node, "value", { value: recipe });
+}
+
+function consumeChildren(input: unknown, state: State, guard?: ContentGuard): readonly NormalizedContent[] | undefined {
+  const captured = input && typeof input === "object" ? capturedChildren.get(input) : undefined;
+  if (!captured) return undefined;
+  checkState(state);
+  if (captured.state !== state) fail("MEASUREMENT_CONTEXT", "", "Foreign captured children");
+  const pending = captured.nodes.map((node) => ({ node, parent: undefined as object | undefined })).reverse();
+  while (pending.length) {
+    const entry = pending.pop();
+    if (!entry) continue;
+    const { node, parent } = entry;
+    work(state.budget, 1, node.path);
+    guard?.(node.value, node.path, parent);
+    if (typeof node.value === "string") continue;
+    for (let i = node.children.length - 1; i >= 0; i--) {
+      const child = node.children[i];
+      if (child) pending.push({ node: child, parent: node.value.identity });
+    }
+  }
+  return captured.nodes;
+}
 export function withContentScope<T>(scope: object, state: State, invoke: () => T): T {
   const captured = scopes.get(scope);
-  if (!captured || captured.state !== state || state.closed) fail("MEASUREMENT_CONTEXT", "", "Invalid content scope");
+  checkState(state);
+  if (!captured || captured.state !== state) fail("MEASUREMENT_CONTEXT", "", "Invalid content scope");
   const previous = state.environment;
   const depth = depths.get(state) ?? 0;
   const active = new Set(state.active);
@@ -72,7 +128,10 @@ export function normalizeContent(
   native?: DataRecipe,
   numeric?: boolean,
   deferChildren?: object,
-): NormalizedContent[] {
+): readonly NormalizedContent[] {
+  checkState(state, path);
+  const captured = consumeChildren(input, state, guard);
+  if (captured) return captured;
   const result: NormalizedContent[] = [];
   const walk: WalkState = {
     state,
@@ -96,7 +155,7 @@ export function normalizeScoped(
   native?: DataRecipe,
   numeric?: boolean,
   deferChildren?: object,
-): NormalizedContent[] {
+): readonly NormalizedContent[] {
   const environment = state.environment,
     count = state.expansions.length,
     active = new Set(state.active);
@@ -118,6 +177,7 @@ function visit(
   parent?: object,
 ): void {
   const { state, tasks } = walk;
+  if (state.preparation) checkState(state, path);
   checkLimit(depth, state.budget.policy.depth, path, "Content depth");
   work(state.budget, 1, path);
   if (typeof input === "number" && walk.numeric && parent === undefined) {
@@ -166,7 +226,8 @@ function descend(
       next(enterProvider(input, walk.state).children, `${path}/provider`);
       return;
     }
-    const recipe = semanticRecipe(input);
+    const original = semanticRecipe(input);
+    const recipe = original && (walk.state.prepareRecipe?.(original, path, depth) ?? original);
     if (recipe) {
       walk.guard?.(recipe, path, parent);
       appendRecipe(recipe, path, depth, target, next, walk, input.key);
@@ -183,7 +244,9 @@ function descend(
     next(expand(input, walk.state, path), `${path}/expanded`);
     return;
   }
-  const recipe = walk.data(input, path);
+  const data = walk.data(input, path);
+  const original = walk.state.captureRecipe?.(data, path, depth) ?? data;
+  const recipe = walk.state.prepareRecipe?.(original, path, depth) ?? original;
   walk.guard?.(recipe, path, parent);
   appendRecipe(recipe, path, depth, target, next, walk);
 }
@@ -213,7 +276,7 @@ function appendRecipe(
   const children: NormalizedContent[] = [];
   const scope = Object.freeze({});
   const continuation =
-    recipe.identity === walk.deferChildren
+    recipe.identity === walk.deferChildren || (walk.state.preparation === "capturing" && recipe.opaque)
       ? { depth: depth + 1, active: new Set(walk.state.active), expansions: walk.state.expansions.slice() }
       : undefined;
   scopes.set(scope, {
@@ -222,6 +285,6 @@ function appendRecipe(
     ...(continuation ? { continuation } : {}),
   });
   target.push({ value: recipe, path, children, scope, ...(key === undefined ? {} : { key }) });
-  if (!recipe.opaque && recipe.identity !== walk.deferChildren && "children" in recipe.props)
-    next(recipe.props.children, `${path}/children`, children, recipe.identity);
+  if (!recipe.opaque && recipe.identity !== walk.deferChildren && Object.hasOwn(recipe.props, "children"))
+    next(ownDataValue(recipe.props, "children", `${path}/children`), `${path}/children`, children, recipe.identity);
 }

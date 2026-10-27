@@ -58,7 +58,7 @@ export function page(props: PageProps): PageContent {
 }
 /** Snapshot a paginated section with point dimensions/margins and local extensions. */
 export function flow(props: FlowProps): FlowContent {
-  validateDataObject(props, ["pageSize", "orientation", "margins", "children", "extensions"], "/flow");
+  validateDataObject(props, ["pageSize", "orientation", "margins", "children", "extensions", "participation"], "/flow");
   return ownContentData(contentSnapshot({ type: "flowSection" as const, props }, "/flow"));
 }
 /** Snapshot a repeated header with a positive point reservation, finalized after pagination. */

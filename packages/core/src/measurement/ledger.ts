@@ -26,5 +26,13 @@ export function inputNode(ledger: WorkLedger, owner: object, path: string): void
   ledger.inputs.add(owner);
 }
 export function ledger(limits: Policy = policy(), logicalText = true): WorkLedger {
-  return { units: 0, chars: 0, nodes: 0, policy: limits, texts: new WeakMap(), inputs: new WeakSet(), logicalText };
+  return {
+    units: 0,
+    chars: 0,
+    nodes: 0,
+    policy: limits,
+    texts: new WeakMap(),
+    inputs: new WeakSet(),
+    logicalText,
+  };
 }

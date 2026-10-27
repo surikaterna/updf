@@ -6,6 +6,11 @@ import { blockBodyIdentity, blockFooterIdentity, blockHeaderIdentity } from "./d
 import { pageBreakIdentity, pageBreakProps } from "./page-break.js";
 import { columnIdentity, rowIdentity } from "./row-data.js";
 
+/** Captured canonical Block children retain their root parent without replacing descendant roles. */
+export function checkBlockChildRole(value: string | SemanticRecipe, path: string, parent: object | undefined): void {
+  checkRole(value, path, parent ?? blockIdentity);
+}
+
 export function checkRole(value: string | SemanticRecipe, path: string, parent: object | undefined): void {
   const inline = parent === paragraphIdentity || parent === spanIdentity;
   if (typeof value === "string") {

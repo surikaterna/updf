@@ -2,10 +2,21 @@ import assert from "node:assert/strict";
 import { mkdir, readFile } from "node:fs/promises";
 import { chromium, type Page } from "playwright";
 import { preview } from "vite";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+
+/** Keep preview and artifact assertions on the same optional isolated build. */
+export function showcaseOutput(path = ""): URL {
+  const directory = process.env.SHOWCASE_OUT_DIR
+    ? pathToFileURL(`${resolve(process.env.SHOWCASE_OUT_DIR)}/`)
+    : new URL("../../apps/showcase/dist/", import.meta.url);
+  return new URL(path, directory);
+}
 
 export async function site() {
   const server = await preview({
     configFile: new URL("../../apps/showcase/vite.config.ts", import.meta.url).pathname,
+    ...(process.env.SHOWCASE_OUT_DIR ? { build: { outDir: process.env.SHOWCASE_OUT_DIR } } : {}),
     preview: { host: "127.0.0.1", port: 0 },
   });
   try {

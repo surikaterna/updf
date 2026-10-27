@@ -5,6 +5,7 @@ import type { Insets } from "./container-types.js";
 import type { BlockContent } from "./content-types.js";
 import type { Extensions } from "./extension-types.js";
 import type { Orientation, PageDimensions } from "./page-size.js";
+import type { FlowParticipation } from "./participation.js";
 
 /** Fixed drawing page, not flowing block content; dimensions are positive finite points. */
 export interface PageProps {
@@ -15,6 +16,8 @@ export interface PageProps {
 }
 /** Paginated block section; explicit nonnegative point margins must leave a positive body. */
 export interface FlowProps {
+  /** Optional locally owned sibling compiler; omission retains ordinary compilation. */
+  readonly participation?: FlowParticipation;
   readonly pageSize: PageDimensions;
   readonly orientation?: Orientation;
   readonly margins: Insets;

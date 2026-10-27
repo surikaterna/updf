@@ -10,6 +10,7 @@ import {
   type XObjectSite,
 } from "@updf/core/resources";
 import { decode, type Image, type PngMetadata } from "./decode.js";
+import { images } from "./image-owner.js";
 import { parse } from "./parser.js";
 import { sourceBytes } from "./source.js";
 import { checkAbort, preparationSignal, type PreparePngOptions } from "./options.js";
@@ -17,7 +18,6 @@ import { checkAbort, preparationSignal, type PreparePngOptions } from "./options
 export type { PngMetadata } from "./decode.js";
 export type { PngSignal, PreparePngOptions } from "./options.js";
 export type PngResource = OwnedResource & { readonly metadata: PngMetadata };
-const images = new WeakMap<OwnedResource, Image>();
 
 /** Own, validate and decode a bounded PNG. No host IO or caller-owned storage is retained. */
 export async function preparePng(source: Uint8Array, options: PreparePngOptions = {}): Promise<PngResource> {

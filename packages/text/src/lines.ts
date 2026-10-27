@@ -1,6 +1,7 @@
 import { fail, finite, number } from "@updf/core/internal";
 import type { TextRun } from "@updf/core/resources";
 import { exceeds, MetricSum, sum } from "./arithmetic.js";
+import { lineBaseline, lineLeading } from "./baseline.js";
 import { horizontal, horizontalOrigin } from "./horizontal.js";
 import { type WorkLedger, work } from "./ledger.js";
 import type { LineEnvelope } from "./line-height.js";
@@ -123,16 +124,17 @@ export function line(
   path: string,
   autoHeight = false,
   layout?: LineEnvelope,
+  origin = 0,
 ): RichLine {
   const grouped = groups(wrapped.atoms, budget, path);
   const total = advance(wrapped.atoms);
-  const x = horizontalOrigin(horizontal(wrapped.atoms), width, paragraph.align);
+  const x = origin + horizontalOrigin(horizontal(wrapped.atoms), width, paragraph.align);
   const offset = new MetricSum();
   const [ascent, descent] = layout
     ? [layout.above, layout.below]
     : envelope(wrapped, paragraph, fonts, path, autoHeight);
   const height = layout ? layout.height : lineHeight(wrapped, paragraph, autoHeight, ascent, descent);
-  const baseline = layout ? top + ascent : top + ascent + (height - sum([ascent, descent])) / 2;
+  const baseline = layout ? top + ascent : lineBaseline(top, ascent, lineLeading(height, ascent, descent));
   if (layout) validateLineGeometry(top, height, baseline, path);
   const fragments = grouped.map((atoms) => {
     const result = fragment(atoms, x + offset.value, baseline, fonts, path);
@@ -141,7 +143,7 @@ export function line(
     if (layout && !bounds.empty)
       for (const edge of [bounds.left, bounds.right, bounds.top, bounds.bottom]) finite(edge, path);
     const leftScale = paragraph.align === "left" ? Math.max(result.x, result.advance, result.style.fontSize) : width;
-    if (!bounds.empty && (exceeds(-bounds.left, 0, leftScale) || exceeds(bounds.right, width)))
+    if (!bounds.empty && (exceeds(origin - bounds.left, 0, leftScale) || exceeds(bounds.right, origin + width)))
       fail("FONT_INK", atoms[0]?.path ?? path, "Rich glyph ink exceeds width; adjust alignment/box");
     return result;
   });

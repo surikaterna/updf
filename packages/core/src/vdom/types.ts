@@ -2,7 +2,15 @@ import type { ContentHandle } from "../core/content-ownership.js";
 import type { OwnedResource } from "../core/owned-resource.js";
 import type { OperationOptions } from "../core/policy.js";
 import type { TextMeasurement, TextMeasurementInput } from "../measurement/types.js";
-import type { LineNode, PaintingGroupNode, PathNode, RectangleNode, RichTextNode, XObjectNode } from "../types.js";
+import type {
+  LineNode,
+  PaintingGroupNode,
+  PathNode,
+  NativeLeafNode,
+  RectangleNode,
+  RichTextNode,
+  XObjectNode,
+} from "../types.js";
 
 /** Transparent child grouping; use through h or JSX to obtain an owned node. */
 export const Fragment = (props: { readonly children?: VDOMChild }): VDOMChild => props.children;
@@ -47,6 +55,7 @@ export interface NativeProps {
   page: { readonly width: number; readonly height: number; readonly children: VDOMChild };
   group: { readonly x?: number; readonly y?: number; readonly children: VDOMChild };
   richText: Omit<RichTextNode, "type">;
+  nativeLeaf: Omit<NativeLeafNode, "type">;
   rect: Omit<RectangleNode, "type">;
   line: Omit<LineNode, "type">;
   path: Omit<PathNode, "type">;

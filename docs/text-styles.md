@@ -186,7 +186,10 @@ const content = <Block style={{ backgroundColor: [0.9, 0.96, 1], padding: 4,
 </Block>;
 ```
 
-Install `tableExtension` explicitly in the containing Flow/measurement extensions.
+Create the local adapter set with `createExtensions([tableExtension])` and pass it
+as the containing `Flow.extensions` or measurement `ContentOptions.adapters`.
+Operation `options.extensions` is a separate ordinary array of central extension
+descriptors, not a table adapter set; it does not globally install table adapters.
 For branding, read an application-owned `Theme` via `useContext(Theme)` and apply
 its typed values to these styles explicitly, as in the mixed showcase. A provider
 alone does not restyle anything. Border policy is documented below; grid-only

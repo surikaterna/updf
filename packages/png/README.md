@@ -85,6 +85,54 @@ Repeated aliases, placements and pages share one image/mask pair per handle;
 separately prepared equal bytes remain separate identities. Unused handles emit
 no objects. A provider is reusable, deterministic and operation-local.
 
+## Optional 16-bit normalization eligibility
+
+`@updf/png/normalization` separately exports
+`preparePngNormalization(source, { signal? })`. It validates **only 16-bit**,
+non-interlaced grayscale, RGB, grayscale-alpha and RGBA PNGs. This optional profile
+also accepts the specific gamma/chromaticity declarations below; native preparation
+does not. Indexed 16-bit PNGs, ICC, APNG,
+unknown chunks and nonstandard methods still reject; this is not a browser fallback
+for arbitrary PNG profiles. Optional truecolor PLTE and full-range 16-bit tRNS
+samples are allowed where legal. All source CRCs, ordering, zlib/Adler framing,
+exact decoded scanline length and every row filter are validated before return.
+The same source/chunk/pixel/read limits apply; the 64 MiB scanline bound includes
+**two bytes per sample**. Validation inflates bounded scanlines, but does not
+unfilter pixels, allocate color/alpha planes or invoke an encoder.
+
+Optional singleton `gAMA` (4 bytes) and `cHRM` (32 bytes) must precede both PLTE
+and IDAT, in any order relative to each other or `sRGB`. All integers are exact
+big-endian PNG four-byte unsigned integers (0…2147483647). Eligibility additionally
+requires positive gamma and, for each white/red/green/blue xy pair, x in 0…100000,
+y in 1…100000 and x+y ≤ 100000. **These are conservative profile restrictions,
+not a complete normative PNG validity predicate**, gamut test or conversion engine.
+With `sRGB`, any gamma must be exactly 45455 and any chromaticities must be exactly
+`[31270,32900,64000,33000,30000,60000,15000,6000]`; neither companion is required.
+Contradictions reject `PNG_DATA` regardless of declaration order, even though a
+browser might ignore lower-priority declarations. Length, CRC, duplicate, placement
+and high-bit integer failures also use `PNG_DATA`; zero gamma or out-of-profile xy
+coordinates use `PNG_PROFILE`. No metadata is stripped before original validation.
+See [PNG Third Edition](https://www.w3.org/TR/2025/REC-png-3-20250624/), §3,
+§5.6, §11.3.2.1–2, §11.3.2.5 Table 17 and §4.3 precedence.
+
+The result is a frozen `{ bytes, metadata }` record. `bytes` is a fresh,
+caller-owned `Uint8Array` copied **before the first suspension**. The property is
+readonly; its elements are **not immutable**. Frozen metadata describes the source:
+`{ kind: 'png', width, height, bitDepth: 16, colorType: 0 | 2 | 4 | 6, alpha }`.
+It is not `PngMetadata`, a `PngResource`, a resource-budget charge or a paint
+certificate. No native 16-bit decoding or browser conversion is implemented.
+
+A future normalizer must validate privately and decode **that returned copy**, not
+the original caller input after an await. It must not trust an externally mutated
+result, and any converted 8-bit output must still pass ordinary `preparePng` before
+publishing a native resource. The root PNG entry does not re-export this capability;
+ordinary `preparePng` still rejects 16-bit IHDRs immediately, as before. Neither
+entry invokes image/canvas/browser host APIs. The normalization entry reuses native
+compression-stream platform requirements, strict options and cancellation behavior.
+Any future browser conversion promises browser-rendered 8-bit RGBA with alpha
+preserved and no resizing, not bit-exact 16-bit samples, lossless conversion or
+cross-engine pixel identity. Color declarations remain in the validated snapshot.
+
 ## Limits and errors
 
 Before allocation/decompression: 8 MiB source, 4096 chunks, 16,000,000 pixels,
@@ -159,3 +207,14 @@ These include the native stream adapter, bounds, cancellation and platform check
 they are not additive package sizes. No image payloads or showcase UI are included.
 Baseline PNG source: `960e9d4` (also present unchanged in font stack `aade3cb`).
 Reproduce with `npx tsx scripts/png-cost.ts [built-baseline-worktree]`.
+# Optional alpha inspection
+
+`@updf/png/alpha` exports `readPngAlpha(resource, options?)` for exact owned
+prepared-PNG handles. It returns frozen intrinsic width/height metadata with either
+`kind: "opaque"` (all 255) or `kind: "alpha"` and an independently owned, mutable
+`bytes: Uint8Array`. Options are a structural `signal` and a lower-only `maxPixels`
+(default/ceiling `alphaLimit = 16_000_000`). Omit absent options/fields; explicit
+undefined/null is invalid. Inspection performs one additional bounded soft-mask
+inflation, not source/RGB decoding, and changes neither resource accounting nor PDF
+bytes. It does not retain raw alpha on the resource. The ordinary root does not
+import/re-export this leaf. See [S7a contracts and evidence](../../docs/evidence/png-alpha-shapes.md).

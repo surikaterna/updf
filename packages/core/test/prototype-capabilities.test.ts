@@ -45,7 +45,10 @@ for (const descriptor of [getter, inherited]) {
   for (const key of Object.keys(createTextService({ runtime: fontRuntime() }))) {
     const text = { ...createTextService({ runtime: fontRuntime() }) };
     delete text[key];
-    contaminated(key, descriptor, () => missing(() => operation({ text }), "/options/text/" + key));
+    contaminated(key, descriptor, () => {
+      if (key === "provide") assert.equal(operation({ text }).fonts.service.provide, undefined);
+      else missing(() => operation({ text }), "/options/text/" + key);
+    });
   }
   contaminated("byteLength", descriptor, () => assert.equal(ownedResourceBytes(createOwnedResource({})), 0));
   contaminated("slot", descriptor, () =>

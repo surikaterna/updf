@@ -109,7 +109,7 @@ test("baseline-bottom inline metrics and clipping preserve meet/slice/none seman
   const result = measure(
     paragraph({ children: svgInline(prepared, { width: 40, height: 20 }) }),
     { width: 100 },
-    { extensions },
+    { adapters: extensions },
   );
   assert.equal(result.lines[0]?.baseline, 20);
   assert.equal(result.lines[0]?.fragments[0]?.advance, 40);

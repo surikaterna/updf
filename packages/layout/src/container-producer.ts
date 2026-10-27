@@ -1,7 +1,8 @@
 import { exceeds, fail, sum } from "@updf/core/internal";
 import { derivedAxis } from "./axis.js";
 import { paintContainerSteps } from "./container-paint.js";
-import { prepareContainerPlacements } from "./container-placement.js";
+import { prepareContainerPlacements, containerChildOrigin } from "./container-placement.js";
+import { liftDirectVisualReference } from "./visual-reference.js";
 import { containerReservation, reserveAncestors } from "./container-reservation.js";
 import { fragmentGeometry } from "./fragment-paint-preparation.js";
 import type { AncestorReservation, FragmentCall, FragmentRequest, PlacedFragment, PreparedBlock } from "./protocol.js";
@@ -13,6 +14,13 @@ import { frameFits, selectionContext } from "./selection-request.js";
 function contentCapacity(box: Sizing, height: number, path: string): number {
   if (height <= box.vertical) return 0;
   return derivedAxis(box.inset.top, height - box.inset.bottom, path).capacity;
+}
+/** Metric content dimension; native contentCapacity is a separate certificate. */
+export function definiteContentHeight(box: Sizing, path: string): number | undefined {
+  if (box.style.height === undefined) return undefined;
+  const height = clamp(box.style.height, box.style.minHeight, box.style.maxHeight);
+  if (height < box.vertical) fail("GEOMETRY", path, "Height cannot erase padding/border reservations");
+  return height - box.vertical;
 }
 function* splittable(
   box: Sizing,
@@ -192,5 +200,6 @@ export function containerProducer(
         ? atomic(box, content, height, hidden, request, path, contentAlignment)
         : splittable(box, content, request, path),
   };
+  if (children.length === 1) liftDirectVisualReference(children[0]!, prepared, containerChildOrigin(box));
   return prepared;
 }

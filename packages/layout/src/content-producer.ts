@@ -1,5 +1,5 @@
 import type { NodeDefinition } from "@updf/core";
-import { MetricSum, sum } from "@updf/core/internal";
+import { fail, MetricSum, sum } from "@updf/core/internal";
 import type { OutputBudget } from "./budget.js";
 import { reserveAncestors } from "./container-reservation.js";
 import type { MeasuredParagraph } from "./content-paragraph.js";
@@ -33,7 +33,7 @@ export function contentProducer(
       const selected = selectParagraph(fragments, source, unitSelectionRequest(request));
       if (!selected || !selected.units.length) return undefined;
       if (!measured.lines.length) return { geometry: emptyGeometry, nextOffset: 1, height: 0, paint: () => [] };
-      return fragment(
+      return paragraphFragment(
         measured,
         keep ? { ...request, offset: 0 } : request,
         path,
@@ -43,7 +43,7 @@ export function contentProducer(
     },
   };
 }
-function fragment(
+export function paragraphFragment(
   measured: MeasuredParagraph,
   request: FragmentRequest,
   path: string,
@@ -55,6 +55,7 @@ function fragment(
   const intervals: (GeneratedInterval | undefined)[] = [];
   const parts = [];
   for (let index = request.offset; index < end; index++) {
+    if (measured.lineOffsets) appendGap(measured.lineOffsets[index]!, height, sequence, path);
     const line = measured.lines[index]!;
     reserveAncestors(request.reserve, request.budget, request.state, sum([height.value, line.height]));
     chargeBackground(measured, index, request.budget, path);
@@ -81,6 +82,15 @@ function fragment(
     },
     intervals.filter((interval): interval is GeneratedInterval => interval !== undefined),
   );
+}
+function appendGap(top: number, height: MetricSum, sequence: ReturnType<typeof generatedIntervals>, path: string) {
+  if (top < height.value || !Number.isFinite(top)) fail("GEOMETRY", path, "Invalid positioned line offset");
+  const gap = top - height.value;
+  if (gap > 0) {
+    sequence.append(gap, path);
+    height.add(gap);
+  }
+  if (height.value !== top) fail("GEOMETRY", path, "Positioned line offset loses its exact certificate");
 }
 function paintLines(
   measured: MeasuredParagraph,

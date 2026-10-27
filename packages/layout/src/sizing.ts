@@ -38,7 +38,8 @@ function rgb(value: unknown, path: string): void {
 export function clamp(value: number, min: number | undefined, max: number | undefined): number {
   return Math.max(min ?? 0, Math.min(value, max ?? value));
 }
-export function sizing(input: unknown, available: number, path: string): Sizing {
+/** Syntax/domain validation is independent of the eventual bounded layout region. */
+export function validateBlockStyle(input: unknown, path: string) {
   const value = input === undefined ? {} : input;
   record(value, keys, path);
   for (const key of keys.slice(0, 6)) if (key in value) number(value[key], `${path}/${key}`, key === "width");
@@ -60,6 +61,10 @@ export function sizing(input: unknown, available: number, path: string): Sizing 
   if ("backgroundColor" in style) rgb(style.backgroundColor, `${path}/backgroundColor`);
   for (const key of ["padding", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft"] as const)
     if (key in style) number(style[key], `${path}/${key}`);
+  return { style, borders, gap: number("gap" in style ? style.gap : 0, path) };
+}
+export function sizing(input: unknown, available: number, path: string): Sizing {
+  const { style, borders, gap } = validateBlockStyle(input, path);
   const padding = style.padding ?? 0;
   const inset = {
     top: sum([style.paddingTop ?? padding, borders.borderTop?.width ?? 0]),
@@ -78,6 +83,6 @@ export function sizing(input: unknown, available: number, path: string): Sizing 
     inset,
     contentWidth: horizontal.capacity,
     vertical: sum([inset.top, inset.bottom]),
-    gap: number("gap" in style ? style.gap : 0, path),
+    gap,
   };
 }

@@ -87,7 +87,12 @@ Empty/overridden-away Span styles still validate, but an empty Span creates no
 glyph/run reservation. Font/style diagnostics map to original Span attributes;
 character diagnostics retain the original string's UTF16 range.
 
-`measure(content, { width, height? }, { resources?, text?, providers?, profile?, limits?, extensions? })`
+`measure(content, { width, height? }, options?: ContentOptions)` accepts
+`ContentOptions` from `@updf/layout`: resource/service/policy options
+(`resources`, `text`, `capability`, `providers`, `profile`, `limits`), an optional
+`adapters` owned adapter set, and an optional `extensions` ordinary array of central
+operation-extension descriptors. `adapters` and `extensions` are distinct inputs;
+`createExtensions(...)` returns an adapter set, not a descriptor array. Measurement
 returns a deeply frozen, JSON-portable readonly value:
 
 - `size`: unpaginated natural border-box width/height, in PDF points;
@@ -149,7 +154,7 @@ const square = defineInlineAdapter<{ height: number }>({
 });
 const extensions = createExtensions([square]);
 const content = paragraph({ children: ['Before ', inline(square, { height: 24 }), ' after'] });
-const metrics = measure(content, { width: 180 }, { ...options, extensions });
+const metrics = measure(content, { width: 180 }, { ...options, adapters: extensions });
 ```
 
 `defineInlineAdapter<P>` captures its definition; `inline(adapter, props)` captures
@@ -157,7 +162,11 @@ props without freezing callers. The same owned `createExtensions` scope accepts
 block and inline adapters, validates duplicate names/identities and is local to an
 operation. An inline descriptor cannot be serialized/forged or used as a block.
 `defineBlockAdapter` and `defineInlineAdapter` remain the advanced dynamic callback
-paths. Both use the same operation-local extension scope. For already-known native
+paths. Supply that set as `ContentOptions.adapters` for measurement or as
+`Flow.extensions` for that Flow's local adapters; neither installs central operation
+extensions. Operation `options.extensions` instead accepts an ordinary descriptor
+array (for example `[textFlow()]`), not the set returned by `createExtensions`.
+Both adapter paths use the same operation-local adapter scope. For already-known native
 geometry, use `fixed({ width?, height, children })` as a block or
 `nativeInline({ advance, ascent, descent?, nodes })` inside a paragraph: neither
 requires installation. Native inline nodes use local top-left coordinates and the

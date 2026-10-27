@@ -2,10 +2,24 @@ import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import { isBuiltin } from "node:module";
 import { join } from "node:path";
-import { packageEdge } from "./package-edges.js";
+import * as edges from "./package-edges.js";
+import { resourceExports } from "./resource-exports.js";
 export { packageEdge } from "./package-edges.js";
-
 export const internalImporters: Readonly<Record<string, readonly string[]>> = {
+  "@updf/layout/internal-visual": ["images/src/visual.ts", "images/src/capture.ts"],
+  "@updf/layout/internal-preparation": [
+    "images/src/load.ts",
+    "images/src/load-session.ts",
+    "images/src/format-handler.ts",
+    "images/src/cache-backend.ts",
+    "images/src/cache-owner.ts",
+    "images/src/cache-subscriber.ts",
+    "images/src/prepared-job.ts",
+  ].concat(["images/src/internal-preparation.ts", "text-flow/src/png-alpha.ts", "text-flow/src/png-alpha-session.ts"]),
+  "@updf/images/internal-preparation": ["text-flow/src/png-alpha-session.ts", "text-flow/src/png-alpha.ts"],
+  "@updf/layout/internal-visual-owner": ["text-flow/src/component-owner.ts", "text-flow/src/index.ts"],
+  "@updf/layout/internal-participation": edges.participationImporters,
+  "@updf/core/internal-preparation": ["layout/src/internal-preparation.ts", "layout/src/preparation-content.ts"],
   "@updf/core/internal-drawing": [
     "svg/src/bridge.ts",
     "layout/src/mixed-layout.ts",
@@ -14,9 +28,39 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/region-render.ts",
   ],
   "@updf/core/internal": [
+    ...edges.manualShapeImporters,
+    "layout/src/internal-preparation.ts",
+    "layout/src/preparation-content.ts",
+    "layout/src/preparation-resource.ts",
+    "layout/src/preparation-signal.ts",
+    "images/src/index.ts",
+    "images/src/visual.ts",
+    "images/src/source.ts",
+    "images/src/load.ts",
+    "images/src/load-session.ts",
+    "images/src/load-options.ts",
+    "images/src/format-handler.ts",
+    "images/src/capture.ts",
+    "images/src/binding.ts",
+    "images/src/placement.ts",
+    "images/src/cache.ts",
+    "images/src/cache-backend.ts",
+    "images/src/cache-owner.ts",
+    "images/src/cache-subscriber.ts",
+    "images/src/prepared-job.ts",
+    "layout/src/visual-content-height.ts",
+    "layout/src/visual-preparation-state.ts",
+    "layout/src/visual-preparation.ts",
+    ...edges.sidePathImporters,
+    "layout/src/participation.ts",
+    "layout/src/source-provenance.ts",
+    "text-flow/src/sibling.ts",
+    "text-flow/src/sibling-source.ts",
+    "text-flow/src/sibling-selection.ts",
     "barcodes/src/checks.ts",
     "layout/src/adapter-ownership.ts",
     "layout/src/adapter-content.ts",
+    "layout/src/internal-visual.ts",
     "layout/src/emission-nodes.ts",
     "layout/src/author-parts.ts",
     "layout/src/adapter-decorations.ts",
@@ -30,10 +74,14 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/content-block-parts.ts",
     "layout/src/content-style.ts",
     "layout/src/content-paragraph.ts",
+    "layout/src/content-paragraph-output.ts",
+    "layout/src/content-inline-selection.ts",
     "layout/src/content-producer.ts",
     "layout/src/content-measure.ts",
     "layout/src/natural-paint.ts",
     "layout/src/fragment-paint-preparation.ts",
+    "layout/src/fragment-slot.ts",
+    "layout/src/fragment-state.ts",
     "layout/src/inline-adapters.ts",
     "layout/src/inline-background.ts",
     "layout/src/vdom.ts",
@@ -121,28 +169,42 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "fonts/src/provider.ts",
     "fonts/src/runtime.ts",
     "text/src/inline.ts",
+    "text/src/inline-selection.ts",
+    "text/src/inline-selection-input.ts",
+    "text/src/inline-band.ts",
+    "text/src/inline-band-interval.ts",
+    "text/src/composition-operation.ts",
+    "text/src/composition-output.ts",
+    "text/src/composition-plan.ts",
+    "text/src/composition-exclusion.ts",
+    "text/src/composition-band.ts",
+    "text/src/exclusion.ts",
+    "text/src/profile-exclusion.ts",
+    "text/src/composition-profile.ts",
     "text/src/line-height.ts",
     "text/src/lines.ts",
     "text/src/measure.ts",
     "text/src/source.ts",
+    "text/src/source-index.ts",
     "text/src/validate.ts",
     "text/src/wrap.ts",
+    "text/src/wrap-selector.ts",
+    "text/src/indexed-selector.ts",
     "text/src/ledger.ts",
     "text/src/service.ts",
+    "text/src/service-request.ts",
     "text/src/measurer.ts",
     "text/src/text-resources.ts",
     "text/src/runtime-output.ts",
     "text/src/index.ts",
-  ],
+  ].concat(["layout/src/preparation-service.ts", "images/src/source-error.ts", "layout/src/visual-reference.ts"]),
   "@updf/geometry/internal": ["svg/src/numbers.ts"],
   "@updf/layout-boxes/internal-fragmentation": ["layout/src/measured-source.ts"],
 };
-
 export function allowedInternal(file: string, specifier: string): void {
   const allowed = internalImporters[specifier];
   assert.ok(allowed?.includes(file), `Forbidden internal importer: ${file} -> ${specifier}`);
 }
-
 export function internalExports(text: string, expected: readonly string[]): void {
   const names = [...text.matchAll(/export (?:type )?\{([^}]+)\}/gu)].flatMap((match) =>
     (match[1] ?? "")
@@ -153,7 +215,6 @@ export function internalExports(text: string, expected: readonly string[]): void
   assert.deepEqual(names.sort(), [...expected].sort(), "Internal export inventory expanded");
   assert.ok(!/export\s+\*/u.test(text), "Internal wildcard export");
 }
-
 export async function files(directory: string): Promise<string[]> {
   const result: string[] = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -163,7 +224,6 @@ export async function files(directory: string): Promise<string[]> {
   }
   return result.sort();
 }
-
 export function portableGraph(modules: readonly string[], optional = false, react = false): void {
   assert.ok(
     !modules.some(
@@ -177,18 +237,23 @@ export function portableGraph(modules: readonly string[], optional = false, reac
 }
 function sourceEdges(owner: string, text: string, path: string, root: string): void {
   for (const match of text.matchAll(/(?:from\s+|import\s*\()['"]([^'"]+)['"]/gu)) {
-    if (match[1]) packageEdge(owner, match[1]);
+    if (match[1]) edges.packageEdge(owner, match[1]);
+    if ((owner === "images" || owner === "text-flow") && match[1])
+      edges.imageLeafEdge(path.slice(join(root, "packages").length + 1), match[1]);
     if (owner === "core" && match[1] === "@updf/layout-boxes/arithmetic")
       assert.equal(path.slice(join(root, "packages").length + 1), "core/src/measurement/arithmetic.ts");
+    if (owner === "text" && match[1] === "@updf/layout-boxes/numeric")
+      assert.match(path, /\/text\/src\/(?:profile-interpolation|inline-band)\.ts$/u);
   }
-  for (const match of text.matchAll(/from ['"](@updf\/[^'"]+\/internal(?:-drawing|-fragmentation)?)['"]/gu)) {
+  for (const match of text.matchAll(
+    /from ['"](@updf\/[^'"]+\/internal(?:-drawing|-fragmentation|-participation|-preparation)?)['"]/gu,
+  )) {
     const specifier = match[1];
     assert.ok(specifier);
     allowedInternal(path.slice(join(root, "packages").length + 1), specifier);
   }
   assert.ok(!/from ['"]\.\.\/\.\.\//u.test(text), `Source crosses package via relative path: ${path}`);
 }
-
 const coreExports = [
   "DocumentError",
   "fail",
@@ -224,6 +289,7 @@ const coreExports = [
   "InlineMetric",
   "RunMetrics",
   "NormalizedContent",
+  "contentChildren",
   "isVNode",
   "SemanticRecipe",
   "semanticComponent",
@@ -237,7 +303,20 @@ const coreExports = [
   "ledger",
   "work",
   "textOnce",
+  "useOperationExtension",
   "inputNode",
+  "visitNativeLeaf",
+  "sealSelectedText",
+  "CapabilityScope",
+  "bindOperationCapabilityContext",
+  "createOperationCapability",
+  "defineOperationExtension",
+  "createTextServiceRequest",
+  "checkTextServiceRequest",
+  "requestTextService",
+  "ownTextOutput",
+  "validateMeasurement",
+  "fragments as validateTextFragments",
 ];
 async function checkDrawingExports(root: string): Promise<void> {
   const drawing = await readFile(join(root, "packages/core/src/internal-drawing.ts"), "utf8");
@@ -265,7 +344,6 @@ async function checkDrawingExports(root: string): Promise<void> {
     ),
   );
 }
-
 export async function checkSeams(root: string): Promise<void> {
   await checkResourceExports(root);
   await checkDrawingExports(root);
@@ -287,10 +365,12 @@ export async function checkSeams(root: string): Promise<void> {
     "svg",
     "fonts",
     "text",
+    "text-flow",
     "fontkit",
     "fontkite",
     "jpeg",
     "png",
+    "images",
   ]) {
     for (const path of await files(join(root, "packages", owner, "src"))) {
       const text = await readFile(path, "utf8");
@@ -298,7 +378,6 @@ export async function checkSeams(root: string): Promise<void> {
     }
   }
 }
-
 const pdfExports = [
   "PdfScalar",
   "PdfString",
@@ -309,50 +388,6 @@ const pdfExports = [
   "PdfRef",
   "PdfValue",
   "PdfWriter",
-];
-const resourceExports = [
-  "OwnedResource",
-  "createOwnedResource",
-  "isOwnedResource",
-  "ownedResourceBytes",
-  "MeasuredRichText",
-  "PageResources",
-  "PaintingBinding",
-  "PaintingSlot",
-  "Resource",
-  "ResourceCollection",
-  "ResourceDefinition",
-  "ResourcePhase",
-  "ResourceProvider",
-  "ResourceSlot",
-  "TextSite",
-  "XObjectSite",
-  "xObjectSlot",
-  "paintingSlot",
-  "resourceSlot",
-  "textSlot",
-  "TextMetrics",
-  "TextRun",
-  "TextRuntime",
-  "TextService",
-  "TextServiceContext",
-  "TextMeasurer",
-  "MeasureOptions",
-  "InlineLine",
-  "InlineMetric",
-  "InlineLineHeights",
-  "LineEnvelope",
-  "LineHeight",
-  "PrivateFragment",
-  "InkBounds",
-  "ParagraphDefinition",
-  "RichTextInput",
-  "TextFragmentMeasurement",
-  "TextLineMeasurement",
-  "TextMeasurement",
-  "TextMeasurementInput",
-  "TextRun as SourceTextRun",
-  "TextStyle",
 ];
 async function checkResourceExports(root: string): Promise<void> {
   internalExports(await readFile(join(root, "packages/core/src/pdf.ts"), "utf8"), pdfExports);

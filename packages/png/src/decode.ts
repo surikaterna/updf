@@ -2,6 +2,7 @@ import { requireData } from "./errors.js";
 import type { ParsedPng } from "./parser.js";
 import { checkAbort, type PngSignal } from "./options.js";
 import { transcode } from "./streams.js";
+import { inflate, rowFilter, rowStride } from "./scanlines.js";
 
 export interface PngMetadata {
   readonly kind: "png";
@@ -16,15 +17,6 @@ export interface Image {
   alpha?: Uint8Array;
 }
 
-async function inflate(info: ParsedPng, signal?: PngSignal): Promise<Uint8Array> {
-  const { compressed, width, height, channels } = info;
-  requireData(compressed.length >= 6, "Truncated PNG zlib stream");
-  const expected = (width * channels + 1) * height;
-  const result = await transcode(compressed, expected, "DecompressionStream", signal);
-  requireData(result.length === expected, "PNG decoded scanline length mismatch");
-  return result;
-}
-
 function paeth(left: number, up: number, corner: number): number {
   const estimate = left + up - corner;
   const a = Math.abs(estimate - left),
@@ -34,11 +26,10 @@ function paeth(left: number, up: number, corner: number): number {
 }
 
 function unfilter(info: ParsedPng, bytes: Uint8Array): void {
-  const stride = info.width * info.channels + 1;
+  const stride = rowStride(info);
   for (let row = 0; row < info.height; row++) {
     const start = row * stride;
-    const filter = bytes[start]!;
-    requireData(filter <= 4, "Invalid PNG row filter");
+    const filter = rowFilter(bytes, start);
     for (let index = 1; index < stride; index++) {
       const left = index > info.channels ? bytes[start + index - info.channels]! : 0;
       const up = row > 0 ? bytes[start + index - stride]! : 0;
@@ -83,7 +74,7 @@ export async function decode(info: ParsedPng, signal?: PngSignal): Promise<Image
   const components = info.color === 0 || info.color === 4 ? 1 : 3;
   const pixels = new Uint8Array(width * height * components);
   const alpha = info.color === 4 || info.color === 6 || info.transparency ? new Uint8Array(width * height) : undefined;
-  const stride = width * info.channels + 1;
+  const stride = rowStride(info);
   for (let index = 0; index < width * height; index++) {
     const offset = Math.floor(index / width) * stride + 1 + (index % width) * info.channels;
     const opacity = pixel(info, bytes, offset, pixels, index * components);

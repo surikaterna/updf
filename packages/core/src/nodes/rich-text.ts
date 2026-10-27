@@ -43,7 +43,8 @@ export function validateRichText(node: Record<string, unknown>, context: Validat
   );
 }
 
-export function richTextInk(node: MeasuredRichText, context: InkContext): void {
+type FragmentNode = Pick<MeasuredRichText, "fragments" | "x" | "y">;
+export function richTextInk(node: FragmentNode, context: InkContext): void {
   for (const fragment of node.fragments) {
     const bounds = fragment.inkBounds;
     if (bounds.empty) continue;
@@ -59,7 +60,7 @@ export function richTextInk(node: MeasuredRichText, context: InkContext): void {
   }
 }
 
-export function collectRichText(node: MeasuredRichText, context: CollectionContext): void {
+export function collectRichText(node: FragmentNode, context: CollectionContext): void {
   for (const site of node.fragments) {
     if (!site.run) fail("FONT_RESOURCE", site.path, "Missing text run");
     for (const provider of context.providers)
@@ -69,7 +70,7 @@ export function collectRichText(node: MeasuredRichText, context: CollectionConte
   }
 }
 
-export function paintRichText(node: MeasuredRichText, context: PaintContext): void {
+export function paintRichText(node: FragmentNode, context: PaintContext): void {
   context.push("q\n");
   for (const fragment of node.fragments) {
     context.push(`${fragment.style.color.map(n).join(" ")} rg\n`);

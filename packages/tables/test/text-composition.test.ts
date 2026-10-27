@@ -8,7 +8,7 @@ import { createTextService } from "@updf/text";
 
 test("empty tables validate selected and overridden style fonts through the explicit service", () => {
   const options = {
-    extensions: createExtensions([tableExtension]),
+    adapters: createExtensions([tableExtension]),
     resources: { Custom: createHelvetica() },
     text: createTextService({ runtime: fontRuntime(), defaultFont: "Custom" }),
   };

@@ -3,6 +3,7 @@ import { barcodeControls } from "./barcode-controls.js";
 import { blockControls } from "./block-controls.js";
 import { brandingControls, showBrandLogo } from "./branding-controls.js";
 import { demoId, generate } from "./demos.js";
+import { metadata } from "./demo-metadata.js";
 import { flowControls } from "./flow-controls.js";
 import {
   cancelFontLoad,
@@ -29,6 +30,12 @@ function element<T extends HTMLElement>(id: string, type: new (...args: never[])
 
 const form = element("demo-form", HTMLFormElement);
 const selection = element("example", HTMLSelectElement);
+for (const id of ["text-flow-left", "text-flow-right"] as const) {
+  selection.querySelector<HTMLOptionElement>(`option[value="${id}"]`)!.textContent = metadata[id].title;
+}
+selection
+  .querySelector('option[value="text-flow-left"]')!
+  .parentElement!.append(new Option(metadata["text-flow-path"].title, "text-flow-path"));
 const title = element("title", HTMLInputElement);
 const status = element("status", HTMLElement);
 const output = element("output", HTMLElement);
@@ -119,7 +126,7 @@ function captureArguments(action: FontUriAction): Parameters<typeof generate> {
     freightControls(id),
     id === "jpeg" ? jpegControls(form) : undefined,
     id === "png" ? pngControls(form) : undefined,
-    id === "png" ? pngLoadSignal() : undefined,
+    id === "png" || id === "text-flow-left" || id === "text-flow-right" ? pngLoadSignal() : undefined,
     id === "font-uri" ? fontUriControls(form, action) : undefined,
     id === "font-uri" ? fontLoadSignal() : undefined,
     id === "code39" || id === "qr" ? barcodeControls(form, id) : undefined,

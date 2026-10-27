@@ -4,13 +4,14 @@ import { prepareLeaf } from "./blocks.js";
 import { columnBody } from "./column-content.js";
 import { columnAllocation, columnGeometry } from "./column-boxes.js";
 import { columnInput } from "./column-sizing.js";
-import { containerProducer } from "./container-producer.js";
+import { containerProducer, definiteContentHeight } from "./container-producer.js";
 import { normalizeBlocks } from "./content-normalize.js";
 import { decorate } from "./decorated-producer.js";
 import type { DecorationPlan } from "./decoration-types.js";
 import { isDecorationPlan } from "./decorations.js";
 import type { ExtensionLifetime } from "./extension-producer.js";
 import type { Extensions } from "./extension-types.js";
+import { resolveInstallation } from "./extensions.js";
 import { type LeafCache, lifetimeLeafCache } from "./leaf-cache.js";
 import type { PreparedBlock } from "./protocol.js";
 import { compileRow } from "./row-compiler.js";
@@ -31,6 +32,8 @@ export function compile(
   scope: CompilerScope,
   single = false,
 ): readonly PreparedBlock[] {
+  const extensions = resolveInstallation(scope.operation, scope.extensions);
+  if (extensions && extensions !== scope.extensions) scope = { ...scope, extensions };
   checkAutoDataBody(values, root, single);
   const result: PreparedBlock[] = [];
   const state: CompilerState = { scope, tasks: [], cache: lifetimeLeafCache(scope.lifetime) };
@@ -49,6 +52,7 @@ type Visit = (
   freshHeight: number,
   path: string,
   assign: (block: PreparedBlock) => void,
+  contentHeight?: number,
 ) => void;
 interface CompilerState {
   readonly scope: CompilerScope;
@@ -62,6 +66,7 @@ function visitBlock(
   freshHeight: number,
   path: string,
   assign: (block: PreparedBlock) => void,
+  contentHeight?: number,
 ): void {
   record(
     value,
@@ -95,7 +100,9 @@ function visitBlock(
     return;
   }
   if (value.type !== "block" && value.type !== "column") {
-    finish(prepareLeaf(value, width, path, scope.operation, scope.extensions, scope.lifetime, state.cache));
+    finish(
+      prepareLeaf(value, width, path, scope.operation, scope.extensions, scope.lifetime, state.cache, contentHeight),
+    );
     return;
   }
   visitContainer(state, value, width, freshHeight, path, finish);
@@ -109,6 +116,7 @@ function visitContainer(
   finish: (block: PreparedBlock) => void,
 ): void {
   const { box, keepTogether, plan, reserved, allocation } = containerInput(value, width, path);
+  const contentHeight = value.type === "block" ? definiteContentHeight(box, path) : undefined;
   array(value.children, state.scope.operation.policy.nodes, `${path}/children`);
   const children: PreparedBlock[] = [];
   state.tasks.push(() =>
@@ -138,7 +146,7 @@ function visitContainer(
     `${path}/children`,
     children,
     state.tasks,
-    (...args) => visitBlock(state, ...args),
+    (child, allocated, fresh, root, assign) => visitBlock(state, child, allocated, fresh, root, assign, contentHeight),
   );
 }
 function containerInput(value: Record<string, unknown>, width: number, path: string) {

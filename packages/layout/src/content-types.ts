@@ -110,7 +110,7 @@ export interface ContentConstraints {
 }
 /** Resource/policy measurement options plus a local owned adapter set. */
 export interface ContentOptions extends RenderOptions {
-  readonly extensions?: Extensions;
+  readonly adapters?: Extensions;
 }
 export interface ContentTextFragment {
   readonly role: "text";

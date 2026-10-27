@@ -53,6 +53,7 @@ import {
   xObjectInk,
   xObjectKeys,
 } from "./xobject.js";
+import { lowerNativeLeaf, measureNativeLeaf, nativeLeafKeys, validateNativeLeaf } from "./native-leaf.js";
 
 export function measurement<K extends NodeKind>(kind: K): MeasurementHandler<K> {
   const handlers: MeasurementPhase = {
@@ -60,6 +61,7 @@ export function measurement<K extends NodeKind>(kind: K): MeasurementHandler<K> 
     line: (node, context) => measureLine(node, context.path),
     path: (node, context) => measurePath(node, context.path),
     richText: (node, context) => measureRichText(node, context.path, context.fonts, context.budget),
+    nativeLeaf: (node, context) => measureNativeLeaf(node, context.path, context.fonts),
     paintGroup: measurePaintGroup,
     xObject: (node, context) => measureXObject(node, context.path, context.fonts.bindings),
   };
@@ -73,6 +75,7 @@ export function acceptedKeys(kind: NodeKind): readonly string[] {
     line: lineKeys,
     path: pathKeys,
     richText: richTextKeys,
+    nativeLeaf: nativeLeafKeys,
     paintGroup: paintGroupKeys,
     xObject: xObjectKeys,
   } satisfies Record<NodeKind, readonly string[]>;
@@ -85,6 +88,7 @@ export function validation(kind: NodeKind): ValidationHandler {
     line: validateLine,
     path: validatePath,
     richText: validateRichText,
+    nativeLeaf: validateNativeLeaf,
     paintGroup: validatePaintGroup,
     xObject: validateXObject,
   } satisfies Record<NodeKind, ValidationHandler>;
@@ -97,6 +101,7 @@ export function painting<K extends NodeKind>(kind: K): PaintHandler<K> {
     line: paintLine,
     path: paintPath,
     richText: paintRichText,
+    nativeLeaf: (node, context) => painting(node.selected.type)({ ...node.selected, x: node.x, y: node.y }, context),
     paintGroup: paintPaintGroup,
     xObject: paintXObject,
   };
@@ -109,6 +114,7 @@ export function ink<K extends NodeKind>(kind: K): InkHandler<K> {
     line: lineInk,
     path: pathInk,
     richText: richTextInk,
+    nativeLeaf: (node, context) => ink(node.selected.type)({ ...node.selected, x: node.x, y: node.y }, context),
     paintGroup: paintGroupInk,
     xObject: xObjectInk,
   };
@@ -121,6 +127,8 @@ export function collection<K extends NodeKind>(kind: K): CollectionHandler<K> | 
     line: collectLine,
     path: collectPath,
     richText: collectRichText,
+    nativeLeaf: (node, context) =>
+      collection(node.selected.type)?.({ ...node.selected, x: node.x, y: node.y }, context),
     paintGroup: null,
     xObject: collectXObject,
   };
@@ -133,6 +141,7 @@ export function lowering(kind: NodeKind): LoweringHandler {
     line: lowerLine,
     path: lowerPath,
     richText: lowerRichText,
+    nativeLeaf: lowerNativeLeaf,
     paintGroup: lowerPaintGroup,
     xObject: lowerXObject,
   } satisfies Record<NodeKind, LoweringHandler>;
@@ -145,6 +154,7 @@ export function nativeWork(kind: NodeKind): NativeWorkHandler | null {
     line: lineWork,
     path: pathWork,
     richText: richTextWork,
+    nativeLeaf: null,
     paintGroup: null,
     xObject: null,
   } satisfies Record<NodeKind, NativeWorkHandler | null>;
@@ -157,6 +167,7 @@ export function measurementProof<K extends NodeKind>(kind: K): MeasurementProofH
     line: null,
     path: null,
     richText: measureRichText,
+    nativeLeaf: measureNativeLeaf,
     paintGroup: null,
     xObject: (node, path, fonts) => measureXObject(node, path, fonts.bindings),
   };

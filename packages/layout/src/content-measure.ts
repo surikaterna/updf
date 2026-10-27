@@ -14,7 +14,7 @@ import { collectPreparedLines } from "./prepared-line-reports.js";
  * Natural, unpaginated border-box measurement in points; no painting plan is returned.
  * Width must be positive finite; optional nonnegative finite height is a ceiling,
  * not a requested size (excess throws VERTICAL_OVERFLOW). Options select resources,
- * policy and installed extensions. Returns a deeply frozen report and closes all
+ * policy and installed adapters. Returns a deeply frozen report and closes all
  * operation-owned measurement handles, including on failure. Does not paginate.
  */
 export function measure(
@@ -22,8 +22,12 @@ export function measure(
   constraints: ContentConstraints,
   options: ContentOptions = {},
 ): ContentMeasurement {
-  record(options, ["resources", "text", "providers", "profile", "limits", "extensions"], "/options");
-  const { extensions: extensionValue, ...renderOptions } = options;
+  record(
+    options,
+    ["resources", "text", "capability", "providers", "profile", "limits", "extensions", "adapters"],
+    "/options",
+  );
+  const { adapters: extensionValue, ...renderOptions } = options;
   const extensions = extensionValue as Extensions | undefined;
   const operation = createLayoutOperation(renderOptions as RenderOptions);
   validateExtensions(extensions);

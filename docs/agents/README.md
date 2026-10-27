@@ -34,6 +34,7 @@ Read the smallest relevant contract, adapt a working template, then check the PD
 | Repeated table headers / invoices | [Tables](../tables.md), [working invoice/manifest](../business-showcases.md) |
 | Custom TrueType fonts | [Font composition](../migration/fonts-text.md), [Fontkit example](../../apps/node/src/optional.ts) |
 | Logo / image resource | [JPEG profile and executable example](../jpeg-images.md) |
+| Text around a visual or reserved region (canonical migration plan) | [Proposed text-flow authoring — not implemented](../architecture/text-flow-authoring.md) |
 | Exact API or package ownership | [Current native contracts](../native-api.md), [package architecture](../architecture/packages.md) |
 
 The [root checkout commands](../../readme.md#run-the-checkout) are authoritative.

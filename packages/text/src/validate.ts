@@ -105,6 +105,7 @@ export function validateInput(
   fonts: ResolvedFonts,
   budget: WorkLedger,
   path: string,
+  autoHeight = false,
 ): asserts input is TextMeasurementInput {
   preflight(input, budget, path);
   data(input, ["width", "height", "paragraphs"], path);
@@ -112,6 +113,16 @@ export function validateInput(
   if ("height" in input) number(input.height, `${path}/height`);
   validateParagraphs(input.paragraphs, budget, `${path}/paragraphs`);
   input.paragraphs.forEach((item, i) => {
-    fontStyles(item, fonts, `${path}/paragraphs/${i}`);
+    // Only derived font containment may expand; authored domains were validated above.
+    const validation = autoHeight
+      ? {
+          ...item,
+          lineHeight: item.runs.reduce(
+            (height, run) => Math.max(height, run.style?.fontSize ?? item.defaultStyle.fontSize),
+            item.lineHeight,
+          ),
+        }
+      : item;
+    fontStyles(validation, fonts, `${path}/paragraphs/${i}`);
   });
 }

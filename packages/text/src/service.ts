@@ -6,17 +6,23 @@ import { rich } from "./measure.js";
 import { measurementClosure, type TextMeasurerOptions } from "./measurer.js";
 import { fontId } from "./text-resources.js";
 import { effectiveStyle, validateInput, validateStyle } from "./validate.js";
+import { serviceProvider } from "./service-request.js";
 
 export interface TextServiceOptions extends TextMeasurerOptions {
   readonly defaultFont?: string;
 }
 export function createTextService(options: TextServiceOptions): TextService {
+  return serviceClosure(options).service;
+}
+/** Optional subpaths extend this exact runtime/resolution closure, never a second service. */
+export function serviceClosure(options: TextServiceOptions) {
   validateDataObject(options, ["runtime", "defaultFont"], "/text");
   const defaultFont = ownDataValue(options, "defaultFont", "/text/defaultFont");
   if (Object.hasOwn(options, "defaultFont") && typeof defaultFont !== "string")
     fail("TYPE", "/text/defaultFont", "Expected font id");
   const { fonts, measure } = measurementClosure(ownDataValue(options, "runtime", "/text/runtime"), defaultFont);
-  return Object.freeze({
+  const service = Object.freeze({
+    provide: serviceProvider(fonts),
     measure,
     validate(input, context, path) {
       validateInput(input, fonts(context), context.budget, path);
@@ -36,4 +42,5 @@ export function createTextService(options: TextServiceOptions): TextService {
     },
     lineBox: (style, height, context, path) => participant(style, height, fonts(context), path),
   } satisfies TextService);
+  return { service, fonts };
 }

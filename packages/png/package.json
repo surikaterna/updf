@@ -10,6 +10,34 @@
     "README.md"
   ],
   "exports": {
+    "./alpha": {
+      "browser": {
+        "types": "./dist/node/alpha.d.mts",
+        "default": "./dist/alpha.js"
+      },
+      "import": {
+        "types": "./dist/node/alpha.d.mts",
+        "default": "./dist/node/alpha.mjs"
+      },
+      "require": {
+        "types": "./dist/node/alpha.d.cts",
+        "default": "./dist/cjs/alpha.js"
+      }
+    },
+    "./normalization": {
+      "browser": {
+        "types": "./dist/node/normalization.d.mts",
+        "default": "./dist/normalization.js"
+      },
+      "import": {
+        "types": "./dist/node/normalization.d.mts",
+        "default": "./dist/node/normalization.mjs"
+      },
+      "require": {
+        "types": "./dist/node/normalization.d.cts",
+        "default": "./dist/cjs/normalization.js"
+      }
+    },
     ".": {
       "browser": {
         "types": "./dist/node/index.d.mts",

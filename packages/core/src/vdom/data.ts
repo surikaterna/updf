@@ -6,12 +6,22 @@ import type { DeepReadonly } from "./types.js";
 
 export { dataArray, dataRecord, pointer } from "../core/data.js";
 
-export function snapshot<T>(value: T, path: string, allowNodes = true): DeepReadonly<T> {
-  const result = copyData(value, path, (value, path) => {
-    if (!isVNode(value) && !isContentData(value)) return false;
-    if (!allowNodes) fail("TYPE", path, "Context values cannot contain VDOM nodes");
-    return true;
-  });
+export function snapshot<T>(
+  value: T,
+  path: string,
+  allowNodes = true,
+  visit?: (value: unknown, path: string) => void,
+): DeepReadonly<T> {
+  const result = copyData(
+    value,
+    path,
+    (value, path) => {
+      if (!isVNode(value) && !isContentData(value)) return false;
+      if (!allowNodes) fail("TYPE", path, "Context values cannot contain VDOM nodes");
+      return true;
+    },
+    visit,
+  );
   return result as DeepReadonly<T>;
 }
 export function keys(props: Readonly<Record<string, unknown>>, allowed: readonly string[], path: string): void {

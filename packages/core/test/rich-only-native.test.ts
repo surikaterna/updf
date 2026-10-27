@@ -78,9 +78,11 @@ test("native one-run labels retain canonical rich baselines and empty semantics"
   );
 });
 
-test("text service captures exactly seven own callbacks and rejects removed extras", () => {
+test("text service captures seven required callbacks and an optional provider, rejecting removed extras", () => {
   const keys = ["measure", "validate", "rich", "inline", "validateStyle", "resolveStyle", "lineBox"];
-  assert.deepEqual(Object.keys(service), keys);
+  assert.deepEqual(Object.keys(service), ["provide", ...keys]);
+  const { provide: _provide, ...ordinary } = service;
+  assert.doesNotThrow(() => operation({ ...options, text: ordinary }));
   for (const key of ["fixed", "fixedInk"]) {
     assert.throws(
       () => operation({ ...options, text: { ...service, [key]: () => {} } }),

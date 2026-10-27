@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
+import { showcaseOutput } from "./helpers.js";
 
 interface Chunk {
   readonly fileName: string;
@@ -23,7 +24,7 @@ function closure(chunks: readonly Chunk[], entry: Chunk, dynamic = false, seen =
 }
 
 test("production chunk graph keeps adapters optional; Fontkit belongs only to opt-in freight/font-URI demos", async () => {
-  const directory = new URL("../../apps/showcase/dist/", import.meta.url);
+  const directory = showcaseOutput();
   const chunks: Chunk[] = JSON.parse(await readFile(new URL("chunk-graph.json", directory), "utf8"));
   const entry = chunks.find((chunk) => chunk.isEntry && chunk.modules.some((name) => name.endsWith("/src/main.ts")));
   assert.ok(entry);
@@ -91,14 +92,22 @@ function jpegClosure(chunks: readonly Chunk[], entry: Chunk): void {
 function pngClosure(chunks: readonly Chunk[], entry: Chunk): void {
   const optional = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-png.ts")));
   assert.ok(optional && entry.dynamicImports.includes(optional.fileName));
+  const textFlow = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-text-flow.ts")));
+  assert.ok(textFlow && entry.dynamicImports.includes(textFlow.fileName));
+  const path = chunks.find((chunk) => chunk.modules.some((name) => name.endsWith("/src/optional-text-flow-path.ts")));
+  assert.ok(path && entry.dynamicImports.includes(path.fileName));
+  assert.ok(closure(chunks, path).some((name) => /\/packages\/text-flow\//u.test(name)));
+  assert.ok(!closure(chunks, entry).some((name) => /\/packages\/text-flow\//u.test(name)));
   const modules = closure(chunks, optional);
   assert.ok(modules.some((name) => /\/packages\/png\//u.test(name)));
   assert.ok(!modules.some((name) => /\/node_modules\/(?:fflate|pako|tiny-inflate)\//u.test(name)));
   assert.ok(!modules.some((name) => /\/packages\/(jpeg|layout|tables|geometry|svg|fontkit)\//u.test(name)));
   const png = /\/packages\/png\/|\/fflate\//u;
+  assert.ok(closure(chunks, textFlow).some((name) => /\/packages\/png\//u.test(name)));
   assert.ok(!closure(chunks, entry).some((name) => png.test(name)));
   for (const chunk of chunks.filter((candidate) => entry.dynamicImports.includes(candidate.fileName))) {
-    if (chunk !== optional) assert.ok(!closure(chunks, chunk).some((name) => png.test(name)));
+    if (chunk !== optional && chunk !== textFlow)
+      assert.ok(!closure(chunks, chunk).some((name) => png.test(name)), chunk.fileName);
   }
   for (const chunk of chunks.filter((candidate) => candidate.isEntry && candidate !== entry))
     assert.ok(!closure(chunks, chunk, true).some((name) => png.test(name)));
@@ -151,7 +160,7 @@ function engineClosure(chunks: readonly Chunk[], font: Chunk, engine: string): v
 }
 
 test("every installed package in the actual freight closure has byte-exact emitted notices", async () => {
-  const directory = new URL("../../apps/showcase/dist/", import.meta.url);
+  const directory = showcaseOutput();
   const chunks: Chunk[] = JSON.parse(await readFile(new URL("chunk-graph.json", directory), "utf8"));
   const freight = chunks.find((chunk) =>
     chunk.modules.some((name) => name.endsWith("/src/optional-freight-invoice.ts")),
@@ -252,7 +261,7 @@ async function notices(directory: URL): Promise<void> {
 
 test("both production HTML entries retain the /updf/ asset base", async () => {
   for (const name of ["index", "plasma"]) {
-    const html = await readFile(new URL(`../../apps/showcase/dist/${name}.html`, import.meta.url), "utf8");
+    const html = await readFile(showcaseOutput(`${name}.html`), "utf8");
     assert.ok(html.includes('src="/updf/assets/'));
     assert.ok(html.includes('href="/updf/assets/'));
   }

@@ -128,7 +128,7 @@ test("D: invalid resources/styles fail before visual callbacks and normalization
       measure(
         paragraph({ style: { font: "Absent" }, children: inline(adapter, {}) }),
         { width: 100 },
-        { extensions: createExtensions([adapter]) },
+        { adapters: createExtensions([adapter]) },
       ),
     "FONT_RESOURCE",
   );
@@ -184,7 +184,7 @@ test("D: actual roles reject nested blocks, naked spans, native drawings and num
 test("D: inline overflow moves a whole line, never shrinks visuals or overlaps adjacent blocks", () => {
   const extensions = createExtensions([badgeAdapter]);
   const content = paragraph({ children: ["A", badge(24), "B", badge(24), "C"] });
-  const measured = measure(content, { width: 30 }, { extensions });
+  const measured = measure(content, { width: 30 }, { adapters: extensions });
   assert.ok(measured.lines.length > 1);
   assert.ok(measured.lines.every((line) => line.advance <= 30));
   const result = layoutFlow(
@@ -249,7 +249,7 @@ test("D: wrappers execute only in the operation with provider frames, progress c
 test("D: inline native visuals grow auto height, align to a common baseline, wrap atomically and emit exact data/JSX PDFs", () => {
   const extensions = createExtensions([badgeAdapter]);
   const content = paragraph({ children: ["A", badge(24), "B"] });
-  const measured = measure(content, { width: 100 }, { extensions });
+  const measured = measure(content, { width: 100 }, { adapters: extensions });
   const line = required(measured.lines[0]);
   assert.equal(line.height, 26.25);
   const visual = required(line.fragments.find((item) => item.role === "visual"));
@@ -258,15 +258,14 @@ test("D: inline native visuals grow auto height, align to a common baseline, wra
   const data = layoutFlow({ pageTemplate, body: [content] }, {}, extensions);
   assert.deepEqual(render(lower(h(Document, { pageTemplate, extensions, children: content }))), render(data.document));
   assert.equal(data.placements[0]?.box.height, measured.size.height);
-  reject(() => measure(content, { width: 20 }, { extensions }), "TOKEN_OVERFLOW");
+  reject(() => measure(content, { width: 20 }, { adapters: extensions }), "TOKEN_OVERFLOW");
   assert.ok(
-    measure(paragraph({ style: { lineHeight: 1.2 }, children: badge(24) }), { width: 100 }, { extensions }).size
-      .height >= 24,
+    measure(paragraph({ style: { lineHeight: 1.2 }, children: badge(24) }), { width: 100 }, { adapters: extensions })
+      .size.height >= 24,
   );
   reject(() => measure(content, { width: 100 }), "KEY");
   reject(
-    () =>
-      measure(content, { width: 100 }, { extensions: createExtensions([badgeAdapter]), limits: { pathCommands: 4 } }),
+    () => measure(content, { width: 100 }, { adapters: createExtensions([badgeAdapter]), limits: { pathCommands: 4 } }),
     "LIMIT",
   );
 });
@@ -277,7 +276,7 @@ test("D: malformed inline output, copied capabilities and callback throws fail s
     measure: () => ({ advance: 1, ascent: NaN, descent: 0, inkBounds: { empty: true as const }, nodes: [] }),
   });
   reject(
-    () => measure(paragraph({ children: inline(bad, {}) }), { width: 100 }, { extensions: createExtensions([bad]) }),
+    () => measure(paragraph({ children: inline(bad, {}) }), { width: 100 }, { adapters: createExtensions([bad]) }),
     "GEOMETRY",
   );
   const thrown = defineInlineAdapter<unknown>({
@@ -289,7 +288,7 @@ test("D: malformed inline output, copied capabilities and callback throws fail s
   });
   reject(
     () =>
-      measure(paragraph({ children: inline(thrown, {}) }), { width: 100 }, { extensions: createExtensions([thrown]) }),
+      measure(paragraph({ children: inline(thrown, {}) }), { width: 100 }, { adapters: createExtensions([thrown]) }),
     "TYPE",
     /children$/u,
   );
@@ -330,7 +329,7 @@ test("D: cumulative semantic native capture fails before an unvisited accessor a
     children: [inline(adapter, { malicious: false }), inline(adapter, { malicious: true })],
   });
   reject(
-    () => measure(content, { width: 100 }, { extensions: createExtensions([adapter]), limits: { nodes: 24 } }),
+    () => measure(content, { width: 100 }, { adapters: createExtensions([adapter]), limits: { nodes: 24 } }),
     "LIMIT",
     /children\/1$/u,
   );

@@ -3,8 +3,49 @@ import { compile } from "./block-compiler.js";
 import { normalizeBlocks } from "./content-normalize.js";
 import { geometryNodes, snapshotEmissionData } from "./emission-nodes.js";
 import type { ExtensionLifetime } from "./extension-producer.js";
-import type { AdapterContentConstraints, Extensions, MeasuredContent } from "./extension-types.js";
+import type { BlockContent } from "./content-types.js";
+import type { AdapterContentConstraints, Extensions, MeasuredContent, MeasureContext } from "./extension-types.js";
 import { paintNatural, prepareNatural } from "./natural-paint.js";
+import { forwardVisualReference } from "./visual-reference.js";
+
+let actualRequests: WeakSet<object> | undefined;
+let actualSizes:
+  | WeakMap<
+      MeasuredContent,
+      {
+        readonly size: MeasuredContent["size"];
+        readonly lifetime: ExtensionLifetime;
+        readonly path: string;
+      }
+    >
+  | undefined;
+
+/** Request-local opt-in: nested ordinary measurements cannot inherit actual-size authority. */
+export function measureActualBlockContent(
+  context: MeasureContext,
+  content: BlockContent,
+  constraints: AdapterContentConstraints,
+): MeasuredContent {
+  if (!constraints || typeof constraints !== "object") fail("TYPE", context.sourcePath, "Expected constraints");
+  const request = Object.defineProperties(
+    Array.isArray(constraints) ? [] : Object.create(Object.getPrototypeOf(constraints)),
+    Object.getOwnPropertyDescriptors(constraints),
+  ) as AdapterContentConstraints;
+  actualRequests ??= new WeakSet();
+  actualRequests.add(request);
+  try {
+    return context.measureContent(content, request);
+  } finally {
+    actualRequests.delete(request);
+  }
+}
+
+export function contentActualSize(measured: MeasuredContent): MeasuredContent["size"] {
+  const owned = actualSizes?.get(measured);
+  if (!owned) fail("MEASUREMENT_CONTEXT", "/measurement", "Expected owned actual-size measurement");
+  if (!owned.lifetime.active) fail("MEASUREMENT_CONTEXT", owned.path, "Layout operation has closed");
+  return owned.size;
+}
 
 export function measureAdapterContent(
   content: unknown,
@@ -28,6 +69,9 @@ export function measureAdapterContent(
     constraints.implicitParagraph,
   );
   const values = constraints.style === undefined ? body : [{ type: "block", children: body, style: constraints.style }];
+  const actual = actualRequests?.has(constraints);
+  if (actual && (constraints.style !== undefined || body.length !== 1 || body[0]!.type !== "block"))
+    fail("TYPE", `${path}/content`, "Actual size requires one canonical Block without a constraints style wrapper");
   const prepared = compile(values, width, `${path}/content`, {
     operation,
     lifetime,
@@ -41,7 +85,20 @@ export function measureAdapterContent(
   const nodes = paintNatural(roots);
   // Measurement trials do not commit generated occurrences; selected owner fragments do.
   operation.nativeInk(geometryNodes(nodes));
-  return snapshotEmissionData({ size: { width, height }, nodes }, `${path}/measurement`);
+  const measured = snapshotEmissionData({ size: { width, height }, nodes }, `${path}/measurement`);
+  if (actual) ownActualSize(measured, prepared[0]!.naturalSize.width, height, lifetime, path);
+  if (actual) forwardVisualReference(prepared[0]!, measured);
+  return measured;
+}
+function ownActualSize(
+  measured: MeasuredContent,
+  width: number,
+  height: number,
+  lifetime: ExtensionLifetime,
+  path: string,
+): void {
+  actualSizes ??= new WeakMap();
+  actualSizes.set(measured, { size: Object.freeze({ width, height }), lifetime, path });
 }
 function checkConstraints(constraints: AdapterContentConstraints, path: string): string {
   record(

@@ -6,6 +6,7 @@ type ChildField<K extends NodeKind> =
 
 const inventory = {
   richText: undefined,
+  nativeLeaf: undefined,
   rect: undefined,
   line: undefined,
   path: undefined,

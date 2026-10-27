@@ -54,7 +54,7 @@ export function richExample(title: string, controls: RichControls = richDefaults
       <ThemedText title={title} controls={controls} />
     </Theme.Provider>
   );
-  const measurement = measure(content, { width: controls.width }, { extensions });
+  const measurement = measure(content, { width: controls.width }, { adapters: extensions });
   const tree = (
     <Document>
       <Flow

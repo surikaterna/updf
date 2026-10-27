@@ -68,7 +68,7 @@ test("#49-B normal is font-aware, empty lines use the paragraph strut, visuals g
   const mixed = measure(
     paragraph({ style: { fontSize: 12, lineHeight: pt(4) }, children: ["A", badge(24)] }),
     { width: 200 },
-    { extensions: createExtensions([badgeAdapter]) },
+    { adapters: createExtensions([badgeAdapter]) },
   );
   assert.ok(mixed.lines[0]!.height >= 24);
 });

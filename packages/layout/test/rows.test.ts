@@ -76,7 +76,11 @@ test("all track and inset constraints fail before any adapter measurement", () =
   const child = extension(adapter, {}),
     extensions = createExtensions([adapter]);
   const inspect = (second: ReturnType<typeof column>) =>
-    measure(row({ children: [column({ width: 20, children: [child] }), second] }), { width: 100 }, { extensions });
+    measure(
+      row({ children: [column({ width: 20, children: [child] }), second] }),
+      { width: 100 },
+      { adapters: extensions },
+    );
   reject(() => inspect(column({ width: 90, children: [] })), "GEOMETRY");
   reject(() => inspect(column({ width: 80, style: { padding: 40 }, children: [] })), "GEOMETRY");
   assert.deepEqual(widths, []);

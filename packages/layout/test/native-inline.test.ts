@@ -120,7 +120,7 @@ test("native inline works in implicit table cells in both data and JSX without n
     columns: [{ width: 20 }],
     children: h(Table.Body, { children: h(Table.Row, { children: h(Table.Cell, { children: value }) }) }),
   });
-  const options = { extensions: createExtensions([tableExtension]) };
+  const options = { adapters: createExtensions([tableExtension]) };
   assert.deepEqual(measure(data, { width: 20 }, options), measure(jsx, { width: 20 }, options));
 });
 

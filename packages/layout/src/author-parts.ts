@@ -21,6 +21,8 @@ import type {
   ScopedContent,
 } from "./extension-types.js";
 import { cloneExtension, extension, isExtensionBlock } from "./extensions.js";
+import { associateVisualAdapter, visualCapture } from "./visual-owner.js";
+import { resolvedVisualSource } from "./visual-preparation-state.js";
 
 const adapters = new WeakMap<object, BlockAdapterIdentity>();
 const slots = new WeakMap<object, BlockPartIdentity>();
@@ -39,6 +41,7 @@ export const adapterSnapshot = <T>(value: T, path: string): T =>
 export function blockComponent<P extends object>(adapter: BlockAdapter<P>): BlockComponent<P> {
   const identity = Object.freeze({});
   adapters.set(identity, adapter);
+  associateVisualAdapter(identity, adapter);
   return semanticComponent<P>(identity, true) as BlockComponent<P>;
 }
 /** Define an opaque JSX slot read through MeasureContext.readParts; invalid identifier names throw TYPE. */
@@ -56,7 +59,10 @@ export function authorBlock(node: NormalizedContent, operation: LayoutOperation)
   if (typeof node.value === "string") return undefined;
   const adapter = adapters.get(node.value.identity);
   if (!adapter) return undefined;
-  const descriptor = extension(adapter as BlockAdapter<Readonly<Record<string, unknown>>>, node.value.props);
+  const capture = visualCapture(adapter);
+  const resolved = resolvedVisualSource(node.value, operation);
+  const props = resolved?.props ?? (capture ? capture(node.value.props, node.path) : node.value.props);
+  const descriptor = extension(adapter as BlockAdapter<unknown>, props);
   if (node.scope) scopes.set(descriptor, { scope: node.scope, operation });
   return descriptor;
 }
@@ -108,10 +114,15 @@ export function scopedContent<T>(
       )
     : invoke(input);
 }
-export function captureContent(input: unknown, node: NormalizedContent, operation: LayoutOperation): ScopedContent {
+export function captureContent(
+  input: unknown,
+  node: NormalizedContent,
+  operation: LayoutOperation,
+  path = `${node.path}/children`,
+): ScopedContent {
   if (!node.scope) fail("MEASUREMENT_CONTEXT", node.path, "Expected captured content scope");
   const content = ownContentData(Object.freeze({})) as ScopedContent;
-  captures.set(content, { input, scope: node.scope, operation, path: `${node.path}/children` });
+  captures.set(content, { input, scope: node.scope, operation, path });
   return content;
 }
 export function readParts(

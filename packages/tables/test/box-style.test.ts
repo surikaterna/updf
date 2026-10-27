@@ -28,7 +28,7 @@ test("#49-C expands shorthand per layer before table-column-row-cell merge", () 
   });
   const result = placed(content);
   assert.equal(result.placements[0]!.box.height, 19);
-  assert.equal(measure(content, { width: 100 }, { extensions }).size.height, 19);
+  assert.equal(measure(content, { width: 100 }, { adapters: extensions }).size.height, 19);
   const pdf = new TextDecoder().decode(render(result.document));
   assert.match(pdf, /1 0 0 1 3 /u);
   for (const style of [
@@ -36,7 +36,7 @@ test("#49-C expands shorthand per layer before table-column-row-cell merge", () 
     { paddingTop: 4, padding: 3 },
   ]) {
     const same = table({ columns: [{ width: 100 }], body: [{ style, cells: [{ children: "A" }] }] });
-    assert.equal(measure(same, { width: 100 }, { extensions }).size.height, 17);
+    assert.equal(measure(same, { width: 100 }, { adapters: extensions }).size.height, 17);
   }
 });
 
@@ -134,9 +134,9 @@ test("#49-C row JSX and data agree; same-key source order and implicit text inhe
       columns: [{ width: 100 }],
       children: h(Table.Body, { children: h(Table.Row, { style, children: h(Table.Cell, { children: "A" }) }) }),
     });
-    const metrics = measure(data, { width: 100 }, { extensions });
+    const metrics = measure(data, { width: 100 }, { adapters: extensions });
     assert.equal(metrics.size.height, style.fontSize + 4);
-    assert.deepEqual(measure(jsx, { width: 100 }, { extensions }), metrics);
+    assert.deepEqual(measure(jsx, { width: 100 }, { adapters: extensions }), metrics);
     const rendered = placed(data);
     const jsxLayout = layout(
       document({

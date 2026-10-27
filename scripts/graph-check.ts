@@ -31,6 +31,23 @@ for (const build of builds) {
   }
   const optional = build === "dist-fontkit" || build === "font-browser";
   portableGraph(modules, optional, build === "dist");
+  for (const id of modules.filter((id) => /\/text\/dist\/.*\.js$/u.test(id))) {
+    const emitted = await readFile(id, "utf8");
+    assert.ok(
+      !/selectionBand|glyphTop|glyphBottom|lowLeading|profileDepth|Profile retry/u.test(emitted),
+      `${build} retained exclusion geometry`,
+    );
+    assert.ok(!id.endsWith("/composition-band.js"), `${build} retained optional band helper`);
+    assert.ok(!/\/inline-band(?:-interval)?\.js$/u.test(id), `${build} retained optional inline band helper`);
+    assert.ok(
+      !/\/(?:composition-profile|profile-exclusion|profile-interpolation)\.js$/u.test(id),
+      `${build} retained profile helper`,
+    );
+  }
+  assert.ok(
+    !modules.some((id) => /\/packages\/text-flow\/|\/text\/dist\/composition\.js$/u.test(id)),
+    `${build} imported unrequested composition addon`,
+  );
   assert.ok(!modules.some((id) => /\/packages\/jpeg\//u.test(id)), `${build} imported unrequested JPEG`);
   assert.ok(!modules.some((id) => /\/packages\/png\/|\/fflate\//u.test(id)), `${build} imported unrequested PNG`);
   assert.ok(

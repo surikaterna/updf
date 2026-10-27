@@ -16,6 +16,9 @@ import { captureTextCallback } from "./text-capture.js";
 import { validateMeasurement } from "./text-measurement-output.js";
 import { validateInline, validateLineBox, validateRich } from "./text-output.js";
 import { style } from "./text-output-shapes.js";
+import { ownDataValue } from "./data.js";
+import { fail } from "./error.js";
+import { checkTextServiceRequest, type TextServiceProvider } from "./text-service-request.js";
 
 export interface TextServiceContext {
   readonly bindings: ReadonlyMap<string, OwnedResource>;
@@ -23,6 +26,7 @@ export interface TextServiceContext {
 }
 /** Structural capability contract; core neither selects fonts nor computes text metrics. */
 export interface TextService {
+  readonly provide?: TextServiceProvider;
   measure(input: TextMeasurementInput, context: TextServiceContext, path: string): TextMeasurement;
   validate(input: unknown, context: TextServiceContext, path: string): void;
   rich(
@@ -51,11 +55,12 @@ export function ownTextService(value: unknown): TextService {
   dataRecord(value, path);
   validateDataObject(
     value,
-    ["measure", "validate", "rich", "inline", "validateStyle", "resolveStyle", "lineBox"],
+    ["measure", "validate", "rich", "inline", "validateStyle", "resolveStyle", "lineBox", "provide"],
     path,
   );
   const unchanged = () => {};
   const callbacks = Object.assign(Object.create(null), {
+    ...captureProvider(value, path),
     measure: captureTextCallback(value, "measure", path, validateMeasurement),
     validate: captureTextCallback(value, "validate", path, unchanged),
     rich: captureTextCallback(value, "rich", path, validateRich),
@@ -65,4 +70,16 @@ export function ownTextService(value: unknown): TextService {
     lineBox: captureTextCallback(value, "lineBox", path, validateLineBox),
   });
   return Object.freeze(callbacks) as TextService;
+}
+function captureProvider(value: Record<string, unknown>, path: string): Pick<TextService, "provide"> {
+  if (!Object.hasOwn(value, "provide")) return {};
+  const callback = ownDataValue(value, "provide", `${path}/provide`);
+  if (typeof callback !== "function") fail("FONT_RESOURCE", `${path}/provide`, "Expected text service provider");
+  const provide: TextServiceProvider = (request, scope) => {
+    checkTextServiceRequest(request);
+    const bind = callback.call(value, request, scope);
+    if (typeof bind !== "function") fail("FONT_RESOURCE", `${path}/provide`, "Expected operation binding");
+    return bind;
+  };
+  return { provide: Object.freeze(provide) };
 }

@@ -45,7 +45,7 @@ const content = (
     </Paragraph>
   </Block>
 );
-const measured = measure(content, { width: 200 }, { extensions });
+const measured = measure(content, { width: 200 }, { adapters: extensions });
 const result = render(
   lower(
     <Document>

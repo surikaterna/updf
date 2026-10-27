@@ -69,6 +69,7 @@ try {
     "core",
     "jpeg",
     "png",
+    "images",
     "fonts",
     "text",
     "layout-boxes",
