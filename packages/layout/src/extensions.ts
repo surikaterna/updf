@@ -1,4 +1,4 @@
-import { array, fail, ownContentData, validateDataObject as record } from "@updf/core/internal";
+import { array, fail, ownContentData, validateDataObject as record, type LayoutOperation } from "@updf/core/internal";
 import { adapterName, registerAdapter } from "./adapter-ownership.js";
 import { adapterSnapshot } from "./author-parts.js";
 import type { InlineAdapterIdentity } from "./content-types.js";
@@ -19,6 +19,46 @@ interface Definition {
 const definitions = new WeakMap<object, Definition>();
 const bindings = new WeakMap<object, ReadonlyMap<string, object>>();
 const descriptors = new WeakMap<object, object>();
+interface Installation {
+  readonly central: Extensions | undefined;
+  readonly locals: WeakMap<object, Extensions>;
+}
+let installations: WeakMap<LayoutOperation, Installation> | undefined;
+
+/** Only this package's opaque sets contribute adapters; other operation features remain unrelated. */
+export function resolveInstallation(operation: LayoutOperation, local?: Extensions): Extensions | undefined {
+  validateExtensions(local);
+  if (!operation.contributions?.length) return local;
+  let installed = installations?.get(operation);
+  if (!installed) {
+    const sets = operation.contributions.filter((value) => bindings.has(value)) as Extensions[];
+    installed = { central: combine(sets), locals: new WeakMap() };
+    installations ??= new WeakMap();
+    installations.set(operation, installed);
+  }
+  if (!local || !installed.central || local === installed.central) return installed.central ?? local;
+  let combined = installed.locals.get(local);
+  if (!combined) {
+    combined = combine([installed.central, local])!;
+    installed.locals.set(local, combined);
+    installed.locals.set(combined, combined);
+  }
+  return combined;
+}
+function combine(sets: readonly Extensions[]): Extensions | undefined {
+  if (sets.length < 2) return sets[0];
+  const names = new Map<string, object>();
+  for (const set of sets) {
+    for (const [name, adapter] of bindings.get(set)!) {
+      const previous = names.get(name);
+      if (previous && previous !== adapter) fail("KEY", "/extensions", "Conflicting adapter identities for name");
+      names.set(name, adapter);
+    }
+  }
+  const result = ownContentData(Object.freeze({})) as unknown as Extensions;
+  bindings.set(result, names);
+  return result;
+}
 export function isExtensionBlock(value: unknown): value is ExtensionBlock {
   return !!value && typeof value === "object" && descriptors.has(value);
 }
@@ -91,6 +131,12 @@ export function resolveExtension(block: object, extensions: Extensions | undefin
 
 export function validateExtensions(extensions: Extensions | undefined): void {
   if (extensions !== undefined && !bindings.has(extensions)) fail("TYPE", "/extensions", "Expected owned extensions");
+}
+export function copyExtensions(extensions: Extensions): Extensions {
+  validateExtensions(extensions);
+  const copy = ownContentData(Object.freeze({})) as unknown as Extensions;
+  bindings.set(copy, bindings.get(extensions)!);
+  return copy;
 }
 export function requireInstalled(adapter: object, extensions: Extensions | undefined, path: string): void {
   const name = adapterName(adapter);

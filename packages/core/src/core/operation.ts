@@ -14,7 +14,7 @@ export function operation(options: OperationOptions, additional: readonly string
   return { fonts, providers, budget: ledger(limits, logicalText) };
 }
 
-function ownProviders(value: readonly ResourceProvider[] | undefined): readonly ResourceProvider[] {
+export function ownProviders(value: readonly ResourceProvider[] | undefined): readonly ResourceProvider[] {
   if (value === undefined) return Object.freeze([]);
   dataArray(value, "/options/providers");
   return Object.freeze(

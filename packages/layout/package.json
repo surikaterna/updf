@@ -9,6 +9,76 @@
     "README.md"
   ],
   "exports": {
+    "./async": {
+      "browser": {
+        "types": "./dist/node/async.d.mts",
+        "default": "./dist/async.js"
+      },
+      "import": {
+        "types": "./dist/node/async.d.mts",
+        "default": "./dist/node/async.mjs"
+      },
+      "require": {
+        "types": "./dist/node/async.d.cts",
+        "default": "./dist/cjs/async.js"
+      }
+    },
+    "./internal-preparation": {
+      "browser": {
+        "types": "./dist/node/internal-preparation.d.mts",
+        "default": "./dist/internal-preparation.js"
+      },
+      "import": {
+        "types": "./dist/node/internal-preparation.d.mts",
+        "default": "./dist/node/internal-preparation.mjs"
+      },
+      "require": {
+        "types": "./dist/node/internal-preparation.d.cts",
+        "default": "./dist/cjs/internal-preparation.js"
+      }
+    },
+    "./internal-visual": {
+      "browser": {
+        "types": "./dist/node/internal-visual.d.mts",
+        "default": "./dist/internal-visual.js"
+      },
+      "import": {
+        "types": "./dist/node/internal-visual.d.mts",
+        "default": "./dist/node/internal-visual.mjs"
+      },
+      "require": {
+        "types": "./dist/node/internal-visual.d.cts",
+        "default": "./dist/cjs/internal-visual.js"
+      }
+    },
+    "./internal-visual-owner": {
+      "browser": {
+        "types": "./dist/node/internal-visual-owner.d.mts",
+        "default": "./dist/internal-visual-owner.js"
+      },
+      "import": {
+        "types": "./dist/node/internal-visual-owner.d.mts",
+        "default": "./dist/node/internal-visual-owner.mjs"
+      },
+      "require": {
+        "types": "./dist/node/internal-visual-owner.d.cts",
+        "default": "./dist/cjs/internal-visual-owner.js"
+      }
+    },
+    "./render": {
+      "browser": {
+        "types": "./dist/node/render.d.mts",
+        "default": "./dist/render.js"
+      },
+      "import": {
+        "types": "./dist/node/render.d.mts",
+        "default": "./dist/node/render.mjs"
+      },
+      "require": {
+        "types": "./dist/node/render.d.cts",
+        "default": "./dist/cjs/render.js"
+      }
+    },
     "./internal-participation": {
       "browser": {
         "types": "./dist/node/internal-participation.d.mts",

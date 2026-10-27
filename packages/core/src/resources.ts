@@ -18,7 +18,9 @@ export { paintingSlot, resourceSlot, xObjectSlot } from "./core/resource-types.j
 export { textSlot } from "./core/text-paint.js";
 export type { TextMetrics, TextRun, TextRuntime } from "./core/text-runtime.js";
 export type { TextService, TextServiceContext } from "./core/text-service.js";
+export type { TextServiceRequest, TextServiceBinding, TextServiceProvider } from "./core/text-service-request.js";
 export type { OperationCapability } from "./core/operation-capability.js";
+export type { OperationExtension } from "./core/operation-extension.js";
 export { useOperationCapability } from "./core/operation-capability.js";
 export type { MeasureOptions, TextMeasurer } from "./core/text-measurer.js";
 export type { InlineLine, InlineMetric } from "./measurement/inline.js";

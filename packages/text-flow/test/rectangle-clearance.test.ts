@@ -9,6 +9,7 @@ import { protocolFixture } from "./path-protocol-fixture.js";
 import { prepareFragmentPaint } from "../../layout/dist/cjs/fragment-paint-preparation.js";
 import { collectPreparedLines } from "../../layout/dist/cjs/prepared-line-reports.js";
 import { LayoutInputError } from "@updf/layout-boxes";
+import { Source } from "@updf/text-flow/sources";
 
 type Shape = "omitted" | "rect" | "path";
 function visual(side: "left" | "right", shape: Shape, width = 200) {
@@ -19,7 +20,14 @@ function visual(side: "left" | "right", shape: Shape, width = 200) {
         width,
         height: 36,
         float: side,
-        ...(shape === "omitted" ? {} : { shapeOutside: shape === "rect" ? "rect" : `M0 0H${width}V36H0Z` }),
+        ...(shape === "omitted"
+          ? {}
+          : {
+              shapeOutside:
+                shape === "rect"
+                  ? Source.polygon([0, 0, width, 0, width, 36, 0, 36])
+                  : Source.path(`M0 0H${width}V36H0Z`),
+            }),
         backgroundColor: [0, 0, 1],
       },
     },
@@ -35,7 +43,6 @@ function run(children: unknown, height = 100) {
       children: h(Flow, {
         pageSize: { width: 200, height },
         margins: { top: 0, right: 0, bottom: 0, left: 0 },
-        participation: f.participation,
         children,
       } as never),
     }),

@@ -7,6 +7,7 @@ import { layout, Paragraph, Document, Flow, pt } from "@updf/layout";
 import { sidePathDocument } from "../../../tests/fixtures/text-flow/side-path.js";
 import { siblingOptions, pathFlow as f } from "../../../tests/fixtures/text-flow/siblings.js";
 import { protocolFixture } from "./path-protocol-fixture.js";
+import { Source } from "@updf/text-flow/sources";
 
 function flatten(nodes: Iterable<NodeDefinition>): NodeDefinition[] {
   return [...nodes].flatMap((node) => (node.type === "paintGroup" ? flatten(node.children) : [node]));
@@ -38,7 +39,7 @@ test("near-bottom path defers intact without source consumption or duplicate pai
   );
 });
 test("authored Block shape accepts object and string with resolved constraints", () => {
-  for (const shapeOutside of ["M0 0H20V36H0Z", { d: "m0 0h20v36h-20z", fillRule: "evenodd" as const }]) {
+  for (const shapeOutside of [Source.path("M0 0H20V36H0Z"), Source.path("m0 0h20v36h-20z", { fillRule: "evenodd" })]) {
     const fixture = protocolFixture([
       h(f.Block, { style: { width: 72, height: 72, maxHeight: 36, float: "left", shapeOutside } }),
       h(Paragraph, { children: "first ordinary paragraph source" }),
@@ -51,7 +52,9 @@ test("authored Block shape accepts object and string with resolved constraints",
   }
   assert.throws(() =>
     protocolFixture([
-      h(f.Block, { style: { width: 72, height: 72, maxHeight: 36, float: "left", shapeOutside: "M0 0H20V72H0Z" } }),
+      h(f.Block, {
+        style: { width: 72, height: 72, maxHeight: 36, float: "left", shapeOutside: Source.path("M0 0H20V72H0Z") },
+      }),
       h(Paragraph, { children: "first ordinary paragraph source" }),
     ]),
   );
@@ -63,7 +66,6 @@ test("compound Path preserves native fill rules after resolved min/max dimension
         children: h(Flow, {
           pageSize: { width: 220, height: 260 },
           margins: { top: 10, right: 10, bottom: 10, left: 10 },
-          participation: f.participation,
           children: [
             h(f.Path, {
               d: "M0 0H60V60H0Z M10 10H50V50H10Z",
@@ -91,7 +93,6 @@ test("oversized crossing line uses ordinary fresh-body rejection", () => {
           children: h(Flow, {
             pageSize: { width: 220, height: 260 },
             margins: { top: 10, right: 10, bottom: 10, left: 10 },
-            participation: f.participation,
             children: [
               h(f.Path, { d: "M0 0H100L20 96H0Z", fill: "blue", style: { width: 100, height: 96, float: "left" } }),
               h(Paragraph, { style: { lineHeight: pt(300) }, children: "A" }),

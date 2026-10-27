@@ -28,10 +28,13 @@ test("fresh unshaken CommonJS loads statically isolate each explicit entry", () 
   const profiles = {
     textFlowSiblings: ["@updf/text-flow", "@updf/text/selection"],
     textFlowPath: ["@updf/text-flow/path", "@updf/text/selection"],
+    textFlowSyntax: ["@updf/text-flow", "@updf/text-flow/path", "@updf/text-flow/syntax"],
+    textFlowSources: ["@updf/text-flow/sources"],
     textFlow: ["@updf/text-flow/atomic", "@updf/text/composition"],
     ordinaryText: ["@updf/text"],
     layout: ["@updf/layout"],
     drawing: ["@updf/core"],
+    authoredRender: ["@updf/layout/render"],
   };
   for (const [profile, entries] of Object.entries(profiles)) textFlowEntryGraph(profile, loaded(entries));
   const root = loaded(["@updf/text-flow"]);

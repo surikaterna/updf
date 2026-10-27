@@ -2,23 +2,25 @@
 import { render } from "@updf/core";
 import { createHelvetica, fontRuntime, fontProvider } from "@updf/fonts";
 import { Document, Flow, Paragraph, layout } from "@updf/layout";
-import { createTextSelection } from "@updf/text/selection";
-import { createPathTextFlow, type SideShape, type FloatingPathProps } from "@updf/text-flow/path";
+import { createTextService } from "@updf/text";
+import { floatable, textFlow } from "@updf/text-flow";
+import { Path, pathShapes, type FloatingPathProps } from "@updf/text-flow/path";
+import { Source } from "@updf/text-flow/sources";
 
 const runtime = fontRuntime();
-const composition = createTextSelection({ runtime, defaultFont: "Helvetica" });
-const f = createPathTextFlow(composition.capability);
-const shape: SideShape = { d: "m0 0h100l-80 96h-20z", fillRule: "evenodd" };
+const FloatingPath = floatable(Path);
+const shape = Source.path("m0 0h100l-80 96h-20z", { fillRule: "evenodd" });
 const path: FloatingPathProps = { d: shape.d, fill: "#3498db", style: { width: 100, height: 96, float: "right" } };
-const options = { ...composition, resources: { Helvetica: createHelvetica() }, providers: [fontProvider(runtime)] };
+const options = {
+  text: createTextService({ runtime, defaultFont: "Helvetica" }),
+  extensions: [textFlow({ handlers: [pathShapes()] })],
+  resources: { Helvetica: createHelvetica() },
+  providers: [fontProvider(runtime)],
+};
 const result = layout(
   <Document>
-    <Flow
-      pageSize={{ width: 220, height: 260 }}
-      margins={{ top: 10, right: 10, bottom: 10, left: 10 }}
-      participation={f.participation}
-    >
-      <f.Path key="path" {...path} />
+    <Flow pageSize={{ width: 220, height: 260 }} margins={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+      <FloatingPath key="path" {...path} />
       <Paragraph>{"Contour paragraph with full width continuation. ".repeat(40)}</Paragraph>
     </Flow>
   </Document>,

@@ -6,6 +6,7 @@ import {
   type LineHeight,
   type NormalizedContent,
   validateDataObject as record,
+  contentChildren,
 } from "@updf/core/internal";
 import type { TextRun, TextStyle } from "@updf/text";
 import { authorBlock, captureContent, scopeDataBlock, scopedContent } from "./author-parts.js";
@@ -161,7 +162,7 @@ function deferBody(
   defaults?: ParagraphProps,
 ): void {
   if (typeof node.value === "string") return;
-  const content = captureContent(node.value.props.children, node, operation);
+  const content = captureContent(contentChildren(node), node, operation);
   deferColumnBody(block, () => {
     children.push(...normalizeBlocks(content, operation, `${node.path}/children`, defaults));
     return children;

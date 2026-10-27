@@ -14,6 +14,9 @@ export async function publicEntries(directory: string, names: readonly string[])
     );
     for (const path of Object.keys(manifest.exports)) {
       if (name === "svg" && path === "./layout" && !names.includes("layout")) continue;
+      if (name === "text-flow" && path === "./png-shape" && !names.includes("png")) continue;
+      if (name === "text-flow" && path === "./png-alpha" && (!names.includes("png") || !names.includes("images")))
+        continue;
       entries.push(manifest.name + (path === "." ? "" : path.slice(1)));
     }
   }
@@ -148,7 +151,7 @@ const layoutRuntime = `
   let measurements = 0;
   const adapter = cl.defineInlineAdapter({name:'mixed.adapter',validate:p=>p,measure:()=>{measurements++;return {advance:2,ascent:1,descent:0,inkBounds:{empty:true},nodes:[]};}});
   const content = el.paragraph({children:cl.inline(adapter,{})});
-  assert.equal(cl.measure(content,{width:100},{...fontOptions,extensions:el.createExtensions([adapter])}).size.width,100);
+   assert.equal(cl.measure(content,{width:100},{...fontOptions,adapters:el.createExtensions([adapter])}).size.width,100);
   assert.ok(measurements > 0);
 `;
 

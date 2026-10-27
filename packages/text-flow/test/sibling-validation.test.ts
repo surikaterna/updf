@@ -8,8 +8,11 @@ import { siblingFlow as f, siblingOptions as options } from "../../../tests/fixt
 const margins = { top: 0, right: 0, bottom: 0, left: 0 };
 const pageSize = { width: 200, height: 100 };
 function run(children: BlockContent[], data: boolean, installed = true) {
-  const props = { pageSize, margins, ...(installed ? { participation: f.participation } : {}), children };
-  return layout(data ? document({ children: flow(props) }) : h(Document, { children: h(Flow, props) }), options);
+  const props = { pageSize, margins, children };
+  return layout(data ? document({ children: flow(props) }) : h(Document, { children: h(Flow, props) }), {
+    ...options,
+    extensions: installed ? options.extensions : [],
+  });
 }
 function autoBlock(data: boolean) {
   const props = { keepTogether: true, style: { height: 10, marginTop: "auto" as const }, children: [] };
@@ -51,6 +54,7 @@ for (const data of [false, true]) {
       assert.equal(result.pageCount, 1);
       assert.equal(result.placements.at(-1)!.box.y, 90);
       assert.equal(result.placements.at(-1)!.box.height, 10);
-      assert.equal(result.placements.at(-1)!.sourceRange!.start, withFloat ? 2 : 1);
+      if (withFloat) assert.equal(result.placements.at(-1)!.sourceRange!.start, 2);
+      else assert.deepEqual(result, run([text(data), autoBlock(data)], data, false));
     });
 }

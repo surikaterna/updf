@@ -128,7 +128,7 @@ test("fixed explicit and fill modes compose with containers, Rows, Columns and t
     measure(
       table({ columns: [{ width: 10 }], style: { padding: 0 }, body: [{ cells: [{ children: explicit }] }] }),
       { width: 20 },
-      { extensions },
+      { adapters: extensions },
     ).size.width,
     10,
   );
@@ -138,7 +138,7 @@ test("fixed explicit and fill modes compose with containers, Rows, Columns and t
       measure(
         table({ columns: [{ width: 6 }], style: { padding: 0 }, body: [{ cells: [{ children: explicit }] }] }),
         { width: 20 },
-        { extensions },
+        { adapters: extensions },
       ),
     "GEOMETRY",
     /width$/u,

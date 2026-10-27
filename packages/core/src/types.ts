@@ -82,6 +82,7 @@ export type DiagnosticCode =
   | "VDOM_REGISTRY"
   | "VDOM_COMPONENT"
   | "MEASUREMENT_CONTEXT"
+  | "PHASE"
   | "LAYOUT_OVERSIZED"
   | "FONT_DATA"
   | "FONT_RESOURCE"

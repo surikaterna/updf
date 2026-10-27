@@ -30,7 +30,7 @@ export function inlineProof(font: PreparedFont) {
       <Content />
     </Theme.Provider>
   );
-  const measurement = measure(content, { width: 250 }, { ...options, extensions });
+  const measurement = measure(content, { width: 250 }, { ...options, adapters: extensions });
   const document = lower(
     <Document>
       <Flow

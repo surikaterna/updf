@@ -9,9 +9,11 @@ import { build, version } from "esbuild";
 import { textFlowCostInputs, exclusionCostInput } from "./text-flow-cost-inputs.js";
 import { profileCostInput } from "./text-flow-profile-cost-input.js";
 import { sourceIndexGraph } from "./text-source-index-graph.js";
-import { siblingCostInput } from "./text-flow-sibling-cost-input.js";
+import { siblingCostInput, unusedSiblingCostInput } from "./text-flow-sibling-cost-input.js";
 import { pathCostInput } from "./text-flow-path-cost-input.js";
 import { textFlowEntryGraph } from "./text-flow-entry-graph.js";
+import { manualCostInputs } from "./text-flow-manual-cost-inputs.js";
+import { visualCostInputs } from "./visual-cost-inputs.js";
 
 const { values } = parseArgs({
   options: {
@@ -90,7 +92,7 @@ async function checkBandIsolation(modules: string[], atomic: boolean, optional: 
 }
 
 async function checkConsumerGraph(profile: string, modules: string[], platform: "browser" | "node") {
-  const composition = profile.startsWith("textFlow") && !["textFlowSiblings", "textFlowPath"].includes(profile);
+  const composition = ["textFlow", "textFlowExclusion", "textFlowProfile"].includes(profile);
   textFlowEntryGraph(profile, modules);
   if (profile === "textFlowPath") {
     assert.ok(modules.some((path) => /\/text-flow\/dist\/(?:cjs\/)?path-band\.js$/u.test(path)));
@@ -105,6 +107,11 @@ async function checkConsumerGraph(profile: string, modules: string[], platform: 
   assert.ok(!modules.some((path) => /packages\/[^/]+\/src\//u.test(path)), "Source alias in retained consumer");
   if (profile === "drawing")
     assert.ok(!modules.some((path) => /packages\/(?:text|fonts|layout)\//u.test(path)), "Drawing dependency leak");
+  if (profile === "authoredRender")
+    assert.ok(
+      modules.some((path) => /layout\/dist\/(?:cjs\/)?render\.js$/u.test(path)),
+      "Missing authored-render entry",
+    );
   if (!profile.startsWith("textFlow"))
     assert.ok(
       !modules.some((path) => /packages\/text-flow\/|\/text\/dist\/(?:cjs\/)?composition\.js$/u.test(path)),
@@ -141,7 +148,12 @@ async function consumer(profile: string, contents: string, platform: "browser" |
   assert.ok(bytes);
   const modules = Object.keys(result.metafile.inputs);
   await checkConsumerGraph(profile, modules, platform);
-  await sourceIndexGraph(modules, result.outputFiles[0]!.text, profile.startsWith("textFlow"), root);
+  await sourceIndexGraph(
+    modules,
+    result.outputFiles[0]!.text,
+    profile.startsWith("textFlow") && profile !== "textFlowSources",
+    root,
+  );
   metrics[`consumer/${label}/bytes`] = bytes.length;
   // Node emits a zero-mtime gzip header; level is fixed for paired measurements.
   metrics[`consumer/${label}/gzip`] = gzipSync(bytes, { level: 9 }).length;
@@ -186,9 +198,12 @@ for (const kind of ["browserEsm", "nodeFacade", "cjs"])
 const consumers = [];
 const inputs = {
   ...textFlowCostInputs(),
+  ...manualCostInputs(),
+  ...visualCostInputs(),
   textFlowExclusion: exclusionCostInput(),
   textFlowProfile: profileCostInput(),
   textFlowSiblings: siblingCostInput(),
+  textFlowUnused: unusedSiblingCostInput(),
   textFlowPath: pathCostInput(),
 };
 for (const [profile, contents] of Object.entries(inputs)) {

@@ -57,7 +57,7 @@ test("#49-C JSX row font prevalidation names the authored row before inline call
       }),
     });
     assert.throws(
-      () => measure(content, { width: 190 }, { extensions }),
+      () => measure(content, { width: 190 }, { adapters: extensions }),
       (error: unknown) => {
         if (!(error instanceof DocumentError)) return false;
         assert.equal(error.diagnostics[0]?.code, "FONT_RESOURCE");

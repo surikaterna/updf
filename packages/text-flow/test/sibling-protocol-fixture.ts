@@ -22,9 +22,10 @@ export function protocolFixture(
   extensions?: Extensions,
   width = 200,
   height = 100,
-  participation: FlowParticipation = f.participation,
+  explicit?: FlowParticipation,
 ) {
   const operation = createLayoutOperation(options);
+  const participation = explicit ?? (operation.contributions![0] as FlowParticipation);
   const lifetime = { active: true };
   const nodes = operation.normalizeContent(
     children ?? defaultChildren(),

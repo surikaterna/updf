@@ -64,11 +64,12 @@ export function prepareLeaf(
   extensions?: Extensions,
   lifetime: ExtensionLifetime = { active: true },
   cache?: LeafCache,
+  contentHeight?: number,
 ): PreparedBlock {
   record(value, ["type", "paragraph", "keepTogether", "width", "height", "children", "props"], path);
   if (value.type === "extension") {
     record(value, ["type", "props"], path);
-    return extensionProducer(value, width, path, operation, extensions, lifetime, cache);
+    return extensionProducer(value, width, path, operation, extensions, lifetime, cache, contentHeight);
   }
   if (value.type === "paragraph") {
     record(value, ["type", "paragraph", "keepTogether"], path);
@@ -89,13 +90,7 @@ export function prepareLeaf(
   }
   if (value.type === "pageBreak") {
     record(value, ["type"], path);
-    return {
-      fragmentation: "atomic",
-      naturalSize: { width, height: 0 },
-      extent: 1,
-      control: "advance",
-      fragment: () => ({ geometry: emptyGeometry, nextOffset: 1, height: 0, paint: () => [] }),
-    };
+    return advanceProducer(width);
   }
   if (value.type === "spacer") {
     record(value, ["type", "height"], path);
@@ -104,6 +99,15 @@ export function prepareLeaf(
   }
   if (value.type !== "fixed") fail("TYPE", `${path}/type`, "Unsupported flow block");
   return fixedProducer(value, width, path, operation);
+}
+function advanceProducer(width: number): PreparedBlock {
+  return {
+    fragmentation: "atomic",
+    naturalSize: { width, height: 0 },
+    extent: 1,
+    control: "advance",
+    fragment: () => ({ geometry: emptyGeometry, nextOffset: 1, height: 0, paint: () => [] }),
+  };
 }
 function fixedProducer(
   value: Record<string, unknown>,

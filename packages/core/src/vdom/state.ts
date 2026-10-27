@@ -26,6 +26,17 @@ export interface State {
   readonly expansions: Expansion[];
   readonly budget: WorkLedger;
   closed: boolean;
+  preparation?: "capturing" | "suspended" | "sealed" | "sealed-layout";
+  captureRecipe?: (
+    recipe: import("./recipes.js").SemanticRecipe,
+    path: string,
+    depth: number,
+  ) => import("./recipes.js").SemanticRecipe;
+  prepareRecipe?: (
+    recipe: import("./recipes.js").SemanticRecipe,
+    path: string,
+    depth: number,
+  ) => import("./recipes.js").SemanticRecipe;
   readonly active: Set<object>;
   readonly installed: ReadonlySet<RegistryDefinition>;
   readonly context: Pick<ComponentContext, "resources">;

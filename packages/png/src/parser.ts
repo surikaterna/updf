@@ -1,17 +1,43 @@
 import { crc32 } from "./checksums.js";
+import { alphaLimit } from "./limits.js";
 import { limit, profile, requireData } from "./errors.js";
 
-export interface Header {
+export interface Header<SampleBytes extends 1 | 2 = 1> {
   width: number;
   height: number;
   color: number;
   channels: number;
+  sampleBytes: SampleBytes;
 }
-export interface ParsedPng extends Header {
+export interface ParsedPng<SampleBytes extends 1 | 2 = 1> extends Header<SampleBytes> {
   compressed: Uint8Array;
   palette?: Uint8Array;
   transparency?: Uint8Array;
 }
+export interface ValidationProfile<SampleBytes extends 1 | 2> {
+  sampleBytes: SampleBytes;
+  header(bytes: Uint8Array, channels: number | undefined): void;
+  transparency(bytes: Uint8Array): void;
+  color?: ColorValidation;
+}
+
+export type ColorValidation = (type: string, bytes: Uint8Array, state: Readonly<ColorState>) => boolean;
+interface ColorState {
+  readonly srgb: boolean;
+  readonly palette?: Uint8Array;
+  readonly parts: readonly Uint8Array[];
+}
+
+const nativeProfile: ValidationProfile<1> = {
+  sampleBytes: 1,
+  header(bytes, channels) {
+    if (bytes[8] !== 8 || !channels || bytes[10] !== 0 || bytes[11] !== 0 || bytes[12] !== 0)
+      profile("Expected non-interlaced 8-bit grayscale, RGB, indexed, grayscale-alpha or RGBA PNG");
+  },
+  transparency(bytes) {
+    for (let index = 0; index < bytes.length; index += 2) requireData(bytes[index] === 0, "tRNS exceeds 8-bit range");
+  },
+};
 interface Chunk {
   type: string;
   bytes: Uint8Array;
@@ -30,7 +56,7 @@ function chunk(source: Uint8Array, offset: number): Chunk {
   return { type, bytes: source.subarray(offset + 8, end - 4), end };
 }
 
-function header(bytes: Uint8Array): Header {
+function header(bytes: Uint8Array, validation: ValidationProfile<1 | 2>): Header<1 | 2> {
   requireData(bytes.length === 13, "Invalid IHDR length");
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
   const width = view.getUint32(0),
@@ -38,11 +64,11 @@ function header(bytes: Uint8Array): Header {
   requireData(width > 0 && height > 0 && width <= 0x7fffffff && height <= 0x7fffffff, "Invalid PNG dimensions");
   const color = bytes[9]!;
   const channels = ({ 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 } as Record<number, number>)[color];
-  if (bytes[8] !== 8 || !channels || bytes[10] !== 0 || bytes[11] !== 0 || bytes[12] !== 0)
-    profile("Expected non-interlaced 8-bit grayscale, RGB, indexed, grayscale-alpha or RGBA PNG");
-  if ((width * channels + 1) * height > 64 * 1024 * 1024 || width * height > 16_000_000)
+  validation.header(bytes, channels);
+  const sampleBytes = validation.sampleBytes;
+  if ((width * channels! * sampleBytes + 1) * height > 64 * 1024 * 1024 || width * height > alphaLimit)
     limit("PNG exceeds 64 MiB decoded scanlines or 16,000,000 pixels");
-  return { width, height, color, channels };
+  return { width, height, color, channels: channels!, sampleBytes };
 }
 
 function palette(bytes: Uint8Array, color: number): Uint8Array {
@@ -51,12 +77,13 @@ function palette(bytes: Uint8Array, color: number): Uint8Array {
   return bytes;
 }
 
-function transparency(bytes: Uint8Array, info: Header, colors?: Uint8Array): Uint8Array {
+function transparency(bytes: Uint8Array, state: State): Uint8Array {
+  const { info, palette: colors } = state;
   if (info.color === 3) {
     requireData(colors && bytes.length > 0 && bytes.length <= colors.length / 3, "Invalid indexed tRNS");
   } else {
     requireData((info.color === 0 && bytes.length === 2) || (info.color === 2 && bytes.length === 6), "Invalid tRNS");
-    for (let index = 0; index < bytes.length; index += 2) requireData(bytes[index] === 0, "tRNS exceeds 8-bit range");
+    state.validation.transparency(bytes);
   }
   return bytes;
 }
@@ -72,7 +99,8 @@ function join(parts: Uint8Array[]): Uint8Array {
 }
 
 interface State {
-  info: Header;
+  info: Header<1 | 2>;
+  validation: ValidationProfile<1 | 2>;
   parts: Uint8Array[];
   palette?: Uint8Array;
   transparency?: Uint8Array;
@@ -92,7 +120,7 @@ function accept(state: State, entry: Chunk): void {
     state.palette = palette(bytes, state.info.color);
   } else if (type === "tRNS") {
     requireData(!state.transparency && !state.parts.length, "Duplicate or misplaced tRNS");
-    state.transparency = transparency(bytes, state.info, state.palette);
+    state.transparency = transparency(bytes, state);
   } else if (type === "IHDR") {
     requireData(false, "Duplicate IHDR");
   } else if (type === "sRGB") {
@@ -101,19 +129,25 @@ function accept(state: State, entry: Chunk): void {
       "Invalid sRGB",
     );
     state.srgb = true;
-  } else if (!["tEXt", "zTXt", "iTXt", "pHYs", "tIME"].includes(type)) {
+    state.validation.color?.(type, bytes, state);
+  } else if (
+    !["tEXt", "zTXt", "iTXt", "pHYs", "tIME"].includes(type) &&
+    !state.validation.color?.(type, bytes, state)
+  ) {
     profile(`Unsupported PNG chunk ${type}`);
   }
 }
 
-export function parse(source: Uint8Array): ParsedPng {
+export function parse(source: Uint8Array): ParsedPng;
+export function parse<S extends 1 | 2>(source: Uint8Array, validation: ValidationProfile<S>): ParsedPng<S>;
+export function parse(source: Uint8Array, validation: ValidationProfile<1 | 2> = nativeProfile): ParsedPng<1 | 2> {
   requireData(
     [137, 80, 78, 71, 13, 10, 26, 10].every((byte, index) => source[index] === byte),
     "Invalid PNG signature",
   );
   const first = chunk(source, 8);
   requireData(first.type === "IHDR", "IHDR must be first");
-  const state: State = { info: header(first.bytes), parts: [], endedData: false, srgb: false };
+  const state: State = { info: header(first.bytes, validation), validation, parts: [], endedData: false, srgb: false };
   let offset = first.end;
   let count = 1;
   while (offset < source.length) {

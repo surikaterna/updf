@@ -1,4 +1,4 @@
-import { fail, sum, number } from "@updf/core/internal";
+import { DocumentError, fail, sum, number } from "@updf/core/internal";
 import { useOperationCapability, type OperationCapability } from "@updf/core/resources";
 import type { ContentBlockProps, BlockComponent } from "@updf/layout";
 import {
@@ -25,6 +25,7 @@ export interface SiblingBlockProps<Shape> extends Omit<ContentBlockProps, "style
     readonly height: number;
     readonly float: "left" | "right";
     readonly shapeOutside?: Shape;
+    readonly shapeImageThreshold?: number;
   };
 }
 export function siblingParticipation<Shape>(
@@ -35,7 +36,12 @@ export function siblingParticipation<Shape>(
   readonly participation: FlowParticipation;
 } {
   const participation = defineParticipation((sources, context) =>
-    compileSiblings(sources, context, capability, policy),
+    compileSiblings(
+      sources,
+      context,
+      () => selectionFor(context, capability, sources.find((s) => s.data)!.path),
+      policy,
+    ),
   );
   const Block = participationComponent<SiblingBlockProps<Shape>>(participation, (input, path) => {
     const { props, detail } = policy.capture(input, path);
@@ -62,10 +68,10 @@ export function siblingParticipation<Shape>(
   });
   return { Block, participation };
 }
-function compileSiblings<Shape>(
+export function compileSiblings<Shape>(
   sources: readonly ParticipationSource[],
   context: ParticipationContext,
-  capability: OperationCapability<InlineSelectionOperation>,
+  select: () => InlineSelectionOperation,
   policy: SidePolicy<Shape>,
 ) {
   const marked = sources.filter((source) => source.data);
@@ -86,8 +92,8 @@ function compileSiblings<Shape>(
         !(sources[index + 1]!.block as { keepTogether?: boolean }).keepTogether
       )
         following.push(sources[++index]!);
-      const selection = useOperationCapability(context.operation, capability);
-      if (!("prepareInline" in selection))
+      const selection = following.length ? select() : undefined;
+      if (selection && !("prepareInline" in selection))
         fail("MEASUREMENT_CONTEXT", source.path, "Capability does not support inline selection");
       owned = siblingSources(following, context, selection);
       blocks.push(producer(source, owned, context, policy));
@@ -103,6 +109,20 @@ function compileSiblings<Shape>(
     return { blocks, close: () => owned?.kernel.close() };
   } catch (error) {
     owned?.kernel.close();
+    throw error;
+  }
+}
+function selectionFor(
+  context: ParticipationContext,
+  capability: OperationCapability<InlineSelectionOperation>,
+  path: string,
+): InlineSelectionOperation {
+  try {
+    return useOperationCapability(context.operation, capability);
+  } catch (error) {
+    const diagnostic = error instanceof DocumentError ? error.diagnostics[0] : undefined;
+    if (diagnostic?.code === "FONT_RESOURCE" && diagnostic.path === "")
+      throw new DocumentError(diagnostic.code, path, diagnostic.message, diagnostic);
     throw error;
   }
 }

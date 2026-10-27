@@ -24,6 +24,12 @@ import type { PreparedBlock } from "./protocol.js";
 import { edgeRegionNode } from "./shared-edge-emission.js";
 import { coordinateSharedEdges } from "./shared-edge-producer.js";
 import { ownEdgeRegion } from "./shared-edge-regions.js";
+import { bindContentHeight } from "./visual-content-height.js";
+import {
+  bindVisualReferenceContext,
+  forwardMeasuredReference,
+  type VisualReferenceRequest,
+} from "./visual-reference.js";
 
 export interface ExtensionLifetime {
   active: boolean;
@@ -42,6 +48,8 @@ function context(
   lifetime: ExtensionLifetime,
   origin: AdapterOrigin,
   extensions?: Extensions,
+  contentHeight?: number,
+  source?: object,
 ): MeasureContext {
   const result = Object.freeze<MeasureContext>({
     width,
@@ -74,6 +82,8 @@ function context(
     },
   });
   bindOperationCapabilityContext(result, operation, origin, lifetime);
+  if (contentHeight !== undefined) bindContentHeight(result, contentHeight, lifetime);
+  if (source) bindVisualReferenceContext(result, { operation, lifetime, source, width, height: contentHeight });
   return result;
 }
 
@@ -85,12 +95,13 @@ export function extensionProducer(
   extensions: Extensions | undefined,
   lifetime: ExtensionLifetime,
   cache?: LeafCache,
+  contentHeight?: number,
 ): PreparedBlock {
   const definition = resolveExtension(value, extensions, path);
-  const key = JSON.stringify([width, ancestors(operation)]);
+  const request = { operation, lifetime, source: value, width, height: contentHeight };
+  const key = JSON.stringify([width, ancestors(operation), ...(contentHeight === undefined ? [] : [contentHeight])]);
   const previous = cache?.extensions.get(value)?.get(key);
-  if (previous)
-    return checkedMeasured(previous.measured, width, path, operation, previous.origin, extensions, lifetime);
+  if (previous) return checkedMeasured(previous.measured, path, previous.origin, extensions, request);
   const origin = { path };
   preflightSource(value.props, operation, `${path}/props`);
   const validated = adapterCall("validate", path, () => definition.validate(value.props), origin);
@@ -101,16 +112,17 @@ export function extensionProducer(
     path,
     () =>
       scopedAdapter(value, () => {
-        const measurement = context(width, operation, lifetime, origin, extensions);
+        const measurement = context(width, operation, lifetime, origin, extensions, contentHeight, value);
         return withAdapter(operation, definition.name, () => definition.measure(props, measurement));
       }),
     origin,
   );
-  const prepared = checkedMeasured(measured, width, path, operation, origin, extensions, lifetime);
+  const prepared = checkedMeasured(measured, path, origin, extensions, request);
   const semantic: ExtensionMeasurement = {
     origin,
     measured: Object.freeze({ ...measured, naturalSize: Object.freeze({ ...measured.naturalSize }) }),
   };
+  forwardMeasuredReference(measured, semantic.measured, request);
   const widths = cache?.extensions.get(value) ?? new Map<string, ExtensionMeasurement>();
   widths.set(key, semantic);
   cache?.extensions.set(value, widths);
@@ -118,13 +130,12 @@ export function extensionProducer(
 }
 function checkedMeasured(
   measured: MeasuredBlock,
-  width: number,
   path: string,
-  operation: LayoutOperation,
   origin: AdapterOrigin,
   extensions: Extensions | undefined,
-  lifetime: ExtensionLifetime,
+  request: VisualReferenceRequest,
 ): PreparedBlock {
+  const { operation, lifetime, width } = request;
   const naturalSize = checkedMeasuredSize(measured, width, path);
   const extent = progress(measured.extent, 0, Number.MAX_SAFE_INTEGER, `${path}/extent`);
   const source = checkedSource(measured, extent, operation, path);
@@ -151,7 +162,9 @@ function checkedMeasured(
     lifetime,
     { from: origin.path, to: path },
   );
-  return measured.sharedEdges ? coordinateSharedEdges(prepared, operation, path) : prepared;
+  const result = measured.sharedEdges ? coordinateSharedEdges(prepared, operation, path) : prepared;
+  forwardMeasuredReference(measured, result, request);
+  return result;
 }
 function checkedMeasuredSize(measured: MeasuredBlock, width: number, path: string) {
   record(

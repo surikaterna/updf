@@ -89,7 +89,7 @@ for (const entry of ["measure", "layout"] as const) {
       const extensions = createExtensions([outer, middle, inner]);
       const content = extension(outer, {});
       if (entry === "measure") {
-        const result = measure(content, { width: 80 }, { extensions });
+        const result = measure(content, { width: 80 }, { adapters: extensions });
         assert.deepEqual(result.size, { width: 80, height: 7 });
       } else {
         const result = paginate(content, extensions);
@@ -144,7 +144,7 @@ for (const entry of ["measure", "layout"] as const) {
       const extensions = createExtensions([outer, failing]);
       const content = extension(outer, {});
       const run = () =>
-        entry === "measure" ? measure(content, { width: 80 }, { extensions }) : paginate(content, extensions);
+        entry === "measure" ? measure(content, { width: 80 }, { adapters: extensions }) : paginate(content, extensions);
       assert.throws(run, (error) => (caught ? error instanceof DocumentError : error === original));
       assert.equal(retained.length, 2);
       for (const context of retained) {

@@ -2,10 +2,24 @@ import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import { isBuiltin } from "node:module";
 import { join } from "node:path";
-import { packageEdge, sidePathImporters, participationImporters } from "./package-edges.js";
+import * as edges from "./package-edges.js";
+import { resourceExports } from "./resource-exports.js";
 export { packageEdge } from "./package-edges.js";
 export const internalImporters: Readonly<Record<string, readonly string[]>> = {
-  "@updf/layout/internal-participation": participationImporters,
+  "@updf/layout/internal-visual": ["images/src/visual.ts", "images/src/capture.ts"],
+  "@updf/layout/internal-preparation": [
+    "images/src/load.ts",
+    "images/src/load-session.ts",
+    "images/src/format-handler.ts",
+    "images/src/cache-backend.ts",
+    "images/src/cache-owner.ts",
+    "images/src/cache-subscriber.ts",
+    "images/src/prepared-job.ts",
+  ].concat(["images/src/internal-preparation.ts", "text-flow/src/png-alpha.ts", "text-flow/src/png-alpha-session.ts"]),
+  "@updf/images/internal-preparation": ["text-flow/src/png-alpha-session.ts", "text-flow/src/png-alpha.ts"],
+  "@updf/layout/internal-visual-owner": ["text-flow/src/component-owner.ts", "text-flow/src/index.ts"],
+  "@updf/layout/internal-participation": edges.participationImporters,
+  "@updf/core/internal-preparation": ["layout/src/internal-preparation.ts", "layout/src/preparation-content.ts"],
   "@updf/core/internal-drawing": [
     "svg/src/bridge.ts",
     "layout/src/mixed-layout.ts",
@@ -14,7 +28,30 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "layout/src/region-render.ts",
   ],
   "@updf/core/internal": [
-    ...sidePathImporters,
+    ...edges.manualShapeImporters,
+    "layout/src/internal-preparation.ts",
+    "layout/src/preparation-content.ts",
+    "layout/src/preparation-resource.ts",
+    "layout/src/preparation-signal.ts",
+    "images/src/index.ts",
+    "images/src/visual.ts",
+    "images/src/source.ts",
+    "images/src/load.ts",
+    "images/src/load-session.ts",
+    "images/src/load-options.ts",
+    "images/src/format-handler.ts",
+    "images/src/capture.ts",
+    "images/src/binding.ts",
+    "images/src/placement.ts",
+    "images/src/cache.ts",
+    "images/src/cache-backend.ts",
+    "images/src/cache-owner.ts",
+    "images/src/cache-subscriber.ts",
+    "images/src/prepared-job.ts",
+    "layout/src/visual-content-height.ts",
+    "layout/src/visual-preparation-state.ts",
+    "layout/src/visual-preparation.ts",
+    ...edges.sidePathImporters,
     "layout/src/participation.ts",
     "layout/src/source-provenance.ts",
     "text-flow/src/sibling.ts",
@@ -23,6 +60,7 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "barcodes/src/checks.ts",
     "layout/src/adapter-ownership.ts",
     "layout/src/adapter-content.ts",
+    "layout/src/internal-visual.ts",
     "layout/src/emission-nodes.ts",
     "layout/src/author-parts.ts",
     "layout/src/adapter-decorations.ts",
@@ -143,7 +181,6 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "text/src/exclusion.ts",
     "text/src/profile-exclusion.ts",
     "text/src/composition-profile.ts",
-    "text-flow/src/index.ts",
     "text/src/line-height.ts",
     "text/src/lines.ts",
     "text/src/measure.ts",
@@ -155,11 +192,12 @@ export const internalImporters: Readonly<Record<string, readonly string[]>> = {
     "text/src/indexed-selector.ts",
     "text/src/ledger.ts",
     "text/src/service.ts",
+    "text/src/service-request.ts",
     "text/src/measurer.ts",
     "text/src/text-resources.ts",
     "text/src/runtime-output.ts",
     "text/src/index.ts",
-  ],
+  ].concat(["layout/src/preparation-service.ts", "images/src/source-error.ts", "layout/src/visual-reference.ts"]),
   "@updf/geometry/internal": ["svg/src/numbers.ts"],
   "@updf/layout-boxes/internal-fragmentation": ["layout/src/measured-source.ts"],
 };
@@ -199,14 +237,16 @@ export function portableGraph(modules: readonly string[], optional = false, reac
 }
 function sourceEdges(owner: string, text: string, path: string, root: string): void {
   for (const match of text.matchAll(/(?:from\s+|import\s*\()['"]([^'"]+)['"]/gu)) {
-    if (match[1]) packageEdge(owner, match[1]);
+    if (match[1]) edges.packageEdge(owner, match[1]);
+    if ((owner === "images" || owner === "text-flow") && match[1])
+      edges.imageLeafEdge(path.slice(join(root, "packages").length + 1), match[1]);
     if (owner === "core" && match[1] === "@updf/layout-boxes/arithmetic")
       assert.equal(path.slice(join(root, "packages").length + 1), "core/src/measurement/arithmetic.ts");
     if (owner === "text" && match[1] === "@updf/layout-boxes/numeric")
       assert.match(path, /\/text\/src\/(?:profile-interpolation|inline-band)\.ts$/u);
   }
   for (const match of text.matchAll(
-    /from ['"](@updf\/[^'"]+\/internal(?:-drawing|-fragmentation|-participation)?)['"]/gu,
+    /from ['"](@updf\/[^'"]+\/internal(?:-drawing|-fragmentation|-participation|-preparation)?)['"]/gu,
   )) {
     const specifier = match[1];
     assert.ok(specifier);
@@ -214,7 +254,6 @@ function sourceEdges(owner: string, text: string, path: string, root: string): v
   }
   assert.ok(!/from ['"]\.\.\/\.\.\//u.test(text), `Source crosses package via relative path: ${path}`);
 }
-
 const coreExports = [
   "DocumentError",
   "fail",
@@ -250,6 +289,7 @@ const coreExports = [
   "InlineMetric",
   "RunMetrics",
   "NormalizedContent",
+  "contentChildren",
   "isVNode",
   "SemanticRecipe",
   "semanticComponent",
@@ -263,12 +303,17 @@ const coreExports = [
   "ledger",
   "work",
   "textOnce",
+  "useOperationExtension",
   "inputNode",
   "visitNativeLeaf",
   "sealSelectedText",
   "CapabilityScope",
   "bindOperationCapabilityContext",
   "createOperationCapability",
+  "defineOperationExtension",
+  "createTextServiceRequest",
+  "checkTextServiceRequest",
+  "requestTextService",
   "ownTextOutput",
   "validateMeasurement",
   "fragments as validateTextFragments",
@@ -325,6 +370,7 @@ export async function checkSeams(root: string): Promise<void> {
     "fontkite",
     "jpeg",
     "png",
+    "images",
   ]) {
     for (const path of await files(join(root, "packages", owner, "src"))) {
       const text = await readFile(path, "utf8");
@@ -342,52 +388,6 @@ const pdfExports = [
   "PdfRef",
   "PdfValue",
   "PdfWriter",
-];
-const resourceExports = [
-  "OwnedResource",
-  "createOwnedResource",
-  "isOwnedResource",
-  "ownedResourceBytes",
-  "MeasuredRichText",
-  "PageResources",
-  "PaintingBinding",
-  "PaintingSlot",
-  "Resource",
-  "ResourceCollection",
-  "ResourceDefinition",
-  "ResourcePhase",
-  "ResourceProvider",
-  "ResourceSlot",
-  "TextSite",
-  "XObjectSite",
-  "xObjectSlot",
-  "paintingSlot",
-  "resourceSlot",
-  "textSlot",
-  "TextMetrics",
-  "TextRun",
-  "TextRuntime",
-  "TextService",
-  "TextServiceContext",
-  "OperationCapability",
-  "useOperationCapability",
-  "TextMeasurer",
-  "MeasureOptions",
-  "InlineLine",
-  "InlineMetric",
-  "InlineLineHeights",
-  "LineEnvelope",
-  "LineHeight",
-  "PrivateFragment",
-  "InkBounds",
-  "ParagraphDefinition",
-  "RichTextInput",
-  "TextFragmentMeasurement",
-  "TextLineMeasurement",
-  "TextMeasurement",
-  "TextMeasurementInput",
-  "TextRun as SourceTextRun",
-  "TextStyle",
 ];
 async function checkResourceExports(root: string): Promise<void> {
   internalExports(await readFile(join(root, "packages/core/src/pdf.ts"), "utf8"), pdfExports);

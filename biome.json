@@ -18,6 +18,7 @@
       "packages/text-flow/**",
       "packages/jpeg/**",
       "packages/png/**",
+      "packages/images/**",
       "apps/**",
       "examples/**",
       "scripts/**",

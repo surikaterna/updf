@@ -9,6 +9,20 @@
     "README.md"
   ],
   "exports": {
+    "./internal-preparation": {
+      "browser": {
+        "types": "./dist/node/internal-preparation.d.mts",
+        "default": "./dist/internal-preparation.js"
+      },
+      "import": {
+        "types": "./dist/node/internal-preparation.d.mts",
+        "default": "./dist/node/internal-preparation.mjs"
+      },
+      "require": {
+        "types": "./dist/node/internal-preparation.d.cts",
+        "default": "./dist/cjs/internal-preparation.js"
+      }
+    },
     "./resources": {
       "browser": {
         "types": "./dist/node/resources.d.mts",

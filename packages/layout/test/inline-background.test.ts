@@ -26,7 +26,7 @@ import { closeParagraphFragments, paragraphFragments } from "../dist/cjs/paragra
 const yellow = [1, 1, 0] as const;
 const blue = [0, 0, 1] as const;
 function nodes(content: ReturnType<typeof paragraph>, options = {}) {
-  const { extensions, ...renderOptions } = options as RenderOptions & { readonly extensions?: Extensions };
+  const { adapters: extensions, ...renderOptions } = options as RenderOptions & { readonly adapters?: Extensions };
   return layout(
     document({
       children: flow({
@@ -136,14 +136,14 @@ test("#43 highlight metadata never enters visual text callbacks; invalid inherit
       style: { color: blue, font },
       children: span({ style: highlight ? { backgroundColor: yellow } : {}, children: ["A", inline(adapter, {})] }),
     });
-  const plain = measure(make(false), { width: 100 }, { extensions });
-  const painted = measure(make(true), { width: 100 }, { extensions });
+  const plain = measure(make(false), { width: 100 }, { adapters: extensions });
+  const painted = measure(make(true), { width: 100 }, { adapters: extensions });
   assert.deepEqual(painted.lines, plain.lines);
   assert.deepEqual(styles, [
     { font: "Helvetica", fontSize: 10, color: blue },
     { font: "Helvetica", fontSize: 10, color: blue },
   ]);
-  assert.throws(() => measure(make(true, "Missing"), { width: 100 }, { extensions }), DocumentError);
+  assert.throws(() => measure(make(true, "Missing"), { width: 100 }, { adapters: extensions }), DocumentError);
   assert.equal(styles.length, 2);
 });
 test("#43 wrapping and tight lines paint every background before every foreground without reflow", () => {
@@ -232,7 +232,7 @@ test("#43 explicit box backgrounds do not cascade; immutable highlights charge n
 });
 test("#43 mixed prepared fonts, inherited foreground color and visual callbacks retain metrics and foreground", async () => {
   const font = await fixtureFont();
-  const options = { resources: { Demo: font }, extensions: createExtensions([badgeAdapter]) };
+  const options = { resources: { Demo: font }, adapters: createExtensions([badgeAdapter]) };
   const make = (highlight: boolean) =>
     paragraph({
       style: { font: "Demo", color: blue, lineHeight: 1.2 },

@@ -32,7 +32,6 @@ test("fractional margins/origins and near-bottom deferral preserve finite monoto
       children: h(Flow, {
         pageSize: { width: 220.75, height: 140.5 },
         margins: { top: 0.1, right: 0.3, bottom: 0.2, left: 0.7 },
-        participation: f.participation,
         children: [
           h(Block, { style: { height: 120.2 }, children: null }),
           h(f.Block, { style: { width: 72.125, height: 36.25, float: "left" } }),

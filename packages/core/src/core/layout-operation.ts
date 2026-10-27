@@ -28,9 +28,11 @@ import { type ResolvedTextResources as ResolvedFonts, textService } from "./text
 import { measureResolvedText } from "./text-measurement.js";
 import { validate } from "./validate.js";
 import { bindOperationCapabilityContext, selectOperationCapability } from "./operation-capability.js";
+import { checkGeometry, checkState } from "../vdom/lifetime.js";
 
 /** Internal adapter seam: no resolved resources or serializer plans escape. */
 export interface LayoutOperation {
+  readonly contributions?: readonly object[];
   readonly policy: Policy;
   readonly scoped: <T>(scope: object, invoke: () => T) => T;
   readonly finalContext: <T, R>(context: RendererBinding<T>, value: T, invoke: () => R) => R;
@@ -72,8 +74,12 @@ export function layoutOperation(
   const state = parent ?? operationState(fonts, budget);
   const check = (path = ""): void => {
     if (!active() || state.closed) fail("MEASUREMENT_CONTEXT", path, "Lowering operation has closed");
+    checkState(state, path);
   };
   const result = Object.freeze({
+    ...(fonts.extensions
+      ? { contributions: Object.freeze(fonts.extensions.map(({ contribution }) => contribution)) }
+      : {}),
     policy: budget.policy,
     lineBox(style: TextStyle, height: LineHeight, path: string) {
       check();
@@ -89,27 +95,55 @@ export function layoutOperation(
     },
     validateFixed(nodes: readonly NodeDefinition[], width: number, height: number, path: string) {
       check();
+      checkGeometry(state, path);
       return validateFixed(nodes, width, height, path, fonts, budget.policy);
     },
     validateDocument(document: DocumentDefinition) {
       check();
+      checkGeometry(state);
       validateGenerated(document, fonts, budget.policy);
     },
   });
-  if (fonts.capability) {
-    selectOperationCapability(result, fonts.capability, { bindings: fonts.bindings, budget, check }, state);
+  bindCapabilities(result, fonts, budget, state, check, () => active() && !state.closed);
+  return result;
+}
+function bindCapabilities(
+  result: LayoutOperation,
+  fonts: ResolvedFonts,
+  budget: WorkLedger,
+  state: State,
+  check: (path?: string) => void,
+  active: () => boolean,
+): void {
+  if (fonts.capability || fonts.extensions?.length) {
+    selectOperationCapability(
+      result,
+      fonts.capability,
+      {
+        get bindings() {
+          return fonts.bindings;
+        },
+        budget,
+        check(path) {
+          check(path);
+          checkGeometry(state, path);
+        },
+        ...(fonts.service?.provide ? { textProvider: fonts.service.provide } : {}),
+      },
+      state,
+      fonts.extensions,
+    );
     bindOperationCapabilityContext(
       result,
       result,
       { path: "" },
       {
         get active() {
-          return active() && !state.closed;
+          return active();
         },
       },
     );
   }
-  return result;
 }
 type ContentMethods = Pick<
   LayoutOperation,
@@ -140,6 +174,7 @@ function contentMethods(state: State, fonts: ResolvedFonts, budget: WorkLedger, 
     },
     lowerDrawing(input: unknown, width: number, height: number, path: string) {
       check();
+      checkGeometry(state, path);
       if (!state.drawing) fail("MEASUREMENT_CONTEXT", path, "Drawing finalization requires layout Document");
       return state.drawing(input, width, height, path);
     },
@@ -153,9 +188,13 @@ function contentMethods(state: State, fonts: ResolvedFonts, budget: WorkLedger, 
     },
     nativeInk(nodes: readonly NodeDefinition[]) {
       check();
+      checkGeometry(state);
       return nativeInk(nodes, fonts, budget.policy);
     },
-    measureInline: inlineMeasurement(fonts, budget, check),
+    measureInline: inlineMeasurement(fonts, budget, () => {
+      check();
+      checkGeometry(state);
+    }),
     normalizeContent: (input, resolve, path, guard, native, numeric, deferChildren) => {
       check();
       return normalizeScoped(input, state, resolve, path, guard, native, numeric, deferChildren);

@@ -6,7 +6,7 @@ import { packageEdge } from "../../scripts/package-edges.js";
 import { textFlowCostInputs } from "../../scripts/text-flow-cost-inputs.js";
 import { profileCostInput } from "../../scripts/text-flow-profile-cost-input.js";
 import { sourceIndexGraph } from "../../scripts/text-source-index-graph.js";
-import { siblingCostInput } from "../../scripts/text-flow-sibling-cost-input.js";
+import { siblingCostInput, unusedSiblingCostInput } from "../../scripts/text-flow-sibling-cost-input.js";
 import { pathCostInput } from "../../scripts/text-flow-path-cost-input.js";
 import { textFlowEntryGraph } from "../../scripts/text-flow-entry-graph.js";
 
@@ -25,10 +25,11 @@ test("emitted browser/Node graphs isolate composition and retain both opt-in pos
       ...textFlowCostInputs(),
       textFlowProfile: profileCostInput(),
       textFlowSiblings: siblingCostInput(),
+      textFlowUnused: unusedSiblingCostInput(),
       textFlowPath: pathCostInput(),
     })) {
       const optional = profile.startsWith("textFlow");
-      const atomic = optional && !["textFlowSiblings", "textFlowPath"].includes(profile);
+      const atomic = optional && !["textFlowSiblings", "textFlowPath", "textFlowUnused"].includes(profile);
       const result = await build({
         stdin: { contents, resolveDir: process.cwd(), loader: "ts" },
         bundle: true,

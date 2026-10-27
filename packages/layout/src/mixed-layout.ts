@@ -6,6 +6,7 @@ import {
   type NormalizedContent,
   type SemanticRecipe,
   snapshotData,
+  contentChildren,
 } from "@updf/core/internal";
 import { createDrawingLayoutOperation } from "@updf/core/internal-drawing";
 import type { LowerOptions, VDOMChild } from "@updf/core/vdom";
@@ -41,7 +42,8 @@ import {
   checkParticipation,
   compileParticipation,
   participationSources,
-  participationRole,
+  participationGuard,
+  type FlowParticipation,
   type ParticipationSource,
 } from "./participation.js";
 
@@ -84,7 +86,7 @@ export function layout(content: unknown, options: LowerOptions = {}): DocumentLa
     if (roots.length !== 1 || !root || typeof root.value === "string" || root.value.identity !== documentIdentity)
       fail("VDOM_HIERARCHY", "/document", "Expected exactly one layout Document");
     const props = root.value.props as DocumentProps;
-    return scoped(root, operation, () => layoutDocument({ props }, operation));
+    return scoped(root, operation, () => layoutDocument({ props }, operation, root));
   } finally {
     operation.close();
   }
@@ -92,6 +94,7 @@ export function layout(content: unknown, options: LowerOptions = {}): DocumentLa
 export function layoutDocument(
   recipe: { readonly props: DocumentProps },
   operation: LayoutOperation,
+  capturedRoot?: NormalizedContent,
 ): DocumentLayoutResult {
   validateDataObject(recipe.props, ["children"], "/document/props");
   let pages = 0,
@@ -108,7 +111,7 @@ export function layoutDocument(
   };
   try {
     const sections = operation.normalizeContent(
-      recipe.props.children,
+      capturedRoot ? contentChildren(capturedRoot) : recipe.props.children,
       sectionRecipe,
       "/document/children",
       sectionGuard,
@@ -133,7 +136,7 @@ export function layoutDocument(
     closeMeasuredSources(session.lifetime);
   }
 }
-function sectionGuard(value: unknown, path: string): void {
+export function sectionGuard(value: unknown, path: string): void {
   if (
     !value ||
     typeof value !== "object" ||
@@ -155,6 +158,7 @@ function planFixed(node: NormalizedContent, section: number, session: Session): 
   session.planned.push({ section, page: { ...size, children: [] }, fixed: node });
 }
 interface FlowParts {
+  participation?: FlowParticipation;
   sources?: readonly ParticipationSource[];
   body: FlowBlock[];
   nodes: NormalizedContent[];
@@ -164,33 +168,33 @@ interface FlowParts {
 }
 function flowParts(node: NormalizedContent, session: Session): FlowParts {
   if (typeof node.value === "string") fail("TYPE", node.path, "Expected Flow");
-  const installed = node.value.props.participation;
-  if (installed !== undefined) checkParticipation(installed);
-  const children = session.operation.normalizeContent(
-    node.value.props.children,
-    sectionRecipe,
-    `${node.path}/children`,
-    installed === undefined
-      ? flowChildGuard
-      : (value, path, parent) => {
-          const role = participationRole(installed, value, parent);
-          flowChildGuard(role.value, path, role.parent);
-        },
-    undefined,
-    undefined,
-    columnIdentity,
-  );
+  const { installed, children } = normalizeFlowChildren(node, session.operation);
   const result: FlowParts = { body: [], nodes: [], bodySlot: false };
   for (const child of children) appendFlowChild(child, result, session);
-  const participation = node.value.props.participation;
+  const participation = installed.owner();
   if (participation !== undefined) {
     checkParticipation(participation);
     if (result.bodySlot) fail("VDOM_HIERARCHY", node.path, "Participation requires direct body siblings");
     result.sources = participationSources(result.nodes, session.operation, participation);
+    result.participation = participation;
   } else if (!result.bodySlot) result.body = convertBlocks(result.nodes, session.operation);
   return result;
 }
-function flowChildGuard(value: string | SemanticRecipe, path: string, parent: object | undefined): void {
+export function normalizeFlowChildren(node: NormalizedContent, operation: LayoutOperation) {
+  if (typeof node.value === "string") fail("TYPE", node.path, "Expected Flow");
+  const installed = participationGuard(node.value.props.participation, operation.contributions, flowChildGuard);
+  const children = operation.normalizeContent(
+    contentChildren(node),
+    sectionRecipe,
+    `${node.path}/children`,
+    installed.guard,
+    undefined,
+    undefined,
+    columnIdentity,
+  );
+  return { installed, children };
+}
+export function flowChildGuard(value: string | SemanticRecipe, path: string, parent: object | undefined): void {
   if (
     parent === undefined &&
     typeof value !== "string" &&
@@ -214,7 +218,7 @@ function appendFlowChild(child: NormalizedContent, result: FlowParts, session: S
       fail("VDOM_HIERARCHY", child.path, "Use one Flow.Body or direct body children");
     result.bodySlot = true;
     validateDataObject(child.value.props, ["children"], child.path);
-    const input = child.value.props.children;
+    const input = contentChildren(child);
     for (const block of scoped(child, session.operation, () =>
       normalizeBlocks(input, session.operation, `${child.path}/children`),
     ))
@@ -277,7 +281,7 @@ function paginateParts(
     ...(props.extensions ? { extensions: props.extensions } : {}),
   };
   const participating =
-    props.participation && compileParticipation(props.participation, parts.sources!, geometry.body.width, scope);
+    parts.participation && compileParticipation(parts.participation, parts.sources!, geometry.body.width, scope);
   const prepared = participating?.blocks ?? compile(parts.body, geometry.body.width, sourceRoot, scope);
   try {
     return paginate(geometry, prepared, session.operation.policy, { ...session, sourceRoot });

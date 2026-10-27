@@ -31,11 +31,12 @@ test("natural measurement uses complete actual heights above and below the natur
     [0, 0],
   ] as const) {
     const { content, extensions } = fixture(hint, actual);
-    const result = measure(content, { width: 10, height: actual }, { extensions });
+    const result = measure(content, { width: 10, height: actual }, { adapters: extensions });
     assert.equal(result.size.height, actual);
     assert.ok(Object.isFrozen(result));
-    if (actual) rejects(() => measure(content, { width: 10, height: actual / 2 }, { extensions }), "VERTICAL_OVERFLOW");
-    assert.equal(measure(block({ children: [content] }), { width: 10 }, { extensions }).size.height, actual);
+    if (actual)
+      rejects(() => measure(content, { width: 10, height: actual / 2 }, { adapters: extensions }), "VERTICAL_OVERFLOW");
+    assert.equal(measure(block({ children: [content] }), { width: 10 }, { adapters: extensions }).size.height, actual);
   }
 });
 
@@ -59,7 +60,7 @@ test("adapter content measurement shares actual sizes, ceilings, and handle clos
     },
   });
   const extensions = createExtensions([inner.adapter, outer]);
-  assert.equal(measure(extension(outer, {}), { width: 10 }, { extensions }).size.height, 1);
+  assert.equal(measure(extension(outer, {}), { width: 10 }, { adapters: extensions }).size.height, 1);
   rejects(() => retained!(), "MEASUREMENT_CONTEXT");
 });
 

@@ -2,23 +2,24 @@
 import { render } from "@updf/core";
 import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
 import { Document, Flow, layout, Paragraph, Span, pt } from "@updf/layout";
-import { createTextSelection } from "@updf/text/selection";
-import { createPathTextFlow } from "@updf/text-flow/path";
+import { createTextService } from "@updf/text";
+import { floatable, textFlow } from "@updf/text-flow";
+import { Path, pathShapes } from "@updf/text-flow/path";
+const FloatingPath = floatable(Path);
 
 export function pathExample(title: string) {
   const runtime = fontRuntime();
-  const composition = createTextSelection({ runtime, defaultFont: "Helvetica" });
-  const f = createPathTextFlow(composition.capability);
-  const options = { ...composition, resources: { Helvetica: createHelvetica() }, providers: [fontProvider(runtime)] };
+  const options = {
+    text: createTextService({ runtime, defaultFont: "Helvetica" }),
+    extensions: [textFlow({ handlers: [pathShapes()] })],
+    resources: { Helvetica: createHelvetica() },
+    providers: [fontProvider(runtime)],
+  };
   const result = layout(
     <Document>
-      <Flow
-        pageSize={{ width: 480, height: 520 }}
-        margins={{ top: 28, right: 28, bottom: 28, left: 28 }}
-        participation={f.participation}
-      >
+      <Flow pageSize={{ width: 480, height: 520 }} margins={{ top: 28, right: 28, bottom: 28, left: 28 }}>
         <Paragraph style={{ fontSize: 18, lineHeight: pt(24) }}>{title}</Paragraph>
-        <f.Path
+        <FloatingPath
           d="M0 0 H160 L70 48 L140 90 L45 138 L100 180 H0 Z"
           fill="#3498db"
           fillRule="nonzero"

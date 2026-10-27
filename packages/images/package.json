@@ -1,0 +1,135 @@
+{
+  "name": "@updf/images",
+  "version": "2.0.0-poc.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    "./internal-preparation": {
+      "browser": {
+        "types": "./dist/node/internal-preparation.d.mts",
+        "default": "./dist/internal-preparation.js"
+      },
+      "import": {
+        "types": "./dist/node/internal-preparation.d.mts",
+        "default": "./dist/node/internal-preparation.mjs"
+      },
+      "require": {
+        "types": "./dist/node/internal-preparation.d.cts",
+        "default": "./dist/cjs/internal-preparation.js"
+      }
+    },
+    "./cache": {
+      "browser": {
+        "types": "./dist/node/cache.d.mts",
+        "default": "./dist/cache.js"
+      },
+      "import": {
+        "types": "./dist/node/cache.d.mts",
+        "default": "./dist/node/cache.mjs"
+      },
+      "require": {
+        "types": "./dist/node/cache.d.cts",
+        "default": "./dist/cjs/cache.js"
+      }
+    },
+    "./browser-png": {
+      "browser": {
+        "types": "./dist/node/browser-png.d.mts",
+        "default": "./dist/browser-png.js"
+      },
+      "import": {
+        "types": "./dist/node/browser-png.d.mts",
+        "default": "./dist/node/browser-png.mjs"
+      },
+      "require": {
+        "types": "./dist/node/browser-png.d.cts",
+        "default": "./dist/cjs/browser-png.js"
+      }
+    },
+    "./load": {
+      "browser": {
+        "types": "./dist/node/load.d.mts",
+        "default": "./dist/load.js"
+      },
+      "import": {
+        "types": "./dist/node/load.d.mts",
+        "default": "./dist/node/load.mjs"
+      },
+      "require": {
+        "types": "./dist/node/load.d.cts",
+        "default": "./dist/cjs/load.js"
+      }
+    },
+    "./png": {
+      "browser": {
+        "types": "./dist/node/png.d.mts",
+        "default": "./dist/png.js"
+      },
+      "import": {
+        "types": "./dist/node/png.d.mts",
+        "default": "./dist/node/png.mjs"
+      },
+      "require": {
+        "types": "./dist/node/png.d.cts",
+        "default": "./dist/cjs/png.js"
+      }
+    },
+    "./jpeg": {
+      "browser": {
+        "types": "./dist/node/jpeg.d.mts",
+        "default": "./dist/jpeg.js"
+      },
+      "import": {
+        "types": "./dist/node/jpeg.d.mts",
+        "default": "./dist/node/jpeg.mjs"
+      },
+      "require": {
+        "types": "./dist/node/jpeg.d.cts",
+        "default": "./dist/cjs/jpeg.js"
+      }
+    },
+    ".": {
+      "browser": {
+        "types": "./dist/node/index.d.mts",
+        "default": "./dist/index.js"
+      },
+      "import": {
+        "types": "./dist/node/index.d.mts",
+        "default": "./dist/node/index.mjs"
+      },
+      "require": {
+        "types": "./dist/node/index.d.cts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
+  },
+  "dependencies": {
+    "@updf/core": "2.0.0-poc.0",
+    "@updf/layout": "2.0.0-poc.0"
+  },
+  "peerDependencies": {
+    "@updf/assets": "2.0.0-poc.0",
+    "@updf/png": "2.0.0-poc.0",
+    "@updf/jpeg": "2.0.0-poc.0"
+  },
+  "peerDependenciesMeta": {
+    "@updf/assets": {
+      "optional": true
+    },
+    "@updf/png": {
+      "optional": true
+    },
+    "@updf/jpeg": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "build": "tsx ../../scripts/packaging/build.ts"
+  }
+}

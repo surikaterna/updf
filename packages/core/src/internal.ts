@@ -12,8 +12,14 @@ export { contextLayoutOperation, createLayoutOperation } from "./core/layout-ope
 export { measureStandaloneText } from "./core/text-measurement.js";
 export { sealSelectedText, visitNativeLeaf } from "./core/native-leaf.js";
 export type { CapabilityScope } from "./core/operation-capability.js";
-export { bindOperationCapabilityContext, createOperationCapability } from "./core/operation-capability.js";
+export {
+  bindOperationCapabilityContext,
+  createOperationCapability,
+  useOperationExtension,
+} from "./core/operation-capability.js";
+export { defineOperationExtension } from "./core/operation-extension.js";
 export { ownTextOutput } from "./core/text-capture.js";
+export { createTextServiceRequest, checkTextServiceRequest, requestTextService } from "./core/text-service-request.js";
 export { validateMeasurement } from "./core/text-measurement-output.js";
 export { fragments as validateTextFragments } from "./core/text-output-shapes.js";
 export type { Policy } from "./core/policy.js";
@@ -33,6 +39,7 @@ export type { ResolvedPaint } from "./painting/types.js";
 export type { RendererBinding } from "./vdom/context.js";
 export { createRendererContext } from "./vdom/context.js";
 export type { NormalizedContent } from "./vdom/normalize.js";
+export { contentChildren } from "./vdom/normalize.js";
 export { isVNode } from "./vdom/ownership.js";
 export type { SemanticRecipe } from "./vdom/recipes.js";
 export { semanticComponent } from "./vdom/recipes.js";

@@ -25,7 +25,7 @@ export interface SiblingSources {
 export function siblingSources(
   sources: readonly ParticipationSource[],
   context: ParticipationContext,
-  selection: InlineSelectionOperation,
+  selection: InlineSelectionOperation | undefined,
 ): SiblingSources {
   const kernel = createFragmentOperation<Bridge, NonNullable<ReturnType<Bridge["select"]>>>({
     next(bridge, request, work) {
@@ -41,7 +41,7 @@ export function siblingSources(
       const bridge = paragraphContinuation(
         source.author!,
         context.operation,
-        selection,
+        selection ?? fail("MEASUREMENT_CONTEXT", source.path, "Expected selection for an affected Paragraph"),
         context.width,
         context.extensions,
       );

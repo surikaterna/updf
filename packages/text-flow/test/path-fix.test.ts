@@ -12,7 +12,9 @@ import { prepareFragmentPaint } from "../../layout/dist/cjs/fragment-paint-prepa
 import { collectPreparedLines } from "../../layout/dist/cjs/prepared-line-reports.js";
 import type { ContentLine } from "@updf/layout";
 import type { BlockContent } from "@updf/layout";
-import type { FloatingPathProps, FloatingBlockProps } from "@updf/text-flow/path";
+import type { FloatingPathProps } from "@updf/text-flow/path";
+import type { FloatingBlockProps } from "@updf/text-flow";
+import { Source } from "@updf/text-flow/sources";
 import { authoredGeometry } from "../src/path-band.js";
 
 const style = { width: 200, height: 36, float: "left" as const };
@@ -22,7 +24,6 @@ function document(side: "left" | "right", rectangle: boolean, defer = false, tai
     children: h(Flow, {
       pageSize: { width: 220, height: 120 },
       margins: { top: 10, right: 10, bottom: 10, left: 10 },
-      participation: f.participation,
       children: [
         ...(defer ? [h(Block, { style: { height: 70 }, children: null })] : []),
         h(f.Path, { d, fill: "blue", style: { ...style, float: side } }, "contour"),
@@ -71,7 +72,7 @@ for (const side of ["left", "right"] as const)
         const proof = rasterProof(pdf);
         const text = execFileSync("pdftotext", ["-raw", "-", "-"], { input: pdf, encoding: "utf8" });
         assert.equal(text.replace(/\s/gu, ""), tail ? "AAAA" : "A");
-        const dir = `artifacts/text-flow/entry-isolation-after/path-regression/${side}-${rectangle ? "rect" : "slope"}-${tail ? "tail" : "single"}`;
+        const dir = `artifacts/text-flow/manual-shapes-runtime/path-regression/${side}-${rectangle ? "rect" : "slope"}-${tail ? "tail" : "single"}`;
         mkdirSync(dir, { recursive: true });
         writeFileSync(`${dir}/output.pdf`, pdf);
         writeFileSync(`${dir}/output.ppm`, proof.ppm);
@@ -121,7 +122,6 @@ function diagnostic(children: BlockContent[], path: string, code?: string) {
           children: h(Flow, {
             pageSize: { width: 220, height: 120 },
             margins: { top: 10, right: 10, bottom: 10, left: 10 },
-            participation: f.participation,
             children,
           }),
         }),
@@ -145,10 +145,10 @@ test("fillRule defaults only on omission for both authored facades", () => {
     diagnostic(
       [
         h(f.Block, {
-          style: { ...style, shapeOutside: { d: "M0 0H200V36H0Z", fillRule } },
+          style: { ...style, shapeOutside: { kind: "path", d: "M0 0H200V36H0Z", fillRule } },
         } as unknown as FloatingBlockProps),
       ],
-      "/document/children/children/0/style/shapeOutside/fillRule",
+      "/document/children/children/0/style/shapeOutside",
       "VALUE",
     );
   }
@@ -166,14 +166,14 @@ test("parser and color failures retain authored sibling fields and parser offset
     "PAINT",
   );
   diagnostic(
-    [prefix, h(f.Block, { style: { ...style, shapeOutside: { d: "M0 nope" } } })],
+    [prefix, h(f.Block, { style: { ...style, shapeOutside: Source.path("M0 nope") } })],
     "/document/children/children/1/style/shapeOutside/d/3",
     "PATH_SYNTAX",
   );
   diagnostic(
     [prefix, h(f.Block, { style: { ...style, shapeOutside: "M0 nope" } })],
-    "/document/children/children/1/style/shapeOutside/3",
-    "PATH_SYNTAX",
+    "/document/children/children/1/style/shapeOutside",
+    "MEASUREMENT_CONTEXT",
   );
   const unexpected = new TypeError("original host failure");
   assert.throws(

@@ -1,6 +1,8 @@
 import type { WorkLedger } from "../measurement/ledger.js";
 import type { OwnedResource } from "./owned-resource.js";
-import { fail } from "./error.js";
+import { DocumentError, fail } from "./error.js";
+import type { ExtensionSelection } from "./operation-extension.js";
+import type { TextServiceProvider } from "./text-service-request.js";
 
 declare const capabilityBrand: unique symbol;
 /** One explicitly selected, owned operation capability; never a name-based registry. */
@@ -11,6 +13,7 @@ export interface CapabilityScope {
   readonly bindings: ReadonlyMap<string, OwnedResource>;
   readonly budget: WorkLedger;
   readonly check: (path?: string) => void;
+  readonly textProvider?: TextServiceProvider;
 }
 export interface CapabilityOrigin {
   readonly path: string;
@@ -22,11 +25,18 @@ type Factory<T> = (scope: CapabilityScope) => (origin: CapabilityOrigin, check: 
 const factories = new WeakMap<object, Factory<unknown>>();
 const scopes = new WeakSet<object>();
 interface Selection {
+  readonly feature?: object;
   readonly capability: object;
   readonly scope: CapabilityScope;
   bind?: ReturnType<Factory<unknown>>;
+  initializing?: boolean;
+  recursive?: boolean;
 }
-const selections = new WeakMap<object, Selection>();
+interface Selected {
+  readonly legacy?: Selection;
+  readonly extensions?: readonly Selection[];
+}
+const selections = new WeakMap<object, Selected>();
 const contexts = new WeakMap<
   object,
   {
@@ -49,9 +59,10 @@ export function ownOperationCapability(value: unknown): object | undefined {
 }
 export function selectOperationCapability(
   operation: object,
-  capability: object,
+  capability: object | undefined,
   scope: CapabilityScope,
   owner: object,
+  extensions?: readonly ExtensionSelection[],
 ): void {
   const previous = selections.get(owner);
   if (previous) {
@@ -59,7 +70,12 @@ export function selectOperationCapability(
     return;
   }
   scopes.add(scope);
-  const selection = { capability, scope };
+  const selection: Selected = {
+    ...(capability ? { legacy: { capability, scope } } : {}),
+    ...(extensions
+      ? { extensions: extensions.map(({ feature, capability }) => ({ feature, capability, scope })) }
+      : {}),
+  };
   selections.set(owner, selection);
   selections.set(operation, selection);
 }
@@ -76,16 +92,60 @@ export function bindOperationCapabilityContext(
   contexts.set(context, { operation, origin, lifetime });
 }
 export function useOperationCapability<T>(context: object, capability: OperationCapability<T>): T {
+  return useSelection(context, (collection) =>
+    collection?.legacy?.capability === capability
+      ? collection.legacy
+      : collection?.extensions?.find((item) => item.capability === capability),
+  );
+}
+/** Resolve only a feature explicitly selected in the bound operation. */
+export function useOperationExtension<T>(context: object, feature: object): T {
+  return useSelection(context, (collection) => collection?.extensions?.find((item) => item.feature === feature));
+}
+function useSelection<T>(context: object, select: (collection: Selected | undefined) => Selection | undefined): T {
   const binding = contexts.get(context);
   const path = binding?.origin.path ?? "";
   if (!binding || !binding.lifetime.active) fail("MEASUREMENT_CONTEXT", path, "Expected active operation context");
-  const selected = selections.get(binding.operation);
-  if (!selected || selected.capability !== capability)
-    fail("MEASUREMENT_CONTEXT", path, "Operation capability is not selected");
+  const collection = selections.get(binding.operation);
+  const selected = select(collection);
+  if (!selected) fail("MEASUREMENT_CONTEXT", path, "Operation capability is not selected");
   selected.scope.check(path);
-  selected.bind ??= factories.get(capability)!(selected.scope);
-  return selected.bind(binding.origin, () => {
+  initialize(selected, path);
+  return selected.bind!(binding.origin, () => {
     if (!binding.lifetime.active) fail("MEASUREMENT_CONTEXT", binding.origin.path, "Operation context has closed");
     selected.scope.check(binding.origin.path);
   }) as T;
+}
+function initialize(selected: Selection, path: string): void {
+  if (selected.bind) return;
+  if (selected.initializing) {
+    selected.recursive = true;
+    fail("MEASUREMENT_CONTEXT", path, "Recursive operation capability initialization");
+  }
+  selected.initializing = true;
+  let active = true;
+  const scope: CapabilityScope = {
+    ...selected.scope,
+    check(path) {
+      if (!active) fail("MEASUREMENT_CONTEXT", path ?? "", "Capability initialization has failed");
+      selected.scope.check(path);
+    },
+  };
+  scopes.add(scope);
+  try {
+    const bind = factories.get(selected.capability)!(scope);
+    if (selected.recursive) fail("MEASUREMENT_CONTEXT", path, "Recursive operation capability initialization");
+    if (typeof bind !== "function") fail("MEASUREMENT_CONTEXT", path, "Expected operation capability binding");
+    selected.bind = bind;
+  } catch (error) {
+    active = false;
+    if (error instanceof DocumentError && error.diagnostics[0]?.path === "") {
+      const diagnostic = error.diagnostics[0];
+      throw new DocumentError(diagnostic.code, path, diagnostic.message, diagnostic);
+    }
+    throw error;
+  } finally {
+    selected.initializing = false;
+    selected.recursive = false;
+  }
 }

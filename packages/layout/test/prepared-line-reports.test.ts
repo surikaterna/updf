@@ -30,9 +30,9 @@ test("line reports follow selected preceding heights, not natural-size hints", (
   });
   const extensions = createExtensions([adapter]);
   const children = [extension(adapter, {}), paragraph({ children: "after" })];
-  assert.equal(measure(children, { width: 100 }, { extensions }).lines[0]!.top, 1);
+  assert.equal(measure(children, { width: 100 }, { adapters: extensions }).lines[0]!.top, 1);
   const nested = block({ style: { padding: 1 }, children });
-  assert.equal(measure(nested, { width: 100 }, { extensions }).lines[0]!.top, 2);
+  assert.equal(measure(nested, { width: 100 }, { adapters: extensions }).lines[0]!.top, 2);
 });
 
 test("equal-height Row line reports retain logical left-to-right source order", () => {

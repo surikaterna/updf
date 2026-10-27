@@ -3,16 +3,24 @@ import test from "node:test";
 import { DocumentError, render } from "@updf/core";
 import { h } from "@updf/core/vdom";
 import { Document, Flow, Paragraph, Block, PageBreak, Row, Column, layout, flow, document } from "@updf/layout";
-import { createTextFlow } from "@updf/text-flow";
+import { siblingParticipation } from "../src/sibling.js";
+import { rectanglePolicy } from "../src/rectangle-policy.js";
 import { siblingFlow as f, siblingOptions as options } from "../../../tests/fixtures/text-flow/siblings.js";
 import { execFileSync } from "node:child_process";
 
 const margins = { top: 0, right: 0, bottom: 0, left: 0 };
 const float = (style: object = {}) =>
   h(f.Block, { style: { width: 72, height: 36, float: "left", backgroundColor: [0.2, 0.4, 0.6], ...style } } as never);
-function run(children: unknown, participation: unknown = f.participation, height = 180) {
+function run(children: unknown, participation?: unknown, height = 180) {
   return layout(
-    h(Document, { children: h(Flow, { pageSize: { width: 200, height }, margins, participation, children } as never) }),
+    h(Document, {
+      children: h(Flow, {
+        pageSize: { width: 200, height },
+        margins,
+        ...(participation ? { participation } : {}),
+        children,
+      } as never),
+    }),
     options,
   );
 }
@@ -64,14 +72,14 @@ test("one-float restriction rejects a second marker rather than silently ending 
   assert.throws(() => run([float(), text("one"), float(), text("two")]), /Only one floating block/u);
 });
 test("participation ownership rejects copies, foreign factories, missing installation, and nested markers", () => {
-  const other = createTextFlow(options.capability);
-  assert.throws(() => run([float()], Object.freeze({ ...f.participation })), DocumentError);
+  const other = siblingParticipation(options.capability, rectanglePolicy);
+  assert.throws(() => run([float()], Object.freeze({ ...other.participation })), DocumentError);
   assert.throws(() => run([h(other.Block, { style: { width: 10, height: 10, float: "right" } })]), DocumentError);
   assert.throws(
     () =>
       layout(
         h(Document, { children: h(Flow, { pageSize: { width: 200, height: 180 }, margins, children: float() }) }),
-        options,
+        { ...options, extensions: [] },
       ),
     DocumentError,
   );
@@ -105,7 +113,6 @@ test("the data Flow path snapshots and retains a locally owned participation han
       children: flow({
         pageSize: { width: 200, height: 180 },
         margins,
-        participation: f.participation,
         children: [float(), text("data flow")],
       }),
     }),

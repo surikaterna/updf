@@ -7,46 +7,53 @@ the existing text/font capability. This is numeric PDF layout, not browser CSS.
 
 ```tsx
 /** @jsxImportSource @updf/core */
-import { render } from "@updf/core";
+import { render } from "@updf/layout/render";
 import { createHelvetica, fontProvider, fontRuntime } from "@updf/fonts";
-import { Document, Flow, Paragraph, Span, layout } from "@updf/layout";
-import { createTextSelection } from "@updf/text/selection";
-import { createTextFlow } from "@updf/text-flow";
+import { Block, Document, Flow, Paragraph, Span } from "@updf/layout";
+import { createTextService } from "@updf/text";
+import { floatable, textFlow } from "@updf/text-flow";
 
 const runtime = fontRuntime();
-const composition = createTextSelection({ runtime, defaultFont: "Helvetica" });
-const f = createTextFlow(composition.capability);
+const text = createTextService({ runtime, defaultFont: "Helvetica" });
+const FloatingBlock = floatable(Block);
 const options = {
-  ...composition,
+  text,
+  extensions: [textFlow()],
   resources: { Helvetica: createHelvetica() },
   providers: [fontProvider(runtime)],
 };
-const result = layout(
+const pdf = render(
   <Document>
     <Flow pageSize={{ width: 220, height: 260 }}
-      margins={{ top: 10, right: 10, bottom: 10, left: 10 }}
-      participation={f.participation}>
-      <f.Block style={{ width: 72, height: 96, float: "left",
-        shapeOutside: "rect", backgroundColor: [0.2, 0.4, 0.6] }} />
+      margins={{ top: 10, right: 10, bottom: 10, left: 10 }}>
+      <FloatingBlock style={{ width: 72, height: 96, float: "left",
+        backgroundColor: [0.2, 0.4, 0.6] }} />
       <Paragraph>Rich <Span style={{ color: [1, 0, 0] }}>styled</Span> text alongside a real Block.</Paragraph>
       <Paragraph>{"Ordinary text continues at full width below the float. ".repeat(20)}</Paragraph>
     </Flow>
   </Document>, options,
 );
-const pdf = render(result.document, options);
 ```
 
-- `createTextFlow(existingCapability)` returns only `{ Block, participation }`; it does not
-  install a second text service. Put that exact opaque participation handle on the
-  Flow containing the marked Block. No global installation or adapter set is needed
-  for this sibling feature. Ordinary inline adapters still use `extensions` normally.
-- One marked Block per Flow, as a **direct body sibling**. Consecutive ordinary,
+- `textFlow()` installs rectangle participation through operation `options.extensions`.
+  `floatable(Block)` accepts the actual layout Block, preserving its children,
+  style and painter without an extra box. It takes no service or per-Flow handle.
+  The configured ordinary service must support the optional selection request;
+  `createTextService` does, using its existing font resolver and default font.
+  Unused installation remains lazy; duplicate feature installations reject.
+- `@updf/layout/render` runs existing layout then existing core serialization, with
+  independent lifetimes, snapshots and budgets. Resources, providers and service
+  identities are reused, not a single ledger. Core render remains fixed-document-only.
+  Natural `measure` adapter sets now use `options.adapters`, not `extensions`;
+  `Flow.extensions` remains an adapter set. No compatibility alias is provided.
+- One floating Block or Path per Flow, as a **direct body sibling**. Consecutive ordinary,
   non-kept Paragraphs participate. A Block, Row, kept Paragraph or PageBreak ends the
-  affected sequence; later content is ordinary. A second marker rejects explicitly.
+  affected sequence; later content is ordinary. A second float rejects explicitly.
   Flow.Body and nested marked Blocks are not supported by this bounded API.
 - Explicit finite positive `width`/`height`, `float: "left" | "right"`, and optional
-  `shapeOutside: "rect"` (default on omission only). Explicit `undefined` rejects.
-  Straight paths require the explicit `/path` entry below. Dimensions must fit the body. Float margins
+  `shapeOutside` source descriptor (rectangle on omission only). Explicit `undefined`,
+  `"rect"`, bare SVG path strings and old `{ d, fillRule }` objects reject.
+  Manual contours require the explicit handlers below. Dimensions must fit the body. Float margins
   and auto alignment reject; no top offsets, wrap gaps or multiple floats.
   Other supported Block styles, children and decorations use the existing Block
   normalizer, box measurement, preparation and painter, not a separate visual path.
@@ -72,14 +79,18 @@ for exact gates, measured nonzero layout/addon costs and limitations.
 
 ## A real filled Path with the same Paragraph siblings
 
-Select the path entry explicitly, using the same selection capability and operation
-options. Its Block accepts the full contour grammar; the root Block does not.
+Install the geometry handler once in the same operation options as the ordinary
+text service. No capability pair or per-Flow participation handle is needed:
 
 ```tsx
-import { createPathTextFlow } from "@updf/text-flow/path";
-const f = createPathTextFlow(composition.capability);
-// Use this exact f.participation on the containing Flow.
-<f.Path
+import { Path, pathShapes } from "@updf/text-flow/path";
+import { Source } from "@updf/text-flow/sources";
+import { shapeSyntax } from "@updf/text-flow/syntax";
+const FloatingPath = floatable(Path);
+const shapedOptions = { ...options,
+  extensions: [textFlow({ handlers: [pathShapes(), shapeSyntax()] })] };
+// Pass shapedOptions to layout/render for the whole document.
+<FloatingPath
   key="illustration"
   d="M0 0 H100 L20 96 H0 Z"
   fill="#3498db"
@@ -93,24 +104,50 @@ const f = createPathTextFlow(composition.capability);
 `Path` is fill-only: `fill` accepts an RGB triple or the existing geometry color
 grammar (hex, rgb/rgba, its small named-color set, `none`/`transparent`). Optional
 `fillRule` is `nonzero` (default on omission only) or `evenodd`; explicit `null`
-or `undefined` rejects, including in a `shapeOutside` object. Stroke, transforms, children and
+or `undefined` rejects, including in Source builder options. Stroke, transforms, children and
 other escaping-outline props reject. The same normalized command capture paints
 and supplies the exclusion; no virtual float or native-node array is needed.
 Geometry stays reserved even for transparent/no fill. Path style admits explicit
-width/height/float and the existing min/max width/height constraints only.
+width/height/float, optional shapeOutside, and the existing min/max width/height constraints only.
+Ordinary `<Path d={...} fill={...} style={{ width, height }} />` uses the same retained
+Block preparation and geometry handler without floating metadata. Multiple ordinary
+Paths are allowed and are barriers to floating text. Even ordinary Path requires
+`textFlow({ handlers: [pathShapes()] })`; it needs no font runtime or text provider.
+Text selection is requested lazily only when a float has affected Paragraph siblings.
 
-For an arbitrary real visual, keep `f.Block` and author its contour explicitly:
+For an arbitrary real visual, use `FloatingBlock` and author its contour explicitly:
 
 ```tsx
-<f.Block style={{ width: 100, height: 96, float: "right",
-  shapeOutside: { d: "M0 0 H100 V96 H80 Z", fillRule: "nonzero" } }}>
+<FloatingBlock style={{ width: 100, height: 96, float: "right",
+  shapeOutside: Source.path("M0 0 H100 V96 H80 Z", { fillRule: "nonzero" }) }}>
   {/* ordinary Block children/decorations; the contour is not alpha extraction */}
-</f.Block>
+</FloatingBlock>
 ```
 
-On `/path`, `shapeOutside` is `"rect" | string | { d, fillRule? }`. A string is SVG path data,
-**never a URL**. Only this addon entry loads `@updf/geometry`; the root, `/atomic`,
-and core/ordinary layout/text do not acquire a path parser. Only normalized move/line/close
+`Source.path(d, { fillRule? })`, `Source.polygon(flatCoordinates, { fillRule? })` and
+`Source.url(src)` return immutable plain data, not installed handles. `/sources`
+has no core, geometry, assets or font runtime imports. Builders validate data and
+throw `TypeError`; document consumption recaptures descriptors with sourced diagnostics.
+Polygons accept 3–4095 finite numeric coordinate pairs (at most 8190 flat values),
+using the existing native polygon normalizer, never generated SVG strings.
+Fill rules default only on omission; explicit null/undefined is invalid.
+
+The optional `shapeSyntax()` handler accepts `path('M0 0 ... Z')`,
+`url("https://example.invalid/image.png")` and `polygon(0 0, 100 0, 20 96)`.
+Quotes must match; only escaped matching quotes and backslashes are supported.
+Polygon numbers are finite point values: no CSS units, nesting or fill-rule argument
+such as `path(evenodd, '...')`. Strings require this handler; Source descriptors do not.
+URL descriptors remain pure data. Resolution requires the separately selected
+`pngAlphaShapes()` integration below and async preparation; without that handler
+they reject without I/O.
+
+Only `/path` loads `@updf/geometry`; rectangle-only root, `/atomic`,
+and core/ordinary layout/text do not acquire a path parser. The polygon handler
+retains the existing shared geometry parser module; descriptor-only `/sources` does not.
+Missing geometry/syntax installations reject at the authored source; duplicate,
+copied or foreign handler identities reject. Configuration is snapshotted per installer,
+then shared through the operation's existing capability lifecycle owner.
+Only normalized move/line/close
 commands, explicitly closed nonempty non-collinear subpaths inside the **resolved**
 local Block dimensions are accepted. Relative commands and H/V work. Cubics
 (including normalized curves/arcs), open/empty/degenerate/out-of-box contours
@@ -132,9 +169,9 @@ bottom; an authored rectangle **path** keeps strict contact and predecessor-roun
 side widths. Parser/color diagnostics retain
 the authored sibling's `d`, `fill` or `shapeOutside` field and parser offset.
 
-The runtime is implemented pending independent audit; exact evidence, geometry
-limits and nonzero retained-code costs are in
-[`text-flow-side-path.md`](../../docs/evidence/text-flow-side-path.md).
+S3 engineering status and current gates/costs are recorded in
+[`text-flow-manual-shapes.md`](../../docs/evidence/text-flow-manual-shapes.md).
+Historical side-path evidence remains an immutable record of the earlier API.
 
 ## Experimental atomic composition (explicit entry)
 
@@ -235,16 +272,98 @@ There are no composition methods on universal layout contexts. Missing or differ
 selected capabilities fail with `MEASUREMENT_CONTEXT` at the adapter origin.
 No service-identity lookup, automatic installation or global adapter is provided.
 
-## S1 static entry isolation
+## Static entry isolation and migration
 
-Use `@updf/text/selection` for sibling-only documents. `/composition` remains a
-combined atomic + inline capability: mixed consumers may pass that **one** capability
-to all explicit factories, with one service closure/runtime and unchanged shared
-work accounting. The atomic adapter name/identity remains `updf.text-flow`.
-Root exports only `createTextFlow` and rectangle `FloatingBlockProps`; `/path`
-exports `createPathTextFlow`, full `FloatingBlockProps`, `FloatingPathProps` and
-`SideShape`; `/atomic` owns `createAtomicTextFlow`, `TextFlowProps` and exclusion types.
+The central path uses the ordinary `createTextService` and its optional selection
+request. `@updf/text/selection` and `/composition` remain supported selected service
+installers, but are not required pairs for central sibling flow. The separate legacy
+atomic adapter still takes its owned capability; its name remains `updf.text-flow`.
+Root exports `textFlow`, `floatable`, `FloatingBlockProps` and handler option types;
+`/path` exports `Path`, `pathShapes`, `PathProps` and `FloatingPathProps`.
+`createPathTextFlow` is removed, not aliased. `/sources` owns pure Source builders
+and descriptor types; `/syntax` owns `shapeSyntax`.
+`/atomic` owns `createAtomicTextFlow`, `TextFlowProps` and exclusion types.
 There is no dynamic loader or registry. Browser entries are ESM; Node import facades
 still share the existing CJS implementations with require, not genuine Node ESM
-tree-shaking. These temporary explicit contracts precede S2's canonical migration;
-S2 is not implemented here. See [S1 evidence](../../docs/evidence/text-flow-entry-isolation.md).
+tree-shaking. The explicit atomic route remains a paired legacy contract;
+separate Flows may coexist, but two participation compiler families in
+one Flow reject. See [S2 evidence](../../docs/evidence/text-flow-central-registration.md).
+# Optional prepared PNG geometry
+
+Select `preparePngShape` from `@updf/text-flow/png-shape` and explicitly install
+same-version `@updf/png` to extract exact intrinsic pixel-cell geometry from an
+owned prepared PNG. Defaults are `shapeImageThreshold: 0`, `maxPixels: 16_000_000`
+and `maxCommands: 4096`; budgets are lower-only, and `signal` uses PNG's structural
+abort contract. The deeply immutable result is tagged `empty` or `contours`; the
+latter contains native `commands` and `fillRule: "nonzero"`, directly usable by
+the native path painter. No SVG string conversion is required. Omit absent fields,
+not explicit undefined/null. This is **not** a shape handler or automatic URL/image
+shape-outside support; default/manual-path users do not install or load PNG.
+See [S7a contracts, bounds and evidence](../../docs/evidence/png-alpha-shapes.md).
+
+## Automatic PNG URL masks (selected integration)
+
+`/png-shape` stays extraction-only. Select the **separate** `/png-alpha` leaf for
+automatic resource preparation, and install same-version optional `@updf/images`
+and `@updf/png` peers:
+
+```tsx
+import { Image } from "@updf/images";
+import { images, createAssetLoader } from "@updf/images/load";
+import { pngImages } from "@updf/images/png";
+import { renderAsync } from "@updf/layout/async";
+import { floatable, textFlow } from "@updf/text-flow";
+import { pngAlphaShapes } from "@updf/text-flow/png-alpha";
+import { Source } from "@updf/text-flow/sources";
+const FloatingImage = floatable(Image);
+const maskOptions = { ...options, extensions: [
+  images({ loader: createAssetLoader({ fetch: globalThis.fetch, baseURI: "https://example.invalid/" }),
+    formatHandlers: [pngImages()] }),
+  textFlow({ handlers: [pngAlphaShapes()] }),
+] };
+// Inside the same ordinary Document/Flow:
+<FloatingImage src="portrait.png" fit="contain"
+  style={{ width: 100, height: 96, float: "left",
+    shapeOutside: Source.url("portrait.png"), shapeImageThreshold: 0.15 }} />
+// await renderAsync(document, maskOptions)
+```
+
+Add `pathShapes` only for manual paths and `shapeSyntax` only for string syntax,
+using the imports shown above; neither is needed for this `Source.url` example.
+Fetching is explicitly enabled on the loader; the example base URI is a placeholder.
+An optional `allowUri` policy can further restrict resolved URLs.
+URL syntax invokes that selected syntax owner during capture, charging
+its real parsing work before any await. Missing syntax/loading services reject at
+the authored occurrence before fetching. Duplicate resource handlers reject before
+I/O. A mask URL may differ from the visual URL, including for an already-bound
+visual Image; a floating Block can request a mask without a visual Image at all.
+JPEG mask resources reject private PNG authentication; there is no rectangular
+fallback. The mask never becomes an extra painted/embedded image.
+
+`shapeImageThreshold` is finite numeric `[0,1]`, default **only on omission** to zero;
+undefined/null reject even for non-URL shapes. It applies only to URL masks and
+never changes manual geometry or image painting. Cells are occupied exactly when
+`alpha / 255 > threshold`. Opaque PNGs give a full rectangle unless threshold is
+one. Empty masks have zero obstruction, but the real positive-height visual still
+participates in ordinary native body admission and paints once.
+
+The mask's intrinsic unit square stretches to the Image's **actual painted
+rectangle**, independently of mask aspect ratio, including contain letterboxing,
+padding/borders and resolved constraints. A generic Block uses its outer border
+box, not descendant Image geometry. URL masks initially support Image and Block;
+Path and other owned visuals reject before I/O. Only positive scale/translation
+is supported. Holes/islands remain in intrinsic commands, but the complete rich
+line box/ink band takes only the **outer left/right projection**: text does not
+enter holes or negotiate center lanes. No margin, curve or transform API is added.
+
+`pngAlphaShapes({ maxPixels?, maxCommands? })` captures immutable lower-only
+positive-safe-integer caps, default/ceiling **16,000,000 pixels and 4,096 commands
+per operation**, not per call. Exact resource + exact threshold hits skip repeated
+inspection/generation; `-0` and `0` remain distinct identities. Different thresholds
+inspect again and accumulate charges. Command exhaustion rejects conservatively
+before another extraction, even if that extraction might be empty. Cross-render
+image cache hits avoid transport/PNG decode but still inspect shapes afresh.
+Retained mask bytes and private owned geometry both count against resource bytes;
+empty geometry has a nonzero header charge. No raw alpha plane or contour cache
+is retained globally. Default entries load no Image/asset/PNG runtime, and the
+integration leaf itself loads neither transport nor PNG decoder/normalizer.

@@ -34,8 +34,8 @@ async function scenario(page: Page, side: "left" | "right") {
   const bytes = await pdf(page, `text-flow-showcase-${side}.pdf`);
   assert.match(await page.locator("#demo-purpose").innerText(), /license unknown/);
   assert.ok((await page.locator("#status").innerText()).includes(wrappingNotice));
-  assert.ok((await page.locator("#source").textContent())?.includes("createPathTextFlow(composition.capability)"));
-  assert.match((await page.locator("#source").textContent())!, /shapeOutside:\s*"M46 0 L/);
+  assert.ok((await page.locator("#source").textContent())?.includes("floatable(Block)"));
+  assert.match((await page.locator("#source").textContent())!, /shapeOutside:\s*Source\.path\(\s*"M46 0 L/);
   const count = await page.locator("#preview canvas").count();
   assert.ok(count >= 2);
   await rendered(page, count);
@@ -84,7 +84,7 @@ async function contourGeometry(page: Page, path: string, side: "left" | "right")
 }
 
 async function overlay(page: Page, words: number[][], side: "left" | "right") {
-  const d = /shapeOutside:\s*"([^"]+)"/.exec((await page.locator("#source").textContent())!)![1]!;
+  const d = /shapeOutside:\s*Source\.path\(\s*"([^"]+)"/.exec((await page.locator("#source").textContent())!)![1]!;
   const canvas = page.locator("#preview canvas").first();
   await canvas.evaluate(
     (element, { d, words, side }) => {
@@ -112,7 +112,7 @@ async function overlay(page: Page, words: number[][], side: "left" | "right") {
 
 async function artworkPixels(page: Page, words: number[][], side: "left" | "right") {
   const source = (await page.locator("#source").textContent())!;
-  const d = /shapeOutside:\s*"([^"]+)"/.exec(source)![1]!;
+  const d = /shapeOutside:\s*Source\.path\(\s*"([^"]+)"/.exec(source)![1]!;
   const result = await page.evaluate(
     async ({ url, words, side, d }) => {
       const bitmap = await createImageBitmap(await (await fetch(url)).blob());
@@ -154,7 +154,8 @@ async function pathScenario(page: Page) {
   await page.getByLabel("Example", { exact: true }).selectOption("text-flow-path");
   const bytes = await pdf(page, "text-flow-showcase-path.pdf");
   const source = await page.locator("#source").textContent();
-  assert.match(source!, /<f.Path/);
+  assert.match(source!, /<FloatingPath/);
+  assert.match(source!, /floatable\(Path\)/);
   assert.match(source!, /d="M0 0 H160 L70 48/);
   assert.doesNotMatch(source!, /fixed|EeveeImage|nativeLeaf/);
   assert.doesNotMatch(new TextDecoder().decode(bytes), /\/Subtype \/Image/);
@@ -162,7 +163,7 @@ async function pathScenario(page: Page) {
   execFileSync("qpdf", ["--check", path]);
   const text = execFileSync("pdftotext", ["-raw", path, "-"], { encoding: "utf8" });
   assert.match(normalize(text), /A real filled Path\. One authored geometry paints and wraps\./);
-  assert.doesNotMatch(text, /<f.Path|createTextFlow|shapeOutside/);
+  assert.doesNotMatch(text, /<FloatingPath|createTextFlow|shapeOutside/);
   await rendered(page, await page.locator("#preview canvas").count());
   const blue = await page
     .locator("#preview canvas")

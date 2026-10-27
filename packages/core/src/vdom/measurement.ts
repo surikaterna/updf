@@ -1,15 +1,15 @@
-import { fail } from "../core/error.js";
 import { bindLayoutContext, layoutOperation } from "../core/layout-operation.js";
 import { bindOperationCapabilityContext } from "../core/operation-capability.js";
 import { textService } from "../core/text-resources.js";
 import type { TextMeasurementInput } from "../measurement/types.js";
 import type { State } from "./state.js";
 import type { ComponentContext } from "./types.js";
+import { checkState } from "./lifetime.js";
 
 export function measurementContext(state: State, path: string): ComponentContext {
   const measurement = Object.freeze({
     measureText: (input: TextMeasurementInput) => {
-      if (state.closed) fail("MEASUREMENT_CONTEXT", `${path}/measurement`, "Lowering operation has closed");
+      checkState(state, `${path}/measurement`);
       return textService(state.fonts, "/measurement").measure(
         input,
         { bindings: state.fonts.bindings, budget: state.budget },

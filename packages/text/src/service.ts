@@ -6,6 +6,7 @@ import { rich } from "./measure.js";
 import { measurementClosure, type TextMeasurerOptions } from "./measurer.js";
 import { fontId } from "./text-resources.js";
 import { effectiveStyle, validateInput, validateStyle } from "./validate.js";
+import { serviceProvider } from "./service-request.js";
 
 export interface TextServiceOptions extends TextMeasurerOptions {
   readonly defaultFont?: string;
@@ -21,6 +22,7 @@ export function serviceClosure(options: TextServiceOptions) {
     fail("TYPE", "/text/defaultFont", "Expected font id");
   const { fonts, measure } = measurementClosure(ownDataValue(options, "runtime", "/text/runtime"), defaultFont);
   const service = Object.freeze({
+    provide: serviceProvider(fonts),
     measure,
     validate(input, context, path) {
       validateInput(input, fonts(context), context.budget, path);

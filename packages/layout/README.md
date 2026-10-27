@@ -20,7 +20,14 @@ exercises data layout/measurement, paged tables and the kernel subpaths.
 
 Import `Document`, `Page`, `Flow`, `Block`, `Paragraph`, `Span`, `Row`, `Column`, `PageSize`,
 `PageContext`, `FragmentContext`, `layout`, `measure`, data constructors,
-decorations and adapter contracts from the root. Use core's JSX runtime and renderer.
+decorations and adapter contracts from the root. Use core's JSX runtime. The optional
+`@updf/layout/render` entry exports synchronous `render(content, options?: LowerOptions)`
+for one authored Document with Page/Flow sections. It returns PDF bytes by invoking
+existing `layout`, then existing core `render`; it is not re-exported from the root.
+The two operations have independent snapshots, lifetimes and budgets, not one ledger.
+Original resource/provider/service identities are reused. Only lowering-only
+`registry` and `resourceMetadata` fields are omitted before core's strict validation.
+Trusted callback side effects between stages retain ordinary two-stage semantics.
 The transitional `/vdom`, `/tables`, `/tables/vdom`, `layoutFlow`,
 `layoutFlowUnknown` and `Flow.Document` exports are removed without a facade.
 See [migration](../../docs/authoring-migration.md).
@@ -75,7 +82,10 @@ const bytes = render(result.document, options);
 `layout` accepts core `LowerOptions`, including local registry/metadata. It returns
 deeply frozen `{ document, pageCount, placements }`; serialize the ordinary fixed
 core document explicitly. Pass the same resources/policy to layout/lower and render;
-render accepts `RenderOptions`, not lowering-only registry/metadata fields.
+core render accepts `RenderOptions`, not lowering-only registry/metadata fields.
+For natural `measure`, local adapter sets use `options.adapters`; operation
+`options.extensions` is the opaque installation list, while `Flow.extensions` still
+holds the local adapter set. The former measure `extensions` adapter key is removed.
 Prepared resources are owned handles, never font bytes or implicit fallback.
 
 ## Semantics

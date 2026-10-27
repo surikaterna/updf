@@ -7,6 +7,9 @@ export function textFlowCostInputs(): Record<string, string> {
     ordinaryText: existing.helvetica!,
     preparedFont: existing.prepared!,
     jpeg: jpegCostInputs().jpeg!,
+    authoredRender: `import {render} from '@updf/layout/render';
+      import {document,page} from '@updf/layout';
+      export const pdf=render(document({children:page({size:{width:100,height:100},children:[]})}));`,
     textFlow: `import {layout,document,flow,createExtensions,extension} from '@updf/layout';
       import {createAtomicTextFlow} from '@updf/text-flow/atomic';
       import {createTextComposition} from '@updf/text/composition';

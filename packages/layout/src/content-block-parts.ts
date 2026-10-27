@@ -1,4 +1,10 @@
-import { fail, type LayoutOperation, type NormalizedContent, validateDataObject as record } from "@updf/core/internal";
+import {
+  contentChildren,
+  fail,
+  type LayoutOperation,
+  type NormalizedContent,
+  validateDataObject as record,
+} from "@updf/core/internal";
 import { dataRecipe } from "./content-data.js";
 import { checkRole } from "./content-normalize.js";
 import { blockBodyIdentity, blockFooterIdentity, blockHeaderIdentity, deferredPlan } from "./deferred-decoration.js";
@@ -30,7 +36,7 @@ function appendBlockChild(child: NormalizedContent, parts: BlockParts, operation
     parts.seen.add(identity);
     parts.explicitBody = true;
     record(child.value.props, ["children"], child.path);
-    const input = child.value.props.children;
+    const input = contentChildren(child);
     const normalized = operation.scoped(child.scope, () =>
       operation.normalizeContent(
         input,

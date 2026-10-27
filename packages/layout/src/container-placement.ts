@@ -6,6 +6,13 @@ import type { StackPiece, StackSelection } from "./stack.js";
 
 export type ContainerChildPlacement = FragmentChild;
 
+/** Shared canonical child-to-border-box translation, independent of native capacity certificates. */
+export function containerChildOrigin(box: Sizing, left = 0, top = 0) {
+  return Object.freeze({ x: childX(box, left), y: childTop(box, top) });
+}
+const childX = (box: Sizing, left: number) => sum([box.inset.left, left]);
+const childTop = (box: Sizing, top: number) => sum([box.inset.top, top]);
+
 function childY(
   piece: StackPiece,
   box: Sizing,
@@ -21,7 +28,7 @@ function childY(
   const allocation = piece.interval
     ? materializeGeneratedInterval(piece.interval, box.inset.top, { sourceStart: 0, sourceEnd }, path)
     : undefined;
-  const y = allocation ? allocation.start : sum([box.inset.top, piece.top]);
+  const y = allocation ? allocation.start : childTop(box, piece.top);
   const nativeEnd = y + (allocation ? allocation.allocationExtent : piece.fragment.height);
   if (nativeEnd > height - box.inset.bottom)
     fail("GEOMETRY", path, "Materialized child exceeds its reserved content region");
@@ -40,7 +47,7 @@ export function prepareContainerPlacements(
     selection.pieces.map((piece) => {
       const fragment = piece.fragment;
       const y = childY(piece, box, selection.height, height, hidden, path);
-      const x = sum([box.inset.left, piece.left ?? 0]);
+      const x = childX(box, piece.left ?? 0);
       return Object.freeze({
         fragment,
         x,
